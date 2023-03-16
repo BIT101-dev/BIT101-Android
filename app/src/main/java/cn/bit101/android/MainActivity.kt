@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.ui.theme.BIT101Theme
+import cn.bit101.android.view.Schedule
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -78,20 +79,15 @@ fun MainContent() {
                 Schedule()
             }
             composable("home") {
-                Home()
+                Wall()
             }
         }
     }
 }
 
 @Composable
-fun Schedule() {
-    Text(text = "Schedule")
-}
-
-@Composable
-fun Home() {
-    Text(text = "Home")
+fun Wall() {
+    Text(text = "Wall")
 }
 
 @Preview(showBackground = true)
