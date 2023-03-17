@@ -3,15 +3,14 @@ package cn.bit101.android.ui.component
 import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.updateTransition
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,7 +36,7 @@ data class TabPagerItem(
     val content: @Composable () -> Unit
 )
 
-@OptIn(ExperimentalPagerApi::class)
+@OptIn(ExperimentalPagerApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun TabPager(items: List<TabPagerItem>) {
     val pagerSate = rememberPagerState(0)
@@ -86,8 +85,14 @@ fun TabPager(items: List<TabPagerItem>) {
                 )
             }
         }
-        HorizontalPager(count = items.size, state = pagerSate) { index ->
-            items[index].content()
+        //禁用overscroll阴影效果
+        CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
+            HorizontalPager(
+                count = items.size,
+                state = pagerSate,
+            ) { index ->
+                items[index].content()
+            }
         }
     }
 }

@@ -41,7 +41,7 @@ fun MainContent() {
 
     // 底部导航栏
     val routes = listOf(
-        Screen("schedule", "日程", Icons.Rounded.Event),
+        Screen("schedule", "卷", Icons.Rounded.Event),
         Screen("home", "墙", Icons.Rounded.Dashboard)
     )
 
