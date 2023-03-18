@@ -1,6 +1,7 @@
 package cn.bit101.android.net
 
-import net.gotev.cookiestore.InMemoryCookieStore
+import cn.bit101.android.App
+import net.gotev.cookiestore.SharedPreferencesCookieStore
 import net.gotev.cookiestore.okhttp.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import java.net.CookieManager
@@ -15,7 +16,8 @@ class HttpClient {
     companion object {
         val cookieManager by lazy {
             CookieManager(
-                InMemoryCookieStore("demo"),
+//                InMemoryCookieStore("demo"),
+                SharedPreferencesCookieStore(App.context, "Cookie"),
                 CookiePolicy.ACCEPT_ALL
             )
         }

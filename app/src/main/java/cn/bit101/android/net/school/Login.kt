@@ -43,43 +43,51 @@ private suspend fun encryptPassword(password: String, salt: String): String? {
 
 }
 
+// 需要在主线程调用
 suspend fun login(username: String, password: String): Boolean {
     try {
-        val client = HttpClient.client
+        withContext(Dispatchers.IO) {
+            val client = HttpClient.client
 
-        val initLoginRequest = Request.Builder()
-            .url(schoolLoginUrl)
-            .build()
-        var cryptPassword = ""
-        var execution = ""
-        client.newCall(initLoginRequest).execute().use { response ->
-            val html = response.body?.string() ?: throw Exception("get login init response error")
-            val doc = Jsoup.parse(html)
-            val form = doc.select("#pwdFromId")
-            val salt = form.select("#pwdEncryptSalt").attr("value")
-            execution = form.select("#execution").attr("value")
-            cryptPassword = encryptPassword(password, salt) ?: throw Exception("encrypt password error")
-        }
+            // 登录初始化
+            val initLoginRequest = Request.Builder()
+                .url(schoolLoginUrl)
+                .build()
+            var cryptPassword = ""
+            var execution = ""
+            client.newCall(initLoginRequest).execute().use { response ->
+                val html =
+                    response.body?.string() ?: throw Exception("get login init response error")
+                val doc = Jsoup.parse(html)
+                val form = doc.select("#pwdFromId")
+                val salt = form.select("#pwdEncryptSalt").attr("value")
+                execution = form.select("#execution").attr("value")
+                cryptPassword =
+                    encryptPassword(password, salt) ?: throw Exception("encrypt password error")
+            }
 
-        val body = FormBody.Builder()
-            .add("username", username)
-            .add("password", cryptPassword)
-            .add("execution", execution)
-            .add("captcha", "")
-            .add("_eventId", "submit")
-            .add("cllt", "userNameLogin")
-            .add("dllt", "generalLogin")
-            .add("lt", "")
-            .add("rememberMe", "true")
-            .build()
-        val loginRequest = Request.Builder()
-            .url(schoolLoginUrl)
-            .post(body)
-            .build()
-        client.newCall(loginRequest).execute().use { response ->
-            val html = response.body?.string() ?: throw Exception("get login response error")
-            if(html.indexOf("帐号登录或动态码登录")!=-1)throw Exception("login error")
-            Log.i(TAG, HttpClient.cookieManager.cookieStore.cookies.toString())
+            // 登录
+            val body = FormBody.Builder()
+                .add("username", username)
+                .add("password", cryptPassword)
+                .add("execution", execution)
+                .add("captcha", "")
+                .add("_eventId", "submit")
+                .add("cllt", "userNameLogin")
+                .add("dllt", "generalLogin")
+                .add("lt", "")
+                .add("rememberMe", "true")
+                .build()
+            val loginRequest = Request.Builder()
+                .url(schoolLoginUrl)
+                .post(body)
+                .build()
+            client.newCall(loginRequest).execute().use { response ->
+                val html =
+                    response.body?.string() ?: throw Exception("get login response error")
+                if (html.indexOf("帐号登录或动态码登录") != -1) throw Exception("login error")
+                Log.i(TAG, HttpClient.cookieManager.cookieStore.cookies.toString())
+            }
         }
     } catch (e: Exception) {
         Log.e(TAG, "Login Error $e")
@@ -88,8 +96,24 @@ suspend fun login(username: String, password: String): Boolean {
     return true
 }
 
-fun testLogin() {
-    CoroutineScope(Dispatchers.Default).launch {
-        Log.i(TAG,login("", "").toString())
+suspend fun checkLogin(): Boolean {
+    try {
+        withContext(Dispatchers.IO) {
+            val client = HttpClient.client
+
+            // 登录初始化
+            val initLoginRequest = Request.Builder()
+                .url(schoolLoginUrl)
+                .build()
+            client.newCall(initLoginRequest).execute().use { response ->
+                val html =
+                    response.body?.string() ?: throw Exception("check login response error")
+                if (html.indexOf("帐号登录或动态码登录") != -1) throw Exception("not login")
+            }
+        }
+    } catch (e: Exception) {
+        Log.e(TAG, "Login Error $e")
+        return false
     }
+    return true
 }
