@@ -28,8 +28,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.ui.LoginOrLogout
+import cn.bit101.android.ui.Schedule
 import cn.bit101.android.ui.theme.BIT101Theme
-import cn.bit101.android.view.Schedule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 

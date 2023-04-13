@@ -9,6 +9,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,9 +20,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import com.google.accompanist.pager.ExperimentalPagerApi
-import com.google.accompanist.pager.HorizontalPager
-import com.google.accompanist.pager.rememberPagerState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -28,15 +27,15 @@ import kotlinx.coroutines.launch
 /**
  * @author flwfdd
  * @date 2023/3/16 20:09
- * @description _(:з」∠)_
+ * @description 可以左右滑动切换的TabPager
  */
 
 data class TabPagerItem(
     val title: String,
-    val content: @Composable () -> Unit
+    val content: @Composable (active:Boolean) -> Unit
 )
 
-@OptIn(ExperimentalPagerApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TabPager(items: List<TabPagerItem>) {
     val pagerSate = rememberPagerState(0)
@@ -88,10 +87,10 @@ fun TabPager(items: List<TabPagerItem>) {
         //禁用overscroll阴影效果
         CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
             HorizontalPager(
-                count = items.size,
+                pageCount = items.size,
                 state = pagerSate,
             ) { index ->
-                items[index].content()
+                items[index].content(pagerSate.currentPage==index)
             }
         }
     }

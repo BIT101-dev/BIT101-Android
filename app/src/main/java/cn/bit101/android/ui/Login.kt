@@ -18,13 +18,11 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.MainController
 import cn.bit101.android.net.HttpClient
 import cn.bit101.android.net.school.checkLogin
 import cn.bit101.android.net.school.login
-import cn.bit101.android.ui.theme.BIT101Theme
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -36,7 +34,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Login(mainController: MainController?, changeLoginStatus: (Boolean) -> Unit) {
+fun Login(mainController: MainController, changeLoginStatus: (Boolean) -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -119,12 +117,12 @@ fun Login(mainController: MainController?, changeLoginStatus: (Boolean) -> Unit)
                         if (login(sid.text, password.text)) {
                             loading = false
                             changeLoginStatus(true)
-                            mainController?.navController?.popBackStack()
-                            mainController?.snackbar("登录成功OvO")
+                            mainController.navController.popBackStack()
+                            mainController.snackbar("登录成功OvO")
                         } else {
                             loading = false
                             changeLoginStatus(false)
-                            mainController?.snackbar("登录失败Orz")
+                            mainController.snackbar("登录失败Orz")
                         }
                     }
                 },
@@ -186,19 +184,10 @@ fun Logout(changeLoginStatus: (Boolean) -> Unit) {
 
 
 @Composable
-fun LoginOrLogout(mainController: MainController?) {
+fun LoginOrLogout(mainController: MainController) {
     // TODO:使用全局状态检查是否登录
     var isLogin by remember { mutableStateOf(false) }
     LaunchedEffect(true) { isLogin = checkLogin() }
     if (isLogin) Logout { status:Boolean -> isLogin = status }
     else Login(mainController) { status:Boolean -> isLogin = status }
-}
-
-
-@Preview(showBackground = true)
-@Composable
-fun LoginPreview() {
-    BIT101Theme {
-        Login(null){}
-    }
 }
