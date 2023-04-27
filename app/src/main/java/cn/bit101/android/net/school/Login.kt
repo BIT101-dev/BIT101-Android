@@ -2,6 +2,7 @@ package cn.bit101.android.net.school
 
 import android.util.Log
 import cn.bit101.android.App
+import cn.bit101.android.database.DataStore
 import cn.bit101.android.net.HttpClient
 import com.evgenii.jsevaluator.JsEvaluator
 import com.evgenii.jsevaluator.interfaces.JsCallback
@@ -47,6 +48,7 @@ private suspend fun encryptPassword(password: String, salt: String): String? {
 suspend fun login(username: String, password: String): Boolean {
     try {
         withContext(Dispatchers.IO) {
+            DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
             val client = HttpClient.client
 
             // 登录初始化
@@ -88,6 +90,7 @@ suspend fun login(username: String, password: String): Boolean {
                 if (html.indexOf("帐号登录或动态码登录") != -1) throw Exception("login error")
                 Log.i(TAG, HttpClient.cookieManager.cookieStore.cookies.toString())
             }
+            DataStore.setBoolean(DataStore.LOGIN_STATUS, true)
         }
     } catch (e: Exception) {
         Log.e(TAG, "Login Error $e")
@@ -108,8 +111,13 @@ suspend fun checkLogin(): Boolean {
             client.newCall(initLoginRequest).execute().use { response ->
                 val html =
                     response.body?.string() ?: throw Exception("check login response error")
-                if (html.indexOf("帐号登录或动态码登录") != -1) throw Exception("not login")
+                if (html.indexOf("帐号登录或动态码登录") != -1) {
+                    // 设置登陆状态
+                    DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
+                    throw Exception("not login")
+                }
             }
+            DataStore.setBoolean(DataStore.LOGIN_STATUS, true)
         }
     } catch (e: Exception) {
         Log.e(TAG, "Login Error $e")

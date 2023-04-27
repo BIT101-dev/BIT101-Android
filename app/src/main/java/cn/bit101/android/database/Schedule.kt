@@ -36,6 +36,9 @@ interface CourseScheduleDao {
     @Query("SELECT * FROM course_schedule")
     fun getAll(): Flow<List<CourseScheduleEntity>>
 
+    @Query("SELECT * FROM course_schedule WHERE term = :term")
+    fun getTerm(term: String): Flow<List<CourseScheduleEntity>>
+
     @Query("SELECT * FROM course_schedule WHERE term = :term AND weeks LIKE '%[' || :week || ']%'")
     fun getWeek(term: String, week: Int): Flow<List<CourseScheduleEntity>>
 
@@ -47,4 +50,7 @@ interface CourseScheduleDao {
 
     @Query("DELETE FROM course_schedule")
     suspend fun deleteAll()
+
+    @Query("DELETE FROM course_schedule WHERE term = :term")
+    suspend fun deleteTerm(term: String)
 }

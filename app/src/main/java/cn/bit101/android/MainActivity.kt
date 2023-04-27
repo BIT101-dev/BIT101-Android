@@ -27,10 +27,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import cn.bit101.android.net.school.checkLogin
 import cn.bit101.android.ui.LoginOrLogout
+import cn.bit101.android.ui.MapComponent
 import cn.bit101.android.ui.Schedule
 import cn.bit101.android.ui.theme.BIT101Theme
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -40,6 +43,10 @@ class MainActivity : ComponentActivity() {
             BIT101Theme {
                 MainContent()
             }
+        }
+
+        MainScope().launch {
+            checkLogin()
         }
     }
 }
@@ -131,6 +138,8 @@ fun MainContent() {
                     it
                 ) else Modifier
             }
+
+        // 导航
         NavHost(
             navController = mainController.navController,
             startDestination = "schedule",
@@ -148,6 +157,11 @@ fun MainContent() {
             composable("login") {
                 Box(modifier = modifier(it)) {
                     LoginOrLogout(mainController)
+                }
+            }
+            composable("map") {
+                Box(modifier = modifier(it)) {
+                    MapComponent()
                 }
             }
         }

@@ -1,6 +1,5 @@
 package cn.bit101.android.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.App
@@ -10,12 +9,10 @@ import cn.bit101.android.net.school.CourseResponseItem
 import cn.bit101.android.net.school.getCourseSchedule
 import cn.bit101.android.net.school.getTermList
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
 /**
@@ -23,16 +20,16 @@ import java.time.temporal.ChronoUnit
  * @date 2023/3/31 23:30
  * @description _(:з」∠)_
  */
-
-const val TAG = "ScheduleViewModel"
-
 class ScheduleViewModel : ViewModel() {
     private val _courses = MutableStateFlow<List<List<CourseScheduleEntity>>>(emptyList())
     val courses: StateFlow<List<List<CourseScheduleEntity>>> = _courses.asStateFlow()
     val termFlow = DataStore.courseScheduleTermFlow
-    val firstDayFlow = DataStore.courseScheduleFirstDayFlow
-    private val _weekFlow = MutableStateFlow(1)
+    private var _firstDayFlow = MutableStateFlow<LocalDate?>(null)
+    val firstDayFlow = _firstDayFlow.asStateFlow()
+    private val _weekFlow = MutableStateFlow(Int.MAX_VALUE)
     val weekFlow: StateFlow<Int> = _weekFlow.asStateFlow()
+    val timeTableStringFlow = DataStore.courseScheduleTimeTableFlow
+    val timeTableFlow = timeTableStringFlow.map { parseTimeTable(it) }
 
     // 显示相关配置
     val showSaturday = DataStore.courseScheduleShowSaturdayFlow
@@ -40,15 +37,16 @@ class ScheduleViewModel : ViewModel() {
     val showBorder = DataStore.courseScheduleShowBorderFlow
     val showHighlightToday = DataStore.courseScheduleShowHighlightTodayFlow
     val showDivider = DataStore.courseScheduleShowDividerFlow
+    val loginStatus = DataStore.loginStatusFlow
 
     private var job: Job? = null
 
     init {
-        Log.i(TAG, "init")
-        job = viewModelScope.launch {
-            App.DB.courseScheduleDao().getAll().cancellable().collect {
-                Log.i(TAG, "collect init")
-                _courses.value = convertWeekCourse(it)
+        // 更新学期第一天
+        viewModelScope.launch {
+            termFlow.collect {
+                if (it == null) return@collect
+                _firstDayFlow.value = DataStore.getCourseScheduleFirstDayFlow(it).firstOrNull()
             }
         }
 
@@ -65,7 +63,6 @@ class ScheduleViewModel : ViewModel() {
         job?.cancel()
         job = viewModelScope.launch {
             termFlow.collect { term ->
-                Log.i(TAG, "collect changeWeek")
                 App.DB.courseScheduleDao().getWeek(term ?: "", week).collect {
                     _courses.value = convertWeekCourse(it)
                 }
@@ -75,7 +72,13 @@ class ScheduleViewModel : ViewModel() {
 
     fun changeTerm(term: String, onSuccess: () -> Unit = {}, onFail: () -> Unit = {}) {
         viewModelScope.launch {
-            if (getCoursesFromNet(term)) onSuccess() else onFail()
+            val courses = App.DB.courseScheduleDao().getTerm(term).firstOrNull()
+            if (courses?.isNotEmpty() == true) {
+                DataStore.setString(DataStore.COURSE_SCHEDULE_TERM, term)
+                onSuccess()
+            } else {
+                if (getCoursesFromNet(term)) onSuccess() else onFail()
+            }
         }
     }
 
@@ -98,6 +101,10 @@ class ScheduleViewModel : ViewModel() {
     fun setShowDivider(show: Boolean) {
         DataStore.setBoolean(DataStore.COURSE_SCHEDULE_SHOW_DIVIDER, show)
     }
+
+    fun setTimeTable(timeTable: String) {
+        DataStore.setString(DataStore.COURSE_SCHEDULE_TIME_TABLE, timeTable)
+    }
 }
 
 // 将课程按照周一到周日分组排列
@@ -118,10 +125,10 @@ fun convertWeekCourse(_courses: List<CourseScheduleEntity>): List<List<CourseSch
 
 // 获取课程表 返回是否成功
 suspend fun getCoursesFromNet(term: String = ""): Boolean {
-    App.DB.courseScheduleDao().deleteAll()
     val courses = getCourseSchedule(term) ?: return false
+    App.DB.courseScheduleDao().deleteTerm(courses.term) // 删除旧的课程表
     DataStore.setString(DataStore.COURSE_SCHEDULE_TERM, courses.term)
-    DataStore.setCourseScheduleFirstDay(courses.firstDay)
+    DataStore.setCourseScheduleFirstDay(courses.term,courses.firstDay)
     courses.courseList.forEach {
         App.DB.courseScheduleDao().insert(course2db(it))
     }
@@ -160,4 +167,42 @@ fun course2db(it: CourseResponseItem): CourseScheduleEntity {
 // 获取学期列表
 suspend fun getTermsFromNet(): List<String> {
     return getTermList().map { it.DM }
+}
+
+// 解析时间表
+data class TimeTableItem(
+    val startTime: LocalTime,
+    val endTime: LocalTime,
+)
+
+fun checkTimeTable(timeTable: String): Boolean {
+    return try {
+        val l = parseTimeTable(timeTable)
+        if (l.isEmpty()) return false
+        l.forEachIndexed { index, time ->
+            if (time.endTime <= time.startTime) return false
+            if (index != 0) {
+                if (time.startTime <= l[index - 1].endTime) return false
+            }
+        }
+        true
+    } catch (e: Exception) {
+        false
+    }
+}
+
+fun parseTimeTable(s: String): List<TimeTableItem> {
+    val timeTable = mutableListOf<TimeTableItem>()
+
+    s.split("\n").forEach {
+        if (it.isBlank()) return@forEach
+        val x = it.split(",")
+        timeTable.add(
+            TimeTableItem(
+                LocalTime.parse(x[0]),
+                LocalTime.parse(x[1])
+            )
+        )
+    }
+    return timeTable
 }

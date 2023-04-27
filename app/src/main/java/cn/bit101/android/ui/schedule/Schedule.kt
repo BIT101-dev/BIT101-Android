@@ -42,6 +42,11 @@ fun Schedule(mainController: MainController) {
             }) {
                 Text("获取课程表")
             }
+            Button(onClick = {
+                mainController.navController.navigate("map")
+            }) {
+                Text("地图")
+            }
         }
 
     })

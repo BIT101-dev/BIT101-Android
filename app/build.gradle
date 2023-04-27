@@ -81,4 +81,5 @@ dependencies {
     implementation "net.gotev:cookie-store:1.5.0"
     implementation 'com.github.evgenyneu:js-evaluator-for-android:v6.0.0'
     implementation 'org.jsoup:jsoup:1.15.4'
+    implementation 'ovh.plrapps:mapcompose:2.5.0'
 }

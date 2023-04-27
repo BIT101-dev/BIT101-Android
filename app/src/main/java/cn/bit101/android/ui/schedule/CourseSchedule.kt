@@ -32,6 +32,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -42,9 +43,9 @@ import cn.bit101.android.MainController
 import cn.bit101.android.database.CourseScheduleEntity
 import cn.bit101.android.ui.component.ConfigColumn
 import cn.bit101.android.ui.component.ConfigItem
-import cn.bit101.android.viewmodel.ScheduleViewModel
-import cn.bit101.android.viewmodel.getTermsFromNet
+import cn.bit101.android.viewmodel.*
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -67,10 +68,39 @@ fun CourseSchedule(
             .fillMaxSize()
     ) {
         var showDialog by rememberSaveable { mutableStateOf(false) }
+        val loginStatus = vm.loginStatus.collectAsState(initial = false).value
+        val term = vm.termFlow.collectAsState(initial = "").value
 
-        CourseScheduleCalendar(vm, onConfig = { showDialog = true })
+        // 没有课程表时term=null 加载之前为空字符串
+        if (term?.isNotEmpty() == true) {
+            CourseScheduleCalendar(vm, onConfig = { showDialog = true })
+        } else {
+            if(term==null)
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                if (loginStatus == true) {
+                    Button(onClick = {
+                        MainScope().launch {
+                            getCoursesFromNet()
+                        }
+                    }) {
+                        Text("获取课程表")
+                    }
+                } else {
+                    Button(onClick = {
+                        mainController.navController.navigate("login")
+                    }) {
+                        Text("登录")
+                    }
+                }
+            }
+        }
 
-        // 编辑对话框 自定义进入和退出动画
+        // 设置对话框 自定义进入和退出动画
         AnimatedVisibility(
             visible = showDialog,
             enter = slideIn(
@@ -93,7 +123,7 @@ fun CourseSchedule(
             }
         }
 
-        // 响应返回键
+        // 响应返回键 收起设置对话框
         BackHandler(enabled = showDialog && active) {
             showDialog = false
         }
@@ -104,14 +134,18 @@ fun CourseSchedule(
 @Composable
 fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
     val courses by vm.courses.collectAsState()
-    val week = vm.weekFlow.collectAsState().value
+    val week by vm.weekFlow.collectAsState(initial = Int.MAX_VALUE)
     val firstDay by vm.firstDayFlow.collectAsState(initial = null)
-    val showDivider by vm.showDivider.collectAsState(initial = true)
+    val showDivider by vm.showDivider.collectAsState(initial = false)
     val showSaturday by vm.showSaturday.collectAsState(initial = true)
     val showSunday by vm.showSunday.collectAsState(initial = true)
     val showHighlightToday by vm.showHighlightToday.collectAsState(initial = true)
     val showBorder by vm.showBorder.collectAsState(initial = true)
+    val timeTable by vm.timeTableFlow.collectAsState(initial = emptyList())
+    val courseNumOfDay = timeTable.size
 
+    // 防止加载过程中闪动
+    if (courses.isEmpty() || week == Int.MAX_VALUE || firstDay == null || timeTable.isEmpty()) return
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
     Box(
         modifier = Modifier
@@ -127,7 +161,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                 ) {
                     Text(text = "\n", style = MaterialTheme.typography.labelSmall)
                 }
-                for (i in 1..13) {
+                for (i in 1..courseNumOfDay) {
                     Spacer(modifier = Modifier.weight(1f))
                     if (showDivider)
                         Divider(color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
@@ -168,7 +202,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
-                        for (i in 1..13) {
+                        for (i in 1..courseNumOfDay) {
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier.weight(1f)
@@ -228,7 +262,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
 
                             var i = 1 // 节次游标
                             it.forEach {
-                                if (it.start_section >= i) {
+                                if (it.start_section >= i && it.end_section <= courseNumOfDay) {
                                     if (it.start_section > i) {
                                         Spacer(modifier = Modifier.weight((it.start_section - i).toFloat()))
                                     }
@@ -250,8 +284,8 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                                     i = it.end_section + 1
                                 }
                             }
-                            if (i <= 13) {
-                                Spacer(modifier = Modifier.weight(13 - i + 1f))
+                            if (i <= courseNumOfDay) {
+                                Spacer(modifier = Modifier.weight(courseNumOfDay - i + 1f))
                             }
                         }
                     }
@@ -299,7 +333,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                 },
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                 contentColor = MaterialTheme.colorScheme.primary,
-                elevation= FloatingActionButtonDefaults.elevation(0.dp),
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Add,
@@ -315,7 +349,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                 },
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                 contentColor = MaterialTheme.colorScheme.primary,
-                elevation= FloatingActionButtonDefaults.elevation(0.dp),
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Remove,
@@ -331,7 +365,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                 },
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                 contentColor = MaterialTheme.colorScheme.primary,
-                elevation= FloatingActionButtonDefaults.elevation(0.dp),
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Settings,
@@ -390,7 +424,7 @@ fun ConfigDialog(mainController: MainController, vm: ScheduleViewModel, onDismis
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(10.dp)
+            .padding(10.dp, 10.dp, 10.dp, 0.dp)
     ) {
         Row(
             modifier = Modifier
@@ -410,6 +444,7 @@ fun ConfigDialog(mainController: MainController, vm: ScheduleViewModel, onDismis
         Spacer(modifier = Modifier.height(10.dp))
 
         val showTermListDialog = rememberSaveable { mutableStateOf(false) }
+        val showTimeTableDialog = rememberSaveable { mutableStateOf(false) }
         val term = vm.termFlow.collectAsState(initial = null).value
         var refreshing by remember { mutableStateOf(false) }
         ConfigColumn(
@@ -418,7 +453,15 @@ fun ConfigDialog(mainController: MainController, vm: ScheduleViewModel, onDismis
                 .weight(1f),
             items = listOf(
                 ConfigItem.Button(
-                    title = "刷新当前学期课表",
+                    title = "切换学期",
+                    content = term ?: "未选择",
+                    onClick = {
+                        showTermListDialog.value = true
+                    }
+                ),
+                ConfigItem.Button(
+                    title = "刷新课表",
+                    content = if (refreshing) "刷新中..." else "点击重新拉取课表",
                     onClick = {
                         MainScope().launch {
                             if (term == null) {
@@ -427,26 +470,11 @@ fun ConfigDialog(mainController: MainController, vm: ScheduleViewModel, onDismis
                             }
                             if (!refreshing) {
                                 refreshing = true
-                                vm.changeTerm(
-                                    term = term,
-                                    onSuccess = {
-                                        mainController.snackbar("刷新成功")
-                                        refreshing = false
-                                    },
-                                    onFail = {
-                                        mainController.snackbar("刷新失败")
-                                        refreshing = false
-                                    }
-                                )
+                                if (getCoursesFromNet(term)) mainController.snackbar("刷新成功OvO")
+                                else mainController.snackbar("刷新失败Orz")
+                                refreshing = false
                             }
                         }
-                    }
-                ),
-                ConfigItem.Button(
-                    title = "切换学期",
-                    content = term ?: "未选择",
-                    onClick = {
-                        showTermListDialog.value = true
                     }
                 ),
                 ConfigItem.Switch(
@@ -484,31 +512,45 @@ fun ConfigDialog(mainController: MainController, vm: ScheduleViewModel, onDismis
                         vm.setShowDivider(it)
                     }
                 ),
+                ConfigItem.Button(
+                    title = "设置时间表",
+                    content = "点击设置节次及时间",
+                    onClick = {
+                        showTimeTableDialog.value = true
+                    }
+                ),
             ))
 
         if (showTermListDialog.value) {
             TermListDialog(mainController, vm, showTermListDialog)
         }
+
+        if (showTimeTableDialog.value) {
+            TimeTableDialog(mainController, vm, showTimeTableDialog)
+        }
+
     }
 }
+
 
 // 选择学期对话框
 @Composable
 fun TermListDialog(
     mainController: MainController,
     vm: ScheduleViewModel,
-    showTermListDialog: MutableState<Boolean>
+    showDialog: MutableState<Boolean>
 ) {
     var termList by remember { mutableStateOf(listOf("")) }
     val (selectedOption, onOptionSelected) = rememberSaveable { mutableStateOf("") }
-    LaunchedEffect(showTermListDialog) {
+    // 默认选择第一项
+    LaunchedEffect(showDialog) {
         termList = getTermsFromNet()
         if (termList.isNotEmpty()) onOptionSelected(termList[0])
     }
     AlertDialog(
-        modifier = Modifier.fillMaxHeight(0.75f),
+        modifier = Modifier.fillMaxHeight(0.9f),
         onDismissRequest = {
-            showTermListDialog.value = false
+            showDialog.value = false
         },
         title = {
             Text(text = "切换学期")
@@ -568,10 +610,10 @@ fun TermListDialog(
                             mainController.snackbar("成功切换至 $selectedOption")
                         },
                         onFail = {
-                            mainController.snackbar("切换失败")
+                            mainController.snackbar("切换失败Orz")
                         }
                     )
-                    showTermListDialog.value = false
+                    showDialog.value = false
                 }
             ) {
                 Text("确定")
@@ -580,7 +622,78 @@ fun TermListDialog(
         dismissButton = {
             TextButton(
                 onClick = {
-                    showTermListDialog.value = false
+                    showDialog.value = false
+                }
+            ) {
+                Text("取消")
+            }
+        }
+    )
+}
+
+
+// 设置时间表对话框
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TimeTableDialog(
+    mainController: MainController,
+    vm: ScheduleViewModel,
+    showDialog: MutableState<Boolean>
+) {
+    var timeTableEdit by remember { mutableStateOf(TextFieldValue("")) }
+    var errorMessage by remember { mutableStateOf("") }
+    LaunchedEffect(showDialog) {
+        vm.timeTableStringFlow.first().let {
+            timeTableEdit = TextFieldValue(it)
+        }
+    }
+    AlertDialog(
+        modifier = Modifier.fillMaxHeight(0.9f),
+        onDismissRequest = {
+            showDialog.value = false
+        },
+        title = {
+            Text(text = "设置时间表")
+        },
+        text = {
+            Column(modifier = Modifier.fillMaxSize()) {
+                Text(text = "可调整每天课程节数和时间，格式照猫画虎即可", style = MaterialTheme.typography.bodySmall)
+                Spacer(modifier = Modifier.height(5.dp))
+                OutlinedTextField(
+                    value = timeTableEdit,
+                    onValueChange = { timeTableEdit = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    shape = MaterialTheme.shapes.large,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (checkTimeTable(timeTableEdit.text)) {
+                        vm.setTimeTable(timeTableEdit.text)
+                        mainController.snackbar("设置成功OvO")
+                        showDialog.value = false
+                    } else {
+                        errorMessage = "格式校验失败Orz"
+                    }
+                }
+            ) {
+                Text("确定")
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = {
+                    showDialog.value = false
                 }
             ) {
                 Text("取消")
