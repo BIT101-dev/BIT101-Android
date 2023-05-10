@@ -1,7 +1,6 @@
 package cn.bit101.android
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.*
@@ -12,8 +11,8 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Event
+import androidx.compose.material.icons.rounded.Map
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -27,7 +26,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import cn.bit101.android.net.school.checkLogin
+import cn.bit101.android.net.updateStatus
 import cn.bit101.android.ui.LoginOrLogout
 import cn.bit101.android.ui.MapComponent
 import cn.bit101.android.ui.Schedule
@@ -46,7 +45,7 @@ class MainActivity : ComponentActivity() {
         }
 
         MainScope().launch {
-            checkLogin()
+            updateStatus()
         }
     }
 }
@@ -61,6 +60,17 @@ class MainController(
             snackbarHostState.showSnackbar(message)
         }
     }
+
+    fun route(route: String) {
+        // 路由跳转 保证唯一
+        navController.navigate(route){
+            popUpTo(navController.graph.startDestinationId) {
+                saveState = true
+            }
+            launchSingleTop = true
+            restoreState = true
+        }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -72,16 +82,17 @@ fun MainContent() {
         snackbarHostState = remember { SnackbarHostState() }
     )
 
-    // 底部导航栏
+    // 底部导航栏路由
     data class Screen(val route: String, val label: String, val icon: ImageVector)
 
     val routes = listOf(
         Screen("schedule", "卷", Icons.Rounded.Event),
-        Screen("home", "墙", Icons.Rounded.Dashboard)
+        Screen("map", "图", Icons.Rounded.Map)
     )
+    // 在导航图中才显示底部导航栏
     val showBottomBar = mainController.navController
         .currentBackStackEntryAsState().value?.destination?.route in routes.map { it.route }
-    Log.i("TAG", showBottomBar.toString())
+    // 底部导航栏的动画状态
     val bottomBarTransitionState =
         remember { MutableTransitionState(false) }
     bottomBarTransitionState.apply { targetState = showBottomBar }
@@ -106,6 +117,7 @@ fun MainContent() {
                     )
                 )
             ) {
+                // 底部导航栏
                 NavigationBar {
                     val navBackStackEntry by mainController.navController.currentBackStackEntryAsState()
                     val currentDestination = navBackStackEntry?.destination
@@ -113,17 +125,11 @@ fun MainContent() {
                         val selected =
                             currentDestination?.hierarchy?.any { it.route == screen.route } == true
                         NavigationBarItem(
-                            icon = { Icon(imageVector = screen.icon, contentDescription = null) },
+                            icon = { Icon(imageVector = screen.icon, contentDescription = screen.label) },
                             label = { Text(text = screen.label) },
                             selected = selected,
                             onClick = {
-                                mainController.navController.navigate(screen.route) {
-                                    popUpTo(mainController.navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+                                mainController.route(screen.route)
                             })
                     }
 
@@ -149,11 +155,6 @@ fun MainContent() {
                     Schedule(mainController)
                 }
             }
-            composable("home") {
-                Box(modifier = modifier(it)) {
-                    Wall()
-                }
-            }
             composable("login") {
                 Box(modifier = modifier(it)) {
                     LoginOrLogout(mainController)
@@ -166,11 +167,6 @@ fun MainContent() {
             }
         }
     }
-}
-
-@Composable
-fun Wall() {
-    Text(text = "Wall")
 }
 
 @Preview(showBackground = true)

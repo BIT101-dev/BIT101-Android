@@ -136,7 +136,7 @@ fun Login(mainController: MainController, changeLoginStatus: (Boolean) -> Unit) 
             Text(
                 text = "Tips：使用学校统一身份认证账号密码进行登录，若未注册过BIT101账号将会自动注册。BIT101尊重您的隐私，密码只会经不可逆加密后传输到服务器。",
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = MaterialTheme.colorScheme.scrim.copy(
+                    color = MaterialTheme.colorScheme.onSurface.copy(
                         alpha = 0.5f
                     )
                 ),

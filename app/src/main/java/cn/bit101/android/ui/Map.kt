@@ -36,6 +36,8 @@ fun MapComponent(
 ) {
     Box {
         val scale = mapVM.scaleFlow.collectAsState(initial = 2f).value //地图缩放
+
+        // 地图界面
         Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
             MapUI(
                 Modifier
@@ -44,8 +46,10 @@ fun MapComponent(
             )
         }
 
+        // 第否显示底部设置栏
         var showBottomBar by rememberSaveable { mutableStateOf(false) }
 
+        // 浮动按钮
         Column(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
         ) {
@@ -88,6 +92,7 @@ fun MapComponent(
         }
 
 
+        // 底部设置栏
         val bottomBarTransitionState =
             remember { MutableTransitionState(false) }
         bottomBarTransitionState.apply { targetState = showBottomBar }

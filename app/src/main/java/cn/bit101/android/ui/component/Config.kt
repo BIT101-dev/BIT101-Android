@@ -63,7 +63,7 @@ fun ConfigColumn(modifier: Modifier, items: List<ConfigItem>) {
 @Composable
 fun ConfigButton(title: String, content: String, onClick: () -> Unit) {
     Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         shape = MaterialTheme.shapes.medium,
         onClick = { onClick() },
     ) {
@@ -106,7 +106,7 @@ fun ConfigButton(title: String, content: String, onClick: () -> Unit) {
 @Composable
 fun ConfigSwitch(title: String, checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
     Surface(
-        color = MaterialTheme.colorScheme.secondaryContainer,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
         shape = MaterialTheme.shapes.medium,
     ) {
         Row(

@@ -6,7 +6,25 @@ package cn.bit101.android.net.school
  * @description _(:з」∠)_
  */
 
-const val webvpn = false
+var webvpn = false
+
+// 检测webvpn是否可用并更新状态
+//suspend fun checkWebvpn(){
+//    try {
+//        withContext(Dispatchers.IO){
+//            val client= HttpClient.client
+//            val request= Request.Builder()
+//                .url("http://webvpn.bit.edu.cn/")
+//                .build()
+//            client.newCall(request).execute()
+//            if(!webvpn)Log.i("UrlManager","switch to webvpn")
+//            webvpn=true
+//        }
+//    } catch (e: Exception) {
+//        if(webvpn)Log.i("UrlManager","switch to local network")
+//        webvpn=false
+//    }
+//}
 
 val schoolLoginUrl: String
     get() {

@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.Flow
  * @description _(:з」∠)_
  */
 
+
 @Entity(tableName = "course_schedule")
 data class CourseScheduleEntity(
     @PrimaryKey(autoGenerate = true)

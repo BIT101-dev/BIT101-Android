@@ -9,6 +9,7 @@ import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
@@ -75,29 +76,31 @@ fun CourseSchedule(
         if (term?.isNotEmpty() == true) {
             CourseScheduleCalendar(vm, onConfig = { showDialog = true })
         } else {
-            if(term==null)
-            Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                if (loginStatus == true) {
-                    Button(onClick = {
-                        MainScope().launch {
-                            getCoursesFromNet()
+            if (term == null) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (loginStatus == true) {
+                        Button(onClick = {
+                            MainScope().launch {
+                                getCoursesFromNet()
+                            }
+                        }) {
+                            Text("获取课程表")
                         }
-                    }) {
-                        Text("获取课程表")
-                    }
-                } else {
-                    Button(onClick = {
-                        mainController.navController.navigate("login")
-                    }) {
-                        Text("登录")
+                    } else {
+                        Button(onClick = {
+                            mainController.route("login")
+                        }) {
+                            Text("登录")
+                        }
                     }
                 }
             }
+
         }
 
         // 设置对话框 自定义进入和退出动画
@@ -143,6 +146,13 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
     val showBorder by vm.showBorder.collectAsState(initial = true)
     val timeTable by vm.timeTableFlow.collectAsState(initial = emptyList())
     val courseNumOfDay = timeTable.size
+
+    // 课程详情弹窗
+    val showCourseDetailDialog = remember { mutableStateOf(false) }
+    var courseDetailData: CourseScheduleEntity? by remember { mutableStateOf(null) }
+    if (showCourseDetailDialog.value && courseDetailData != null) {
+        CourseDetailDialog(course = courseDetailData!!, showDialog = showCourseDetailDialog)
+    }
 
     // 防止加载过程中闪动
     if (courses.isEmpty() || week == Int.MAX_VALUE || firstDay == null || timeTable.isEmpty()) return
@@ -220,17 +230,18 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                         val day = firstDay?.plusDays((week - 1) * 7 + index.toLong())
                         // 高亮今日
                         var containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        var md = Modifier
+                        var columnModifier = Modifier
                             .fillMaxHeight()
                             .weight(1f)
                         if (showHighlightToday && day?.equals(LocalDate.now()) == true) {
-                            containerColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
-                            md = md.background(
+                            containerColor =
+                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0f)
+                            columnModifier = columnModifier.background(
                                 MaterialTheme.colorScheme.secondaryContainer.copy(0.25f)
                             )
                         }
                         Column(
-                            modifier = md,
+                            modifier = columnModifier,
                         ) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -278,7 +289,12 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                                         )
                                     }
                                     CourseCard(
-                                        modifier = modifier,
+                                        modifier = modifier
+                                            .clip(CardDefaults.shape) // 使点击波纹形状匹配
+                                            .clickable {
+                                                courseDetailData = it
+                                                showCourseDetailDialog.value = true
+                                            },
                                         course = it
                                     )
                                     i = it.end_section + 1
@@ -385,7 +401,8 @@ fun CourseCard(modifier: Modifier, course: CourseScheduleEntity) {
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
                 alpha = Math.random().toFloat() * 0.5f + 0.5f
-            )
+            ),
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
     ) {
         Column(
@@ -657,7 +674,10 @@ fun TimeTableDialog(
         },
         text = {
             Column(modifier = Modifier.fillMaxSize()) {
-                Text(text = "可调整每天课程节数和时间，格式照猫画虎即可", style = MaterialTheme.typography.bodySmall)
+                Text(
+                    text = "可调整每天课程节数和时间，格式照猫画虎即可",
+                    style = MaterialTheme.typography.bodySmall
+                )
                 Spacer(modifier = Modifier.height(5.dp))
                 OutlinedTextField(
                     value = timeTableEdit,
@@ -701,3 +721,4 @@ fun TimeTableDialog(
         }
     )
 }
+

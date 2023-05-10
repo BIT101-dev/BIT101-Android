@@ -21,18 +21,29 @@
 
 ### 数据来源
 
-地图模块的数据使用了[OpenStreetMap](https://www.openstreetmap.org/)，这是一个开源的地图项目，北京理工大学网络开拓者协会的成员曾在上面绘制了详细的校园地图，还建立了一个在线地图网站[一点儿北理地图(A BIT of Map)](https://map.bitnp.net/)，在此表示感谢。
+地图模块的数据使用了[OpenStreetMap](https://www.openstreetmap.org/)，这是一个开源的地图项目，北京理工大学网络开拓者协会的成员曾在上面绘制了详细的校园地图，还建立了一个在线地图网站[一点儿北理地图(A BIT of Map)](https://map.bitnp.net/)，非常感谢他们的贡献。
 
-然而，`OpenStreetMap`在国内存在DNS污染的问题，客户端上往往无法正常访问，于是我先是在服务器上使用基于`Docker`的[openstreetmap-tile-server](https://github.com/Overv/openstreetmap-tile-server)搭建了地图瓦片服务，并部署了北京地区的地图，但是部署后发现占用服务器资源过大，很容易受到攻击，于是最终采用了使用服务器代理转发的方式解决问题。
+然而，`OpenStreetMap`在国内存在DNS污染的问题，客户端上往往无法正常访问，于是我先是在服务器上使用基于`Docker`的[openstreetmap-tile-server](https://github.com/Overv/openstreetmap-tile-server)搭建了地图瓦片服务，并部署了北京地区的地图，但是部署后发现占用服务器资源过大，很容易受到攻击，所以后来还是放弃了这个方案，使用服务器代理转发的方式来解决问题。
 
-所以最终的解决方案是，先在服务器上修改`hosts`防止DNS污染，然后在`Nginx`上建立一个代理规则即可。当访问`https://map.bit101.flwfdd.xyz/tile/{z}/{x}/{y}.png`时，请求将被转发到`https://tile.openstreetmap.org/{z}/{x}/{y}.png`，虽然访问速度比较慢，但由于地图数据基本不会改变，所以可以在`Nginx`上加入缓存，学校地区的数据基本上就是用服务器本地的了。
+最终的解决方案是，先在服务器上修改`hosts`防止DNS污染，然后在`Nginx`上建立一个代理规则。当访问`https://map.bit101.flwfdd.xyz/tile/{z}/{x}/{y}.png`时，请求将被转发到`https://tile.openstreetmap.org/{z}/{x}/{y}.png`，虽然访问速度比较慢，但由于地图数据基本不会改变，所以可以在`Nginx`上加入缓存，学校地区的数据基本上就是用服务器本地的了。
 
 另外注意，调用`OpenStreetMap`接口时需要传入`User-Agent`，否则会被拦截。我在调试时发现网页一切正常，但安卓上总是无法正常加载，找了好半天BUG、、
 
 ### 安卓实现
 
-找到了一个开源项目[MapCompose](https://github.com/p-lr/MapCompose)完美地契合了我的要求。
+找到了一个开源项目[MapCompose](https://github.com/p-lr/MapCompose)完美地契合了我的需求。
 
 不过显示上有一个问题，地图组件显示出的文字过小，但是由于地图的绘制方式是位图而不是矢量，并没有办法直接修改文字大小，于是想到把地图组件强制放大。最后通过在地图组件上添加了一个`Modifier.fillMaxSize(0.5f).scale(2f)`即可放大两倍（相当于先在一半的大小上绘制地图，再拉到全屏大小），放大到其他倍数也同理。
 
 另外，为了加快加载速度，并且让地图能够离线查看，在`OkHttp`上添加了一个`cacheControl`实现缓存。
+
+## 一些UI显示上的问题
+
+### 点击时的波纹效果与组件形状
+
+在很多情况下波纹的形状都会自动与组件形状相适配，但是一些情况（比如使用`Modifier.clickable{}`定义点击响应）下，波纹的形状会变成一个矩形，这时可以使用`Modifier.clip()`将组件的形状传递给波纹。
+
+### `rememberSaveable`导致的闪退问题
+
+在使用`rememberSaveable`保存自定义对象时，一旦切换页面就会闪退，这是由于触发保存操作时，默认的序列化过程无法处理自定义对象。解决方法是要么手动定义对象的保存和恢复操作，或者直接使用`remember`代替`rememberSaveable`。
+

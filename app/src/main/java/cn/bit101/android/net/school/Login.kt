@@ -44,7 +44,7 @@ private suspend fun encryptPassword(password: String, salt: String): String? {
 
 }
 
-// 需要在主线程调用
+// 登陆
 suspend fun login(username: String, password: String): Boolean {
     try {
         withContext(Dispatchers.IO) {
@@ -112,11 +112,12 @@ suspend fun checkLogin(): Boolean {
                 val html =
                     response.body?.string() ?: throw Exception("check login response error")
                 if (html.indexOf("帐号登录或动态码登录") != -1) {
-                    // 设置登陆状态
+                    // 设置登陆状态为未登录
                     DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
                     throw Exception("not login")
                 }
             }
+            // 设置登陆状态为登陆
             DataStore.setBoolean(DataStore.LOGIN_STATUS, true)
         }
     } catch (e: Exception) {

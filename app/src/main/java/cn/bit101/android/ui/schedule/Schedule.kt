@@ -29,7 +29,7 @@ fun Schedule(mainController: MainController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(onClick = {
-                mainController.navController.navigate("login")
+                mainController.route("login")
             }) {
                 Text("登录")
             }
@@ -43,7 +43,7 @@ fun Schedule(mainController: MainController) {
                 Text("获取课程表")
             }
             Button(onClick = {
-                mainController.navController.navigate("map")
+                mainController.route("map")
             }) {
                 Text("地图")
             }
