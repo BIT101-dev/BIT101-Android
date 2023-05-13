@@ -1,14 +1,31 @@
 package cn.bit101.android.ui
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.Lock
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
@@ -20,9 +37,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.MainController
-import cn.bit101.android.net.HttpClient
+import cn.bit101.android.database.DataStore
 import cn.bit101.android.net.school.checkLogin
 import cn.bit101.android.net.school.login
+import cn.bit101.android.net.school.logout
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -32,9 +50,19 @@ import kotlinx.coroutines.launch
  * @description _(:з」∠)_
  */
 
-@OptIn(ExperimentalMaterial3Api::class)
+
+// 主界面 根据登陆状态显示登陆界面或者退出登陆界面
 @Composable
-fun Login(mainController: MainController, changeLoginStatus: (Boolean) -> Unit) {
+fun LoginOrLogout(mainController: MainController) {
+    LaunchedEffect(Unit) { checkLogin() }
+    val isLogin = DataStore.loginStatusFlow.collectAsState(initial = false).value
+    if (isLogin == true) Logout(mainController)
+    else Login(mainController)
+}
+
+// 登录界面
+@Composable
+fun Login(mainController: MainController) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -116,12 +144,10 @@ fun Login(mainController: MainController, changeLoginStatus: (Boolean) -> Unit) 
                         loading = true
                         if (login(sid.text, password.text)) {
                             loading = false
-                            changeLoginStatus(true)
                             mainController.navController.popBackStack()
                             mainController.snackbar("登录成功OvO")
                         } else {
                             loading = false
-                            changeLoginStatus(false)
                             mainController.snackbar("登录失败Orz")
                         }
                     }
@@ -147,8 +173,9 @@ fun Login(mainController: MainController, changeLoginStatus: (Boolean) -> Unit) 
 }
 
 
+// 退出登陆界面
 @Composable
-fun Logout(changeLoginStatus: (Boolean) -> Unit) {
+fun Logout(mainController: MainController) {
     Column(
         modifier = Modifier
             .fillMaxSize(),
@@ -173,8 +200,14 @@ fun Logout(changeLoginStatus: (Boolean) -> Unit) {
         )
         Button(
             onClick = {
-                HttpClient.cookieManager.cookieStore.removeAll()
-                changeLoginStatus(false)
+                mainController.navController.popBackStack()
+            },
+        ) {
+            Text(text = "返回")
+        }
+        Button(
+            onClick = {
+                logout()
             },
         ) {
             Text(text = "退出登录")
@@ -182,12 +215,3 @@ fun Logout(changeLoginStatus: (Boolean) -> Unit) {
     }
 }
 
-
-@Composable
-fun LoginOrLogout(mainController: MainController) {
-    // TODO:使用全局状态检查是否登录
-    var isLogin by remember { mutableStateOf(false) }
-    LaunchedEffect(true) { isLogin = checkLogin() }
-    if (isLogin) Logout { status:Boolean -> isLogin = status }
-    else Login(mainController) { status:Boolean -> isLogin = status }
-}

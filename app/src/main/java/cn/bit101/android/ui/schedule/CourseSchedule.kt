@@ -13,7 +13,19 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -23,9 +35,30 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Remove
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Divider
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -44,11 +77,15 @@ import cn.bit101.android.MainController
 import cn.bit101.android.database.CourseScheduleEntity
 import cn.bit101.android.ui.component.ConfigColumn
 import cn.bit101.android.ui.component.ConfigItem
-import cn.bit101.android.viewmodel.*
+import cn.bit101.android.viewmodel.ScheduleViewModel
+import cn.bit101.android.viewmodel.checkTimeTable
+import cn.bit101.android.viewmodel.getCoursesFromNet
+import cn.bit101.android.viewmodel.getTermsFromNet
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 
@@ -112,7 +149,7 @@ fun CourseSchedule(
                 )
             )
         ) {
-            ConfigDialog(mainController, vm) {
+            CourseScheduleConfigDialog(mainController, vm) {
                 showDialog = false
             }
         }
@@ -160,12 +197,42 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                 Box(
                     contentAlignment = Alignment.Center,
                 ) {
-                    Text(text = "\n", style = MaterialTheme.typography.labelSmall)
+                    Text( //空白占位
+                        text = " \n ",
+                        style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75)
+                    )
                 }
                 for (i in 1..courseNumOfDay) {
-                    Spacer(modifier = Modifier.weight(1f))
-                    if (showDivider)
+                    if (showDivider && i != 1)
                         Divider(color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+
+            // 显示当前时间
+            if (vm.showCurrentTime.collectAsState(initial = true).value) {
+                val now = LocalTime.now()
+                var a = 0f
+                timeTable.forEach {
+                    if (it.startTime.isBefore(now)) {
+                        a += if (it.endTime.isBefore(now)) 1f
+                        else (now.toSecondOfDay() - it.startTime.toSecondOfDay()).toFloat() / (it.endTime.toSecondOfDay() - it.startTime.toSecondOfDay()).toFloat()
+                    }
+                }
+                if (a != 0f && a != courseNumOfDay.toFloat()) {
+                    Column {
+                        Box(
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text( //空白占位
+                                text = " \n ",
+                                style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75)
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(a))
+                        Divider(color = MaterialTheme.colorScheme.secondary)
+                        Spacer(modifier = Modifier.weight(courseNumOfDay.toFloat() - a))
+                    }
                 }
             }
 
@@ -176,7 +243,8 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                         .fillMaxWidth()
                         .weight(1f),
                 ) {
-                    Column( //节次
+                    // 左侧栏 周次+节次
+                    Column(
                         modifier = Modifier.fillMaxHeight(),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -203,6 +271,8 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
+
+                        // 遍历显示节次
                         for (i in 1..courseNumOfDay) {
                             Box(
                                 contentAlignment = Alignment.Center,
@@ -427,7 +497,11 @@ fun CourseCard(modifier: Modifier, course: CourseScheduleEntity) {
 
 // 课表设置对话框
 @Composable
-fun ConfigDialog(mainController: MainController, vm: ScheduleViewModel, onDismiss: () -> Unit) {
+fun CourseScheduleConfigDialog(
+    mainController: MainController,
+    vm: ScheduleViewModel,
+    onDismiss: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -518,6 +592,13 @@ fun ConfigDialog(mainController: MainController, vm: ScheduleViewModel, onDismis
                     checked = vm.showDivider.collectAsState(initial = true).value,
                     onCheckedChange = {
                         vm.setShowDivider(it)
+                    }
+                ),
+                ConfigItem.Switch(
+                    title = "显示当前时间",
+                    checked = vm.showCurrentTime.collectAsState(initial = true).value,
+                    onCheckedChange = {
+                        vm.setShowCurrentTime(it)
                     }
                 ),
                 ConfigItem.Button(
@@ -641,7 +722,6 @@ fun TermListDialog(
 
 
 // 设置时间表对话框
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TimeTableDialog(
     mainController: MainController,

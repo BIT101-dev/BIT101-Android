@@ -18,7 +18,6 @@ import java.time.format.DateTimeFormatter
  * @description _(:з」∠)_
  */
 
-const val TAG = "DataStore"
 
 class DataStore {
     companion object {
@@ -92,7 +91,7 @@ class DataStore {
                             courseScheduleFirstDayPattern
                         )
                     } catch (e: Exception) {
-                        Log.e(TAG, "courseScheduleFirstDayFlow", e)
+                        Log.e("DataStore", "courseScheduleFirstDayFlow", e)
                         null
                     }
                 }

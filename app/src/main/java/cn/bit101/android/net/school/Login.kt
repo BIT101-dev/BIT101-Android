@@ -3,6 +3,7 @@ package cn.bit101.android.net.school
 import android.util.Log
 import cn.bit101.android.App
 import cn.bit101.android.database.DataStore
+import cn.bit101.android.database.EncryptedStore
 import cn.bit101.android.net.HttpClient
 import com.evgenii.jsevaluator.JsEvaluator
 import com.evgenii.jsevaluator.interfaces.JsCallback
@@ -46,7 +47,6 @@ private suspend fun encryptPassword(password: String, salt: String): String? {
 suspend fun login(username: String, password: String): Boolean {
     try {
         withContext(Dispatchers.IO) {
-            DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
             val client = HttpClient.client
 
             // 登录初始化
@@ -58,6 +58,8 @@ suspend fun login(username: String, password: String): Boolean {
             client.newCall(initLoginRequest).execute().use { response ->
                 val html =
                     response.body?.string() ?: throw Exception("get login init response error")
+                // Cookie已经被修改 修改登陆状态为未登录
+                DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
                 val doc = Jsoup.parse(html)
                 val form = doc.select("#pwdFromId")
                 val salt = form.select("#pwdEncryptSalt").attr("value")
@@ -85,8 +87,16 @@ suspend fun login(username: String, password: String): Boolean {
             client.newCall(loginRequest).execute().use { response ->
                 val html =
                     response.body?.string() ?: throw Exception("get login response error")
-                if (html.indexOf("帐号登录或动态码登录") != -1) throw Exception("login error")
+                if (html.indexOf("帐号登录或动态码登录") != -1) {
+                    // 登陆失败 删除保存的学号密码
+                    EncryptedStore.deleteString(EncryptedStore.SID)
+                    EncryptedStore.deleteString(EncryptedStore.PASSWORD)
+                    throw Exception("login error")
+                }
             }
+            // 保存学号密码
+            EncryptedStore.setString(EncryptedStore.SID, username)
+            EncryptedStore.setString(EncryptedStore.PASSWORD, password)
             DataStore.setBoolean(DataStore.LOGIN_STATUS, true)
         }
     } catch (e: Exception) {
@@ -111,7 +121,7 @@ suspend fun checkLogin(): Boolean {
                 if (html.indexOf("帐号登录或动态码登录") != -1) {
                     // 设置登陆状态为未登录
                     DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
-                    throw Exception("not login")
+                    throw Exception("username or password error")
                 }
             }
             // 设置登陆状态为登陆
@@ -122,4 +132,12 @@ suspend fun checkLogin(): Boolean {
         return false
     }
     return true
+}
+
+// 退出登录
+fun logout() {
+    HttpClient.cookieManager.cookieStore.removeAll()
+    DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
+    EncryptedStore.deleteString(EncryptedStore.SID)
+    EncryptedStore.deleteString(EncryptedStore.PASSWORD)
 }

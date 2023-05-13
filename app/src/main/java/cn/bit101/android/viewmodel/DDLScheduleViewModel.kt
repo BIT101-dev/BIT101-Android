@@ -117,42 +117,53 @@ class DDLScheduleViewModel : ViewModel() {
 
 // 从网络获取日程url 返回是否成功
 suspend fun updateLexueCalendarUrl(): Boolean {
-    val url = getCalendarUrl()
-    if (url == null) {
-        Log.e("DDLScheduleViewModel", "get lexue calendar url error")
+    try {
+        val url = getCalendarUrl()
+        if (url == null) {
+            Log.e("DDLScheduleViewModel", "get lexue calendar url error")
+            return false
+        }
+        DataStore.setString(DataStore.LEXUE_CALENDAR_URL, url)
+        return true
+    } catch (e: Exception) {
+        Log.e("DDLScheduleViewModel", "get lexue calendar url error", e)
         return false
     }
-    DataStore.setString(DataStore.LEXUE_CALENDAR_URL, url)
-    return true
+
 }
 
 // 从网络获取日程 返回是否成功
 suspend fun updateLexueCalendar(): Boolean {
-    val url = DataStore.lexueCalendarUrlFlow.first()
-    if (url == null) {
-        Log.e("DDLScheduleViewModel", "no lexue calendar url")
+    try {
+        val url = DataStore.lexueCalendarUrlFlow.first()
+        if (url == null) {
+            Log.e("DDLScheduleViewModel", "no lexue calendar url")
+            return false
+        }
+        val events = getCalendar(url)
+        val UIDs = events.map { it.uid }
+        // 获取数据库中已有日程
+        val existItems = HashMap<String, DDLScheduleEntity>()
+        App.DB.DDLScheduleDao().getUIDs(UIDs).forEach { existItems[it.uid] = it }
+        events.forEach {
+            val item = DDLScheduleEntity(
+                id = 0,
+                uid = it.uid,
+                group = "lexue",
+                title = it.event,
+                text = it.course + "\n\n" + it.description,
+                time = it.time,
+                done = false
+            )
+            if (existItems[it.uid] == null) {
+                App.DB.DDLScheduleDao().insert(item)
+            } else {
+                App.DB.DDLScheduleDao().update(item.copy(done = existItems[it.uid]!!.done))
+            }
+        }
+        return true
+    } catch (e: Exception) {
+        Log.e("DDLScheduleViewModel", "get lexue calendar error", e)
         return false
     }
-    val events = getCalendar(url)
-    val UIDs = events.map { it.uid }
-    // 获取数据库中已有日程
-    val existItems = HashMap<String, DDLScheduleEntity>()
-    App.DB.DDLScheduleDao().getUIDs(UIDs).forEach { existItems[it.uid] = it }
-    events.forEach {
-        val item = DDLScheduleEntity(
-            id = 0,
-            uid = it.uid,
-            group = "lexue",
-            title = it.event,
-            text = it.course + "\n\n" + it.description,
-            time = it.time,
-            done = false
-        )
-        if (existItems[it.uid] == null) {
-            App.DB.DDLScheduleDao().insert(item)
-        } else {
-            App.DB.DDLScheduleDao().update(item.copy(done = existItems[it.uid]!!.done))
-        }
-    }
-    return true
 }

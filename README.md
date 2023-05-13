@@ -5,6 +5,20 @@
 ---
 由于本项目同时作为大二下安卓课的课程设计，最后会需要写文档，所以会在此记录一些开发过程中遇到的问题等。
 
+## 登陆模块
+
+### 学校接口和Cookie自动管理
+
+学校网站的接口基本都是通过`Cookie`和各种各样的重定向来实现的，所有的其他页面都需要`login.bit.edu`的第三方认证，这个过程如果完全通过手动模拟完成将会非常痛苦，很难实现。在没有`RESTful API`的情况下，使用`Retrofit`这样高层次的框架反而不方便了，最好的方式就是完全模拟浏览器的行为。所以我的实现方式是使用`OkHttp`，并且通过加入一个[cookie-store](https://github.com/gotev/android-cookie-store)中间件实现`Cookie`的全自动管理，这样只需要像使用浏览器一样访问接口就可以了，权限验证将自动通过`Cookie`和重定向完成。
+
+### 登陆流程
+
+### 密码管理
+
+由于需要实现自动重新登陆的功能，因此必须要保存学号和密码，但是直接保存这样的敏感信息显然不合适，因此我使用了`Jetpack`中的`Security`实现了密码的安全管理，这个库会使用的硬件加密的`KeyStore`生成和存储密钥，再用密钥配合`EncryptedSharedPreferences`存储数据，这样就可以保证用户帐号密码的安全。
+
+另外美中不足的是，`cookie-store`是使用未加密的`SharedPreferences`存储`Cookie`的，这也会带来安全隐患，但由于时间限制，我暂时还没有重写这部分的存储接口。
+
 ## Tab实现
 
 首先是`Indicator`的实现，基于[官方文档](https://developer.android.com/reference/kotlin/androidx/compose/material3/package-summary#TabRow(kotlin.Int,androidx.compose.ui.Modifier,androidx.compose.ui.graphics.Color,androidx.compose.ui.graphics.Color,kotlin.Function1,kotlin.Function0,kotlin.Function0))的例子进行修改，实现了非常好的动画效果，这样的动画完全自己写的话还是比较困难。
@@ -49,4 +63,4 @@
 
 ### 引入`Java`库问题
 
-引入``
+乐学的日程是`.ics`格式的，我使用了`ical4j`库来解析，然而这个库并没有`kotlin`版本，于是就只能直接引入`Java`版本的，然而在编译时却会出现一些依赖库出现冲突，我尝试了很多方法都无法解决，报错信息也并不明确，幸运的是我最终在一个[GitHub仓库中](https://github.com/bitfireAT/ical4android/blob/main/build.gradle)找到了解决方法，只需要在`build.gradle`中添加一行`exclude`语句排除一些有冲突的依赖库即可。
