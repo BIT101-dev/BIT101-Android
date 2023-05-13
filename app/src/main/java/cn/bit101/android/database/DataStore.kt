@@ -46,6 +46,14 @@ class DataStore {
             }
         }
 
+        fun setLong(key: Preferences.Key<Long>, value: Long) {
+            CoroutineScope(Dispatchers.IO).launch {
+                App.context.dataStore.edit { preferences ->
+                    preferences[key] = value
+                }
+            }
+        }
+
         // 登陆状态
         val LOGIN_STATUS = booleanPreferencesKey("login_status")
         val loginStatusFlow: Flow<Boolean?> = App.context.dataStore.data
@@ -169,6 +177,20 @@ class DataStore {
         val lexueCalendarUrlFlow: Flow<String?> = App.context.dataStore.data
             .map { preferences ->
                 preferences[LEXUE_CALENDAR_URL]
+            }
+
+        // 日程临近改变颜色天数
+        val DDL_SCHEDULE_BEFORE_DAY = longPreferencesKey("ddl_schedule_before_day")
+        val DDLScheduleBeforeDayFlow: Flow<Long> = App.context.dataStore.data
+            .map { preferences ->
+                preferences[DDL_SCHEDULE_BEFORE_DAY] ?: 7
+            }
+
+        // 日程过期继续显示天数
+        val DDL_SCHEDULE_AFTER_DAY = longPreferencesKey("ddl_schedule_after_day")
+        val DDLScheduleAfterDayFlow: Flow<Long> = App.context.dataStore.data
+            .map { preferences ->
+                preferences[DDL_SCHEDULE_AFTER_DAY] ?: 3
             }
     }
 }

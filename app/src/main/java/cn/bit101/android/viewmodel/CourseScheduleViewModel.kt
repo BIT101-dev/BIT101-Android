@@ -37,6 +37,7 @@ class ScheduleViewModel : ViewModel() {
     val showBorder = DataStore.courseScheduleShowBorderFlow
     val showHighlightToday = DataStore.courseScheduleShowHighlightTodayFlow
     val showDivider = DataStore.courseScheduleShowDividerFlow
+    val showCurrentTime = DataStore.courseScheduleShowCurrentTimeFlow
 
     private var job: Job? = null
 
@@ -101,6 +102,10 @@ class ScheduleViewModel : ViewModel() {
         DataStore.setBoolean(DataStore.COURSE_SCHEDULE_SHOW_DIVIDER, show)
     }
 
+    fun setShowCurrentTime(show: Boolean) {
+        DataStore.setBoolean(DataStore.COURSE_SCHEDULE_SHOW_CURRENT_TIME, show)
+    }
+
     fun setTimeTable(timeTable: String) {
         DataStore.setString(DataStore.COURSE_SCHEDULE_TIME_TABLE, timeTable)
     }
@@ -127,7 +132,7 @@ suspend fun getCoursesFromNet(term: String = ""): Boolean {
     val courses = getCourseSchedule(term) ?: return false
     App.DB.courseScheduleDao().deleteTerm(courses.term) // 删除旧的课程表
     DataStore.setString(DataStore.COURSE_SCHEDULE_TERM, courses.term)
-    DataStore.setCourseScheduleFirstDay(courses.term,courses.firstDay)
+    DataStore.setCourseScheduleFirstDay(courses.term, courses.firstDay)
     courses.courseList.forEach {
         App.DB.courseScheduleDao().insert(course2db(it))
     }

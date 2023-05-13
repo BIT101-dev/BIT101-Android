@@ -8,6 +8,10 @@ import cn.bit101.android.database.DDLScheduleEntity
 import cn.bit101.android.database.DataStore
 import cn.bit101.android.net.school.getCalendar
 import cn.bit101.android.net.school.getCalendarUrl
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -20,7 +24,53 @@ import java.time.LocalDateTime
 
 class DDLScheduleViewModel : ViewModel() {
     val lexueCalendarUrlFlow = DataStore.lexueCalendarUrlFlow
-    val eventsFlow = App.DB.DDLScheduleDao().getFuture(LocalDateTime.now().minusDays(3))
+    var beforeDay = 7
+    var afterDay = 3
+
+    private val _events = MutableStateFlow<List<DDLScheduleEntity>>(emptyList())
+    val events: StateFlow<List<DDLScheduleEntity>> = _events.asStateFlow()
+
+    private var job: Job? = null
+
+    init {
+        viewModelScope.launch {
+            DataStore.DDLScheduleBeforeDayFlow.collect {
+                beforeDay = it.toInt()
+            }
+        }
+
+        viewModelScope.launch {
+            DataStore.DDLScheduleAfterDayFlow.collect {
+                afterDay = it.toInt()
+                startGetEvents(it)
+            }
+        }
+    }
+
+    // 设置颜色改变天数
+    fun setBeforeDay(day: Long) {
+        viewModelScope.launch {
+            DataStore.setLong(DataStore.DDL_SCHEDULE_BEFORE_DAY, day)
+        }
+    }
+
+    // 设置滞留天数
+    fun setAfterDay(day: Long) {
+        viewModelScope.launch {
+            DataStore.setLong(DataStore.DDL_SCHEDULE_AFTER_DAY, day)
+        }
+    }
+
+    // 获取日历
+    private fun startGetEvents(day: Long) {
+        job?.cancel()
+        job = viewModelScope.launch {
+            App.DB.DDLScheduleDao().getFuture(LocalDateTime.now().minusDays(day))
+                .collect(
+                    _events::emit
+                )
+        }
+    }
 
     // 设置完成状态
     fun setDone(event: DDLScheduleEntity, done: Boolean) {
@@ -28,41 +78,42 @@ class DDLScheduleViewModel : ViewModel() {
             App.DB.DDLScheduleDao().update(event.copy(done = done))
         }
     }
-}
 
-// 获取和当前时间差的表述字符串
-fun remainTime(time: LocalDateTime): String {
-    val now = LocalDateTime.now()
-    var diff = now.until(time, java.time.temporal.ChronoUnit.MINUTES)
-    var s = ""
-    s += if (diff < 0) {
-        "超时 "
-    } else
-        "还有 "
-    diff = Math.abs(diff)
-    val day = diff / 1440
-    val hour = (diff % 1440) / 60
-    val minute = diff % 60
-    s += if (day > 0) {
-        "${day}天 ${hour}小时 ${minute}分钟"
-    } else if (hour > 0) {
-        "${hour}小时 ${minute}分钟"
-    } else {
-        "${minute}分钟"
+    // 获取和当前时间差的表述字符串
+    fun remainTime(time: LocalDateTime): String {
+        val now = LocalDateTime.now()
+        var diff = now.until(time, java.time.temporal.ChronoUnit.MINUTES)
+        var s = ""
+        s += if (diff < 0) {
+            "已过 "
+        } else
+            "剩余 "
+        diff = Math.abs(diff)
+        val day = diff / 1440
+        val hour = (diff % 1440) / 60
+        val minute = diff % 60
+        s += if (day > 0) {
+            "${day}天 ${hour}小时 ${minute}分钟"
+        } else if (hour > 0) {
+            "${hour}小时 ${minute}分钟"
+        } else {
+            "${minute}分钟"
+        }
+        return s
     }
-    return s
-}
 
 
-// 剩余时间比例 0~1 过期为0 超过ENOUGH_TIME为1
-const val ENOUGH_TIME = 1440 * 7
-fun remainTimeRatio(time: LocalDateTime): Float {
-    val now = LocalDateTime.now()
-    val diff = now.until(time, java.time.temporal.ChronoUnit.MINUTES)
-    if (diff <= 0) return 0f
-    if (diff >= ENOUGH_TIME) return 1f
-    return diff.toFloat() / ENOUGH_TIME
+    // 剩余时间比例 0~1 过期为0 超过ENOUGH_TIME为1
+    fun remainTimeRatio(time: LocalDateTime): Float {
+        val enoughTime = 1440 * beforeDay
+        val now = LocalDateTime.now()
+        val diff = now.until(time, java.time.temporal.ChronoUnit.MINUTES)
+        if (diff <= 0) return 0f
+        if (diff >= enoughTime) return 1f
+        return diff.toFloat() / enoughTime
+    }
 }
+
 
 // 从网络获取日程url 返回是否成功
 suspend fun updateLexueCalendarUrl(): Boolean {

@@ -22,18 +22,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import cn.bit101.android.database.CourseScheduleEntity
+import cn.bit101.android.database.DDLScheduleEntity
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-// 课程详情对话框
+/**
+ * @author flwfdd
+ * @date 13/05/2023 21:13
+ * @description _(:з」∠)_
+ */
+
 @Composable
-fun CourseDetailDialog(course: CourseScheduleEntity, showDialog: MutableState<Boolean>) {
+fun DDLDetailDialog(event: DDLScheduleEntity, showDialog: MutableState<Boolean>) {
     AlertDialog(
         modifier = Modifier.fillMaxSize(0.9f),
         onDismissRequest = {
             showDialog.value = false
         },
         title = {
-            Text(text = course.name)
+            Text(text = event.title)
         },
         text = {
             val scrollState = rememberScrollState()
@@ -43,14 +50,11 @@ fun CourseDetailDialog(course: CourseScheduleEntity, showDialog: MutableState<Bo
                     .fillMaxSize()
                     .verticalScroll(scrollState)
             ) {
-                    Item(title = "时空坐标：", content = course.description)
-                    Item("课程号：", course.number)
-                    Item("授课教师：", course.teacher)
-                    Item("学分：", course.credit.toString())
-                    Item("学时：", course.hour.toString())
-                    Item("课程性质：", course.type)
-                    Item("课程类别：", course.category)
-                    Item("开课单位：", course.department)
+                    Item(
+                        title = "DDL：",
+                        content = event.time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+                    )
+                    Item(title = "详情：", content = event.text)
                 }
             }
         },
@@ -91,27 +95,17 @@ private fun Item(title: String, content: String) {
 
 @Preview(showBackground = true)
 @Composable
-fun CourseDetailPreview() {
+fun DDLDetailPreview() {
     val show = remember { mutableStateOf(false) }
-    CourseDetailDialog(
-        CourseScheduleEntity(
+    DDLDetailDialog(
+        DDLScheduleEntity(
             0,
-            "2020-2021-2",
-            "高等数学",
-            "张三,李四",
-            "教学楼101",
-            "第1-16周",
-            "[1][2][3][4][5][6][7][8][9][10][11][12][13][14][15][16]",
-            1,
-            1,
-            2,
-            "良乡校区",
-            "123456",
-            4,
-            64,
-            "必修",
-            "文化课",
-            "数学系"
+            "test",
+            "test",
+            "test",
+            "test\n\nfdsfaad\nfdsaf\nfsfds\nfdsafn\nfsaddddd范德萨啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊啊法大赛",
+            LocalDateTime.now(),
+            false,
         ),
         show
     )
