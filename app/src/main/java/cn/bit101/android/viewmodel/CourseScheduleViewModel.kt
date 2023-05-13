@@ -37,7 +37,6 @@ class ScheduleViewModel : ViewModel() {
     val showBorder = DataStore.courseScheduleShowBorderFlow
     val showHighlightToday = DataStore.courseScheduleShowHighlightTodayFlow
     val showDivider = DataStore.courseScheduleShowDividerFlow
-    val loginStatus = DataStore.loginStatusFlow
 
     private var job: Job? = null
 

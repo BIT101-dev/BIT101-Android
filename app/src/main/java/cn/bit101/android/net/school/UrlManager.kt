@@ -47,14 +47,14 @@ val scheduleLangUrl: String
     }
 
 // 获取当前学期
-val scheduleNowTermUrl:String
+val scheduleNowTermUrl: String
     get() {
         return if (webvpn) "https://webvpn.bit.edu.cn/http/77726476706e69737468656265737421faef5b842238695c720999bcd6572a216b231105adc27d/jwapp/sys/wdkbby/modules/jshkcb/dqxnxq.do"
         else "http://jxzxehallapp.bit.edu.cn/jwapp/sys/wdkbby/modules/jshkcb/dqxnxq.do"
     }
 
 // 获取学期列表
-val scheduleTermListUrl:String
+val scheduleTermListUrl: String
     get() {
         return if (webvpn) "https://webvpn.bit.edu.cn/http/77726476706e69737468656265737421faef5b842238695c720999bcd6572a216b231105adc27d/jwapp/sys/wdkbby/modules/jshkcb/xnxqcx.do"
         else "http://jxzxehallapp.bit.edu.cn/jwapp/sys/wdkbby/modules/jshkcb/xnxqcx.do"
@@ -73,3 +73,18 @@ val scheduleUrl: String
         return if (webvpn) "https://webvpn.bit.edu.cn/http/77726476706e69737468656265737421faef5b842238695c720999bcd6572a216b231105adc27d/jwapp/sys/wdkbby/modules/xskcb/cxxszhxqkb.do"
         else "http://jxzxehallapp.bit.edu.cn/jwapp/sys/wdkbby/modules/xskcb/cxxszhxqkb.do"
     }
+
+// 乐学主页
+val lexueMainUrl: String
+    get() {
+        return if (webvpn) "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421fcf25989227e6a596a468ca88d1b203b"
+        else "https://lexue.bit.edu.cn"
+    }
+
+// 乐学导出课程表页面
+val lexueCalendarExportUrl: String
+    get() {
+        return if (webvpn) "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421fcf25989227e6a596a468ca88d1b203b/calendar/export.php"
+        else "https://lexue.bit.edu.cn/calendar/export.php"
+    }
+

@@ -2,6 +2,7 @@ package cn.bit101.android.database
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow
+import java.time.LocalDateTime
 
 /**
  * @author flwfdd
@@ -10,6 +11,7 @@ import kotlinx.coroutines.flow.Flow
  */
 
 
+// 课程表课程
 @Entity(tableName = "course_schedule")
 data class CourseScheduleEntity(
     @PrimaryKey(autoGenerate = true)
@@ -54,4 +56,48 @@ interface CourseScheduleDao {
 
     @Query("DELETE FROM course_schedule WHERE term = :term")
     suspend fun deleteTerm(term: String)
+}
+
+// 待办事项
+@Entity(
+    tableName = "ddl_schedule",
+    indices = [Index(value = ["uid"], unique = true), Index(value = ["group"])] //添加索引
+)
+
+data class DDLScheduleEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int,
+    val group: String, // 分组
+    val uid: String, // 序列号
+    val title: String, // 标题
+    val text: String, // 内容
+    val time: LocalDateTime, // 到期时间
+    val done: Boolean // 是否完成
+)
+
+@Dao
+interface DDLScheduleDao {
+    @Query("SELECT * FROM ddl_schedule ORDER BY time ASC")
+    fun getAll(): Flow<List<DDLScheduleEntity>>
+
+    @Query("SELECT * FROM ddl_schedule WHERE time > :time ORDER BY time ASC")
+    fun getFuture(time: LocalDateTime): Flow<List<DDLScheduleEntity>>
+
+    @Query("SELECT * FROM ddl_schedule WHERE uid IN (:uid)")
+    suspend fun getUIDs(uid: List<String>): List<DDLScheduleEntity>
+
+    @Insert
+    suspend fun insert(ddl: DDLScheduleEntity)
+
+    @Update
+    suspend fun update(ddl: DDLScheduleEntity)
+
+    @Delete
+    suspend fun delete(ddl: DDLScheduleEntity)
+
+    @Query("DELETE FROM ddl_schedule")
+    suspend fun deleteAll()
+
+    @Query("DELETE FROM ddl_schedule WHERE id = :id")
+    suspend fun deleteID(id: Int)
 }

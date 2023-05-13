@@ -38,7 +38,7 @@ android {
         compose true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion '1.4.0'
+        kotlinCompilerExtensionVersion '1.4.3'
     }
     packagingOptions {
         resources {
@@ -49,9 +49,9 @@ android {
 
 dependencies {
     def room_version = "2.5.1"
-    implementation platform('androidx.compose:compose-bom:2023.03.00')
+    implementation platform('androidx.compose:compose-bom:2023.05.01')
 
-    implementation 'androidx.core:core-ktx:1.8.0'
+    implementation 'androidx.core:core-ktx:1.8.10'
     implementation "androidx.compose.ui:ui"
     implementation "androidx.compose.ui:ui-tooling-preview"
     implementation 'androidx.compose.material3:material3'
@@ -63,7 +63,7 @@ dependencies {
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1"
-    implementation 'androidx.activity:activity-compose:1.7.0'
+    implementation 'androidx.activity:activity-compose:1.7.1'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
@@ -73,13 +73,20 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-testing:$room_version"
     implementation "androidx.datastore:datastore-preferences:1.0.0"
-
-
     implementation "androidx.navigation:navigation-compose:2.5.3"
+
     implementation "com.squareup.okhttp3:okhttp:4.10.0"
     implementation "net.gotev:cookie-store-okhttp:1.5.0"
     implementation "net.gotev:cookie-store:1.5.0"
     implementation 'com.github.evgenyneu:js-evaluator-for-android:v6.0.0'
     implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'ovh.plrapps:mapcompose:2.5.0'
+    api("org.mnode.ical4j:ical4j:3.2.11") {
+        // exclude modules which are in conflict with system libraries
+        exclude group: 'commons-logging'
+        exclude group: 'org.json', module: 'json'
+        // exclude groovy because we don't need it
+        exclude group: 'org.codehaus.groovy', module: 'groovy'
+        exclude group: 'org.codehaus.groovy', module: 'groovy-dateutil'
+    }
 }

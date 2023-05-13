@@ -163,6 +163,13 @@ class DataStore {
             .map { preferences ->
                 preferences[MAP_SCALE] ?: 2f
             }
+
+        // 乐学日程订阅链接
+        val LEXUE_CALENDAR_URL = stringPreferencesKey("lexue_calendar_url")
+        val lexueCalendarUrlFlow: Flow<String?> = App.context.dataStore.data
+            .map { preferences ->
+                preferences[LEXUE_CALENDAR_URL]
+            }
     }
 }
 

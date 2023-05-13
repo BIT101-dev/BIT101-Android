@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter
 /**
  * @author flwfdd
  * @date 2023/3/30 21:18
- * @description _(:з」∠)_
+ * @description 课程表网络接口
  */
 
 private data class NowTermResponseRoot(
@@ -161,7 +161,7 @@ suspend fun getCourseSchedule(_term: String = ""): CourseScheduleResponse? {
             }
         }
     } catch (e: Exception) {
-        Log.e(TAG, "Get Course Schedule Error $e")
+        Log.e("SchoolSchedule", "Get Course Schedule Error $e")
         return null
     }
 }
@@ -187,7 +187,7 @@ suspend fun getTermList(): List<TermResponseItem> {
             }
         }
     } catch (e: Exception) {
-        Log.e(TAG, "Get Course Schedule Term List Error $e")
+        Log.e("SchoolSchedule", "Get Course Schedule Term List Error $e")
         return emptyList()
     }
 }

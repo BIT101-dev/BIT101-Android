@@ -69,7 +69,6 @@ fun CourseSchedule(
             .fillMaxSize()
     ) {
         var showDialog by rememberSaveable { mutableStateOf(false) }
-        val loginStatus = vm.loginStatus.collectAsState(initial = false).value
         val term = vm.termFlow.collectAsState(initial = "").value
 
         // 没有课程表时term=null 加载之前为空字符串
@@ -83,20 +82,12 @@ fun CourseSchedule(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (loginStatus == true) {
-                        Button(onClick = {
-                            MainScope().launch {
-                                getCoursesFromNet()
-                            }
-                        }) {
-                            Text("获取课程表")
+                    Button(onClick = {
+                        MainScope().launch {
+                            getCoursesFromNet()
                         }
-                    } else {
-                        Button(onClick = {
-                            mainController.route("login")
-                        }) {
-                            Text("登录")
-                        }
+                    }) {
+                        Text("获取课程表")
                     }
                 }
             }

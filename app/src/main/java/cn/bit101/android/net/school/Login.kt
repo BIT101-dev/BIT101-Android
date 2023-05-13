@@ -19,8 +19,6 @@ import kotlin.coroutines.suspendCoroutine
  * @description _(:з」∠)_
  */
 
-const val TAG = "School Login TAG"
-
 private suspend fun encryptPassword(password: String, salt: String): String? {
     return withContext(Dispatchers.Main) {
         return@withContext suspendCoroutine { it ->
@@ -34,7 +32,7 @@ private suspend fun encryptPassword(password: String, salt: String): String? {
                 }
 
                 override fun onError(errorMessage: String?) {
-                    Log.e(TAG, errorMessage.toString())
+                    Log.e("SchoolLogin", errorMessage.toString())
                     it.resume(null)
                 }
 
@@ -88,12 +86,11 @@ suspend fun login(username: String, password: String): Boolean {
                 val html =
                     response.body?.string() ?: throw Exception("get login response error")
                 if (html.indexOf("帐号登录或动态码登录") != -1) throw Exception("login error")
-                Log.i(TAG, HttpClient.cookieManager.cookieStore.cookies.toString())
             }
             DataStore.setBoolean(DataStore.LOGIN_STATUS, true)
         }
     } catch (e: Exception) {
-        Log.e(TAG, "Login Error $e")
+        Log.e("SchoolLogin", "Login Error $e")
         return false
     }
     return true
@@ -121,7 +118,7 @@ suspend fun checkLogin(): Boolean {
             DataStore.setBoolean(DataStore.LOGIN_STATUS, true)
         }
     } catch (e: Exception) {
-        Log.e(TAG, "Login Error $e")
+        Log.e("SchoolLogin", "Login Error $e")
         return false
     }
     return true
