@@ -60,6 +60,20 @@ class DataStore {
                 preferences[LOGIN_STATUS]
             }
 
+        // 登陆学号
+        val LOGIN_SID = stringPreferencesKey("login_sid")
+        val loginSidFlow: Flow<String?> = App.context.dataStore.data
+            .map { preferences ->
+                preferences[LOGIN_SID]
+            }
+
+        // BIT101 fake_cookie
+        val FAKE_COOKIE = stringPreferencesKey("fake_cookie")
+        val fakeCookieFlow: Flow<String?> = App.context.dataStore.data
+            .map { preferences ->
+                preferences[FAKE_COOKIE]
+            }
+
         // 课程表模块配置
         // 学期
         val COURSE_SCHEDULE_TERM = stringPreferencesKey("course_schedule_term")

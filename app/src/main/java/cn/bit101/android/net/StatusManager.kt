@@ -3,9 +3,13 @@ package cn.bit101.android.net
 import android.util.Log
 import cn.bit101.android.database.DataStore
 import cn.bit101.android.database.EncryptedStore
+import cn.bit101.android.net.bit101.BIT101Service
+import cn.bit101.android.net.bit101.loginBIT101
 import cn.bit101.android.net.school.checkLogin
 import cn.bit101.android.net.school.login
 import cn.bit101.android.viewmodel.updateLexueCalendar
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
 
 /**
  * @author flwfdd
@@ -19,16 +23,49 @@ suspend fun updateStatus() {
     if (!checkLogin()) {
         val sid = EncryptedStore.getString(EncryptedStore.SID)
         val password = EncryptedStore.getString(EncryptedStore.PASSWORD)
-        Log.i("StatusManager", "sid: $sid, password: $password")
         if (sid != null && password != null) {
             // 可能是Cookie过期 尝试重新登录
             login(sid, password)
         }
     }
 
+    // 检测BIT101登陆状态
+    try {
+        if (!BIT101Service.service.check().isSuccessful) {
+            // 可能是Cookie过期 尝试重新登录
+            val sid = EncryptedStore.getString(EncryptedStore.SID)
+            val password = EncryptedStore.getString(EncryptedStore.PASSWORD)
+            if (sid != null && password != null) {
+                loginBIT101(sid, password)
+            }
+        }
+    } catch (e: Exception) {
+        Log.e("StatusManager", "BIT101 check error ${e.message}")
+    }
+
+
+    // 更新BIT101登陆状态
+    MainScope().launch {
+        DataStore.loginSidFlow.collect {
+            if (it.isNullOrBlank()) {
+                DataStore.setString(DataStore.FAKE_COOKIE, "")
+            } else {
+                val sid = EncryptedStore.getString(EncryptedStore.SID)
+                val password = EncryptedStore.getString(EncryptedStore.PASSWORD)
+                if (sid != null && password != null) try {
+                    loginBIT101(sid, password)
+                } catch (e: Exception) {
+                    Log.e("StatusManager", "BIT101 login error ${e.message}")
+                }
+            }
+        }
+    }
+
     // 更新乐学日程
-    DataStore.lexueCalendarUrlFlow.collect {
-        if (it == null) return@collect
-        updateLexueCalendar()
+    MainScope().launch {
+        DataStore.lexueCalendarUrlFlow.collect {
+            if (it == null) return@collect
+            updateLexueCalendar()
+        }
     }
 }

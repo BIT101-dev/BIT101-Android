@@ -57,10 +57,23 @@
 
 在很多情况下波纹的形状都会自动与组件形状相适配，但是一些情况（比如使用`Modifier.clickable{}`定义点击响应）下，波纹的形状会变成一个矩形，这时可以使用`Modifier.clip()`将组件的形状传递给波纹。
 
-### `rememberSaveable`导致的闪退问题
+### rememberSaveable导致的闪退问题
 
 在使用`rememberSaveable`保存自定义对象时，一旦切换页面就会闪退，这是由于触发保存操作时，默认的序列化过程无法处理自定义对象。解决方法是要么手动定义对象的保存和恢复操作，或者直接使用`remember`代替`rememberSaveable`。
 
-### 引入`Java`库问题
+### 引入Java库问题
 
 乐学的日程是`.ics`格式的，我使用了`ical4j`库来解析，然而这个库并没有`kotlin`版本，于是就只能直接引入`Java`版本的，然而在编译时却会出现一些依赖库出现冲突，我尝试了很多方法都无法解决，报错信息也并不明确，幸运的是我最终在一个[GitHub仓库中](https://github.com/bitfireAT/ical4android/blob/main/build.gradle)找到了解决方法，只需要在`build.gradle`中添加一行`exclude`语句排除一些有冲突的依赖库即可。
+
+
+### WebView状态问题
+
+每次在应用内切换导航又回到`WebView`所在页面时，就会发现`WebView`的状态已经改变了。这是由于只使用了`rememberWebViewState`，查了半天翻到了`GitHub`上的[一个issue](https://github.com/google/accompanist/pull/1557)，这个问题在一两个星期前通过一个新的`rememberSaveableWebViewState`解决了，将库更新到最新的`alpha`版本并更改为使用`rememberSaveableWebViewState`即可保存简单状态。
+
+然而，现在的实现并没有完全恢复状态，只是单纯回到之前的页面和浏览位置（比如输入框的内容会丢失），但也先凑合用着吧。
+
+### WebView文件上传实现
+
+`WebView`默认是不支持文件上传的，必须通过手动重写`WebChromeClient`的`onShowFileChooser`函数来实现。我们首先在`Application`中定义一个`ActivityResultRegistry`，然后在`MainActivity`中将此设置为`ActivityResultContracts.GetMultipleContents()`，最后通过一个全局的`MutableStateFlow`传递文件选择的结果。
+
+这部分逻辑比较绕，主要参考了[这篇文章](https://blog.csdn.net/LiePy/article/details/125797893)。

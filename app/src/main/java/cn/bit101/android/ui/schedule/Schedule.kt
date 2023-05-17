@@ -17,6 +17,7 @@ import cn.bit101.android.ui.schedule.CourseSchedule
 import cn.bit101.android.ui.schedule.DDLSchedule
 
 
+// 课表+DDL主界面
 @Composable
 fun Schedule(mainController: MainController) {
     val items = listOf(TabPagerItem("课表") {
@@ -24,6 +25,8 @@ fun Schedule(mainController: MainController) {
     }, TabPagerItem("DDL") {
         DDLSchedule(mainController, it)
     })
+
+    // 检查登陆状态 没有登陆则显示登陆按钮
     val loginStatus = DataStore.loginStatusFlow.collectAsState(initial = null)
     if (loginStatus.value == false) {
         Column(
@@ -41,6 +44,4 @@ fun Schedule(mainController: MainController) {
     if (loginStatus.value == true) {
         TabPager(items)
     }
-
 }
-

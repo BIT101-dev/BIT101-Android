@@ -1,20 +1,34 @@
 package cn.bit101.android
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.animation.*
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Event
 import androidx.compose.material.icons.rounded.Map
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
@@ -27,6 +41,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.net.updateStatus
+import cn.bit101.android.ui.BIT101Web
 import cn.bit101.android.ui.LoginOrLogout
 import cn.bit101.android.ui.MapComponent
 import cn.bit101.android.ui.Schedule
@@ -44,9 +59,23 @@ class MainActivity : ComponentActivity() {
             }
         }
 
+        // 打开文件选择窗口
+        App.activityResultLauncher =
+            registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {
+                MainScope().launch {
+                    // 发送文件选择结果
+                    App.activityResult.emit(it)
+                }
+            }
+
+        // 锁定屏幕旋转
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+
         MainScope().launch {
             updateStatus()
         }
+
+
     }
 }
 
@@ -63,7 +92,7 @@ class MainController(
 
     fun route(route: String) {
         // 路由跳转 保证唯一
-        navController.navigate(route){
+        navController.navigate(route) {
             popUpTo(navController.graph.startDestinationId) {
                 saveState = true
             }
@@ -73,7 +102,6 @@ class MainController(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainContent() {
     val mainController = MainController(
@@ -87,7 +115,8 @@ fun MainContent() {
 
     val routes = listOf(
         Screen("schedule", "卷", Icons.Rounded.Event),
-        Screen("map", "图", Icons.Rounded.Map)
+        Screen("map", "图", Icons.Rounded.Map),
+        Screen("bit101-web", "网", Icons.Rounded.Dashboard)
     )
     // 在导航图中才显示底部导航栏
     val showBottomBar = mainController.navController
@@ -125,7 +154,12 @@ fun MainContent() {
                         val selected =
                             currentDestination?.hierarchy?.any { it.route == screen.route } == true
                         NavigationBarItem(
-                            icon = { Icon(imageVector = screen.icon, contentDescription = screen.label) },
+                            icon = {
+                                Icon(
+                                    imageVector = screen.icon,
+                                    contentDescription = screen.label
+                                )
+                            },
                             label = { Text(text = screen.label) },
                             selected = selected,
                             onClick = {
@@ -163,6 +197,11 @@ fun MainContent() {
             composable("map") {
                 Box(modifier = modifier(it)) {
                     MapComponent()
+                }
+            }
+            composable("bit101-web") {
+                Box(modifier = modifier(it)) {
+                    BIT101Web()
                 }
             }
         }

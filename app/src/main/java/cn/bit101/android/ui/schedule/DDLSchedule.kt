@@ -27,14 +27,13 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,10 +47,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -78,37 +75,43 @@ fun DDLSchedule(
     active: Boolean,
     vm: DDLScheduleViewModel = viewModel()
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Alignment.BottomEnd
-    ) {
+    // 日程详情弹窗
+    val showDetailDialog = remember { mutableStateOf(false) }
+    var detailData: DDLScheduleEntity? by remember { mutableStateOf(null) }
+    if (showDetailDialog.value && detailData != null) {
+        DDLScheduleDetailDialog(event = detailData!!, showDialog = showDetailDialog)
+    }
 
-        // 日程详情弹窗
-        val showDetailDialog = remember { mutableStateOf(false) }
-        var detailData: DDLScheduleEntity? by remember { mutableStateOf(null) }
-        if (showDetailDialog.value && detailData != null) {
-            DDLDetailDialog(event = detailData!!, showDialog = showDetailDialog)
-        }
-
-        // 判断是否已经有订阅链接
-        val url = vm.lexueCalendarUrlFlow.collectAsState(initial = null)
-        if (url.value == null) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(onClick = {
-                    MainScope().launch {
-                        updateLexueCalendarUrl()
-                    }
-                }) {
-                    Text("获取乐学日历")
+    // 判断是否已经有订阅链接
+    val url = vm.lexueCalendarUrlFlow.collectAsState(initial = null)
+    if (url.value == null) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            var loading by remember { mutableStateOf(false) }
+            Button(enabled = !loading, onClick = {
+                MainScope().launch {
+                    loading = true
+                    updateLexueCalendarUrl()
+                    loading = false
                 }
+            }) {
+                if (loading) CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp
+                )
+                else Text("获取乐学日历")
             }
-        } else {
+        }
+    } else {
+        Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.BottomEnd
+        ) {
             val events = vm.events.collectAsState()
 
             LazyColumn {
@@ -129,119 +132,55 @@ fun DDLSchedule(
                     Spacer(modifier = Modifier.height(100.dp))
                 }
             }
-        }
 
-        var showConfigDialog by rememberSaveable { mutableStateOf(false) }
+            var showConfigDialog by rememberSaveable { mutableStateOf(false) }
 
-        FloatingActionButton(
-            modifier = Modifier
-                .padding(10.dp, 20.dp)
-                .size(42.dp),
-            onClick = {
-                showConfigDialog = true
-            },
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-            contentColor = MaterialTheme.colorScheme.primary,
-            elevation = FloatingActionButtonDefaults.elevation(0.dp),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Settings,
-                contentDescription = "settings",
-            )
-        }
-
-        // 设置对话框 自定义进入和退出动画
-        AnimatedVisibility(
-            visible = showConfigDialog,
-            enter = slideIn(
-                initialOffset = { IntOffset(0, it.height) },
-                animationSpec = spring(
-                    stiffness = Spring.StiffnessMediumLow,
-                    visibilityThreshold = IntOffset.VisibilityThreshold
+            FloatingActionButton(
+                modifier = Modifier
+                    .padding(10.dp, 20.dp)
+                    .size(42.dp),
+                onClick = {
+                    showConfigDialog = true
+                },
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                contentColor = MaterialTheme.colorScheme.primary,
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Settings,
+                    contentDescription = "settings",
                 )
-            ),
-            exit = slideOut(
-                targetOffset = { IntOffset(0, it.height) },
-                animationSpec = spring(
-                    stiffness = Spring.StiffnessMediumLow,
-                    visibilityThreshold = IntOffset.VisibilityThreshold
+            }
+
+            // 设置对话框 自定义进入和退出动画
+            AnimatedVisibility(
+                visible = showConfigDialog,
+                enter = slideIn(
+                    initialOffset = { IntOffset(0, it.height) },
+                    animationSpec = spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        visibilityThreshold = IntOffset.VisibilityThreshold
+                    )
+                ),
+                exit = slideOut(
+                    targetOffset = { IntOffset(0, it.height) },
+                    animationSpec = spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        visibilityThreshold = IntOffset.VisibilityThreshold
+                    )
                 )
-            )
-        ) {
-            DDLScheduleConfigDialog(mainController, vm) {
+            ) {
+                DDLScheduleConfigDialog(mainController, vm) {
+                    showConfigDialog = false
+                }
+            }
+
+            // 响应返回键 收起设置对话框
+            BackHandler(enabled = showConfigDialog && active) {
                 showConfigDialog = false
             }
         }
 
-        // 响应返回键 收起设置对话框
-        BackHandler(enabled = showConfigDialog && active) {
-            showConfigDialog = false
-        }
-    }
-}
-
-fun mixColor(color1: Color, color2: Color, ratio: Float): Color {
-    return Color(
-        (color1.red * ratio + color2.red * (1 - ratio)),
-        (color1.green * ratio + color2.green * (1 - ratio)),
-        (color1.blue * ratio + color2.blue * (1 - ratio))
-    )
-}
-
-@Composable
-fun DDLScheduleItem(modifier: Modifier, item: DDLScheduleEntity, vm: DDLScheduleViewModel) {
-    Surface(
-        modifier = modifier,
-        color = if (item.done) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f) else mixColor(
-            MaterialTheme.colorScheme.surfaceVariant,
-            MaterialTheme.colorScheme.errorContainer,
-            vm.remainTimeRatio(item.time)
-        ),
-        contentColor = if (item.done) MaterialTheme.colorScheme.onSecondaryContainer else mixColor(
-            MaterialTheme.colorScheme.onSurfaceVariant,
-            MaterialTheme.colorScheme.onErrorContainer,
-            vm.remainTimeRatio(item.time)
-        ),
-        shape = MaterialTheme.shapes.medium
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(15.dp, 15.dp, 5.dp, 15.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-            ) {
-                Text(
-                    text = item.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = item.text,
-                    style = MaterialTheme.typography.bodySmall,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = vm.remainTime(item.time),
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Checkbox(checked = item.done, onCheckedChange = {
-                vm.setDone(item, it)
-            })
-        }
     }
 }
 

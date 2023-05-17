@@ -20,7 +20,7 @@ import kotlin.coroutines.suspendCoroutine
  * @description _(:з」∠)_
  */
 
-private suspend fun encryptPassword(password: String, salt: String): String? {
+suspend fun encryptPassword(password: String, salt: String): String? {
     return withContext(Dispatchers.Main) {
         return@withContext suspendCoroutine { it ->
             val jsSrc = App.context.assets.open("EncryptPassword.js")
@@ -91,12 +91,14 @@ suspend fun login(username: String, password: String): Boolean {
                     // 登陆失败 删除保存的学号密码
                     EncryptedStore.deleteString(EncryptedStore.SID)
                     EncryptedStore.deleteString(EncryptedStore.PASSWORD)
+                    DataStore.setString(DataStore.LOGIN_SID, "")
                     throw Exception("login error")
                 }
             }
             // 保存学号密码
             EncryptedStore.setString(EncryptedStore.SID, username)
             EncryptedStore.setString(EncryptedStore.PASSWORD, password)
+            DataStore.setString(DataStore.LOGIN_SID, username)
             DataStore.setBoolean(DataStore.LOGIN_STATUS, true)
         }
     } catch (e: Exception) {
@@ -140,4 +142,5 @@ fun logout() {
     DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
     EncryptedStore.deleteString(EncryptedStore.SID)
     EncryptedStore.deleteString(EncryptedStore.PASSWORD)
+    DataStore.setString(DataStore.LOGIN_SID, "")
 }

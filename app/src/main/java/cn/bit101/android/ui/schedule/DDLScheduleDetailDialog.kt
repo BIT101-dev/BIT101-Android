@@ -33,7 +33,7 @@ import java.time.format.DateTimeFormatter
  */
 
 @Composable
-fun DDLDetailDialog(event: DDLScheduleEntity, showDialog: MutableState<Boolean>) {
+fun DDLScheduleDetailDialog(event: DDLScheduleEntity, showDialog: MutableState<Boolean>) {
     AlertDialog(
         modifier = Modifier.fillMaxSize(0.9f),
         onDismissRequest = {
@@ -97,7 +97,7 @@ private fun Item(title: String, content: String) {
 @Composable
 fun DDLDetailPreview() {
     val show = remember { mutableStateOf(false) }
-    DDLDetailDialog(
+    DDLScheduleDetailDialog(
         DDLScheduleEntity(
             0,
             "test",

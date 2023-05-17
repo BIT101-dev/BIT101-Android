@@ -26,7 +26,7 @@ import cn.bit101.android.database.CourseScheduleEntity
 
 // 课程详情对话框
 @Composable
-fun CourseDetailDialog(course: CourseScheduleEntity, showDialog: MutableState<Boolean>) {
+fun CourseScheduleDetailDialog(course: CourseScheduleEntity, showDialog: MutableState<Boolean>) {
     AlertDialog(
         modifier = Modifier.fillMaxSize(0.9f),
         onDismissRequest = {
@@ -93,7 +93,7 @@ private fun Item(title: String, content: String) {
 @Composable
 fun CourseDetailPreview() {
     val show = remember { mutableStateOf(false) }
-    CourseDetailDialog(
+    CourseScheduleDetailDialog(
         CourseScheduleEntity(
             0,
             "2020-2021-2",
