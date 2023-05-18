@@ -11,6 +11,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -158,6 +159,7 @@ fun BIT101Web(vm: BIT101WebViewModel = viewModel()) {
         LinearProgressIndicator(
             progress = progress,
             modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.secondary,
             trackColor = Color.Transparent,
             strokeCap = StrokeCap.Round
         )

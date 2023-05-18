@@ -8,7 +8,9 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
+import cn.bit101.android.database.DataStore
 
 
 private val LightColors = lightColorScheme(
@@ -78,11 +80,17 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun BIT101Theme(
-    useDarkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable() () -> Unit
 ) {
-    val dynamicColor = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-//    val dynamicColor = false
+    val dynamicColor =
+        if (DataStore.settingAutoThemeFlow.collectAsState(initial = false).value)
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        else
+            false
+
+    val useDarkTheme =
+        isSystemInDarkTheme() && !DataStore.settingDisableDarkThemeFlow.collectAsState(initial = false).value
+
     // 应用 Material You 动态颜色
     val colors = when {
         dynamicColor && useDarkTheme -> dynamicDarkColorScheme(LocalContext.current)

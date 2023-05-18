@@ -70,11 +70,11 @@ fun CourseScheduleConfigDialog(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(10.dp, 10.dp, 10.dp, 0.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(10.dp, 10.dp, 10.dp, 0.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -96,7 +96,8 @@ fun CourseScheduleConfigDialog(
         ConfigColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .weight(1f)
+                .padding(horizontal = 10.dp),
             items = listOf(
                 ConfigItem.Button(
                     title = "切换学期",

@@ -103,7 +103,7 @@ fun DDLSchedule(
                     modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp
                 )
-                else Text("获取乐学日历")
+                else Text("获取乐学日程")
             }
         }
     } else {
@@ -114,7 +114,7 @@ fun DDLSchedule(
         ) {
             val events = vm.events.collectAsState()
 
-            LazyColumn {
+            LazyColumn(modifier = Modifier.fillMaxSize()) {
                 itemsIndexed(events.value) { _, item ->
                     DDLScheduleItem(
                         Modifier
@@ -196,11 +196,11 @@ fun DDLScheduleConfigDialog(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
-            .padding(10.dp, 10.dp, 10.dp, 0.dp)
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(10.dp, 10.dp, 10.dp, 0.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -224,7 +224,8 @@ fun DDLScheduleConfigDialog(
         ConfigColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
+                .weight(1f)
+                .padding(horizontal = 10.dp),
             items = listOf(
                 ConfigItem.Button(
                     title = "刷新",
@@ -264,6 +265,20 @@ fun DDLScheduleConfigDialog(
                             vm.setAfterDay(it.toLong())
                         }
                         showInputNumberDialog.value = true
+                    }
+                ),
+                ConfigItem.Button(
+                    title = "获取订阅链接",
+                    content = if (refreshing) "获取中..." else "重新获取日程订阅链接",
+                    onClick = {
+                        MainScope().launch {
+                            if (!refreshing) {
+                                refreshing = true
+                                if (updateLexueCalendarUrl()) mainController.snackbar("获取成功OvO")
+                                else mainController.snackbar("获取失败Orz")
+                                refreshing = false
+                            }
+                        }
                     }
                 ),
             ))

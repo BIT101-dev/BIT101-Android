@@ -9,6 +9,7 @@ import cn.bit101.android.net.school.checkLogin
 import cn.bit101.android.net.school.login
 import cn.bit101.android.viewmodel.updateLexueCalendar
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -46,17 +47,21 @@ suspend fun updateStatus() {
 
     // 更新BIT101登陆状态
     MainScope().launch {
+        var lastSid = DataStore.loginSidFlow.first()
         DataStore.loginSidFlow.collect {
             if (it.isNullOrBlank()) {
+                lastSid = ""
                 DataStore.setString(DataStore.FAKE_COOKIE, "")
-            } else {
-                val sid = EncryptedStore.getString(EncryptedStore.SID)
-                val password = EncryptedStore.getString(EncryptedStore.PASSWORD)
-                if (sid != null && password != null) try {
-                    loginBIT101(sid, password)
-                } catch (e: Exception) {
-                    Log.e("StatusManager", "BIT101 login error ${e.message}")
-                }
+                return@collect
+            }
+            if (lastSid == it) return@collect
+            lastSid = it
+            val sid = EncryptedStore.getString(EncryptedStore.SID)
+            val password = EncryptedStore.getString(EncryptedStore.PASSWORD)
+            if (sid != null && password != null) try {
+                loginBIT101(sid, password)
+            } catch (e: Exception) {
+                Log.e("StatusManager", "BIT101 login error ${e.message}")
             }
         }
     }

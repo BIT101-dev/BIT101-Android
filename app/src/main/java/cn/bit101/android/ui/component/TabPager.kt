@@ -5,6 +5,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalOverscrollConfiguration
+import androidx.compose.foundation.OverscrollConfiguration
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -32,7 +33,7 @@ import kotlinx.coroutines.launch
 
 data class TabPagerItem(
     val title: String,
-    val content: @Composable (active:Boolean) -> Unit
+    val content: @Composable (active: Boolean) -> Unit
 )
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -84,13 +85,16 @@ fun TabPager(items: List<TabPagerItem>) {
                 )
             }
         }
+
         //禁用overscroll阴影效果
         CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
             HorizontalPager(
                 pageCount = items.size,
                 state = pagerSate,
             ) { index ->
-                items[index].content(pagerSate.currentPage==index)
+                CompositionLocalProvider(LocalOverscrollConfiguration provides OverscrollConfiguration()) {
+                    items[index].content(pagerSate.currentPage == index)
+                }
             }
         }
     }

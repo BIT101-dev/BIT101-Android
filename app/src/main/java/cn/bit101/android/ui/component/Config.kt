@@ -39,7 +39,10 @@ sealed class ConfigItem {
 fun ConfigColumn(modifier: Modifier, items: List<ConfigItem>) {
     val scrollState = rememberScrollState()
     Column(
-        modifier = modifier.verticalScroll(scrollState),
+        // padding如果在verticalScroll之前会导致scroll over的阴影范围不对
+        modifier = Modifier
+            .verticalScroll(scrollState)
+            .then(modifier)
     ) {
         items.forEach {
             when (it) {
@@ -48,6 +51,7 @@ fun ConfigColumn(modifier: Modifier, items: List<ConfigItem>) {
                     content = it.content,
                     onClick = it.onClick
                 )
+
                 is ConfigItem.Switch -> ConfigSwitch(
                     title = it.title,
                     checked = it.checked,

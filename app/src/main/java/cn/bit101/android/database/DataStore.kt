@@ -74,6 +74,29 @@ class DataStore {
                 preferences[FAKE_COOKIE]
             }
 
+        // 设置模块
+
+        // 是否开启旋转
+        val SETTING_ROTATE = booleanPreferencesKey("setting_rotate")
+        val settingRotateFlow: Flow<Boolean> = App.context.dataStore.data
+            .map { preferences ->
+                preferences[SETTING_ROTATE] ?: false
+            }
+
+        // 是否自动适配系统主题
+        val SETTING_DYNAMIC_THEME = booleanPreferencesKey("setting_dynamic_theme")
+        val settingAutoThemeFlow: Flow<Boolean> = App.context.dataStore.data
+            .map { preferences ->
+                preferences[SETTING_DYNAMIC_THEME] ?: false
+            }
+
+        // 是否禁用暗黑主题
+        val SETTING_DISABLE_DARK_THEME = booleanPreferencesKey("setting_disable_dark_theme")
+        val settingDisableDarkThemeFlow: Flow<Boolean> = App.context.dataStore.data
+            .map { preferences ->
+                preferences[SETTING_DISABLE_DARK_THEME] ?: false
+            }
+
         // 课程表模块配置
         // 学期
         val COURSE_SCHEDULE_TERM = stringPreferencesKey("course_schedule_term")

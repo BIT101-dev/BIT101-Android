@@ -2,6 +2,7 @@ package cn.bit101.android
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -15,10 +16,12 @@ import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Event
+import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Map
+import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -30,9 +33,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.IntOffset
+import androidx.core.view.WindowCompat
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavHostController
@@ -40,21 +47,45 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import cn.bit101.android.database.DataStore
 import cn.bit101.android.net.updateStatus
 import cn.bit101.android.ui.BIT101Web
 import cn.bit101.android.ui.LoginOrLogout
 import cn.bit101.android.ui.MapComponent
 import cn.bit101.android.ui.Schedule
+import cn.bit101.android.ui.Setting
 import cn.bit101.android.ui.theme.BIT101Theme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
+
+    companion object {
+        var window: Window? = null
+    }
+
+    // 判断一个颜色是否是浅色
+    private fun isLightColor(c: Color): Boolean {
+        val color = c.toArgb()
+        val red = color shr 16 and 0xFF
+        val green = color shr 8 and 0xFF
+        val blue = color shr 0 and 0xFF
+        val grayLevel = 0.2126 * red + 0.7152 * green + 0.0722 * blue
+        return grayLevel >= 192
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        MainActivity.window = window
+
         setContent {
+
             BIT101Theme {
+                WindowCompat.getInsetsController(
+                    window,
+                    LocalView.current
+                ).isAppearanceLightStatusBars = isLightColor(MaterialTheme.colorScheme.background)
                 MainContent()
             }
         }
@@ -68,13 +99,20 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-        // 锁定屏幕旋转
-        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        // 设置屏幕旋转
+        MainScope().launch {
+            DataStore.settingRotateFlow.collect {
+                requestedOrientation = if (it) {
+                    ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
+                } else {
+                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                }
+            }
+        }
 
         MainScope().launch {
             updateStatus()
         }
-
 
     }
 }
@@ -116,7 +154,8 @@ fun MainContent() {
     val routes = listOf(
         Screen("schedule", "卷", Icons.Rounded.Event),
         Screen("map", "图", Icons.Rounded.Map),
-        Screen("bit101-web", "网", Icons.Rounded.Dashboard)
+        Screen("bit101-web", "网", Icons.Rounded.Explore),
+        Screen("setting", "配", Icons.Rounded.Settings)
     )
     // 在导航图中才显示底部导航栏
     val showBottomBar = mainController.navController
@@ -185,23 +224,33 @@ fun MainContent() {
             startDestination = "schedule",
         ) {
             composable("schedule") {
+                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = modifier(it)) {
                     Schedule(mainController)
                 }
             }
             composable("login") {
+                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = modifier(it)) {
                     LoginOrLogout(mainController)
                 }
             }
             composable("map") {
+                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = modifier(it)) {
                     MapComponent()
                 }
             }
             composable("bit101-web") {
+                MainActivity.window?.statusBarColor = Color(0xFFFF9A57).toArgb()
                 Box(modifier = modifier(it)) {
                     BIT101Web()
+                }
+            }
+            composable("setting") {
+                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
+                Box(modifier = modifier(it)) {
+                    Setting(mainController)
                 }
             }
         }
