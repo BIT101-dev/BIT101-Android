@@ -43,3 +43,13 @@ data class RegisterRequest(
 data class RegisterResponse(
     val fake_cookie: String
 )
+
+// 用户信息
+data class UserInfoResponse(
+    val id: Int,
+    val create_time: String,
+    val nickname: String,
+    val avatar: String,
+    val motto: String,
+    val level: Int
+)

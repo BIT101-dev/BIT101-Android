@@ -75,7 +75,6 @@ class DataStore {
             }
 
         // 设置模块
-
         // 是否开启旋转
         val SETTING_ROTATE = booleanPreferencesKey("setting_rotate")
         val settingRotateFlow: Flow<Boolean> = App.context.dataStore.data
@@ -88,6 +87,13 @@ class DataStore {
         val settingAutoThemeFlow: Flow<Boolean> = App.context.dataStore.data
             .map { preferences ->
                 preferences[SETTING_DYNAMIC_THEME] ?: false
+            }
+
+        // 忽略更新版本
+        val SETTING_IGNORE_VERSION = longPreferencesKey("setting_ignore_version")
+        val settingIgnoreVersionFlow: Flow<Long?> = App.context.dataStore.data
+            .map { preferences ->
+                preferences[SETTING_IGNORE_VERSION]
             }
 
         // 是否禁用暗黑主题

@@ -3,6 +3,7 @@ plugins {
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.kapt'
     id 'com.google.gms.google-services'
+    id 'com.jaredsburrows.license' version "0.9.0" //用于生成开源声明
 }
 
 android {
@@ -14,7 +15,7 @@ android {
         minSdk 26
         targetSdk 33
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -81,6 +82,7 @@ dependencies {
     implementation "androidx.security:security-crypto:1.0.0"
 
     implementation "com.google.accompanist:accompanist-webview:0.31.2-alpha"
+    implementation "com.google.accompanist:accompanist-drawablepainter:0.31.2-alpha"
     implementation "com.squareup.okhttp3:okhttp:4.10.0"
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
@@ -89,6 +91,7 @@ dependencies {
     implementation 'com.github.evgenyneu:js-evaluator-for-android:v6.0.0'
     implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'ovh.plrapps:mapcompose:2.5.0'
+    implementation("io.coil-kt:coil-compose:2.3.0")
     api("org.mnode.ical4j:ical4j:3.2.11") {
         // exclude modules which are in conflict with system libraries
         exclude group: 'commons-logging'
@@ -97,5 +100,17 @@ dependencies {
         exclude group: 'org.codehaus.groovy', module: 'groovy'
         exclude group: 'org.codehaus.groovy', module: 'groovy-dateutil'
     }
+}
 
+// 开源声明生成配置
+licenseReport {
+    generateCsvReport = false
+    generateHtmlReport = false
+    generateJsonReport = false
+    generateTextReport = true
+
+    copyCsvReportToAssets = false
+    copyHtmlReportToAssets = false
+    copyJsonReportToAssets = false
+    copyTextReportToAssets = true
 }

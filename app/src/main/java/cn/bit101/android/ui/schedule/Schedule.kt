@@ -35,7 +35,9 @@ fun Schedule(mainController: MainController) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Button(onClick = {
-                mainController.route("login")
+                mainController.navController.navigate("login") {
+                    launchSingleTop = true
+                }
             }) {
                 Text("登录")
             }

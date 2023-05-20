@@ -11,6 +11,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Query
 import java.math.BigInteger
 import java.security.MessageDigest
 
@@ -60,6 +61,10 @@ interface BIT101Service {
     // 注册/重置密码/code登录
     @POST("/user/register")
     suspend fun register(@Body request: RegisterRequest): Response<RegisterResponse>
+
+    // 获取用户信息
+    @GET("/user/info")
+    suspend fun userInfo(@Query("id") id: Int): Response<UserInfoResponse>
 }
 
 // 使用统一身份认证登陆BIT101

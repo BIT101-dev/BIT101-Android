@@ -184,6 +184,7 @@ fun Logout(mainController: MainController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        val sid = DataStore.loginSidFlow.collectAsState(initial = null).value
         val underlineColor = MaterialTheme.colorScheme.secondaryContainer
         Text(
             "已经登陆",
@@ -200,13 +201,19 @@ fun Logout(mainController: MainController) {
                 )
             },
         )
+        Spacer(modifier = Modifier.height(5.dp))
+        Text(
+            text = sid ?: "",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+        )
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
                 mainController.navController.popBackStack()
             },
         ) {
-            Text(text = "返回主页")
+            Text(text = "返回上级")
         }
         Button(
             onClick = {

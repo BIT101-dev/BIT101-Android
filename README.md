@@ -1,8 +1,11 @@
 # BIT101-Android
 
+主项目链接：[BIT101](https://github.com/flwfdd/BIT101)
+
 项目仍在开发中，敬请期待。
 
 ---
+
 由于本项目同时作为大二下安卓课的课程设计，最后会需要写文档，所以会在此记录一些开发过程中遇到的问题等。
 
 ## 登陆模块
@@ -77,3 +80,18 @@
 `WebView`默认是不支持文件上传的，必须通过手动重写`WebChromeClient`的`onShowFileChooser`函数来实现。我们首先在`Application`中定义一个`ActivityResultRegistry`，然后在`MainActivity`中将此设置为`ActivityResultContracts.GetMultipleContents()`，最后通过一个全局的`MutableStateFlow`传递文件选择的结果。
 
 这部分逻辑比较绕，主要参考了[这篇文章](https://blog.csdn.net/LiePy/article/details/125797893)。
+
+
+### 自动建立并显示开源声明
+
+在本项目中使用了大量的第三方库，它们使用使用了各种不同的开源协议，出于对开源精神的尊重，应该在应用内添加一个显示所使用的开源库的功能。
+
+然而，如果手动确认使用的开源库及其开源协议，这项工作将会非常繁琐，所以我使用了一个开源的`gradle`插件[gradle-license-plugin](https://github.com/jaredsburrows/gradle-license-plugin)来对项目中使用的开源库进行自动扫描，并生成一个`txt`文件放在`assets`目录下，然后在应用中读取这个文件并显示出来即可。
+
+使用时，只需要运行`gradle licenseDebugReport`任务即可生成一个存放在`assets`下的`txt`文件，然后在应用中读取并显示即可。
+
+### 更改系统状态栏和导航栏颜色
+
+为了达到沉浸式的体验，想要更改顶部的系统状态栏和底部的系统导航栏颜色与应用内颜色相适配。这只需要在`Activity`中更改`window.statusBarColor`和`window.navigationBarColor`即可实现。另外，当顶部状态栏为浅色或深色时，还需要同步更改顶部状态栏文字的颜色。
+
+这些颜色必须跟着主题的改变而改变，于是就将这部分代码放在`Theme{}`内，这样每次主题改变，在重构过程中就会被调用，而在其他情况下则不会被调用造成性能问题。

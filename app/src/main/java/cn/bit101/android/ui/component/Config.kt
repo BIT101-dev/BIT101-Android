@@ -36,13 +36,14 @@ sealed class ConfigItem {
 }
 
 @Composable
-fun ConfigColumn(modifier: Modifier, items: List<ConfigItem>) {
-    val scrollState = rememberScrollState()
+fun ConfigColumn(modifier: Modifier, scrollable: Boolean = true, items: List<ConfigItem>) {
+    val md = if (scrollable) {
+        val scrollState = rememberScrollState()
+        Modifier.verticalScroll(scrollState)
+    } else Modifier
     Column(
         // padding如果在verticalScroll之前会导致scroll over的阴影范围不对
-        modifier = Modifier
-            .verticalScroll(scrollState)
-            .then(modifier)
+        modifier = md.then(modifier)
     ) {
         items.forEach {
             when (it) {

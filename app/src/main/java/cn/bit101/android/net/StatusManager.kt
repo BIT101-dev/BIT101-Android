@@ -8,9 +8,13 @@ import cn.bit101.android.net.bit101.loginBIT101
 import cn.bit101.android.net.school.checkLogin
 import cn.bit101.android.net.school.login
 import cn.bit101.android.viewmodel.updateLexueCalendar
+import com.google.gson.Gson
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.Request
 
 /**
  * @author flwfdd
@@ -72,5 +76,30 @@ suspend fun updateStatus() {
             if (it == null) return@collect
             updateLexueCalendar()
         }
+    }
+}
+
+// 版本更新信息
+data class VersionInfo(
+    val version_code: Int, // 最新版本号
+    val version_name: String, // 最新版本名 形如x.x.x
+    val msg: String, // 备注信息
+    val url: String, // 最新版本下载链接
+)
+
+// 获取版本更新信息
+suspend fun getVersionInfo(): VersionInfo? {
+    try {
+        return withContext(Dispatchers.IO) {
+            val url = "http://android.bit101.cn/version"
+            val client = HttpClient.client
+            val request = Request.Builder().url(url).build()
+            client.newCall(request).execute().use {
+                return@withContext Gson().fromJson(it.body?.string(), VersionInfo::class.java)
+            }
+        }
+    } catch (e: Exception) {
+        Log.e("StatusManager", "getVersionInfo error ${e.message}")
+        return null
     }
 }

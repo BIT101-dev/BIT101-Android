@@ -23,11 +23,13 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -80,12 +82,16 @@ class MainActivity : ComponentActivity() {
         MainActivity.window = window
 
         setContent {
-
             BIT101Theme {
+                // 设置状态栏文字颜色
                 WindowCompat.getInsetsController(
                     window,
                     LocalView.current
                 ).isAppearanceLightStatusBars = isLightColor(MaterialTheme.colorScheme.background)
+
+                // 设置导航栏颜色与应用内导航栏匹配
+                window?.navigationBarColor =
+                    MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation).toArgb()
                 MainContent()
             }
         }
@@ -125,17 +131,6 @@ class MainController(
     fun snackbar(message: String) {
         scope.launch {
             snackbarHostState.showSnackbar(message)
-        }
-    }
-
-    fun route(route: String) {
-        // 路由跳转 保证唯一
-        navController.navigate(route) {
-            popUpTo(navController.graph.startDestinationId) {
-                saveState = true
-            }
-            launchSingleTop = true
-            restoreState = true
         }
     }
 }
@@ -202,10 +197,16 @@ fun MainContent() {
                             label = { Text(text = screen.label) },
                             selected = selected,
                             onClick = {
-                                mainController.route(screen.route)
+                                // 路由跳转 保证一次返回就能回到主页
+                                mainController.navController.navigate(screen.route) {
+                                    popUpTo(mainController.navController.graph.startDestinationId) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             })
                     }
-
                 }
             }
         }
