@@ -44,21 +44,26 @@ import cn.bit101.android.net.school.checkLogin
 import cn.bit101.android.net.school.login
 import cn.bit101.android.net.school.logout
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
  * @author flwfdd
  * @date 2023/3/18 0:07
- * @description _(:з」∠)_
+ * @description 登陆管理页面
+ * _(:з」∠)_
  */
 
 
 // 主界面 根据登陆状态显示登陆界面或者退出登陆界面
 @Composable
 fun LoginOrLogout(mainController: MainController) {
-    LaunchedEffect(Unit) { checkLogin() }
-    val isLogin = DataStore.loginStatusFlow.collectAsState(initial = false).value
-    if (isLogin == true) Logout(mainController)
+    var isLogin by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isLogin = (DataStore.loginStatusFlow.first() == true)
+        isLogin = checkLogin()
+    }
+    if (isLogin) Logout(mainController)
     else Login(mainController)
 }
 
@@ -217,7 +222,10 @@ fun Logout(mainController: MainController) {
         }
         Button(
             onClick = {
-                logout()
+                MainScope().launch {
+                    logout()
+                }
+                mainController.navController.popBackStack()
             },
         ) {
             Text(text = "退出登录")

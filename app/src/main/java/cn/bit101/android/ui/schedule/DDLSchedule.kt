@@ -65,7 +65,8 @@ import kotlinx.coroutines.launch
 /**
  * @author flwfdd
  * @date 13/05/2023 15:57
- * @description _(:з」∠)_
+ * @description DDL主页面
+ * _(:з」∠)_
  */
 
 
@@ -85,6 +86,7 @@ fun DDLSchedule(
     // 判断是否已经有订阅链接
     val url = vm.lexueCalendarUrlFlow.collectAsState(initial = null)
     if (url.value == null) {
+        // 还没有订阅链接
         Column(
             modifier = Modifier
                 .fillMaxSize(),
@@ -112,8 +114,8 @@ fun DDLSchedule(
                 .fillMaxSize(),
             contentAlignment = Alignment.BottomEnd
         ) {
+            // 日程列表
             val events = vm.events.collectAsState()
-
             LazyColumn(modifier = Modifier.fillMaxSize()) {
                 itemsIndexed(events.value) { _, item ->
                     DDLScheduleItem(
@@ -135,6 +137,7 @@ fun DDLSchedule(
 
             var showConfigDialog by rememberSaveable { mutableStateOf(false) }
 
+            // 设置按钮
             FloatingActionButton(
                 modifier = Modifier
                     .padding(10.dp, 20.dp)

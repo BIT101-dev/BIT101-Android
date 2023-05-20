@@ -36,7 +36,8 @@ import kotlinx.coroutines.launch
 /**
  * @author flwfdd
  * @date 2023/4/12 14:29
- * @description _(:з」∠)_
+ * @description 课程表主页面
+ * _(:з」∠)_
  */
 
 @Composable
@@ -49,12 +50,13 @@ fun CourseSchedule(
         modifier = Modifier
             .fillMaxSize()
     ) {
-        var showDialog by rememberSaveable { mutableStateOf(false) }
+        var showConfigDialog by rememberSaveable { mutableStateOf(false) }
         val term = vm.termFlow.collectAsState(initial = "").value
 
         // 没有课程表时term=null 加载之前为空字符串
         if (term?.isNotEmpty() == true) {
-            CourseScheduleCalendar(vm, onConfig = { showDialog = true })
+            // 显示课程表
+            CourseScheduleCalendar(vm, onConfig = { showConfigDialog = true })
         } else {
             if (term == null) {
                 Column(
@@ -79,12 +81,11 @@ fun CourseSchedule(
                     }
                 }
             }
-
         }
 
         // 设置对话框 自定义进入和退出动画
         AnimatedVisibility(
-            visible = showDialog,
+            visible = showConfigDialog,
             enter = slideIn(
                 initialOffset = { IntOffset(0, it.height) },
                 animationSpec = spring(
@@ -101,13 +102,13 @@ fun CourseSchedule(
             )
         ) {
             CourseScheduleConfigDialog(mainController, vm) {
-                showDialog = false
+                showConfigDialog = false
             }
         }
 
         // 响应返回键 收起设置对话框
-        BackHandler(enabled = showDialog && active) {
-            showDialog = false
+        BackHandler(enabled = showConfigDialog && active) {
+            showConfigDialog = false
         }
     }
 }

@@ -29,6 +29,7 @@ import cn.bit101.android.database.CourseScheduleEntity
 fun CourseScheduleDetailDialog(course: CourseScheduleEntity, showDialog: MutableState<Boolean>) {
     AlertDialog(
         modifier = Modifier.fillMaxSize(0.9f),
+        tonalElevation = 1.dp,
         onDismissRequest = {
             showDialog.value = false
         },

@@ -22,17 +22,9 @@ import cn.bit101.android.viewmodel.DDLScheduleViewModel
 /**
  * @author flwfdd
  * @date 15/05/2023 00:39
- * @description _(:з」∠)_
+ * @description 单个日程项目卡片
+ * _(:з」∠)_
  */
-
-// 混合两个颜色 第一个颜色占比为ratio
-fun mixColor(color1: Color, color2: Color, ratio: Float): Color {
-    return Color(
-        (color1.red * ratio + color2.red * (1 - ratio)),
-        (color1.green * ratio + color2.green * (1 - ratio)),
-        (color1.blue * ratio + color2.blue * (1 - ratio))
-    )
-}
 
 @Composable
 fun DDLScheduleItem(modifier: Modifier, item: DDLScheduleEntity, vm: DDLScheduleViewModel) {
@@ -84,9 +76,19 @@ fun DDLScheduleItem(modifier: Modifier, item: DDLScheduleEntity, vm: DDLSchedule
                 )
             }
 
+            // 是否完成
             Checkbox(checked = item.done, onCheckedChange = {
                 vm.setDone(item, it)
             })
         }
     }
+}
+
+// 混合两个颜色 第一个颜色占比为ratio
+fun mixColor(color1: Color, color2: Color, ratio: Float): Color {
+    return Color(
+        (color1.red * ratio + color2.red * (1 - ratio)),
+        (color1.green * ratio + color2.green * (1 - ratio)),
+        (color1.blue * ratio + color2.blue * (1 - ratio))
+    )
 }

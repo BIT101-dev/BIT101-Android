@@ -29,13 +29,15 @@ import java.time.format.DateTimeFormatter
 /**
  * @author flwfdd
  * @date 13/05/2023 21:13
- * @description _(:з」∠)_
+ * @description 日程详情对话框
+ * _(:з」∠)_
  */
 
 @Composable
 fun DDLScheduleDetailDialog(event: DDLScheduleEntity, showDialog: MutableState<Boolean>) {
     AlertDialog(
         modifier = Modifier.fillMaxSize(0.9f),
+        tonalElevation = 1.dp,
         onDismissRequest = {
             showDialog.value = false
         },

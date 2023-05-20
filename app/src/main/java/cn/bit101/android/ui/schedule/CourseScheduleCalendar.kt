@@ -57,10 +57,11 @@ import kotlin.math.roundToInt
 /**
  * @author flwfdd
  * @date 15/05/2023 00:32
- * @description _(:з」∠)_
+ * @description 课程表日历界面
+ * _(:з」∠)_
  */
 
-// 课程表主界面
+
 @Composable
 fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
     val courses by vm.courses.collectAsState()
@@ -83,6 +84,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
 
     // 防止加载过程中闪动
     if (courses.isEmpty() || week == Int.MAX_VALUE || firstDay == null || timeTable.isEmpty()) return
+
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
     Box(
         modifier = Modifier
@@ -108,17 +110,17 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                 }
             }
 
-            // 显示当前时间
+            // 显示当前时间指示线
             if (vm.showCurrentTime.collectAsState(initial = true).value) {
                 val now = LocalTime.now()
-                var a = 0f
+                var topWeight = 0f // 上半部分所占比重
                 timeTable.forEach {
                     if (it.startTime.isBefore(now)) {
-                        a += if (it.endTime.isBefore(now)) 1f
+                        topWeight += if (it.endTime.isBefore(now)) 1f
                         else (now.toSecondOfDay() - it.startTime.toSecondOfDay()).toFloat() / (it.endTime.toSecondOfDay() - it.startTime.toSecondOfDay()).toFloat()
                     }
                 }
-                if (a != 0f && a != courseNumOfDay.toFloat()) {
+                if (topWeight != 0f && topWeight != courseNumOfDay.toFloat()) {
                     Column {
                         Box(
                             contentAlignment = Alignment.Center,
@@ -128,9 +130,9 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                                 style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75)
                             )
                         }
-                        Spacer(modifier = Modifier.weight(a))
+                        Spacer(modifier = Modifier.weight(topWeight))
                         Divider(color = MaterialTheme.colorScheme.secondary)
-                        Spacer(modifier = Modifier.weight(courseNumOfDay.toFloat() - a))
+                        Spacer(modifier = Modifier.weight(courseNumOfDay.toFloat() - topWeight))
                     }
                 }
             }
@@ -188,7 +190,8 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                         if (!showSunday && index == 6) return@forEachIndexed
                         // 计算星期和日期
                         val day = firstDay?.plusDays((week - 1) * 7 + index.toLong())
-                        // 高亮今日
+
+                        // 用于高亮今日 改变颜色
                         var containerColor = MaterialTheme.colorScheme.secondaryContainer
                         var columnModifier = Modifier
                             .fillMaxHeight()
@@ -200,9 +203,11 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                                 MaterialTheme.colorScheme.secondaryContainer.copy(0.25f)
                             )
                         }
+
                         Column(
                             modifier = columnModifier,
                         ) {
+                            // 头部星期日期
                             Box(
                                 contentAlignment = Alignment.Center,
                                 modifier = Modifier
@@ -231,6 +236,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                                 )
                             }
 
+                            // 遍历一天的每一节课
                             var i = 1 // 节次游标
                             it.forEach {
                                 if (it.start_section >= i && it.end_section <= courseNumOfDay) {
@@ -248,6 +254,8 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                                             shape = CardDefaults.shape
                                         )
                                     }
+                                    i = it.end_section + 1
+
                                     CourseScheduleItem(
                                         modifier = modifier
                                             .clip(CardDefaults.shape) // 使点击波纹形状匹配
@@ -257,9 +265,10 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                                             },
                                         course = it
                                     )
-                                    i = it.end_section + 1
                                 }
                             }
+
+                            // 填充剩余空白
                             if (i <= courseNumOfDay) {
                                 Spacer(modifier = Modifier.weight(courseNumOfDay - i + 1f))
                             }

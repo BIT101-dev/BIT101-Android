@@ -30,6 +30,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -40,6 +42,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import cn.bit101.android.App
 import cn.bit101.android.BuildConfig
 import cn.bit101.android.MainController
+import cn.bit101.android.R
 import cn.bit101.android.ui.component.ConfigColumn
 import cn.bit101.android.ui.component.ConfigItem
 import cn.bit101.android.viewmodel.SettingViewModel
@@ -84,8 +87,9 @@ fun Setting(mainController: MainController, vm: SettingViewModel = viewModel()) 
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.secondaryContainer),
-                model = vm.userInfo?.avatar,
+                    .background(Color(App.context.getColor(R.color.ic_launcher_background))),
+                contentScale= ContentScale.FillBounds,
+                model = vm.userInfo.value?.avatar,
                 placeholder = painter,
                 error = painter,
                 fallback = painter,
@@ -99,19 +103,19 @@ fun Setting(mainController: MainController, vm: SettingViewModel = viewModel()) 
                 modifier = Modifier
                     .padding(start = 10.dp)
             ) {
-                if (vm.userInfo == null) {
+                if (vm.userInfo.value == null) {
                     Text(
                         text = "请先登录awa",
                         style = MaterialTheme.typography.titleMedium
                     )
                 } else {
                     Text(
-                        text = vm.userInfo!!.nickname,
+                        text = vm.userInfo.value!!.nickname,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                     Text(
-                        text = "BIT101 UID: ${vm.userInfo!!.id}",
+                        text = "BIT101 UID: ${vm.userInfo.value!!.id}",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.5f)
                     )
@@ -213,7 +217,9 @@ fun Setting(mainController: MainController, vm: SettingViewModel = viewModel()) 
         ) {
             val githubUrl = "https://github.com/flwfdd/BIT101-Android"
             val annotatedString = buildAnnotatedString {
-                append("欢迎来 ")
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
+                    append("欢迎到 ")
+                }
 
                 pushStringAnnotation(tag = "github", annotation = githubUrl)
                 withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
@@ -221,7 +227,9 @@ fun Setting(mainController: MainController, vm: SettingViewModel = viewModel()) 
                 }
                 pop()
 
-                append(" 给上一颗可爱的\uD83C\uDF1F")
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
+                    append(" 给上一颗可爱的\uD83C\uDF1F")
+                }
             }
 
             val context = LocalContext.current
@@ -247,7 +255,7 @@ fun LicenseDialog(vm: SettingViewModel, showDialog: MutableState<Boolean>) {
             showDialog.value = false
         },
         title = {
-            Text("开源声明")
+            Text("吃水不忘挖井人")
         },
         text = {
             val scrollState = rememberScrollState()
@@ -278,7 +286,7 @@ fun UpdateDialog(vm: SettingViewModel, showDialog: MutableState<Boolean>) {
         },
         title = {
             Column {
-                Text("海日生残夜🌅")
+                Text("海日生残夜")
                 Text(
                     text = "当前版本：${BuildConfig.VERSION_NAME}",
                     style = MaterialTheme.typography.labelMedium

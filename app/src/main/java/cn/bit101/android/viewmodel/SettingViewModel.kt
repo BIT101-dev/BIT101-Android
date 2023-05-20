@@ -1,6 +1,8 @@
 package cn.bit101.android.viewmodel
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.App
@@ -18,21 +20,29 @@ import kotlinx.coroutines.launch
  * @description _(:з」∠)_
  */
 class SettingViewModel : ViewModel() {
-    var userInfo: UserInfoResponse? = null
+    val userInfo: MutableState<UserInfoResponse?> = mutableStateOf(null)
     var versionInfo: VersionInfo? = null
 
     // 忽略的版本号
     val ignoreVersionFlow = DataStore.settingIgnoreVersionFlow
 
     init {
+        // 更新用户信息
         viewModelScope.launch {
-            try {
-                BIT101Service.service.userInfo(0).body()?.let {
-                    Log.i("SettingViewModel", "getUserInfo $it")
-                    userInfo = it.copy(avatar = it.avatar + "!low") // 转为低分辨率链接
+            DataStore.fakeCookieFlow.collect { fakeCookie ->
+                try {
+                    val res = BIT101Service.service.userInfo(0)
+                    if (!res.isSuccessful) {
+                        userInfo.value = null
+                        return@collect
+                    }
+                    userInfo.value =
+                        res.body()!!.copy(avatar = res.body()!!.avatar + "!low") // 转为低分辨率链接
+                    Log.i("SettingViewModel", "getUserInfo success ${userInfo.value?.nickname}")
+                } catch (e: Exception) {
+                    userInfo.value = null
+                    Log.i("SettingViewModel", "getUserInfo error ${e.message}")
                 }
-            } catch (e: Exception) {
-                Log.i("SettingViewModel", "getUserInfo error ${e.message}")
             }
         }
     }

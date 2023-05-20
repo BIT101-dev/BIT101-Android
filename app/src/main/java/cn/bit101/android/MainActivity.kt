@@ -91,7 +91,8 @@ class MainActivity : ComponentActivity() {
 
                 // 设置导航栏颜色与应用内导航栏匹配
                 window?.navigationBarColor =
-                    MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation).toArgb()
+                    MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+                        .toArgb()
                 MainContent()
             }
         }

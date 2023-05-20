@@ -106,9 +106,7 @@ fun FancyAnimatedIndicator(tabPositions: List<TabPosition>, selectedTabIndex: In
     val transition = updateTransition(selectedTabIndex, label = "tab index")
     val indicatorStart by transition.animateDp(
         transitionSpec = {
-            // Handle directionality here, if we are moving to the right, we
-            // want the right side of the indicator to move faster, if we are
-            // moving to the left, we want the left side to move faster.
+            // 使得指示器在切换tab时前后移动速度不同 有一个弹性效果
             if (initialState < targetState) {
                 spring(dampingRatio = 0.5f, stiffness = 200f)
             } else {
@@ -121,9 +119,7 @@ fun FancyAnimatedIndicator(tabPositions: List<TabPosition>, selectedTabIndex: In
 
     val indicatorEnd by transition.animateDp(
         transitionSpec = {
-            // Handle directionality here, if we are moving to the right, we
-            // want the right side of the indicator to move faster, if we are
-            // moving to the left, we want the left side to move faster.
+            // 使得指示器在切换tab时前后移动速度不同 有一个弹性效果
             if (initialState < targetState) {
                 spring(dampingRatio = 0.5f, stiffness = 1000f)
             } else {

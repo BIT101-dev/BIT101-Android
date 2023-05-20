@@ -20,10 +20,11 @@ import cn.bit101.android.database.CourseScheduleEntity
 /**
  * @author flwfdd
  * @date 15/05/2023 00:35
- * @description _(:з」∠)_
+ * @description 在课程表上显示的单个课程卡片
+ * _(:з」∠)_
  */
 
-// 单个课程卡片
+
 @Composable
 fun CourseScheduleItem(modifier: Modifier, course: CourseScheduleEntity) {
     Card(
@@ -42,6 +43,7 @@ fun CourseScheduleItem(modifier: Modifier, course: CourseScheduleEntity) {
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            // 课程名
             Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)) {
                 Text(
                     text = course.name,
@@ -50,6 +52,7 @@ fun CourseScheduleItem(modifier: Modifier, course: CourseScheduleEntity) {
                     overflow = TextOverflow.Ellipsis
                 )
             }
+            // 教室
             Box(contentAlignment = Alignment.BottomCenter) {
                 Text(
                     text = course.classroom,

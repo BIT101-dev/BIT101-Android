@@ -139,8 +139,8 @@ suspend fun checkLogin(): Boolean {
 // 退出登录
 fun logout() {
     HttpClient.cookieManager.cookieStore.removeAll()
-    DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
     EncryptedStore.deleteString(EncryptedStore.SID)
     EncryptedStore.deleteString(EncryptedStore.PASSWORD)
     DataStore.setString(DataStore.LOGIN_SID, "")
+    DataStore.setBoolean(DataStore.LOGIN_STATUS, false)
 }

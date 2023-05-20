@@ -56,10 +56,11 @@ import kotlinx.coroutines.launch
 /**
  * @author flwfdd
  * @date 15/05/2023 00:35
- * @description _(:з」∠)_
+ * @description 课表设置对话框
+ * _(:з」∠)_
  */
 
-// 课表设置对话框
+
 @Composable
 fun CourseScheduleConfigDialog(
     mainController: MainController,
