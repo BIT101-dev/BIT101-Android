@@ -3,7 +3,6 @@ package cn.bit101.android.ui
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import android.webkit.ValueCallback
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -34,7 +33,6 @@ import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberSaveableWebViewState
 import com.google.accompanist.web.rememberWebViewNavigator
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 
@@ -75,8 +73,6 @@ fun BIT101Web(vm: BIT101WebViewModel = viewModel()) {
                 // 注入fake-cookie
                 scope.launch {
                     DataStore.fakeCookieFlow.collect {
-                        Log.i("BIT101Web", "fakeCookieFlow: $it")
-                        Log.i("BIT101Web", "fakeCookieFlow: ${DataStore.fakeCookieFlow.first()}")
                         if (it != null)
                             view.evaluateJavascript(
                                 """

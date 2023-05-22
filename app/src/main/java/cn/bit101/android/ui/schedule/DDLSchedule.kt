@@ -49,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -117,17 +118,33 @@ fun DDLSchedule(
             // 日程列表
             val events = vm.events.collectAsState()
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                itemsIndexed(events.value) { _, item ->
-                    DDLScheduleItem(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp, 5.dp)
-                            .clip(MaterialTheme.shapes.medium)
-                            .clickable {
-                                detailData = item
-                                showDetailDialog.value = true
-                            }, item, vm
-                    )
+                if(events.value.isEmpty()) {
+                    item {
+                        Text(
+                            text = "怎么会有人没事儿了啊ヽ(`Д´)ﾉ\n快去卷😭",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp, 5.dp)
+                                .clip(MaterialTheme.shapes.medium)
+                                .background(MaterialTheme.colorScheme.secondaryContainer)
+                                .padding(10.dp, 5.dp),
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        )
+                    }
+                }else{
+                    itemsIndexed(events.value) { _, item ->
+                        DDLScheduleItem(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp, 5.dp)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable {
+                                    detailData = item
+                                    showDetailDialog.value = true
+                                }, item, vm
+                        )
+                    }
                 }
 
                 item {
