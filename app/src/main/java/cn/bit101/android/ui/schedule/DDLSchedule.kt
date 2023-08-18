@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -77,11 +78,26 @@ fun DDLSchedule(
     active: Boolean,
     vm: DDLScheduleViewModel = viewModel()
 ) {
+    // 编辑日程弹窗
+    val showEditDialog = remember { mutableStateOf(false) }
+    var editData: DDLScheduleEntity? by remember { mutableStateOf(null) }
+    if (showEditDialog.value) {
+        DDLScheduleEditDialog(mainController, vm, item = editData, showDialog = showEditDialog)
+    }
+
     // 日程详情弹窗
     val showDetailDialog = remember { mutableStateOf(false) }
     var detailData: DDLScheduleEntity? by remember { mutableStateOf(null) }
     if (showDetailDialog.value && detailData != null) {
-        DDLScheduleDetailDialog(event = detailData!!, showDialog = showDetailDialog)
+        DDLScheduleDetailDialog(
+            mainController = mainController,
+            vm = vm,
+            event = detailData!!,
+            showDialog = showDetailDialog,
+            showEditDialog = {
+                editData = it
+                showEditDialog.value = true
+            })
     }
 
     // 判断是否已经有订阅链接
@@ -118,7 +134,7 @@ fun DDLSchedule(
             // 日程列表
             val events = vm.events.collectAsState()
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if(events.value.isEmpty()) {
+                if (events.value.isEmpty()) {
                     item {
                         Text(
                             text = "怎么会有人没事儿了啊ヽ(`Д´)ﾉ\n快去卷😭",
@@ -132,7 +148,7 @@ fun DDLSchedule(
                             color = MaterialTheme.colorScheme.onSecondaryContainer,
                         )
                     }
-                }else{
+                } else {
                     itemsIndexed(events.value) { _, item ->
                         DDLScheduleItem(
                             Modifier
@@ -147,29 +163,54 @@ fun DDLSchedule(
                     }
                 }
 
+                // 防止悬浮按钮遮挡
                 item {
-                    Spacer(modifier = Modifier.height(100.dp))
+                    Spacer(modifier = Modifier.height(124.dp))
                 }
             }
 
             var showConfigDialog by rememberSaveable { mutableStateOf(false) }
 
-            // 设置按钮
-            FloatingActionButton(
+            // 悬浮按钮组
+            val fabSize = 42.dp
+            Column(
                 modifier = Modifier
                     .padding(10.dp, 20.dp)
-                    .size(42.dp),
-                onClick = {
-                    showConfigDialog = true
-                },
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                contentColor = MaterialTheme.colorScheme.primary,
-                elevation = FloatingActionButtonDefaults.elevation(0.dp),
             ) {
-                Icon(
-                    imageVector = Icons.Outlined.Settings,
-                    contentDescription = "settings",
-                )
+                // 添加按钮
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(fabSize),
+                    onClick = {
+                        editData = null
+                        showEditDialog.value = true
+                    },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = "next week",
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                // 设置按钮
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(fabSize),
+                    onClick = {
+                        showConfigDialog = true
+                    },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Settings,
+                        contentDescription = "settings",
+                    )
+                }
             }
 
             // 设置对话框 自定义进入和退出动画

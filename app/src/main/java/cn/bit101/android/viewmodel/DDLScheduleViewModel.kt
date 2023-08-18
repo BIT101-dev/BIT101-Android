@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.util.UUID
 
 /**
  * @author flwfdd
@@ -76,6 +77,52 @@ class DDLScheduleViewModel : ViewModel() {
     fun setDone(event: DDLScheduleEntity, done: Boolean) {
         viewModelScope.launch {
             App.DB.DDLScheduleDao().update(event.copy(done = done))
+        }
+    }
+
+    // 添加DDL
+    fun addDDL(
+        title: String,
+        time: LocalDateTime,
+        text: String,
+        group: String = "main"
+    ) {
+        val item = DDLScheduleEntity(
+            id = 0,
+            uid = UUID.randomUUID().toString(),
+            group = group,
+            title = title,
+            text = text,
+            time = time,
+            done = false
+        )
+        viewModelScope.launch {
+            App.DB.DDLScheduleDao().insert(item)
+        }
+    }
+
+    // 更新DDL
+    fun updateDDL(
+        item: DDLScheduleEntity,
+        title: String,
+        time: LocalDateTime,
+        text: String,
+    ) {
+        viewModelScope.launch {
+            App.DB.DDLScheduleDao().update(
+                item.copy(
+                    title = title,
+                    time = time,
+                    text = text
+                )
+            )
+        }
+    }
+
+    // 删除DDL
+    fun deleteDDL(item: DDLScheduleEntity) {
+        viewModelScope.launch {
+            App.DB.DDLScheduleDao().delete(item)
         }
     }
 
@@ -156,9 +203,16 @@ suspend fun updateLexueCalendar(): Boolean {
                 done = false
             )
             if (existItems[it.uid] == null) {
+                // 不存在则插入
                 App.DB.DDLScheduleDao().insert(item)
             } else {
-                App.DB.DDLScheduleDao().update(item.copy(done = existItems[it.uid]!!.done))
+                // 存在则更新
+                App.DB.DDLScheduleDao().update(
+                    item.copy(
+                        id = existItems[it.uid]!!.id,
+                        done = existItems[it.uid]!!.done
+                    )
+                )
             }
         }
         return true
@@ -167,3 +221,4 @@ suspend fun updateLexueCalendar(): Boolean {
         return false
     }
 }
+
