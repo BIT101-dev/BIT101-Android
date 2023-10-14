@@ -9,15 +9,17 @@ import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Add
@@ -27,6 +29,7 @@ import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +45,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
@@ -61,6 +65,10 @@ import kotlin.math.roundToInt
  * _(:з」∠)_
  */
 
+// 45 分钟一节课，小课间5分钟休息，大课间20分钟，上午2节+3节（8:00开始），下午2节+3节（13:20开始），晚上3节（18:30）开始
+private val courseTimes = arrayOf(
+    "8:00", "8:50", "9:55", "10:45", "11:35", "13:20", "14:10", "15:15", "16:05", "16:55", "18:30", "19:20", "20:10"
+)
 
 @Composable
 fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
@@ -92,48 +100,46 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
             .onSizeChanged { boxSize = it },
         contentAlignment = Alignment.BottomEnd
     ) {
-        Box {
-            // 节次分割线
-            Column {
-                Box(
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text( //空白占位
-                        text = " \n ",
-                        style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75)
-                    )
-                }
-                for (i in 1..courseNumOfDay) {
-                    if (showDivider && i != 1)
-                        Divider(color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
-                    Spacer(modifier = Modifier.weight(1f))
+        // 节次分割线
+        Column {
+            Box(
+                contentAlignment = Alignment.Center,
+            ) {
+                Text( //空白占位
+                    text = " \n ",
+                    style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75)
+                )
+            }
+            for (i in 1..courseNumOfDay) {
+                if (showDivider && i != 1)
+                    Divider(color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
+                Spacer(modifier = Modifier.weight(1f))
+            }
+        }
+
+        // 显示当前时间指示线
+        if (vm.showCurrentTime.collectAsState(initial = true).value) {
+            val now = LocalTime.now()
+            var topWeight = 0f // 上半部分所占比重
+            timeTable.forEach {
+                if (it.startTime.isBefore(now)) {
+                    topWeight += if (it.endTime.isBefore(now)) 1f
+                    else (now.toSecondOfDay() - it.startTime.toSecondOfDay()).toFloat() / (it.endTime.toSecondOfDay() - it.startTime.toSecondOfDay()).toFloat()
                 }
             }
-
-            // 显示当前时间指示线
-            if (vm.showCurrentTime.collectAsState(initial = true).value) {
-                val now = LocalTime.now()
-                var topWeight = 0f // 上半部分所占比重
-                timeTable.forEach {
-                    if (it.startTime.isBefore(now)) {
-                        topWeight += if (it.endTime.isBefore(now)) 1f
-                        else (now.toSecondOfDay() - it.startTime.toSecondOfDay()).toFloat() / (it.endTime.toSecondOfDay() - it.startTime.toSecondOfDay()).toFloat()
+            if (topWeight != 0f && topWeight != courseNumOfDay.toFloat()) {
+                Column {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text( //空白占位
+                            text = " \n ",
+                            style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75)
+                        )
                     }
-                }
-                if (topWeight != 0f && topWeight != courseNumOfDay.toFloat()) {
-                    Column {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                        ) {
-                            Text( //空白占位
-                                text = " \n ",
-                                style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75)
-                            )
-                        }
-                        Spacer(modifier = Modifier.weight(topWeight))
-                        Divider(color = MaterialTheme.colorScheme.secondary)
-                        Spacer(modifier = Modifier.weight(courseNumOfDay.toFloat() - topWeight))
-                    }
+                    Spacer(modifier = Modifier.weight(topWeight))
+                    Divider(color = MaterialTheme.colorScheme.secondary)
+                    Spacer(modifier = Modifier.weight(courseNumOfDay.toFloat() - topWeight))
                 }
             }
 
@@ -146,7 +152,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                 ) {
                     // 左侧栏 周次+节次
                     Column(
-                        modifier = Modifier.fillMaxHeight(),
+                        modifier = Modifier.fillMaxHeight().width(IntrinsicSize.Max),
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
@@ -154,7 +160,7 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
-                                .defaultMinSize(minWidth = 20.dp)
+                                .fillMaxWidth()
                                 .background(
                                     brush = Brush.verticalGradient(
                                         listOf(
@@ -174,12 +180,27 @@ fun CourseScheduleCalendar(vm: ScheduleViewModel, onConfig: () -> Unit = {}) {
                         }
 
                         // 遍历显示节次
-                        for (i in 1..courseNumOfDay) {
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier.weight(1f)
+                        for (i in 0 until courseNumOfDay) {
+                            Column(
+                                modifier = Modifier.weight(1f),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
                             ) {
-                                Text(text = "$i", style = MaterialTheme.typography.labelSmall)
+                                Text(
+                                    text = "${i+1}",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    textAlign = TextAlign.Center,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                if (i <= courseTimes.size) {
+                                    Text(
+                                        text = courseTimes[i],
+                                        style = MaterialTheme.typography.labelSmall,
+                                        textAlign = TextAlign.Center,
+                                        color = LocalContentColor.current.copy(0.8f),
+                                        modifier = Modifier.padding(top = 2.dp, start = 2.dp, end = 2.dp)
+                                    )
+                                }
                             }
                         }
                     }
