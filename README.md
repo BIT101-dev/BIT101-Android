@@ -51,7 +51,6 @@
 另外还用到了几个开源库用于处理数据：
 * `Gson`：用于处理`JSON`格式的字符串
 * `iCal4j`：用于解析从乐学获取到的`iCalendar`日历标准格式的字符串
-* `JsEvaluator`：运行`JavaScript`代码并获取结果，用于统一身份认证密码加密计算
 
 
 顶层的`View`层为单`Activigy`架构，使用`Jetpack Compose`+`Material Design 3`实现，通过绑定`ViewModel`管理数据和状态。另外还用到了一些其他的开源组件：
@@ -75,7 +74,7 @@
 
 然后在前端将明文密码和`pwdEncryptSalt`传入`EncryptPassword.js`计算出加密后的密码，再将`Cookie`、加密后的密码、`execution`、验证码（如果需要的话）通过`POST`发送到登陆页面，然后会经历一大堆乱七八糟的`302`重定向，注意这一大堆重定向过程中需要一直携带`Cookie`。
 
-另外对`EncryptPassword.js`作出一点说明，这是一个用于密码加密的`JavaScript`文件，可以让传输过程中不出现明文密码，保证安全。首先给出学校官网上这个文件的[原版链接](https://login.bit.edu.cn/authserver/bitColor/static/common/encrypt.js)，实际上就调用里面的`encryptPassword(pwd0, key)`，`pwd0`是明文密码，`key`是`salt`，调用后函数会返回加密后的密码。我懒得（大概也没有能力）把这个加密复现，所以在`APP`里只能使用了一个`JsEvaluator`运行这个`JavaScript`文件进行加密计算，其原理是创建一个不可见的`WebView`，在其中运行代码并获取结果。
+具体逻辑见 `AESUtils`
 
 ### 密码管理
 
