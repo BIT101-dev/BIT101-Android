@@ -2,7 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.kapt'
-    id 'com.jaredsburrows.license' version "0.9.0" //用于生成开源声明
+    id 'com.jaredsburrows.license' version "0.9.3" //用于生成开源声明
 }
 
 android {
@@ -23,6 +23,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            applicationIdSuffix ".debug"
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -81,12 +85,11 @@ dependencies {
 
     implementation "com.google.accompanist:accompanist-webview:0.31.2-alpha"
     implementation "com.google.accompanist:accompanist-drawablepainter:0.31.2-alpha"
-    implementation "com.squareup.okhttp3:okhttp:4.10.0"
+    implementation "com.squareup.okhttp3:okhttp:4.11.0"
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
     implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
     implementation "net.gotev:cookie-store-okhttp:1.5.0"
     implementation "net.gotev:cookie-store:1.5.0"
-    implementation 'com.github.evgenyneu:js-evaluator-for-android:v6.0.0'
     implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'ovh.plrapps:mapcompose:2.5.0'
     implementation("io.coil-kt:coil-compose:2.3.0")

@@ -1,18 +1,15 @@
 package cn.bit101.android.net.school
 
 import android.util.Log
-import cn.bit101.android.App
 import cn.bit101.android.database.DataStore
 import cn.bit101.android.database.EncryptedStore
 import cn.bit101.android.net.HttpClient
-import com.evgenii.jsevaluator.JsEvaluator
-import com.evgenii.jsevaluator.interfaces.JsCallback
-import kotlinx.coroutines.*
+import cn.bit101.android.utils.AESUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import okhttp3.Request
 import org.jsoup.Jsoup
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
 /**
  * @author flwfdd
@@ -21,24 +18,15 @@ import kotlin.coroutines.suspendCoroutine
  */
 
 suspend fun encryptPassword(password: String, salt: String): String? {
-    return withContext(Dispatchers.Main) {
-        return@withContext suspendCoroutine { it ->
-            val jsSrc = App.context.assets.open("EncryptPassword.js")
-                .bufferedReader()
-                .use { it.readText() }
-            val jsEvaluator = JsEvaluator(App.context)
-            jsEvaluator.callFunction(jsSrc, object : JsCallback {
-                override fun onResult(value: String?) {
-                    it.resume(value)
-                }
-
-                override fun onError(errorMessage: String?) {
-                    Log.e("SchoolLogin", errorMessage.toString())
-                    it.resume(null)
-                }
-
-            }, "encryptPassword", password, salt)
-        }
+    if (salt.isEmpty()) {
+        return password
+    } else {
+        return runCatching {
+            withContext(Dispatchers.Main) {
+                val data = AESUtils.randomString(64) + password
+                AESUtils.encryptAES(data, salt, AESUtils.randomString(16))
+            }
+        }.onFailure { it.printStackTrace() }.getOrNull()
     }
 
 }
