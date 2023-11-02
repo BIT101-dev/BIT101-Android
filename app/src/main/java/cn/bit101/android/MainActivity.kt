@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
@@ -96,15 +95,6 @@ class MainActivity : ComponentActivity() {
                 MainContent()
             }
         }
-
-        // 打开文件选择窗口
-        App.activityResultLauncher =
-            registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {
-                MainScope().launch {
-                    // 发送文件选择结果
-                    App.activityResult.emit(it)
-                }
-            }
 
         // 设置屏幕旋转
         MainScope().launch {

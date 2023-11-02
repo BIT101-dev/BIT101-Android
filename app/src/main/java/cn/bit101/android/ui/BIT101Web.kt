@@ -1,11 +1,17 @@
 package cn.bit101.android.ui
 
+import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.webkit.ValueCallback
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +30,6 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.viewmodel.compose.viewModel
-import cn.bit101.android.App
 import cn.bit101.android.database.DataStore
 import cn.bit101.android.viewmodel.BIT101WebViewModel
 import com.google.accompanist.web.AccompanistWebChromeClient
@@ -32,16 +37,17 @@ import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberSaveableWebViewState
 import com.google.accompanist.web.rememberWebViewNavigator
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 
 /**
  * @author flwfdd
+ * @author Shen
  * @date 14/05/2023 00:15
  * @description _(:з」∠)_
  */
 
+@SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun BIT101Web(vm: BIT101WebViewModel = viewModel()) {
     val context = LocalContext.current
@@ -58,6 +64,15 @@ fun BIT101Web(vm: BIT101WebViewModel = viewModel()) {
     }
 
     val scope = rememberCoroutineScope()
+    var fileChooserValueCallback by remember { mutableStateOf<ValueCallback<Array<Uri>>?>(null) }
+    // registerForActivityResult(
+    val fileChooseResultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+        if (it.resultCode == Activity.RESULT_OK) {
+            fileChooserValueCallback?.onReceiveValue(arrayOf(Uri.parse(it.data?.dataString)))
+        } else {
+            fileChooserValueCallback?.onReceiveValue(null)
+        }
+    }
 
     WebView(
         state = state,
@@ -120,22 +135,11 @@ fun BIT101Web(vm: BIT101WebViewModel = viewModel()) {
             }
         },
         chromeClient = object : AccompanistWebChromeClient() {
-            init {
-                MainScope().launch {
-                    App.activityResult.collect {
-                        uploadMessage?.onReceiveValue(it.toTypedArray())
-                    }
-                }
-
-            }
 
             override fun onProgressChanged(view: WebView, newProgress: Int) {
                 super.onProgressChanged(view, newProgress)
                 progress = newProgress / 100f
             }
-
-            // 用于传递上传文件
-            var uploadMessage: ValueCallback<Array<Uri>>? = null
 
             // 显示文件选择器
             override fun onShowFileChooser(
@@ -143,8 +147,12 @@ fun BIT101Web(vm: BIT101WebViewModel = viewModel()) {
                 filePathCallback: ValueCallback<Array<Uri>>?,
                 fileChooserParams: FileChooserParams?
             ): Boolean {
-                uploadMessage = filePathCallback
-                App.activityResultLauncher.launch("*/*")
+                fileChooserValueCallback = filePathCallback
+                try {
+                    fileChooseResultLauncher.launch(fileChooserParams?.createIntent())
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(context, "未找到可以打开的应用！", Toast.LENGTH_SHORT).show()
+                }
                 return true
             }
         }
