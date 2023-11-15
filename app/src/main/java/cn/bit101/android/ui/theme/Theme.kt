@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.theme
 
+import android.app.UiModeManager
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
@@ -10,7 +11,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.LocalContext
-import cn.bit101.android.database.DataStore
+import cn.bit101.android.datastore.SettingDataStore
 
 
 private val LightColors = lightColorScheme(
@@ -80,16 +81,15 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun BIT101Theme(
-    content: @Composable() () -> Unit
+    content: @Composable () -> Unit,
 ) {
     val dynamicColor =
-        if (DataStore.settingAutoThemeFlow.collectAsState(initial = false).value)
+        if (SettingDataStore.settingDynamicTheme.flow.collectAsState(initial = false).value)
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-        else
-            false
+        else false
 
     val useDarkTheme =
-        isSystemInDarkTheme() && !DataStore.settingDisableDarkThemeFlow.collectAsState(initial = false).value
+        isSystemInDarkTheme() && !SettingDataStore.settingDisableDarkTheme.flow.collectAsState(initial = false).value
 
     // 应用 Material You 动态颜色
     val colors = when {

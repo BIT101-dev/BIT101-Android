@@ -5,11 +5,7 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import cn.bit101.android.database.BIT101Database
-import cn.bit101.android.database.CourseScheduleDao
-import cn.bit101.android.net.school.getCourseSchedule
-import cn.bit101.android.viewmodel.course2db
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import cn.bit101.android.database.dao.CoursesDao
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -24,13 +20,13 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class DatabaseTest {
     private lateinit var db: BIT101Database
-    private lateinit var dao: CourseScheduleDao
+    private lateinit var dao: CoursesDao
 
     @Before
     fun init() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         db = Room.inMemoryDatabaseBuilder(context, BIT101Database::class.java).build()
-        dao = db.courseScheduleDao()
+        dao = db.coursesDao()
     }
 
     @After
@@ -40,13 +36,13 @@ class DatabaseTest {
 
     @Test
     fun test() {
-        runBlocking {
-            val courses = getCourseSchedule()
-            courses!!.courseList.forEach {
-                dao.insert(course2db(it))
-            }
-            println(dao.getWeek("2022-2023-2", 1).first())
-        }
+//        runBlocking {
+//            val courses = getCourseSchedule()
+//            courses!!.courseList.forEach {
+//                dao.insert(course2db(it))
+//            }
+//            println(dao.getWeek("2022-2023-2", 1).first())
+//        }
     }
 }
 

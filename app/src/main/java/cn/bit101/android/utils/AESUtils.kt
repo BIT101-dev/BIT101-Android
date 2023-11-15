@@ -1,5 +1,7 @@
 package cn.bit101.android.utils
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.security.SecureRandom
 import java.util.Base64
 import javax.crypto.Cipher
@@ -30,5 +32,13 @@ object AESUtils {
             sb.append(AES_CHARS[index])
         }
         return sb.toString()
+    }
+
+    fun encryptPassword(password: String, salt: String): String {
+        return if (salt.isEmpty()) password
+        else {
+            val data = randomString(64) + password
+            encryptAES(data, salt, randomString(16))
+        }
     }
 }

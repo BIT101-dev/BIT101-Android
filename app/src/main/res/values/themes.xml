@@ -2,4 +2,9 @@
 <resources>
 
     <style name="Theme.BIT101" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.BIT101.Dark" parent="Theme.BIT101">
+        <item name="isLightTheme">false</item>
+    </style>
+
 </resources>

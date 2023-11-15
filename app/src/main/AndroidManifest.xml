@@ -21,7 +21,7 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.BIT101">
+            android:theme="@style/Theme.BIT101.Dark">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

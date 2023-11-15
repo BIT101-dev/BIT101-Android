@@ -11,31 +11,32 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.room.Room
 import cn.bit101.android.database.BIT101Database
 import com.umeng.commonsdk.UMConfigure
+import dagger.hilt.android.AndroidEntryPoint
+import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.flow.MutableStateFlow
+import javax.inject.Inject
 
 /**
  * @author flwfdd
  * @date 2023/3/16 23:19
  * @description _(:з」∠)_
  */
+@HiltAndroidApp
 class App : Application() {
+
+//    @Inject lateinit var database: BIT101Database
+
     companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
 
-        // 数据库初始化
-        val DB: BIT101Database by lazy {
-            Room.databaseBuilder(
-                context,
-                BIT101Database::class.java,
-                "bit101.db"
-            ).fallbackToDestructiveMigration().build()
-        }
         val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
 
         // 用于WebView上传文件
         lateinit var activityResultLauncher: ActivityResultLauncher<String>
         val activityResult = MutableStateFlow(listOf(Uri.EMPTY))
+
     }
 
     override fun onCreate() {
@@ -55,6 +56,6 @@ class App : Application() {
 
     override fun onTerminate() {
         super.onTerminate()
-        DB.close()
+//        database.close()
     }
 }

@@ -64,7 +64,6 @@ fun ConfigColumn(modifier: Modifier, scrollable: Boolean = true, items: List<Con
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ConfigButton(title: String, content: String, onClick: () -> Unit) {
     Surface(
