@@ -221,7 +221,9 @@ fun CommentCard(
                     mainController = mainController,
                     text = text,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 )
 
                 Spacer(modifier = Modifier.padding(vertical = 4.dp))

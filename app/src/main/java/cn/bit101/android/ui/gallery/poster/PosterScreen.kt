@@ -111,8 +111,6 @@ fun PosterContent(
     onOpenCommentDialog: (Comment, Comment) -> Unit,
     onOpenDeleteImageOfPosterDialog: (Int) -> Unit,
 ) {
-    val ctx = LocalContext.current
-
     // poster内容卡片
     LoadableLazyColumnWithoutPullRequest(
         modifier = Modifier
@@ -213,7 +211,9 @@ fun PosterContent(
             AnnotatedText(
                 mainController = mainController,
                 text = data.text,
-                style = MaterialTheme.typography.bodyLarge
+                style = MaterialTheme.typography.bodyLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
         // 图片

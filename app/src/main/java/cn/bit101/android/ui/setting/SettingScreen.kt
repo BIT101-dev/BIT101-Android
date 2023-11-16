@@ -407,11 +407,12 @@ fun SettingScreen(
                     onCheckedChange = vm::setEnableGallery
                 ),
                 ConfigItem.Button(
-                    title = "主页设置" + when(homepage) {
-                        "schedule" -> "（当前：课程表）"
-                        "map" -> "（当前：地图）"
-                        "bit101-web" -> "（当前：BIT101）"
-                        "gallery" -> "（当前：话廊）"
+                    title = "主页设置",
+                    content = "当前：" + when(homepage) {
+                        "schedule" -> "课程表"
+                        "map" -> "地图"
+                        "bit101-web" -> "BIT101"
+                        "gallery" -> "话廊"
                         else -> ""
                     },
                     onClick = {

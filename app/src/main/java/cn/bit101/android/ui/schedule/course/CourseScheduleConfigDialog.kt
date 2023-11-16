@@ -27,6 +27,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
@@ -46,9 +47,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.ConfigColumn
 import cn.bit101.android.ui.component.ConfigItem
+import cn.bit101.android.ui.gallery.common.SimpleDataState
+import cn.bit101.android.ui.gallery.common.SimpleState
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 
 /**
  * @author flwfdd
@@ -61,8 +65,37 @@ import kotlinx.coroutines.launch
 @Composable
 fun CourseScheduleConfigDialog(
     mainController: MainController,
-    vm: CourseScheduleViewModel = hiltViewModel(),
-    onDismiss: () -> Unit
+
+    term: String,
+    showDivider: Boolean,
+    showSaturday: Boolean,
+    showSunday: Boolean,
+    showHighlightToday: Boolean,
+    showBorder: Boolean,
+    timeTable: String,
+    currentTime: Boolean,
+
+    coursesRefreshing: Boolean,
+
+    changeTermState: SimpleState?,
+    setTimeTableState: SimpleState?,
+    getTermListState: SimpleDataState<List<String>>?,
+
+    onUpdateCourses: () -> Unit,
+    onSetShowDivider: (Boolean) -> Unit,
+    onSetShowSaturday: (Boolean) -> Unit,
+    onSetShowSunday: (Boolean) -> Unit,
+    onSetShowHighlightToday: (Boolean) -> Unit,
+    onSetShowBorder: (Boolean) -> Unit,
+    onSetCurrentTime: (Boolean) -> Unit,
+
+    onRefreshTermList: () -> Unit,
+    onChangeTerm: (String) -> Unit,
+    onSetTimeTable: (String) -> Unit,
+
+    onClearChangeTermState: () -> Unit,
+
+    onDismiss: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -89,8 +122,7 @@ fun CourseScheduleConfigDialog(
 
         val showTermListDialog = rememberSaveable { mutableStateOf(false) }
         val showTimeTableDialog = rememberSaveable { mutableStateOf(false) }
-        val term = vm.termFlow.collectAsState(initial = null).value
-        var refreshing by remember { mutableStateOf(false) }
+
         ConfigColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -99,88 +131,76 @@ fun CourseScheduleConfigDialog(
             items = listOf(
                 ConfigItem.Button(
                     title = "切换学期",
-                    content = term ?: "未选择",
+                    content = term,
                     onClick = {
                         showTermListDialog.value = true
                     }
                 ),
                 ConfigItem.Button(
                     title = "刷新课表",
-                    content = if (refreshing) "刷新中..." else "点击重新拉取课表",
-                    onClick = {
-                        MainScope().launch {
-                            if (term == null) {
-                                mainController.snackbar("未选择学期")
-                                return@launch
-                            }
-                            if (!refreshing) {
-                                refreshing = true
-                                if (vm.getCoursesFromNet(term)) mainController.snackbar("刷新成功OvO")
-                                else mainController.snackbar("刷新失败Orz")
-                                refreshing = false
-                            }
-                        }
-                    }
+                    content = if (coursesRefreshing) "刷新中..." else "点击重新拉取课表",
+                    onClick = onUpdateCourses
                 ),
                 ConfigItem.Switch(
                     title = "显示周六",
-                    checked = vm.showSaturdayFlow.collectAsState(initial = true).value,
-                    onCheckedChange = {
-                        vm.setShowSaturday(it)
-                    }
+                    checked = showSaturday,
+                    onCheckedChange = onSetShowSaturday
                 ),
                 ConfigItem.Switch(
                     title = "显示周日",
-                    checked = vm.showSundayFlow.collectAsState(initial = true).value,
-                    onCheckedChange = {
-                        vm.setShowSunday(it)
-                    }
+                    checked = showSunday,
+                    onCheckedChange = onSetShowSunday
                 ),
                 ConfigItem.Switch(
                     title = "显示边框",
-                    checked = vm.showBorderFlow.collectAsState(initial = true).value,
-                    onCheckedChange = {
-                        vm.setShowBorder(it)
-                    }
+                    checked = showBorder,
+                    onCheckedChange = onSetShowBorder
                 ),
                 ConfigItem.Switch(
                     title = "高亮今日",
-                    checked = vm.showHighlightTodayFlow.collectAsState(initial = true).value,
-                    onCheckedChange = {
-                        vm.setShowHighlightToday(it)
-                    }
+                    checked = showHighlightToday,
+                    onCheckedChange = onSetShowHighlightToday
                 ),
                 ConfigItem.Switch(
                     title = "显示节次分割线",
-                    checked = vm.showDividerFlow.collectAsState(initial = true).value,
-                    onCheckedChange = {
-                        vm.setShowDivider(it)
-                    }
+                    checked = showDivider,
+                    onCheckedChange = onSetShowDivider
                 ),
                 ConfigItem.Switch(
                     title = "显示当前时间线",
-                    checked = vm.showCurrentTimeFlow.collectAsState(initial = true).value,
-                    onCheckedChange = {
-                        vm.setShowCurrentTime(it)
-                    }
+                    checked = currentTime,
+                    onCheckedChange = onSetCurrentTime
                 ),
                 ConfigItem.Button(
                     title = "设置时间表",
                     content = "点击设置节次及时间",
-                    onClick = {
-                        showTimeTableDialog.value = true
-                    }
+                    onClick = { showTimeTableDialog.value = true }
                 ),
             ))
 
         if (showTermListDialog.value) {
-            TermListDialog(mainController, vm, showTermListDialog)
+            TermListDialog(
+                mainController = mainController,
+                term = term,
+                getTermListState = getTermListState,
+                changeTermState = changeTermState,
+                onRefreshTermList = onRefreshTermList,
+                onChangeTerm = onChangeTerm,
+                onClearChangeTermState = onClearChangeTermState,
+                onDismiss = { showTermListDialog.value = false }
+            )
         }
 
         if (showTimeTableDialog.value) {
-            TimeTableDialog(mainController, vm, showTimeTableDialog)
-        }
+            TimeTableDialog(
+                mainController = mainController,
+                timeTable = timeTable,
+                setTimeTableState = setTimeTableState,
 
+                onSetTimeTable = onSetTimeTable,
+                onDismiss = { showTimeTableDialog.value = false },
+            )
+        }
     }
 }
 
@@ -188,93 +208,120 @@ fun CourseScheduleConfigDialog(
 @Composable
 fun TermListDialog(
     mainController: MainController,
-    vm: CourseScheduleViewModel,
-    showDialog: MutableState<Boolean>
+    term: String,
+    getTermListState: SimpleDataState<List<String>>?,
+
+    changeTermState: SimpleState?,
+
+    onClearChangeTermState: () -> Unit,
+
+    onRefreshTermList: () -> Unit,
+    onChangeTerm: (String) -> Unit,
+    onDismiss: () -> Unit,
 ) {
-    var termList by remember { mutableStateOf(listOf("")) }
-    val (selectedOption, onOptionSelected) = rememberSaveable { mutableStateOf("") }
-    // 默认选择第一项
-    LaunchedEffect(showDialog) {
-        termList = vm.getTermsFromNet()
-        if (termList.isNotEmpty()) onOptionSelected(termList[0])
+    var selectedOption by rememberSaveable { mutableStateOf("") }
+
+    // 更改学期成功后自动关闭对话框，并显示提示
+    DisposableEffect(changeTermState) {
+        if(changeTermState == SimpleState.Success) {
+            onDismiss()
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("切换成功Orz")
+            }
+        } else if(changeTermState == SimpleState.Error) {
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("切换失败Orz")
+            }
+        }
+        onDispose {
+            // 重置状态
+            selectedOption = ""
+            onClearChangeTermState()
+        }
     }
+
+
+    // 先刷新学期列表，再选择第一项
+    LaunchedEffect(getTermListState) {
+        if(getTermListState == null) {
+            onRefreshTermList()
+        } else if(getTermListState is SimpleDataState.Success) {
+            val index = getTermListState.data.indexOf(term)
+            selectedOption = if(index == -1) getTermListState.data[0]
+            else term
+        }
+    }
+
     AlertDialog(
         modifier = Modifier.fillMaxHeight(0.9f),
-        onDismissRequest = {
-            showDialog.value = false
-        },
+        onDismissRequest = onDismiss,
         title = {
             Text(text = "切换学期")
         },
         text = {
-            if (selectedOption.isEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
 
-            } else {
-                val scrollState = rememberScrollState()
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .selectableGroup()
-                        .verticalScroll(scrollState)
-                ) {
-                    termList.forEach { text ->
-                        Row(
-                            Modifier
-                                .fillMaxWidth()
-                                .clip(MaterialTheme.shapes.medium)
-                                .selectable(
+            when(getTermListState) {
+                null, is SimpleDataState.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                is SimpleDataState.Success -> {
+                    val termList = getTermListState.data
+                    val scrollState = rememberScrollState()
+
+                    Column(
+                        Modifier
+                            .fillMaxSize()
+                            .selectableGroup()
+                            .verticalScroll(scrollState)
+                    ) {
+                        termList.forEach { text ->
+                            Row(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .selectable(
+                                        selected = (text == selectedOption),
+                                        onClick = { selectedOption = text },
+                                        role = Role.RadioButton
+                                    )
+                                    .padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
                                     selected = (text == selectedOption),
-                                    onClick = { onOptionSelected(text) },
-                                    role = Role.RadioButton
+                                    onClick = null
                                 )
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = (text == selectedOption),
-                                onClick = null
-                            )
-                            Text(
-                                text = text,
-                                modifier = Modifier.padding(start = 10.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
+                                Text(
+                                    text = text,
+                                    modifier = Modifier.padding(start = 10.dp),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                            }
                         }
                     }
+                }
+                is SimpleDataState.Error -> {
+
                 }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = {
-                    vm.changeTerm(
-                        term = selectedOption,
-                        onSuccess = {
-                            mainController.snackbar("成功切换至 $selectedOption")
-                        },
-                        onFail = {
-                            mainController.snackbar("切换失败Orz")
-                        }
-                    )
-                    showDialog.value = false
-                }
+                onClick = { onChangeTerm(selectedOption) }
             ) {
                 Text("确定")
             }
         },
         dismissButton = {
             TextButton(
-                onClick = {
-                    showDialog.value = false
-                }
+                onClick = onDismiss
             ) {
                 Text("取消")
             }
@@ -287,21 +334,35 @@ fun TermListDialog(
 @Composable
 fun TimeTableDialog(
     mainController: MainController,
-    vm: CourseScheduleViewModel,
-    showDialog: MutableState<Boolean>
+
+    timeTable: String,
+    setTimeTableState: SimpleState?,
+
+    onSetTimeTable: (String) -> Unit,
+    onDismiss: () -> Unit,
 ) {
-    var timeTableEdit by remember { mutableStateOf(TextFieldValue("")) }
+    var timeTableEdit by remember(timeTable) { mutableStateOf(TextFieldValue(timeTable)) }
     var errorMessage by remember { mutableStateOf("") }
-    LaunchedEffect(showDialog) {
-        vm.timeTableStringFlow.first().let {
-            timeTableEdit = TextFieldValue(it)
+
+    DisposableEffect(setTimeTableState) {
+        if(setTimeTableState == SimpleState.Success) {
+            onDismiss()
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("设置成功OvO")
+            }
+            errorMessage = ""
+        } else if(setTimeTableState == SimpleState.Error) {
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("格式校验失败Orz")
+            }
+            errorMessage = "格式校验失败Orz"
         }
+        onDispose {}
     }
+
     AlertDialog(
         modifier = Modifier.fillMaxHeight(0.9f),
-        onDismissRequest = {
-            showDialog.value = false
-        },
+        onDismissRequest = onDismiss,
         title = {
             Text(text = "设置时间表")
         },
@@ -330,24 +391,14 @@ fun TimeTableDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = {
-                    if (vm.checkTimeTable(timeTableEdit.text)) {
-                        vm.setTimeTable(timeTableEdit.text)
-                        mainController.snackbar("设置成功OvO")
-                        showDialog.value = false
-                    } else {
-                        errorMessage = "格式校验失败Orz"
-                    }
-                }
+                onClick = { onSetTimeTable(timeTableEdit.text) }
             ) {
                 Text("确定")
             }
         },
         dismissButton = {
             TextButton(
-                onClick = {
-                    showDialog.value = false
-                }
+                onClick = onDismiss
             ) {
                 Text("取消")
             }

@@ -144,7 +144,7 @@ fun PosterCard(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "${data.likeNum}赞 | ${data.commentNum}评",
+                text = "${data.likeNum}赞 | ${data.commentNum}评" + if(data.public) " | 公开" else " | 仅自己可见",
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = TextAlign.End
             )

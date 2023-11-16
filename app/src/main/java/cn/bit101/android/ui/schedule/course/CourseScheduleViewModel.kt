@@ -1,14 +1,18 @@
 package cn.bit101.android.ui.schedule.course
 
 import android.util.Log
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.database.BIT101Database
 import cn.bit101.android.database.entity.CourseEntity
 import cn.bit101.android.database.entity.toEntity
 import cn.bit101.android.datastore.SettingDataStore
+import cn.bit101.android.datastore.UserDataStore
 import cn.bit101.android.net.BIT101API
 import cn.bit101.android.repo.base.CoursesRepo
+import cn.bit101.android.ui.gallery.common.SimpleDataState
+import cn.bit101.android.ui.gallery.common.SimpleState
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.CourseForSchedule
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +33,13 @@ import javax.inject.Inject
  * @date 2023/3/31 23:30
  * @description _(:з」∠)_
  */
+
+data class TermWeekCoursesData(
+    val term: String,
+    val week: Int,
+    val courses: List<CourseEntity>,
+)
+
 @HiltViewModel
 class CourseScheduleViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
@@ -37,10 +48,12 @@ class CourseScheduleViewModel @Inject constructor(
     private val _courses = MutableStateFlow<List<List<CourseEntity>>>(emptyList())
     val courses: StateFlow<List<List<CourseEntity>>> = _courses.asStateFlow()
 
-    private var _firstDayFlow = MutableStateFlow<LocalDate?>(null)
+    private val _firstDayFlow = MutableStateFlow<LocalDate?>(null)
     val firstDayFlow = _firstDayFlow.asStateFlow()
     private val _weekFlow = MutableStateFlow(Int.MAX_VALUE)
     val weekFlow: StateFlow<Int> = _weekFlow.asStateFlow()
+
+    val coursesFlow = database.coursesDao().getAllCourses()
 
 
     // 课表相关信息
@@ -57,44 +70,92 @@ class CourseScheduleViewModel @Inject constructor(
     val showDividerFlow = SettingDataStore.courseScheduleShowDivider.flow
     val showCurrentTimeFlow = SettingDataStore.courseScheduleShowCurrentTime.flow
 
+    val setTimeTableStateLiveData = MutableLiveData<SimpleState>(null)
+    val forceRefreshCoursesStateLiveData = MutableLiveData<SimpleState>(null)
+    val refreshTermListStateLiveData = MutableLiveData<SimpleDataState<List<String>>>(null)
+    val changeTermStateLiveData = MutableLiveData<SimpleState>(null)
+
     private var job: Job? = null
 
     init {
-        // 更新学期第一天
+        // 为第一次打开做准备
+        // 第一次打开时，term、week、firstDay、课表都是空的，这里用term来判断是否第一次打开
+        firstLaunch()
+
+        // 如果学期变化，则更新学期第一天，同时获取这学期所有课程
         viewModelScope.launch {
             termFlow.collect {
                 if (it.isEmpty()) return@collect
-                _firstDayFlow.value = SettingDataStore.courseScheduleFirstDay.get(it)
+                try {
+                    coursesRepo.getCoursesFromNet(it)
+
+                    val firstDay = SettingDataStore.courseScheduleFirstDay.get(it) ?: coursesRepo.getFirstDayFromNet(it)
+
+                    _firstDayFlow.value = firstDay
+                } catch (e: Exception) {
+                    SettingDataStore.courseScheduleTerm.remove()
+                    _firstDayFlow.value = null
+                    firstLaunch()
+                }
             }
         }
-
-        // 移动到当前周
-        viewModelScope.launch {
+        // 如果学期第一天变化，则更新周
+        viewModelScope.launch(Dispatchers.IO) {
             firstDayFlow.collect {
-                changeWeek(it?.until(LocalDate.now(), ChronoUnit.WEEKS)?.plus(1)?.toInt() ?: 1)
+                if (it == null) return@collect
+                val week = it.until(LocalDate.now(), ChronoUnit.WEEKS).plus(1).toInt()
+                _weekFlow.value = week
             }
         }
 
-        viewModelScope.launch {
-            database.coursesDao().getAllCourses().collect {
-                Log.i("ScheduleGetAll", it.toString())
+        // 如果学期、周或者课表变化，则更新这学期的课表
+        viewModelScope.launch(Dispatchers.IO) {
+            combine(
+                termFlow,
+                weekFlow,
+                coursesFlow,
+            ) { term, week, courses ->
+                TermWeekCoursesData(term, week, courses)
+            }.collect { data ->
+                val term = data.term
+                val week = data.week
+                val weekCourses = coursesRepo.getCoursesFromLocal(term, week)
+                _courses.value = convertWeekCourse(weekCourses)
             }
         }
+    }
 
-        viewModelScope.launch {
-            val terms = coursesRepo.getTermList(true)
+    private fun firstLaunch() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val term = termFlow.firstOrNull()
+            if(!term.isNullOrEmpty()) return@launch
+
+            // 第一次打开
+            // 先获取学期列表
+            val terms = coursesRepo.getTermListFromNet(true)
             terms.forEach {
-                val day = coursesRepo.getFirstDay(
-                    term = it,
-                    forceNet = true,
-                )
+                // 获取学期第一天
+                try {
+                    coursesRepo.getFirstDayFromNet(it)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            terms.forEach {
+                // 获取学期第一天
+                val day = try {
+                    coursesRepo.getFirstDayFromLocal(it)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    return@forEach
+                }
+
                 if(day < LocalDate.now()) {
+                    // 如果学期第一天在今天之前，就是当前学期
+
+                    // 设置学期
                     SettingDataStore.courseScheduleTerm.set(it)
-                    SettingDataStore.courseScheduleFirstDay.set(it, day)
-                    coursesRepo.getCourses(
-                        term = it,
-                        forceNet = true,
-                    )
+
                     return@launch
                 }
             }
@@ -103,27 +164,16 @@ class CourseScheduleViewModel @Inject constructor(
 
     fun changeWeek(week: Int) {
         _weekFlow.value = week
-        job?.cancel()
-        job = viewModelScope.launch {
-            termFlow.collect { term ->
-                Log.i("ScheduleTermWeek", "$term, $week")
-                database.coursesDao().getCoursesByTermWeek(term, week).collect {
-                    _courses.value = convertWeekCourse(it)
-                    Log.i("Schedule", it.toString())
-                    Log.i("Schedule", convertWeekCourse(it).toString())
-                }
-            }
-        }
     }
 
-    fun changeTerm(term: String, onSuccess: () -> Unit = {}, onFail: () -> Unit = {}) {
-        viewModelScope.launch {
-            val courses = database.coursesDao().getCoursesByTerm(term).firstOrNull()
-            if (courses?.isNotEmpty() == true) {
+    fun changeTerm(term: String) {
+        changeTermStateLiveData.value = SimpleState.Loading
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
                 SettingDataStore.courseScheduleTerm.set(term)
-                onSuccess()
-            } else {
-                if (getCoursesFromNet(term)) onSuccess() else onFail()
+                changeTermStateLiveData.postValue(SimpleState.Success)
+            } catch (e: Exception) {
+                changeTermStateLiveData.postValue(SimpleState.Error)
             }
         }
     }
@@ -159,14 +209,19 @@ class CourseScheduleViewModel @Inject constructor(
         }
     }
     fun setTimeTable(timeTable: String) {
+        setTimeTableStateLiveData.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
+            if(!checkTimeTable(timeTable)) {
+                setTimeTableStateLiveData.postValue(SimpleState.Error)
+                return@launch
+            }
             SettingDataStore.courseScheduleTimeTable.set(timeTable)
+            setTimeTableStateLiveData.postValue(SimpleState.Success)
         }
     }
 
-
     // 将课程按照周一到周日分组排列
-    fun convertWeekCourse(_courses: List<CourseEntity>): List<List<CourseEntity>> {
+    private fun convertWeekCourse(_courses: List<CourseEntity>): List<List<CourseEntity>> {
         val courses = _courses.sortedBy { it.start_section }
         val weekCourses = mutableListOf<List<CourseEntity>>()
         for (i in 1..7) {
@@ -182,24 +237,29 @@ class CourseScheduleViewModel @Inject constructor(
     }
 
 
-    // 获取课程表 返回是否成功
-    suspend fun getCoursesFromNet(term: String = "") = withContext(Dispatchers.IO) {
-        try {
-            coursesRepo.getCourses(
-                term = term,
-                forceNet = true,
-            )
-            true
-        } catch (e: Exception) {
-            false
+    fun getCoursesFromNet() {
+        forceRefreshCoursesStateLiveData.value = SimpleState.Loading
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                coursesRepo.getCoursesFromNet()
+                forceRefreshCoursesStateLiveData.postValue(SimpleState.Success)
+            } catch (e: Exception) {
+                forceRefreshCoursesStateLiveData.postValue(SimpleState.Error)
+            }
         }
     }
 
     // 获取学期列表
-    suspend fun getTermsFromNet() = withContext(Dispatchers.IO) {
-        BIT101API.schoolJxzxehallapp.getTerms().body()?.datas?.xnxqcx?.rows?.let { trems ->
-            trems.map { it.DM }
-        } ?: emptyList()
+    fun getTermsFromNet() {
+        refreshTermListStateLiveData.value = SimpleDataState.Loading()
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                val terms = coursesRepo.getTermListFromNet()
+                refreshTermListStateLiveData.postValue(SimpleDataState.Success(terms))
+            } catch (e: Exception) {
+                refreshTermListStateLiveData.postValue(SimpleDataState.Error())
+            }
+        }
     }
 
     // 解析时间表
@@ -208,7 +268,7 @@ class CourseScheduleViewModel @Inject constructor(
         val endTime: LocalTime,
     )
 
-    fun checkTimeTable(timeTable: String): Boolean {
+    private fun checkTimeTable(timeTable: String): Boolean {
         return try {
             val l = parseTimeTable(timeTable)
             if (l.isEmpty()) return false
@@ -225,7 +285,7 @@ class CourseScheduleViewModel @Inject constructor(
     }
 
 
-    fun parseTimeTable(s: String): List<TimeTableItem> {
+    private fun parseTimeTable(s: String): List<TimeTableItem> {
         val timeTable = mutableListOf<TimeTableItem>()
 
         s.split("\n").forEach {

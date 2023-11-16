@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material3.CenterAlignedTopAppBar
@@ -32,6 +33,7 @@ import cn.bit101.android.ui.gallery.index.GalleryIndexScreen
 import cn.bit101.android.ui.gallery.postedit.PostEditScreen
 import cn.bit101.android.ui.gallery.poster.PosterScreen
 import cn.bit101.android.ui.gallery.report.ReportScreen
+import cn.bit101.android.ui.gallery.user.UserScreen
 import cn.bit101.api.model.common.Image
 import java.net.URLDecoder
 import java.net.URLEncoder
@@ -68,6 +70,11 @@ fun GalleryScreen(
                         "post" -> "话廊 · 张贴"
                         "edit/{id}" -> "话廊 · 编辑"
                         "report/{type}/{id}" -> "话廊 · 举报"
+                        "user/{id}" -> {
+                            val id = currentBackStackEntry?.arguments?.getLong("id") ?: 0L
+                            if(id == 0L) "话廊 · 我的"
+                            else "话廊 · 用户"
+                        }
                         else -> "话廊"
                     }
 
@@ -100,6 +107,15 @@ fun GalleryScreen(
                             }
                         ) {
                             Icon(imageVector = Icons.Rounded.Download, contentDescription = null)
+                        }
+                    }
+                    if(currentBackStackEntry?.destination?.route != "user/{id}") {
+                        IconButton(
+                            onClick = {
+                                galleryController.navController.navigate("user/0")
+                            }
+                        ) {
+                            Icon(imageVector = Icons.Rounded.AccountCircle, contentDescription = null)
                         }
                     }
                 }
@@ -193,6 +209,22 @@ fun GalleryScreen(
                         objType = type,
                         id = id,
                     )
+                }
+            }
+
+            composable(
+                route = "user/{id}",
+                arguments = listOf(
+                    navArgument("id") { type = NavType.LongType },
+                ),
+            ) {
+                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    val id = it.arguments?.getLong("id") ?: 0L
+                     UserScreen(
+                         mainController = galleryController,
+                         id = id,
+                     )
                 }
             }
         }

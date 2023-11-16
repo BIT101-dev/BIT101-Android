@@ -73,37 +73,25 @@ private val courseTimes = arrayOf(
 
 @Composable
 fun CourseScheduleCalendar(
-    vm: CourseScheduleViewModel = hiltViewModel(),
-    onConfig: () -> Unit = {}
+    courses: List<List<CourseEntity>>,
+    week: Int,
+    firstDay: LocalDate,
+    showDivider: Boolean,
+    showSaturday: Boolean,
+    showSunday: Boolean,
+    showHighlightToday: Boolean,
+    showBorder: Boolean,
+    timeTable: List<CourseScheduleViewModel.TimeTableItem>,
+    currentTime: Boolean,
+
+    onConfig: () -> Unit,
+    onShowDetailDialog: (CourseEntity) -> Unit,
+    onChangeWeek: (Int) -> Unit,
 ) {
-    val courses by vm.courses.collectAsState()
-    val week by vm.weekFlow.collectAsState(initial = Int.MAX_VALUE)
-    val firstDay by vm.firstDayFlow.collectAsState(initial = null)
-    val showDivider by vm.showDividerFlow.collectAsState(initial = false)
-    val showSaturday by vm.showSaturdayFlow.collectAsState(initial = true)
-    val showSunday by vm.showSundayFlow.collectAsState(initial = true)
-    val showHighlightToday by vm.showHighlightTodayFlow.collectAsState(initial = true)
-    val showBorder by vm.showBorderFlow.collectAsState(initial = true)
-    val timeTable by vm.timeTableFlow.collectAsState(initial = emptyList())
+    /**
+     * 一天的节数
+     */
     val courseNumOfDay = timeTable.size
-
-    val currentTime by vm.showCurrentTimeFlow.collectAsState(initial = true)
-
-    Log.i("CourseScheduleCalendar", "week: $week")
-    Log.i("CourseScheduleCalendar", "firstDay: $firstDay")
-    Log.i("CourseScheduleCalendar", "timeTable: $timeTable")
-    Log.i("CourseScheduleCalendar", "courseNumOfDay: $courseNumOfDay")
-
-
-    // 课程详情弹窗
-    val showCourseDetailDialog = remember { mutableStateOf(false) }
-    var courseDetailData: CourseEntity? by remember { mutableStateOf(null) }
-    if (showCourseDetailDialog.value && courseDetailData != null) {
-        CourseScheduleDetailDialog(course = courseDetailData!!, showDialog = showCourseDetailDialog)
-    }
-
-    // 防止加载过程中闪动
-    if (courses.isEmpty() || week == Int.MAX_VALUE || firstDay == null || timeTable.isEmpty()) return
 
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
     Box(
@@ -129,8 +117,6 @@ fun CourseScheduleCalendar(
             }
         }
 
-        // 显示当前时间指示线
-        Log.i("CourseScheduleCalendar", "showCurrentTimeFlow: $currentTime")
         if (currentTime) {
             val now = LocalTime.now()
             var topWeight = 0f // 上半部分所占比重
@@ -155,23 +141,96 @@ fun CourseScheduleCalendar(
                     Spacer(modifier = Modifier.weight(courseNumOfDay.toFloat() - topWeight))
                 }
             }
+        }
 
-            Column {
-                // 主界面
-                Row(
+        Column {
+            // 主界面
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+            ) {
+                // 左侧栏 周次+节次
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
+                        .fillMaxHeight()
+                        .width(IntrinsicSize.Max),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // 左侧栏 周次+节次
-                    Column(
+                    // 显示周次
+                    Box(
+                        contentAlignment = Alignment.Center,
                         modifier = Modifier
-                            .fillMaxHeight()
-                            .width(IntrinsicSize.Max),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.secondaryContainer,
+                                        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0f)
+                                    )
+                                )
+                            )
                     ) {
-                        // 显示周次
+                        Text(
+                            text = "${week}\n周",
+                            style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75),
+                            textAlign = TextAlign.Center,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+
+                    // 遍历显示节次
+                    for (i in 0 until courseNumOfDay) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "${i+1}",
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center,
+                                fontWeight = FontWeight.Bold
+                            )
+                            if (i <= courseTimes.size) {
+                                Text(
+                                    text = courseTimes[i],
+                                    style = MaterialTheme.typography.labelSmall,
+                                    textAlign = TextAlign.Center,
+                                    color = LocalContentColor.current.copy(0.8f),
+                                    modifier = Modifier.padding(top = 2.dp, start = 2.dp, end = 2.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // 遍历每一天
+                courses.forEachIndexed { index, it ->
+                    if (!showSaturday && index == 5) return@forEachIndexed
+                    if (!showSunday && index == 6) return@forEachIndexed
+                    // 计算星期和日期
+                    val day = firstDay?.plusDays((week - 1) * 7 + index.toLong())
+
+                    // 用于高亮今日 改变颜色
+                    var containerColor = MaterialTheme.colorScheme.secondaryContainer
+                    var columnModifier = Modifier
+                        .fillMaxHeight()
+                        .weight(1f)
+                    if (showHighlightToday && day?.equals(LocalDate.now()) == true) {
+                        containerColor =
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0f)
+                        columnModifier = columnModifier.background(
+                            MaterialTheme.colorScheme.secondaryContainer.copy(0.25f)
+                        )
+                    }
+
+                    Column(
+                        modifier = columnModifier,
+                    ) {
+                        // 头部星期日期
                         Box(
                             contentAlignment = Alignment.Center,
                             modifier = Modifier
@@ -179,14 +238,20 @@ fun CourseScheduleCalendar(
                                 .background(
                                     brush = Brush.verticalGradient(
                                         listOf(
-                                            MaterialTheme.colorScheme.secondaryContainer,
-                                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0f)
+                                            containerColor,
+                                            containerColor.copy(
+                                                alpha = 0f
+                                            )
                                         )
                                     )
                                 )
                         ) {
                             Text(
-                                text = "${week}\n周",
+                                text = ("周${index + 1}\n" + ((day?.format(
+                                    DateTimeFormatter.ofPattern(
+                                        "MM/dd"
+                                    )
+                                )) ?: "")),
                                 style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75),
                                 textAlign = TextAlign.Center,
                                 maxLines = 2,
@@ -194,120 +259,38 @@ fun CourseScheduleCalendar(
                             )
                         }
 
-                        // 遍历显示节次
-                        for (i in 0 until courseNumOfDay) {
-                            Column(
-                                modifier = Modifier.weight(1f),
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = "${i+1}",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                if (i <= courseTimes.size) {
-                                    Text(
-                                        text = courseTimes[i],
-                                        style = MaterialTheme.typography.labelSmall,
-                                        textAlign = TextAlign.Center,
-                                        color = LocalContentColor.current.copy(0.8f),
-                                        modifier = Modifier.padding(top = 2.dp, start = 2.dp, end = 2.dp)
-                                    )
+                        // 遍历一天的每一节课
+                        var i = 1 // 节次游标
+                        it.forEach {
+                            if (it.start_section >= i && it.end_section <= courseNumOfDay) {
+                                if (it.start_section > i) {
+                                    Spacer(modifier = Modifier.weight((it.start_section - i).toFloat()))
                                 }
-                            }
-                        }
-                    }
-
-                    // 遍历每一天
-                    courses.forEachIndexed { index, it ->
-                        if (!showSaturday && index == 5) return@forEachIndexed
-                        if (!showSunday && index == 6) return@forEachIndexed
-                        // 计算星期和日期
-                        val day = firstDay?.plusDays((week - 1) * 7 + index.toLong())
-
-                        // 用于高亮今日 改变颜色
-                        var containerColor = MaterialTheme.colorScheme.secondaryContainer
-                        var columnModifier = Modifier
-                            .fillMaxHeight()
-                            .weight(1f)
-                        if (showHighlightToday && day?.equals(LocalDate.now()) == true) {
-                            containerColor =
-                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0f)
-                            columnModifier = columnModifier.background(
-                                MaterialTheme.colorScheme.secondaryContainer.copy(0.25f)
-                            )
-                        }
-
-                        Column(
-                            modifier = columnModifier,
-                        ) {
-                            // 头部星期日期
-                            Box(
-                                contentAlignment = Alignment.Center,
-                                modifier = Modifier
+                                var modifier = Modifier
                                     .fillMaxWidth()
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            listOf(
-                                                containerColor,
-                                                containerColor.copy(
-                                                    alpha = 0f
-                                                )
-                                            )
-                                        )
-                                    )
-                            ) {
-                                Text(
-                                    text = ("周${index + 1}\n" + ((day?.format(
-                                        DateTimeFormatter.ofPattern(
-                                            "MM/dd"
-                                        )
-                                    )) ?: "")),
-                                    style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75),
-                                    textAlign = TextAlign.Center,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            }
-
-                            // 遍历一天的每一节课
-                            var i = 1 // 节次游标
-                            it.forEach {
-                                if (it.start_section >= i && it.end_section <= courseNumOfDay) {
-                                    if (it.start_section > i) {
-                                        Spacer(modifier = Modifier.weight((it.start_section - i).toFloat()))
-                                    }
-                                    var modifier = Modifier
-                                        .fillMaxWidth()
-                                        .weight((it.end_section - it.start_section + 1).toFloat())
-                                    // 是否显示边框
-                                    if (showBorder) {
-                                        modifier = modifier.border(
-                                            1.dp,
-                                            MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f),
-                                            shape = CardDefaults.shape
-                                        )
-                                    }
-                                    i = it.end_section + 1
-
-                                    CourseScheduleItem(
-                                        modifier = modifier
-                                            .clip(CardDefaults.shape) // 使点击波纹形状匹配
-                                            .clickable {
-                                                courseDetailData = it
-                                                showCourseDetailDialog.value = true
-                                            },
-                                        course = it
+                                    .weight((it.end_section - it.start_section + 1).toFloat())
+                                // 是否显示边框
+                                if (showBorder) {
+                                    modifier = modifier.border(
+                                        1.dp,
+                                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f),
+                                        shape = CardDefaults.shape
                                     )
                                 }
-                            }
+                                i = it.end_section + 1
 
-                            // 填充剩余空白
-                            if (i <= courseNumOfDay) {
-                                Spacer(modifier = Modifier.weight(courseNumOfDay - i + 1f))
+                                CourseScheduleItem(
+                                    modifier = modifier
+                                        .clip(CardDefaults.shape) // 使点击波纹形状匹配
+                                        .clickable { onShowDetailDialog(it) },
+                                    course = it
+                                )
                             }
+                        }
+
+                        // 填充剩余空白
+                        if (i <= courseNumOfDay) {
+                            Spacer(modifier = Modifier.weight(courseNumOfDay - i + 1f))
                         }
                     }
                 }
@@ -349,9 +332,7 @@ fun CourseScheduleCalendar(
             FloatingActionButton(
                 modifier = Modifier
                     .size(fabSize),
-                onClick = {
-                    vm.changeWeek(week + 1)
-                },
+                onClick = { onChangeWeek(week + 1) },
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                 contentColor = MaterialTheme.colorScheme.primary,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),
@@ -365,9 +346,7 @@ fun CourseScheduleCalendar(
             FloatingActionButton(
                 modifier = Modifier
                     .size(fabSize),
-                onClick = {
-                    vm.changeWeek(week - 1)
-                },
+                onClick = { onChangeWeek(week - 1) },
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                 contentColor = MaterialTheme.colorScheme.primary,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),
@@ -381,9 +360,7 @@ fun CourseScheduleCalendar(
             FloatingActionButton(
                 modifier = Modifier
                     .size(fabSize),
-                onClick = {
-                    onConfig()
-                },
+                onClick = onConfig,
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                 contentColor = MaterialTheme.colorScheme.primary,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),

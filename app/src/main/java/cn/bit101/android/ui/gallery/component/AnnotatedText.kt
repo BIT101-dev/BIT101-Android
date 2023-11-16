@@ -5,9 +5,12 @@ import android.net.Uri
 import android.util.Log
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.Text
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -56,6 +59,9 @@ fun AnnotatedText(
         }
         append(text.substring(lastEnd, text.length))
     }
+
+    // 目前这里的点击事件分发有问题
+    // 要的效果应该是：点击链接时触发ClickableText的点击事件，点击其他地方时不触发ClickableText的点击事件
 
     ClickableText(
         modifier = modifier,

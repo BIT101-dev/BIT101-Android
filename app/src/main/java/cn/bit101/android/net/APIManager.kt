@@ -13,6 +13,7 @@ import kotlinx.coroutines.runBlocking
 import net.gotev.cookiestore.SharedPreferencesCookieStore
 import net.gotev.cookiestore.okhttp.JavaNetCookieJar
 import okhttp3.OkHttpClient
+import okhttp3.ResponseBody.Companion.toResponseBody
 import java.net.CookieManager
 import java.net.CookiePolicy
 
@@ -29,9 +30,8 @@ object APIManager {
                 .addHeader("fake-cookie", fakeCookie)
                 .build()
 
-            Log.i("fakeCookie", fakeCookie)
-
-            Log.i("APIManager", request.url.toString())
+//            Log.i("fakeCookie", fakeCookie)
+//            Log.i("APIManager", request.url.toString())
 
             it.proceed(request)
 
@@ -78,29 +78,34 @@ object APIManager {
             )
         )
 //        .addInterceptor {
+//            val request = it.request()
+//
+//            Log.i("APIManager", request.url.toString())
+//
+//            val response = it.proceed(request)
+//
+//            val resBody = response.body?.string()
+//            val contentType = response.body?.contentType()
+//
+//            Log.i("APIManager", resBody ?: "null")
+//
+//
+//            response.newBuilder().body(
+//                resBody?.toResponseBody(contentType)
+//            ).build()
+//        }
+//        .addNetworkInterceptor {
 //            val request = it.request().newBuilder()
 //                .build()
-//            Log.i("APIManager", request.url.toString())
+////            Log.i("APIManager", request.url.toString())
 //            Log.i("APIManager", request.headers.toMultimap().toString())
 //
 //            val response = it.proceed(request)
 //
-//            Log.i("APIManager", response.headers.toMultimap().toString())
+////            Log.i("APIManager", response.headers.toMultimap().toString())
 //
 //            response
 //        }
-        .addNetworkInterceptor {
-            val request = it.request().newBuilder()
-                .build()
-            Log.i("APIManager", request.url.toString())
-            Log.i("APIManager", request.headers.toMultimap().toString())
-
-            val response = it.proceed(request)
-
-            Log.i("APIManager", response.headers.toMultimap().toString())
-
-            response
-        }
         .build()
 
     init {

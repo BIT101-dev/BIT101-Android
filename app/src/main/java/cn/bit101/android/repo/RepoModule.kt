@@ -6,6 +6,7 @@ import cn.bit101.android.repo.base.CoursesRepo
 import cn.bit101.android.repo.base.ManageRepo
 import cn.bit101.android.repo.base.ReactionRepo
 import cn.bit101.android.repo.base.UploadRepo
+import cn.bit101.android.repo.base.UserRepo
 import cn.bit101.android.repo.base.VersionRepo
 import dagger.Binds
 import dagger.Module
@@ -27,7 +28,8 @@ abstract class RepoModule {
     abstract fun bindReactionRepo(reactionRepo: DefaultReactionRepo): ReactionRepo
     @Binds
     abstract fun bindUploadRepo(uploadRepo: DefaultUploadRepo): UploadRepo
-
     @Binds
     abstract fun bindManageRepo(manageRepo: DefaultManageRepo): ManageRepo
+    @Binds
+    abstract fun bindUserRepo(userRepo: DefaultUserRepo): UserRepo
 }

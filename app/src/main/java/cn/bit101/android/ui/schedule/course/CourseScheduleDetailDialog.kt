@@ -16,8 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -28,14 +30,12 @@ import cn.bit101.android.database.entity.CourseEntity
 @Composable
 fun CourseScheduleDetailDialog(
     course: CourseEntity,
-    showDialog: MutableState<Boolean>
+    onDismiss: () -> Unit,
 ) {
     AlertDialog(
         modifier = Modifier.fillMaxSize(0.9f),
         tonalElevation = 1.dp,
-        onDismissRequest = {
-            showDialog.value = false
-        },
+        onDismissRequest = onDismiss,
         title = {
             Text(text = course.name)
         },
@@ -60,9 +60,7 @@ fun CourseScheduleDetailDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = {
-                    showDialog.value = false
-                }
+                onClick = onDismiss
             ) {
                 Text("关闭")
             }
@@ -96,7 +94,7 @@ private fun Item(title: String, content: String) {
 @Preview(showBackground = true)
 @Composable
 fun CourseDetailPreview() {
-    val show = remember { mutableStateOf(false) }
+    var show by remember { mutableStateOf(false) }
     CourseScheduleDetailDialog(
         CourseEntity(
             0,
@@ -117,7 +115,7 @@ fun CourseDetailPreview() {
             "文化课",
             "数学系"
         ),
-        show
+        onDismiss = { show = false }
     )
 }
 
