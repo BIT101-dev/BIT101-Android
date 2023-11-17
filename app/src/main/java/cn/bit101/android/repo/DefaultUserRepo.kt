@@ -4,6 +4,7 @@ import cn.bit101.android.net.BIT101API
 import cn.bit101.android.repo.base.UserRepo
 import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.PostFollowDataModel
+import cn.bit101.api.model.http.bit101.PutUserInfoDataModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -37,4 +38,15 @@ class DefaultUserRepo @Inject constructor() : UserRepo {
         ).body() ?: throw Exception("获取关注失败")
     }
 
+    override suspend fun updateUser(
+        avatarMid: String,
+        nickname: String,
+        motto: String
+    ) = withContext(Dispatchers.IO) {
+        BIT101API.user.putUserInfo(PutUserInfoDataModel.Body(
+            avatarMid = avatarMid,
+            nickname = nickname,
+            motto = motto,
+        )).body() ?: throw Exception("更新用户信息失败")
+    }
 }

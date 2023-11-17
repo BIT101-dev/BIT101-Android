@@ -37,6 +37,8 @@ fun EditUserDialog(
     user: User,
     uploadAvatarState: UploadImageState?,
 
+    saving: Boolean,
+
     onDismiss: () -> Unit,
     onUploadAvatar: () -> Unit,
     onChange: (User) -> Unit,
@@ -53,8 +55,11 @@ fun EditUserDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = onSave,
-                enabled = uploadAvatarState !is UploadImageState.Loading
+                onClick = {
+                    onSave()
+                    onDismiss()
+                },
+                enabled = uploadAvatarState !is UploadImageState.Loading && !saving
             ) {
                 Text(text = "保存")
             }

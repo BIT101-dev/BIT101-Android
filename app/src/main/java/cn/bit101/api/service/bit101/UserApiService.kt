@@ -49,7 +49,7 @@ interface UserApiService : ApiService {
     @PUT("/user/info")
     suspend fun putUserInfo(
         @Body body: PutUserInfoDataModel.Body
-    ): Response<Void>
+    ): Response<Unit>
 
     @POST("/user/follow/{uid}")
     suspend fun follow(
@@ -67,5 +67,5 @@ interface UserApiService : ApiService {
     ): Response<GetFollowersDataModel.Response>
 
     @GET("/user/check")
-    suspend fun check(): Response<Void>
+    suspend fun check(): Response<Unit>
 }

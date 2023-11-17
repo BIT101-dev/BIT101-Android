@@ -44,6 +44,8 @@ class UserViewModel @Inject constructor(
     private val _editUserDataFlow = MutableStateFlow<User?>(null)
     val editUserDataFlow = _editUserDataFlow.asStateFlow()
 
+    val uploadUserInfoStateLiveData = MutableLiveData<SimpleState>(null)
+
     fun getUserInfo(id: Long) {
         _getUserInfoStateFlow.value = SimpleDataState.Loading()
         viewModelScope.launch(Dispatchers.IO) {
@@ -108,6 +110,10 @@ class UserViewModel @Inject constructor(
             try {
                 val image = uploadRepo.uploadImage(context, uri)
                 uploadAvatarState.postValue(UploadImageState.Success(image))
+
+                val data = editUserDataFlow.value
+                _editUserDataFlow.value = data!!.copy(avatar = image)
+
             } catch (e: Exception) {
                 e.printStackTrace()
                 uploadAvatarState.postValue(UploadImageState.Fail)
@@ -119,15 +125,27 @@ class UserViewModel @Inject constructor(
         _editUserDataFlow.value = user
     }
 
-    /**
-     * 保存用户编辑的数据
-     */
     fun saveUserEditData() {
+        uploadUserInfoStateLiveData.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
-            kotlin.runCatching {
-                val user = editUserDataFlow.value ?: return@launch
+            runCatching {
+                val user = editUserDataFlow.value!!
+                val userInfo = (getUserInfoStateFlow.value as SimpleDataState.Success).data
+
+                userRepo.updateUser(
+                    avatarMid = user.avatar.mid,
+                    nickname = user.nickname,
+                    motto = user.motto
+                )
+
+                _getUserInfoStateFlow.value = SimpleDataState.Success(userInfo.copy(
+                    user = user
+                ))
+
+                uploadUserInfoStateLiveData.postValue(SimpleState.Success)
             }.onFailure {
                 it.printStackTrace()
+                uploadUserInfoStateLiveData.postValue(SimpleState.Error)
             }
         }
     }

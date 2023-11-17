@@ -380,6 +380,24 @@ fun UserScreen(
     }
 
 
+    val uploadUserInfoState by vm.uploadUserInfoStateLiveData.observeAsState()
+
+    DisposableEffect(uploadUserInfoState) {
+        if(uploadUserInfoState is SimpleState.Success) {
+            vm.uploadUserInfoStateLiveData.value = null
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("保存成功OvO")
+            }
+        } else if(uploadUserInfoState is SimpleState.Error) {
+            vm.uploadUserInfoStateLiveData.value = null
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("保存失败Orz")
+            }
+        }
+        onDispose {  }
+    }
+
+
     LaunchedEffect(getUserInfoState) {
         if(getUserInfoState == null) {
             vm.getUserInfo(id)
@@ -442,6 +460,8 @@ fun UserScreen(
                         user = userEditData ?: data.user,
 
                         uploadAvatarState = uploadAvatarState,
+                        saving = uploadUserInfoState is SimpleState.Loading,
+
                         onDismiss = { showEditDialog = false },
                         onChange = vm::setUserEditData,
                         onSave = vm::saveUserEditData,
