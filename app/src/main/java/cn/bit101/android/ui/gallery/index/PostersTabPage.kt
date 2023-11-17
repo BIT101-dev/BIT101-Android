@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.LoadableLazyColumn
 import cn.bit101.android.ui.component.LoadableLazyColumnState
 import cn.bit101.android.ui.gallery.common.LoadMoreState
@@ -40,6 +41,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PostersTabPage(
+    mainController: MainController,
     header: @Composable LazyItemScope.() -> Unit = {},
 
     posters: List<GetPostersDataModel.ResponseItem>,
@@ -74,7 +76,6 @@ fun PostersTabPage(
                     header()
                 }
                 itemsIndexed(posters, { idx, it -> idx }) { index, it ->
-
                     if(it.id == highlightId) {
                         PosterCard(
                             data = it,
@@ -86,14 +87,27 @@ fun PostersTabPage(
                             ),
                             onOpenPoster = onOpenPoster,
                             onOpenImage = onOpenImage,
+                            onOpenUserDetail = { user ->
+                                user?.let {
+                                    mainController.navController.navigate("user/${it.id}")
+                                }
+                            }
                         )
                     } else {
                         PosterCard(
                             data = it,
                             onOpenPoster = onOpenPoster,
                             onOpenImage = onOpenImage,
+                            onOpenUserDetail = { user ->
+                                user?.let {
+                                    mainController.navController.navigate("user/${it.id}")
+                                }
+                            }
                         )
                     }
+                }
+                item("spacer") {
+                    Spacer(modifier = Modifier.padding(8.dp))
                 }
             }
         }

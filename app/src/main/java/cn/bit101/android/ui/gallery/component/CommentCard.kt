@@ -48,6 +48,7 @@ import cn.bit101.android.ui.component.PreviewImages
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
+import cn.bit101.api.model.common.User
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,7 +89,8 @@ fun CommentCard(
                     Avatar(
                         user = comment.user,
                         low = true,
-                        size = 45.dp
+                        size = 45.dp,
+                        onClick = { mainController.navController.navigate("user/${comment.user.id}") }
                     )
 
                     Column(

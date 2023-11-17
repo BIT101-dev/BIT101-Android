@@ -23,19 +23,20 @@ object DateTimeUtils {
         // 转换到东八区
         val timeSecond = time.toEpochSecond(ZoneOffset.UTC) + 8 * 60 * 60
         val nowSecond = now.toEpochSecond(ZoneOffset.UTC) + 8 * 60 * 60
-        val diff = nowSecond - timeSecond
 
-        val minute = diff / 60
+        val second = nowSecond - timeSecond
+        val minute = second / 60
         val hour = minute / 60
         val day = hour / 24
         val week = day / 7
 
         return when {
-            minute < 60 -> "刚刚"
-            hour < 1 -> "${minute}分钟前"
-            day < 1 -> "${hour}小时前"
-            week < 7 -> "${day}天前"
-            else -> time.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            week > 0 -> "${week}周前"
+            day > 0 -> "${day}天前"
+            hour > 0 -> "${hour}小时前"
+            minute > 0 -> "${minute}分钟前"
+            second > 0 -> "${second}秒前"
+            else -> "刚刚"
         }
     }
 

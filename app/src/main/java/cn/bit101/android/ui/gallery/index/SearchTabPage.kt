@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.LoadableLazyColumnState
 import cn.bit101.android.ui.gallery.common.LoadMoreState
 import cn.bit101.android.ui.gallery.common.RefreshState
@@ -37,6 +38,7 @@ import cn.bit101.api.model.http.bit101.GetPostersDataModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchTabPage(
+    mainController: MainController,
     query: String,
     lastSearchQuery: String,
     selectOrder: PostersOrder,
@@ -57,6 +59,7 @@ fun SearchTabPage(
     val orders = PostersOrder.values()
 
     PostersTabPage(
+        mainController = mainController,
         header = {
             SearchBar(
                 modifier = Modifier

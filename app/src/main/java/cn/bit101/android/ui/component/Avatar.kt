@@ -68,10 +68,10 @@ fun Avatar(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .offset(5.dp, 5.dp)
-                    .size(20.dp),
+                    .size(size * 2 / 5),
                 imageVector = Icons.Rounded.Verified,
                 contentDescription = "认证",
-                tint = color
+                tint = color,
             )
         }
     }

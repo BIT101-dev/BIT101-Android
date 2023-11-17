@@ -135,7 +135,11 @@ fun PosterContent(
         item(2) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 Row {
-                    Avatar(user = data.user, low = true)
+                    Avatar(
+                        user = data.user,
+                        low = true,
+                        onClick = { mainController.navController.navigate("user/${data.user.id}") }
+                    )
                     Column(
                         modifier = Modifier
                             .padding(start = 8.dp)
@@ -262,26 +266,24 @@ fun PosterContent(
                 horizontalArrangement = Arrangement.End
             ) {
                 // 举报
-                if(!data.own) {
-                    Button(
-                        onClick = onOpenReportPoster,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.error,
+                Button(
+                    onClick = onOpenReportPoster,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        contentColor = MaterialTheme.colorScheme.error,
+                    )
+                ) {
+                    Row {
+                        Icon(
+                            imageVector = Icons.Rounded.Error,
+                            contentDescription = "举报",
+                            modifier = Modifier.align(Alignment.CenterVertically)
                         )
-                    ) {
-                        Row {
-                            Icon(
-                                imageVector = Icons.Rounded.Error,
-                                contentDescription = "举报",
-                                modifier = Modifier.align(Alignment.CenterVertically)
-                            )
-                            Spacer(modifier = Modifier.padding(4.dp))
-                            Text(
-                                text = "举报",
-                                modifier = Modifier.align(Alignment.CenterVertically)
-                            )
-                        }
+                        Spacer(modifier = Modifier.padding(4.dp))
+                        Text(
+                            text = "举报",
+                            modifier = Modifier.align(Alignment.CenterVertically)
+                        )
                     }
                 }
                 if(data.own) {

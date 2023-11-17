@@ -35,6 +35,11 @@ interface PosterRepo {
         id: Long,
     ): GetPosterDataModel.Response
 
+    suspend fun getPostersOfUserByUid(
+        id: Long,
+        page: Long? = null,
+    ): List<GetPostersDataModel.ResponseItem>
+
     /**
      * 获取Poster的评论，应该写在reaction那里的
      */

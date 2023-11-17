@@ -5,6 +5,7 @@ import cn.bit101.android.repo.base.PosterRepo
 import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersMode
 import cn.bit101.api.model.common.PostersOrder
+import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.PostPostersDataModel
 import cn.bit101.api.model.http.bit101.PutPosterDataModel
 import kotlinx.coroutines.Dispatchers
@@ -70,6 +71,18 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         BIT101API.posters.getPosterById(
             id = id
         ).body() ?: throw Exception("get poster error")
+    }
+
+    override suspend fun getPostersOfUserByUid(
+        id: Long,
+        page: Long?
+    ) = withContext(Dispatchers.IO) {
+        if(id.toInt() == -1) emptyList()
+        else BIT101API.posters.getPosters(
+            mode = PostersMode.search,
+            page = page,
+            uid = id.toInt()
+        ).body() ?: throw Exception("get posters error")
     }
 
     override suspend fun getCommentsById(

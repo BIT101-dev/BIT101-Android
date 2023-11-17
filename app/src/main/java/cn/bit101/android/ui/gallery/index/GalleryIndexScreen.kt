@@ -105,6 +105,7 @@ fun GalleryIndexScreen(
     val pages = listOf(
         TabPagerItem("关注") {
             PostersTabPage(
+                mainController = mainController,
                 posters = followPosters ?: emptyList(),
 
                 state = followState,
@@ -120,6 +121,7 @@ fun GalleryIndexScreen(
         },
         TabPagerItem("最新") {
             PostersTabPage(
+                mainController = mainController,
                 posters = newestPosters ?: emptyList(),
                 state = newestState,
                 refreshState = newestRefreshPostersState,
@@ -133,6 +135,7 @@ fun GalleryIndexScreen(
         },
         TabPagerItem("推荐") {
             PostersTabPage(
+                mainController = mainController,
                 posters = recommendPosters ?: emptyList(),
                 state = recommendState,
                 refreshState = recommendRefreshPostersState,
@@ -146,6 +149,7 @@ fun GalleryIndexScreen(
         },
         TabPagerItem("热门") {
             PostersTabPage(
+                mainController = mainController,
                 posters = hotPosters ?: emptyList(),
                 state = hotState,
                 refreshState = hotRefreshPostersState,
@@ -160,6 +164,7 @@ fun GalleryIndexScreen(
         },
         TabPagerItem("搜索") {
             SearchTabPage(
+                mainController = mainController,
                 posters = searchPosters ?: emptyList(),
 
                 state = searchState,

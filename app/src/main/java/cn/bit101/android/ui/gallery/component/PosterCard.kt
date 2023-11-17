@@ -27,10 +27,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.PreviewImages
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Image
+import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,6 +43,7 @@ fun PosterCard(
 
     onOpenPoster: (Long) -> Unit,
     onOpenImage: (Image) -> Unit = {},
+    onOpenUserDetail: ((User?) -> Unit)? = null,
 ) {
     Card(
         onClick = {
@@ -68,7 +71,8 @@ fun PosterCard(
                     Avatar(
                         user = data.user,
                         low = true,
-                        size = 45.dp
+                        size = 45.dp,
+                        onClick = onOpenUserDetail,
                     )
 
                     Column(

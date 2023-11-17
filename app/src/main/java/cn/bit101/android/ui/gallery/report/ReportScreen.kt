@@ -247,7 +247,7 @@ fun ReportScreen(
         } else {
             if (state is SimpleState.Error) {
                 mainController.scope.launch {
-                    mainController.snackbarHostState.showSnackbar("举报失败")
+                    mainController.snackbarHostState.showSnackbar("举报失败（Tips: 不要举报自己哦！）")
                 }
                 vm.stateLiveData.value = null
             }
