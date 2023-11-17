@@ -1,5 +1,10 @@
 package cn.bit101.android.ui.gallery.user
 
+import android.app.Activity
+import android.content.Intent
+import android.provider.MediaStore
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -25,16 +30,19 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,8 +60,10 @@ import cn.bit101.android.ui.gallery.common.SimpleState
 import cn.bit101.android.ui.gallery.component.PosterCard
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Image
+import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
+import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -97,20 +107,21 @@ fun UserScreenPage(
                     }
                     Row(modifier = Modifier.align(Alignment.CenterEnd)) {
                         if(data.own) {
-                            FilledTonalButton(onClick = onOpenEditDialog) {
-                                Icon(
-                                    modifier = Modifier.align(Alignment.CenterVertically),
-                                    imageVector = Icons.Rounded.EditNote,
-                                    contentDescription = "edit"
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    modifier = Modifier.align(Alignment.CenterVertically),
-                                    text = "编辑"
-                                )
+                            if(id == 0L) {
+                                FilledTonalButton(onClick = onOpenEditDialog) {
+                                    Icon(
+                                        modifier = Modifier.align(Alignment.CenterVertically),
+                                        imageVector = Icons.Rounded.EditNote,
+                                        contentDescription = "edit"
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        modifier = Modifier.align(Alignment.CenterVertically),
+                                        text = "编辑"
+                                    )
+                                }
+                                Spacer(modifier = Modifier.padding(8.dp))
                             }
-
-                            Spacer(modifier = Modifier.padding(8.dp))
 
                             FilledTonalButton(onClick = onSwitchViewPoint) {
                                 Icon(
@@ -121,11 +132,11 @@ fun UserScreenPage(
                                 Spacer(modifier = Modifier.width(4.dp))
                                 Text(
                                     modifier = Modifier.align(Alignment.CenterVertically),
-                                    text = if(id == null || id == 0L) "去访客视角" else "去个人视角"
+                                    text = if(id == null || id == 0L) "去访客视角" else "去个人主页"
                                 )
                             }
 
-                        } else {
+                        } else if(data.user.id != -1) {
                             FilledTonalButton(
                                 onClick = onFollow,
                                 enabled = followState !is SimpleState.Loading
@@ -147,6 +158,14 @@ fun UserScreenPage(
                                         text = if(data.following) "取消关注" else "关注"
                                     )
                                 }
+                            }
+                            if(data.follower && data.following) {
+                                Spacer(modifier = Modifier.padding(4.dp))
+                                Text(
+                                    modifier = Modifier.align(Alignment.CenterVertically),
+                                    text = "已互粉",
+                                    style = MaterialTheme.typography.labelSmall
+                                )
                             }
                         }
                     }
@@ -222,7 +241,8 @@ fun UserScreenPage(
                         text = buildAnnotatedString {
                             withStyle(
                                 style = MaterialTheme.typography.titleLarge.copy(
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
                                 ).toSpanStyle()
                             ) {
                                 append("${data.followerNum}")
@@ -244,7 +264,8 @@ fun UserScreenPage(
                         text = buildAnnotatedString {
                             withStyle(
                                 style = MaterialTheme.typography.titleLarge.copy(
-                                    fontWeight = FontWeight.Bold
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onBackground
                                 ).toSpanStyle()
                             ) {
                                 append("${data.followingNum}")
@@ -273,6 +294,7 @@ fun UserScreenPage(
                     PosterCard(
                         data = poster,
                         onOpenPoster = onOpenPoster,
+                        onOpenImage = onOpenImage,
                     )
                 }
             }
@@ -292,6 +314,8 @@ fun UserScreen(
     id: Long = 0,
 ) {
 
+    val ctx = LocalContext.current
+
     val getUserInfoState by vm.getUserInfoStateFlow.collectAsState()
 
     val posters by vm.posterState.dataFlow.collectAsState()
@@ -300,17 +324,61 @@ fun UserScreen(
 
     val postersRefreshState by vm.posterState.refreshStateFlow.collectAsState()
 
-    val state = rememberLoadableLazyColumnWithoutPullRequestState(
-        onLoadMore = { vm.loadMorePosters(id) }
-    )
-
     val followState by vm.followStateMutableLiveData.observeAsState()
+
+    DisposableEffect(followState) {
+        if(followState is SimpleState.Success) {
+            vm.followStateMutableLiveData.value = null
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("关注/取消关注成功")
+            }
+        } else if(followState is SimpleState.Error) {
+            vm.followStateMutableLiveData.value = null
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("关注/取消关注失败")
+            }
+        }
+        onDispose { }
+    }
 
     var showEditDialog by remember { mutableStateOf(false) }
 
     var showFollowerDialog by remember { mutableStateOf(false) }
 
     var showFollowingDialog by remember { mutableStateOf(false) }
+
+
+    val followers by vm.followersState.dataFlow.collectAsState()
+    val refreshFollowersState by vm.followersState.refreshStateFlow.collectAsState()
+    val loadMoreFollowersState by vm.followersState.loadMoreStateFlow.collectAsState()
+
+    val followings by vm.followingsState.dataFlow.collectAsState()
+    val refreshFollowingsState by vm.followingsState.refreshStateFlow.collectAsState()
+    val loadMoreFollowingsState by vm.followingsState.loadMoreStateFlow.collectAsState()
+
+
+    val uploadAvatarState by vm.uploadAvatarState.observeAsState()
+
+    val userEditData by vm.editUserDataFlow.collectAsState()
+
+    val launcher = rememberLauncherForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val data = result.data
+            if (data != null) {
+                val uri = data.data
+                if (uri != null) {
+                    vm.uploadAvatar(ctx, uri)
+                }
+            }
+        }
+    }
+    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
+        type = "image/*"
+        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+    }
+
 
     LaunchedEffect(getUserInfoState) {
         if(getUserInfoState == null) {
@@ -346,7 +414,9 @@ fun UserScreen(
                 data = data,
                 posters = posters,
 
-                state = state,
+                state = rememberLoadableLazyColumnWithoutPullRequestState(
+                    onLoadMore = { vm.loadMorePosters(id) }
+                ),
                 loadState = postersLoadMoreState,
                 followState = followState,
 
@@ -367,33 +437,47 @@ fun UserScreen(
             )
 
             if(showEditDialog) {
-                if(data.own) {
+                if(id == 0L) {
                     EditUserDialog(
-                        data = data,
-                        onDismiss = { showEditDialog = false },
-                        onSave = { avatar, nickname, motto ->
+                        user = userEditData ?: data.user,
 
-                        }
+                        uploadAvatarState = uploadAvatarState,
+                        onDismiss = { showEditDialog = false },
+                        onChange = vm::setUserEditData,
+                        onSave = vm::saveUserEditData,
+                        onUploadAvatar = { launcher.launch(intent) }
                     )
                 } else showEditDialog = false
             }
 
             if(showFollowerDialog) {
-                if(data.own) {
+                if(id == 0L) {
                     FollowerDialog(
                         mainController = mainController,
-                        data = data,
+                        followers = followers,
+                        refreshState = refreshFollowersState,
+                        loadMoreState = loadMoreFollowersState,
+                        state = rememberLoadableLazyColumnWithoutPullRequestState(
+                            onLoadMore = { vm.loadMoreFollowers() }
+                        ),
                         onDismiss = { showFollowerDialog = false },
+                        onRefresh = vm::refreshFollowers
                     )
                 } else showFollowerDialog = false
             }
 
             if(showFollowingDialog) {
-                if(data.own) {
+                if(id == 0L) {
                     FollowingDialog(
                         mainController = mainController,
-                        data = data,
+                        followings = followings,
+                        refreshState = refreshFollowingsState,
+                        loadMoreState = loadMoreFollowingsState,
+                        state = rememberLoadableLazyColumnWithoutPullRequestState(
+                            onLoadMore = { vm.loadMoreFollowings() }
+                        ),
                         onDismiss = { showFollowingDialog = false },
+                        onRefresh = vm::refreshFollowings
                     )
                 } else showFollowingDialog = false
             }

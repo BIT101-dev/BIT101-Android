@@ -136,48 +136,12 @@ class PostFollowDataModel private constructor() {
 
 // 获取关注列表，需要登录
 class GetFollowingsDataModel private constructor() {
-    data class ResponseItem(
-        val id: Int,
 
-        // 注册时间
-        val createTime: String,
-
-        // 昵称
-        val nickname: String,
-
-        // 头像
-        val avatar: Avatar,
-
-        // 格言/简介
-        val motto: String,
-
-        // 身份
-        val identity: Identity,
-    )
-
-    class Response : ArrayList<ResponseItem>()
+    class Response : ArrayList<User>()
 }
 
 // 获取粉丝列表，需要登录
 class GetFollowersDataModel private constructor() {
-    data class ResponseItem(
-        val id: Int,
 
-        // 注册时间
-        val createTime: String,
-
-        // 昵称
-        val nickname: String,
-
-        // 头像
-        val avatar: Avatar,
-
-        // 格言/简介
-        val motto: String,
-
-        // 身份
-        val identity: Identity,
-    )
-
-    class Response : ArrayList<ResponseItem>()
+    class Response : ArrayList<User>()
 }

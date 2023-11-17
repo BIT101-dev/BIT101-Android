@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import cn.bit101.android.App
 import cn.bit101.android.R
 import cn.bit101.api.model.common.Avatar
+import cn.bit101.api.model.common.Identity
 import cn.bit101.api.model.common.User
 import coil.compose.AsyncImage
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -33,6 +34,7 @@ fun Avatar(
     user: User? = null,
     low: Boolean? = true,
     onClick: ((User?) -> Unit)? = null,
+    showIdentity: Boolean = true
 ) {
     // 头像
     // 默认头像为APP图标
@@ -60,7 +62,7 @@ fun Avatar(
             fallback = painter,
             contentDescription = "avatar"
         )
-        if(user != null && user.identity.id != 0) {
+        if(user != null && user.identity.id != 0 && showIdentity) {
             val colorStr = user.identity.color
             val color = Color(android.graphics.Color.parseColor(colorStr))
 

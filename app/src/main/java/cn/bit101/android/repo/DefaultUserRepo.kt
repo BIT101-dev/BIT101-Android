@@ -2,6 +2,7 @@ package cn.bit101.android.repo
 
 import cn.bit101.android.net.BIT101API
 import cn.bit101.android.repo.base.UserRepo
+import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.PostFollowDataModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -18,6 +19,22 @@ class DefaultUserRepo @Inject constructor() : UserRepo {
         id: Long
     ) = withContext(Dispatchers.IO) {
         BIT101API.user.follow(id.toInt()).body() ?: throw Exception("关注失败")
+    }
+
+    override suspend fun getFollowers(
+        page: Int?
+    ) = withContext(Dispatchers.IO) {
+        BIT101API.user.getFollowers(
+            page = page
+        ).body() ?: throw Exception("获取粉丝失败")
+    }
+
+    override suspend fun getFollowings(
+        page: Int?
+    ) = withContext(Dispatchers.IO) {
+        BIT101API.user.getFollowings(
+            page = page
+        ).body() ?: throw Exception("获取关注失败")
     }
 
 }

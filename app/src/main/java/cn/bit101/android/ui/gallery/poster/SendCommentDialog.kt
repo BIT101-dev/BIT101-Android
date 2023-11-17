@@ -61,6 +61,6 @@ fun SendCommentDialog(
             )
         },
         dismissButton = {},
-        confirmButton = {}
+        confirmButton = {},
     )
 }
