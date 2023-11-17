@@ -72,19 +72,25 @@ fun GalleryIndexScreen(
         onRefresh = vm::refreshRecommend
     )
 
-    val _query by vm.queryLiveData.observeAsState()
-    val _selectOrder by vm.selectOrderLiveData.observeAsState()
-
-    val query = _query ?: ""
-    val selectOrder = _selectOrder ?: PostersOrder.new
+    val query by vm.queryLiveData.observeAsState()
+    val selectOrder by vm.selectOrderLiveData.observeAsState()
+    val lastSearchQuery by vm.lastSearchQueryLiveData.observeAsState()
 
     val searchState = rememberLoadableLazyColumnState(
         refreshing = searchRefreshPostersState == RefreshState.Loading,
         onLoadMore = {
-            vm.loadMoreSearch(query, selectOrder, PostersFilter.PUBLIC_ANONYMOUS)
+            vm.loadMoreSearch(
+                query ?: "",
+                selectOrder ?: PostersOrder.new,
+                PostersFilter.PUBLIC_ANONYMOUS
+            )
         },
         onRefresh = {
-            vm.refreshSearch(query, selectOrder, PostersFilter.PUBLIC_ANONYMOUS)
+            vm.refreshSearch(
+                query ?: "",
+                selectOrder ?: PostersOrder.new,
+                PostersFilter.PUBLIC_ANONYMOUS
+            )
         }
     )
 
@@ -159,8 +165,10 @@ fun GalleryIndexScreen(
                 state = searchState,
                 searchState = searchRefreshPostersState,
                 loadState = searchLoadMorePostersState,
-                query = query,
-                selectOrder = selectOrder,
+
+                query = query ?: "",
+                selectOrder = selectOrder ?: PostersOrder.new,
+                lastSearchQuery = lastSearchQuery ?: "",
 
                 onSearch = vm::refreshSearch,
                 onQueryChange = vm::setQuery,

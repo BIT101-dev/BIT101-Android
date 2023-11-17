@@ -5,9 +5,10 @@ import androidx.room.PrimaryKey
 import cn.bit101.api.model.common.CourseForSchedule
 
 // 课程表课程
-@Entity(tableName = "courses")
-data class CourseEntity(
-    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+@Entity(tableName = "course_schedule")
+data class CourseScheduleEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int,
     val term: String, // 学期
     val name: String, // 课程名
     val teacher: String, // 授课教师 逗号分隔
@@ -26,14 +27,14 @@ data class CourseEntity(
     val department: String, // 开课单位
 )
 
-fun CourseForSchedule.toEntity(): CourseEntity {
+fun CourseForSchedule.toEntity(): CourseScheduleEntity {
     var weeks = ""
     this.SKZC?.forEachIndexed { index, c ->
         if (c == '1') {
             weeks += "[${index + 1}]"
         }
     }
-    return CourseEntity(
+    return CourseScheduleEntity(
         0,
         this.XNXQDM ?: "",
         this.KCM ?: "",

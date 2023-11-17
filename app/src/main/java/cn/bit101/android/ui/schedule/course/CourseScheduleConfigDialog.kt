@@ -29,8 +29,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,16 +42,12 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.ConfigColumn
 import cn.bit101.android.ui.component.ConfigItem
 import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.android.ui.gallery.common.SimpleState
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 
 /**
  * @author flwfdd
@@ -61,42 +56,66 @@ import java.time.LocalDate
  * _(:з」∠)_
  */
 
-
 @Composable
 fun CourseScheduleConfigDialog(
     mainController: MainController,
-
     term: String,
-    showDivider: Boolean,
-    showSaturday: Boolean,
-    showSunday: Boolean,
-    showHighlightToday: Boolean,
-    showBorder: Boolean,
-    timeTable: String,
-    currentTime: Boolean,
+    settingData: SettingData,
+    timeTableStr: String,
 
     coursesRefreshing: Boolean,
 
-    changeTermState: SimpleState?,
     setTimeTableState: SimpleState?,
+    changeTermState: SimpleState?,
+
+    onClearStates: () -> Unit,
+
     getTermListState: SimpleDataState<List<String>>?,
 
-    onUpdateCourses: () -> Unit,
-    onSetShowDivider: (Boolean) -> Unit,
-    onSetShowSaturday: (Boolean) -> Unit,
-    onSetShowSunday: (Boolean) -> Unit,
-    onSetShowHighlightToday: (Boolean) -> Unit,
-    onSetShowBorder: (Boolean) -> Unit,
-    onSetCurrentTime: (Boolean) -> Unit,
+    onSetSetting: (SettingData) -> Unit,
+    onSetTimeTableStr: (String) -> Unit,
 
+    onForceRefreshCourses: () -> Unit,
     onRefreshTermList: () -> Unit,
     onChangeTerm: (String) -> Unit,
-    onSetTimeTable: (String) -> Unit,
-
-    onClearChangeTermState: () -> Unit,
-
     onDismiss: () -> Unit,
 ) {
+    var setTimeTableError by remember { mutableStateOf("") }
+
+    val showTermListDialog = rememberSaveable { mutableStateOf(false) }
+    val showTimeTableDialog = rememberSaveable { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        onDispose { onClearStates() }
+    }
+
+    DisposableEffect(setTimeTableState) {
+        if(setTimeTableState == SimpleState.Success) {
+            setTimeTableError = ""
+            showTimeTableDialog.value = false
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("设置成功OvO")
+            }
+        } else if(setTimeTableState == SimpleState.Error) {
+            setTimeTableError = "格式校验失败Orz"
+        }
+        onDispose {}
+    }
+
+    // 切换学期的状态改变
+    DisposableEffect(changeTermState) {
+        if(changeTermState == SimpleState.Success) {
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("切换成功OvO")
+            }
+        } else if(changeTermState == SimpleState.Error) {
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("切换失败Orz")
+            }
+        }
+        onDispose {}
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -120,9 +139,6 @@ fun CourseScheduleConfigDialog(
 
         Spacer(modifier = Modifier.height(10.dp))
 
-        val showTermListDialog = rememberSaveable { mutableStateOf(false) }
-        val showTimeTableDialog = rememberSaveable { mutableStateOf(false) }
-
         ConfigColumn(
             modifier = Modifier
                 .fillMaxWidth()
@@ -139,37 +155,37 @@ fun CourseScheduleConfigDialog(
                 ConfigItem.Button(
                     title = "刷新课表",
                     content = if (coursesRefreshing) "刷新中..." else "点击重新拉取课表",
-                    onClick = onUpdateCourses
+                    onClick = onForceRefreshCourses
                 ),
                 ConfigItem.Switch(
                     title = "显示周六",
-                    checked = showSaturday,
-                    onCheckedChange = onSetShowSaturday
+                    checked = settingData.showSaturday,
+                    onCheckedChange = { onSetSetting(settingData.copy(showSaturday = it)) }
                 ),
                 ConfigItem.Switch(
                     title = "显示周日",
-                    checked = showSunday,
-                    onCheckedChange = onSetShowSunday
+                    checked = settingData.showSunday,
+                    onCheckedChange = { onSetSetting(settingData.copy(showSunday = it)) }
                 ),
                 ConfigItem.Switch(
                     title = "显示边框",
-                    checked = showBorder,
-                    onCheckedChange = onSetShowBorder
+                    checked = settingData.showBorder,
+                    onCheckedChange = { onSetSetting(settingData.copy(showBorder = it)) }
                 ),
                 ConfigItem.Switch(
                     title = "高亮今日",
-                    checked = showHighlightToday,
-                    onCheckedChange = onSetShowHighlightToday
+                    checked = settingData.showHighlightToday,
+                    onCheckedChange = { onSetSetting(settingData.copy(showHighlightToday = it)) }
                 ),
                 ConfigItem.Switch(
                     title = "显示节次分割线",
-                    checked = showDivider,
-                    onCheckedChange = onSetShowDivider
+                    checked = settingData.showDivider,
+                    onCheckedChange = { onSetSetting(settingData.copy(showDivider = it)) }
                 ),
                 ConfigItem.Switch(
                     title = "显示当前时间线",
-                    checked = currentTime,
-                    onCheckedChange = onSetCurrentTime
+                    checked = settingData.showCurrentTime,
+                    onCheckedChange = { onSetSetting(settingData.copy(showCurrentTime = it)) }
                 ),
                 ConfigItem.Button(
                     title = "设置时间表",
@@ -180,24 +196,21 @@ fun CourseScheduleConfigDialog(
 
         if (showTermListDialog.value) {
             TermListDialog(
-                mainController = mainController,
                 term = term,
                 getTermListState = getTermListState,
-                changeTermState = changeTermState,
+
                 onRefreshTermList = onRefreshTermList,
                 onChangeTerm = onChangeTerm,
-                onClearChangeTermState = onClearChangeTermState,
                 onDismiss = { showTermListDialog.value = false }
             )
         }
 
         if (showTimeTableDialog.value) {
             TimeTableDialog(
-                mainController = mainController,
-                timeTable = timeTable,
-                setTimeTableState = setTimeTableState,
+                timeTableStr = timeTableStr,
+                errorMessage = setTimeTableError,
 
-                onSetTimeTable = onSetTimeTable,
+                onSetTimeTable = onSetTimeTableStr,
                 onDismiss = { showTimeTableDialog.value = false },
             )
         }
@@ -207,40 +220,14 @@ fun CourseScheduleConfigDialog(
 // 选择学期对话框
 @Composable
 fun TermListDialog(
-    mainController: MainController,
     term: String,
     getTermListState: SimpleDataState<List<String>>?,
-
-    changeTermState: SimpleState?,
-
-    onClearChangeTermState: () -> Unit,
 
     onRefreshTermList: () -> Unit,
     onChangeTerm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
     var selectedOption by rememberSaveable { mutableStateOf("") }
-
-    // 更改学期成功后自动关闭对话框，并显示提示
-    DisposableEffect(changeTermState) {
-        if(changeTermState == SimpleState.Success) {
-            onDismiss()
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("切换成功Orz")
-            }
-        } else if(changeTermState == SimpleState.Error) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("切换失败Orz")
-            }
-        }
-        onDispose {
-            // 重置状态
-            selectedOption = ""
-            onClearChangeTermState()
-        }
-    }
-
-
     // 先刷新学期列表，再选择第一项
     LaunchedEffect(getTermListState) {
         if(getTermListState == null) {
@@ -314,7 +301,10 @@ fun TermListDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { onChangeTerm(selectedOption) }
+                onClick = {
+                    onChangeTerm(selectedOption)
+                    onDismiss()
+                }
             ) {
                 Text("确定")
             }
@@ -333,32 +323,12 @@ fun TermListDialog(
 // 设置时间表对话框
 @Composable
 fun TimeTableDialog(
-    mainController: MainController,
-
-    timeTable: String,
-    setTimeTableState: SimpleState?,
-
+    timeTableStr: String,
+    errorMessage: String,
     onSetTimeTable: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var timeTableEdit by remember(timeTable) { mutableStateOf(TextFieldValue(timeTable)) }
-    var errorMessage by remember { mutableStateOf("") }
-
-    DisposableEffect(setTimeTableState) {
-        if(setTimeTableState == SimpleState.Success) {
-            onDismiss()
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("设置成功OvO")
-            }
-            errorMessage = ""
-        } else if(setTimeTableState == SimpleState.Error) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("格式校验失败Orz")
-            }
-            errorMessage = "格式校验失败Orz"
-        }
-        onDispose {}
-    }
+    var timeTableEdit by remember(timeTableStr) { mutableStateOf(TextFieldValue(timeTableStr)) }
 
     AlertDialog(
         modifier = Modifier.fillMaxHeight(0.9f),

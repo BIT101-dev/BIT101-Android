@@ -10,4 +10,10 @@ data class Identity(
 
     // 身份称号
     val text: String,
+
+    val createTime: String,
+
+    val updateTime: String,
+
+    val deleteTime: String,
 )

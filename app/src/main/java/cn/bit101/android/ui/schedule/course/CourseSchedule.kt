@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.schedule.course
 
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
@@ -13,13 +12,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -32,10 +30,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.database.entity.CourseEntity
+import cn.bit101.android.database.entity.CourseScheduleEntity
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.common.SimpleState
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 /**
@@ -81,11 +78,6 @@ fun CourseSchedule(
     val showBorder by vm.showBorderFlow.collectAsState(initial = null)
 
     /**
-     * 时间表
-     */
-    val timeTable by vm.timeTableFlow.collectAsState(initial = null)
-
-    /**
      * 时间表字符串
      */
     val timeTableStr by vm.timeTableStringFlow.collectAsState(initial = null)
@@ -103,70 +95,103 @@ fun CourseSchedule(
     /**
      * 课程详情数据，如果为null就不显示该对话框
      */
-    var showCourseDetailState by remember { mutableStateOf<CourseEntity?>(null) }
+    var showCourseDetailState by remember { mutableStateOf<CourseScheduleEntity?>(null) }
 
     /**
      * 设置时间表的这个动作的状态
      */
     val setTimeTableState by vm.setTimeTableStateLiveData.observeAsState()
 
-    val coursesRefreshing by vm.forceRefreshCoursesStateLiveData.observeAsState()
+    val refreshCoursesState by vm.refreshCoursesStateLiveData.observeAsState()
+
+    val forceRefreshCoursesState by vm.forceRefreshCoursesStateLiveData.observeAsState()
 
     val getTermListState by vm.refreshTermListStateLiveData.observeAsState()
 
     val changeTermState by vm.changeTermStateLiveData.observeAsState()
 
+    // 强制刷新的状态在这里管理
+    DisposableEffect(forceRefreshCoursesState) {
+        if(forceRefreshCoursesState == SimpleState.Success) {
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("刷新成功OvO")
+            }
+        } else if(forceRefreshCoursesState == SimpleState.Error) {
+            mainController.scope.launch {
+                mainController.snackbarHostState.showSnackbar("刷新失败Orz")
+            }
+        }
+        onDispose {}
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            vm.forceRefreshCoursesStateLiveData.value = null
+            vm.refreshCoursesStateLiveData.value = null
+        }
+    }
+
     Box(modifier = Modifier.fillMaxSize()) {
         if(
-            term.isNullOrEmpty() ||
-            firstDay == null ||
+            term == null ||
             showDivider == null ||
             showSaturday == null ||
             showSunday == null ||
             showHighlightToday == null ||
             showBorder == null ||
-            timeTable == null ||
             currentTime == null ||
-            timeTableStr.isNullOrEmpty()
+            timeTableStr == null
         ) {
             // 一开始要在datastore中加载数据，如果没有数据就显示加载中
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .wrapContentSize(Alignment.Center)
-                    .width(64.dp)
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.width(64.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        }
-//        else if(
-//            term!!.isEmpty()
-//        ) {
-//            // datastore数据加载完了，但是数据库中没有数据，应该显示一个按钮，点击后获取
-//            // 这里如果没有学期数据、课程数据，就显示一个按钮，点击后获取
 //            Column(
 //                modifier = Modifier
-//                    .fillMaxSize(),
-//                verticalArrangement = Arrangement.Center,
-//                horizontalAlignment = Alignment.CenterHorizontally
+//                    .fillMaxSize()
+//                    .wrapContentSize(Alignment.Center)
+//                    .width(64.dp)
 //            ) {
-//                Button(
-//                    enabled = coursesRefreshing != SimpleState.Loading,
-//                    onClick = vm::getCoursesFromNet
-//                ) {
-//                    if (coursesRefreshing == SimpleState.Loading) {
-//                        CircularProgressIndicator(
-//                            modifier = Modifier.size(20.dp),
-//                            strokeWidth = 2.dp
-//                        )
-//                    } else Text("获取课程表")
-//                }
+//                CircularProgressIndicator(
+//                    modifier = Modifier.width(64.dp),
+//                    color = MaterialTheme.colorScheme.primary
+//                )
 //            }
-//        }
+        }
+        else if(
+            term!!.isEmpty() ||
+            week == Int.MAX_VALUE ||
+            firstDay == null
+        ) {
+            // datastore数据加载完了，但是数据库中没有数据，应该显示一个按钮，点击后获取
+            // 这里如果没有学期数据、课程数据，就显示一个按钮，点击后获取
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(
+                    enabled = refreshCoursesState != SimpleState.Loading && forceRefreshCoursesState != SimpleState.Loading,
+                    onClick = vm::forceRefreshCourses
+                ) {
+                    if (refreshCoursesState == SimpleState.Loading || forceRefreshCoursesState == SimpleState.Loading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else Text("获取课程表")
+                }
+            }
+        }
         else {
+            val timeTable = vm.parseTimeTable(timeTableStr!!)
+            val settingData = SettingData(
+                showDivider = showDivider!!,
+                showSaturday = showSaturday!!,
+                showSunday = showSunday!!,
+                showHighlightToday = showHighlightToday!!,
+                showBorder = showBorder!!,
+                showCurrentTime = currentTime!!,
+            )
+
             // 数据加载完毕
             Column(
                 modifier = Modifier.fillMaxSize()
@@ -176,13 +201,8 @@ fun CourseSchedule(
                     courses = courses,
                     week = week,
                     firstDay = firstDay!!,
-                    showDivider = showDivider!!,
-                    showSaturday = showSaturday!!,
-                    showSunday = showSunday!!,
-                    showHighlightToday = showHighlightToday!!,
-                    showBorder = showBorder!!,
-                    timeTable = timeTable!!,
-                    currentTime = currentTime!!,
+                    timeTable = timeTable,
+                    settingData = settingData,
 
                     onConfig = { showConfigDialog = true },
                     onShowDetailDialog = { showCourseDetailState = it },
@@ -218,34 +238,26 @@ fun CourseSchedule(
                 CourseScheduleConfigDialog(
                     mainController = mainController,
                     term = term!!,
-                    showDivider = showDivider!!,
-                    showSaturday = showSaturday!!,
-                    showSunday = showSunday!!,
-                    showHighlightToday = showHighlightToday!!,
-                    showBorder = showBorder!!,
-                    timeTable = timeTableStr!!,
-                    currentTime = currentTime!!,
+                    settingData = settingData,
+                    timeTableStr = timeTableStr!!,
 
-                    coursesRefreshing = coursesRefreshing is SimpleState.Loading,
+                    coursesRefreshing = forceRefreshCoursesState is SimpleState.Loading,
 
-                    changeTermState = changeTermState,
-                    setTimeTableState = setTimeTableState,
                     getTermListState = getTermListState,
+                    setTimeTableState = setTimeTableState,
+                    changeTermState = changeTermState,
 
-                    onUpdateCourses = vm::getCoursesFromNet,
-                    onSetShowDivider = vm::setShowDivider,
-                    onSetShowSaturday = vm::setShowSaturday,
-                    onSetShowSunday = vm::setShowSunday,
-                    onSetShowHighlightToday = vm::setShowHighlightToday,
-                    onSetShowBorder = vm::setShowBorder,
-                    onSetCurrentTime = vm::setShowCurrentTime,
+                    onClearStates = {
+                        vm.setTimeTableStateLiveData.value = null
+                        vm.changeTermStateLiveData.value = null
+                    },
 
+                    onForceRefreshCourses = vm::forceRefreshCourses,
+                    onSetSetting = vm::setSettingData,
+                    onSetTimeTableStr = vm::setTimeTable,
 
-                    onClearChangeTermState = { vm.changeTermStateLiveData.value = null },
-
-                    onRefreshTermList = vm::getTermsFromNet,
+                    onRefreshTermList = vm::refreshTermList,
                     onChangeTerm = vm::changeTerm,
-                    onSetTimeTable = vm::setTimeTable,
 
                     onDismiss = { showConfigDialog = false },
                 )

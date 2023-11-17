@@ -4,33 +4,33 @@ import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
-import cn.bit101.android.database.entity.CourseEntity
+import cn.bit101.android.database.entity.CourseScheduleEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CoursesDao {
-    @Query("SELECT * FROM courses")
-    fun getAllCourses(): Flow<List<CourseEntity>>
+    @Query("SELECT * FROM course_schedule")
+    fun getAllCourses(): Flow<List<CourseScheduleEntity>>
 
-    @Query("SELECT * FROM courses WHERE term = :term")
-    fun getCoursesByTerm(term: String): Flow<List<CourseEntity>>
+    @Query("SELECT * FROM course_schedule WHERE term = :term")
+    fun getCoursesByTerm(term: String): Flow<List<CourseScheduleEntity>>
 
-    @Query("SELECT * FROM courses WHERE term = :term AND weeks LIKE '%[' || :week || ']%'")
-    fun getCoursesByTermWeek(term: String, week: Int): Flow<List<CourseEntity>>
-
-    @Insert
-    suspend fun insertCourse(course: CourseEntity)
+    @Query("SELECT * FROM course_schedule WHERE term = :term AND weeks LIKE '%[' || :week || ']%'")
+    fun getCoursesByTermWeek(term: String, week: Int): Flow<List<CourseScheduleEntity>>
 
     @Insert
-    suspend fun insertCourses(courses: List<CourseEntity>)
+    suspend fun insertCourse(course: CourseScheduleEntity)
+
+    @Insert
+    suspend fun insertCourses(courses: List<CourseScheduleEntity>)
 
     @Delete
-    suspend fun deleteCourse(course: CourseEntity)
+    suspend fun deleteCourse(course: CourseScheduleEntity)
 
-    @Query("DELETE FROM courses")
+    @Query("DELETE FROM course_schedule")
     suspend fun deleteAllCourses()
 
-    @Query("DELETE FROM courses WHERE term = :term")
+    @Query("DELETE FROM course_schedule WHERE term = :term")
     suspend fun deleteCoursesByTerm(term: String)
 
 }

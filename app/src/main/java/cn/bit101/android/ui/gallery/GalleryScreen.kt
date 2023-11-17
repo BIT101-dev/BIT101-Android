@@ -127,7 +127,6 @@ fun GalleryScreen(
             startDestination = "index",
         ) {
             composable("index") {
-                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = Modifier.padding(paddingValues)) {
                     GalleryIndexScreen(
                         mainController = galleryController,
@@ -141,7 +140,6 @@ fun GalleryScreen(
                     navArgument("id") { type = NavType.LongType },
                 ),
             ) {
-                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = Modifier.padding(paddingValues)) {
                     PosterScreen(
                         mainController = galleryController,
@@ -157,7 +155,6 @@ fun GalleryScreen(
                     navArgument("url") { type = NavType.StringType },
                 ),
             ) {
-                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = Modifier.padding(paddingValues)) {
                     val encodedUrl = it.arguments?.getString("url") ?: ""
                     val url = URLDecoder.decode(encodedUrl, "UTF-8")
@@ -166,7 +163,6 @@ fun GalleryScreen(
             }
 
             composable("post") {
-                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = Modifier.padding(paddingValues)) {
                     PostEditScreen(
                         mainController = galleryController,
@@ -181,7 +177,6 @@ fun GalleryScreen(
                     navArgument("id") { type = NavType.LongType },
                 ),
             ) {
-                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = Modifier.padding(paddingValues)) {
                     val id = it.arguments?.getLong("id") ?: 0L
                     PostEditScreen(
@@ -199,7 +194,6 @@ fun GalleryScreen(
                     navArgument("id") { type = NavType.LongType },
                 ),
             ) {
-                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = Modifier.padding(paddingValues)) {
                     val type = it.arguments?.getString("type") ?: ""
                     val id = it.arguments?.getLong("id") ?: 0L
@@ -218,7 +212,6 @@ fun GalleryScreen(
                     navArgument("id") { type = NavType.LongType },
                 ),
             ) {
-                MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                 Box(modifier = Modifier.padding(paddingValues)) {
                     val id = it.arguments?.getLong("id") ?: 0L
                      UserScreen(

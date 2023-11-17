@@ -50,11 +50,7 @@ class DDLScheduleViewModel @Inject constructor(
 
         // 更新日程
         viewModelScope.launch {
-            // 从网络获取日程url
-            if (updateLexueCalendarUrl()) {
-                // 从网络获取日程
-                updateLexueCalendar()
-            }
+            updateLexueCalendar()
         }
     }
 

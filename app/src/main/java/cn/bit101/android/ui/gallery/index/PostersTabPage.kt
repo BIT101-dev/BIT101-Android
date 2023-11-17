@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.gallery.index
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,6 +18,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -41,6 +43,7 @@ fun PostersTabPage(
     header: @Composable LazyItemScope.() -> Unit = {},
 
     posters: List<GetPostersDataModel.ResponseItem>,
+    highlightId: Long? = null,
     state: LoadableLazyColumnState,
     refreshState: RefreshState?,
     loadState: LoadMoreState?,
@@ -71,11 +74,26 @@ fun PostersTabPage(
                     header()
                 }
                 itemsIndexed(posters, { idx, it -> idx }) { index, it ->
-                    PosterCard(
-                        data = it,
-                        onOpenPoster = onOpenPoster,
-                        onOpenImage = onOpenImage,
-                    )
+
+                    if(it.id == highlightId) {
+                        PosterCard(
+                            data = it,
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                contentColor = MaterialTheme.colorScheme.secondary,
+                                disabledContentColor = MaterialTheme.colorScheme.secondaryContainer,
+                                disabledContainerColor = MaterialTheme.colorScheme.secondary,
+                            ),
+                            onOpenPoster = onOpenPoster,
+                            onOpenImage = onOpenImage,
+                        )
+                    } else {
+                        PosterCard(
+                            data = it,
+                            onOpenPoster = onOpenPoster,
+                            onOpenImage = onOpenImage,
+                        )
+                    }
                 }
             }
         }

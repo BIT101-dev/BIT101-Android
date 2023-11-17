@@ -32,21 +32,27 @@ fun Avatar(
     size: Dp = 50.dp,
     user: User? = null,
     low: Boolean? = true,
-    onClick: (Avatar?) -> Unit = {},
+    onClick: ((User?) -> Unit)? = null,
 ) {
     // 头像
     // 默认头像为APP图标
     val icon = App.context.applicationInfo.loadIcon(App.context.packageManager)
     val painter = rememberDrawablePainter(icon)
-    Box() {
+    Box {
+
+        var modifier = Modifier
+            .size(size)
+            .clip(CircleShape)
+            .background(Color(App.context.getColor(R.color.ic_launcher_background)))
+
+        if(onClick != null) {
+            modifier = modifier.clickable {
+                onClick(user)
+            }
+        }
+
         AsyncImage(
-            modifier = Modifier
-                .size(size)
-                .clip(CircleShape)
-                .background(Color(App.context.getColor(R.color.ic_launcher_background)))
-                .clickable {
-                    onClick(user?.avatar)
-                },
+            modifier = modifier,
             contentScale = ContentScale.FillBounds,
             model = if(low == true) user?.avatar?.lowUrl else user?.avatar?.url,
             placeholder = painter,
@@ -54,7 +60,10 @@ fun Avatar(
             fallback = painter,
             contentDescription = "avatar"
         )
-        if(user?.identity?.id != 0) {
+        if(user != null && user.identity.id != 0) {
+            val colorStr = user.identity.color
+            val color = Color(android.graphics.Color.parseColor(colorStr))
+
             Icon(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -62,12 +71,8 @@ fun Avatar(
                     .size(20.dp),
                 imageVector = Icons.Rounded.Verified,
                 contentDescription = "认证",
-                tint = Color.Blue
+                tint = color
             )
         }
     }
-
-    // 添加认证的标志
-
-
 }

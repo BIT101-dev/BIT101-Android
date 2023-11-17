@@ -48,8 +48,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             BIT101Theme {
-
-
                 // 设置状态栏文字颜色
                 WindowCompat.getInsetsController(
                     window,

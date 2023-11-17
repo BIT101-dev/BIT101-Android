@@ -122,7 +122,7 @@ class PosterViewModel @Inject constructor(
     /**
      * 从评论列表中找到对应的评论
      */
-    fun findCommentById(id: Long, comments: List<Comment>): Comment? {
+    private fun findCommentById(id: Long, comments: List<Comment>): Comment? {
         comments.forEach {
             if(it.id.toLong() == id) return it
             val comment = findCommentById(id, it.sub)

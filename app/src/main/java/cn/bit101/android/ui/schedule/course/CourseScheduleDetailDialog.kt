@@ -15,7 +15,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -24,12 +23,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import cn.bit101.android.database.entity.CourseEntity
+import cn.bit101.android.database.entity.CourseScheduleEntity
 
 // 课程详情对话框
 @Composable
 fun CourseScheduleDetailDialog(
-    course: CourseEntity,
+    course: CourseScheduleEntity,
     onDismiss: () -> Unit,
 ) {
     AlertDialog(
@@ -96,7 +95,7 @@ private fun Item(title: String, content: String) {
 fun CourseDetailPreview() {
     var show by remember { mutableStateOf(false) }
     CourseScheduleDetailDialog(
-        CourseEntity(
+        CourseScheduleEntity(
             0,
             "2020-2021-2",
             "高等数学",

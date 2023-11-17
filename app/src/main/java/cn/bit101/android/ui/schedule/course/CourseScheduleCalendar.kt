@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.schedule.course
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -34,7 +33,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -52,8 +50,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.database.entity.CourseEntity
+import cn.bit101.android.database.entity.CourseScheduleEntity
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -73,19 +70,14 @@ private val courseTimes = arrayOf(
 
 @Composable
 fun CourseScheduleCalendar(
-    courses: List<List<CourseEntity>>,
+    courses: List<List<CourseScheduleEntity>>,
     week: Int,
     firstDay: LocalDate,
-    showDivider: Boolean,
-    showSaturday: Boolean,
-    showSunday: Boolean,
-    showHighlightToday: Boolean,
-    showBorder: Boolean,
+    settingData: SettingData,
     timeTable: List<CourseScheduleViewModel.TimeTableItem>,
-    currentTime: Boolean,
 
     onConfig: () -> Unit,
-    onShowDetailDialog: (CourseEntity) -> Unit,
+    onShowDetailDialog: (CourseScheduleEntity) -> Unit,
     onChangeWeek: (Int) -> Unit,
 ) {
     /**
@@ -111,13 +103,13 @@ fun CourseScheduleCalendar(
                 )
             }
             for (i in 1..courseNumOfDay) {
-                if (showDivider && i != 1)
+                if (settingData.showDivider && i != 1)
                     Divider(color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
 
-        if (currentTime) {
+        if (settingData.showCurrentTime) {
             val now = LocalTime.now()
             var topWeight = 0f // 上半部分所占比重
             timeTable.forEach {
@@ -209,17 +201,17 @@ fun CourseScheduleCalendar(
 
                 // 遍历每一天
                 courses.forEachIndexed { index, it ->
-                    if (!showSaturday && index == 5) return@forEachIndexed
-                    if (!showSunday && index == 6) return@forEachIndexed
+                    if (!settingData.showSaturday && index == 5) return@forEachIndexed
+                    if (!settingData.showSunday && index == 6) return@forEachIndexed
                     // 计算星期和日期
-                    val day = firstDay?.plusDays((week - 1) * 7 + index.toLong())
+                    val day = firstDay.plusDays((week - 1) * 7 + index.toLong())
 
                     // 用于高亮今日 改变颜色
                     var containerColor = MaterialTheme.colorScheme.secondaryContainer
                     var columnModifier = Modifier
                         .fillMaxHeight()
                         .weight(1f)
-                    if (showHighlightToday && day?.equals(LocalDate.now()) == true) {
+                    if (settingData.showHighlightToday && day?.equals(LocalDate.now()) == true) {
                         containerColor =
                             MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0f)
                         columnModifier = columnModifier.background(
@@ -270,7 +262,7 @@ fun CourseScheduleCalendar(
                                     .fillMaxWidth()
                                     .weight((it.end_section - it.start_section + 1).toFloat())
                                 // 是否显示边框
-                                if (showBorder) {
+                                if (settingData.showBorder) {
                                     modifier = modifier.border(
                                         1.dp,
                                         MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f),

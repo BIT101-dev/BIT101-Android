@@ -38,17 +38,17 @@ fun ScheduleScreen(
     // 检查登陆状态
     when (loginState) {
         null -> {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .wrapContentSize(Alignment.Center)
-                    .width(64.dp)
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.width(64.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxSize()
+//                    .wrapContentSize(Alignment.Center)
+//                    .width(64.dp)
+//            ) {
+//                CircularProgressIndicator(
+//                    modifier = Modifier.width(64.dp),
+//                    color = MaterialTheme.colorScheme.primary
+//                )
+//            }
         }
         true -> {
             TabPager(items)

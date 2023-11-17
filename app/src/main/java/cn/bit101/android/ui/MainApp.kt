@@ -24,11 +24,15 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -50,6 +54,7 @@ import cn.bit101.android.ui.map.MapScreen
 import cn.bit101.android.ui.schedule.ScheduleScreen
 import cn.bit101.android.ui.setting.SettingScreen
 import cn.bit101.android.ui.web.WebScreen
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -60,6 +65,8 @@ fun MainApp(
     val enableGallery by vm.enableGalleryFlow.collectAsState(initial = false)
 
     val homepage by SettingDataStore.settingHomePage.flow.collectAsState(initial = "")
+
+    val systemUiController = rememberSystemUiController()
 
     val mainController = MainController(
         scope = rememberCoroutineScope(),
@@ -95,6 +102,21 @@ fun MainApp(
         remember { MutableTransitionState(false) }
     bottomBarTransitionState.apply { targetState = showBottomBar }
 
+
+    val currentBackStackEntry by mainController.navController.currentBackStackEntryFlow.collectAsState(initial = null)
+
+    val statusColor = when(currentBackStackEntry?.destination?.route) {
+        "bit101-web" -> Color(0xFFFF9A57)
+        else -> MaterialTheme.colorScheme.background
+    }
+
+    DisposableEffect(statusColor) {
+        systemUiController.setStatusBarColor(
+            color = statusColor
+        )
+        onDispose {  }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(mainController.snackbarHostState) },
         bottomBar = {
@@ -117,8 +139,7 @@ fun MainApp(
             ) {
                 // 底部导航栏
                 NavigationBar {
-                    val navBackStackEntry by mainController.navController.currentBackStackEntryAsState()
-                    val currentDestination = navBackStackEntry?.destination
+                    val currentDestination = currentBackStackEntry?.destination
                     routes.forEach { screen ->
                         val selected =
                             currentDestination?.hierarchy?.any { it.route == screen.route } == true
@@ -160,7 +181,6 @@ fun MainApp(
 
         // 导航
         if(homepage.isNotEmpty()) {
-
             LaunchedEffect(homepage, enableGallery) {
                 if(homepage == "gallery" && !enableGallery) {
                     MainScope().launch {
@@ -174,37 +194,31 @@ fun MainApp(
                 startDestination = homepage,
             ) {
                 composable("schedule") {
-                    MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                     Box(modifier = modifier(it)) {
                         ScheduleScreen(mainController)
                     }
                 }
                 composable("login") {
-                    MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                     Box(modifier = modifier(it)) {
                         LoginOrLogoutScreen(mainController)
                     }
                 }
                 composable("map") {
-                    MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                     Box(modifier = modifier(it)) {
                         MapScreen()
                     }
                 }
                 composable("bit101-web") {
-                    MainActivity.window?.statusBarColor = Color(0xFFFF9A57).toArgb()
                     Box(modifier = modifier(it)) {
                         WebScreen()
                     }
                 }
                 composable("setting") {
-                    MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                     Box(modifier = modifier(it)) {
                         SettingScreen(mainController)
                     }
                 }
                 composable("gallery") {
-                    MainActivity.window?.statusBarColor = MaterialTheme.colorScheme.background.toArgb()
                     Box(modifier = modifier(it)) {
                         GalleryScreen(mainController)
                     }

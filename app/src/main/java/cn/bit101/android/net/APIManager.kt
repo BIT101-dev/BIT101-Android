@@ -94,18 +94,18 @@ object APIManager {
 //                resBody?.toResponseBody(contentType)
 //            ).build()
 //        }
-//        .addNetworkInterceptor {
-//            val request = it.request().newBuilder()
-//                .build()
-////            Log.i("APIManager", request.url.toString())
-//            Log.i("APIManager", request.headers.toMultimap().toString())
-//
-//            val response = it.proceed(request)
-//
-////            Log.i("APIManager", response.headers.toMultimap().toString())
-//
-//            response
-//        }
+        .addNetworkInterceptor {
+            val request = it.request().newBuilder()
+                .build()
+//            Log.i("APIManager", request.url.toString())
+            Log.i("APIManager", request.headers.toMultimap().toString())
+
+            val response = it.proceed(request)
+
+//            Log.i("APIManager", response.headers.toMultimap().toString())
+
+            response
+        }
         .build()
 
     init {

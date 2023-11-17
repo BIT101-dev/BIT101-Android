@@ -7,6 +7,7 @@ import cn.bit101.android.repo.base.PosterRepo
 import cn.bit101.android.ui.gallery.common.StateCombined
 import cn.bit101.api.model.common.PostersOrder
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
+import cn.bit101.api.model.http.bit101.toGetPostersDataModelResponseItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -27,6 +28,8 @@ class GalleryIndexViewModel @Inject constructor(
     val queryLiveData = MutableLiveData("")
     val selectOrderLiveData = MutableLiveData(PostersOrder.new)
 
+    val lastSearchQueryLiveData = MutableLiveData("")
+
     fun setQuery(query: String) {
         queryLiveData.value = query
     }
@@ -34,8 +37,6 @@ class GalleryIndexViewModel @Inject constructor(
     fun setSelectOrder(order: PostersOrder) {
         selectOrderLiveData.value = order
     }
-
-
 
     fun refreshRecommend() = recommendStateCombined.refresh {
         posterRepo.getRecommendPosters()
@@ -63,21 +64,30 @@ class GalleryIndexViewModel @Inject constructor(
         posterRepo.getFollowPosters(page)
     }
 
-
-
-
-
     fun refreshSearch(
         search: String,
         order: PostersOrder,
         filter: Int,
     ) = searchStateCombined.refresh {
-        posterRepo.getSearchPosters(
+        val posters = posterRepo.getSearchPosters(
             search = search,
             order = order,
             uid = filter,
             page = 0,
-        )
+        ).toMutableList()
+
+        /**
+         * 根据id搜索
+         */
+        try {
+            val id = search.toLong()
+            val poster = posterRepo.getPosterById(id).toGetPostersDataModelResponseItem()
+            posters.add(0, poster)
+        } catch (_: Exception) { }
+
+        lastSearchQueryLiveData.postValue(search)
+
+        posters
     }
 
     fun loadMoreSearch(
@@ -92,8 +102,6 @@ class GalleryIndexViewModel @Inject constructor(
             uid = filter,
         )
     }
-
-
 
     fun refreshNewest() = newestStataCombined.refresh {
         posterRepo.getNewestPosters()

@@ -5,11 +5,8 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import cn.bit101.android.database.dao.CoursesDao
 import cn.bit101.android.database.dao.DDLScheduleDao
-import cn.bit101.android.database.dao.CourseScheduleDao
-import cn.bit101.android.database.entity.CourseEntity
+import cn.bit101.android.database.entity.CourseScheduleEntity
 import cn.bit101.android.database.entity.DDLScheduleEntity
-import cn.bit101.android.database.entity.FirstDayEntity
-import cn.bit101.android.database.entity.TermEntity
 
 /**
  * @author flwfdd
@@ -19,10 +16,8 @@ import cn.bit101.android.database.entity.TermEntity
 
 @Database(
     entities = [
-        CourseEntity::class,
+        CourseScheduleEntity::class,
         DDLScheduleEntity::class,
-        FirstDayEntity::class,
-        TermEntity::class,
     ],
     version = 1,
     exportSchema = false
@@ -31,5 +26,4 @@ import cn.bit101.android.database.entity.TermEntity
 abstract class BIT101Database : RoomDatabase() {
     abstract fun coursesDao(): CoursesDao
     abstract fun DDLScheduleDao(): DDLScheduleDao
-    abstract fun courseScheduleDao(): CourseScheduleDao
 }

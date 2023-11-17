@@ -208,13 +208,15 @@ fun PosterContent(
         item(4) {
             // 正文
             // 这个Selection现在有问题
-            AnnotatedText(
-                mainController = mainController,
-                text = data.text,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface
+            if(data.text.isNotEmpty()) {
+                AnnotatedText(
+                    mainController = mainController,
+                    text = data.text,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 )
-            )
+            }
         }
         // 图片
         item(5) {

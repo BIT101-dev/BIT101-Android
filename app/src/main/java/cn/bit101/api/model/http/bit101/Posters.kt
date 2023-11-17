@@ -21,6 +21,7 @@ class GetPostersDataModel private constructor() {
         val updateTime: String,
         val user: User
     )
+
     class Response : ArrayList<ResponseItem>()
 }
 
@@ -45,6 +46,24 @@ class GetPosterDataModel private constructor() {
         val user: User
     )
 }
+
+
+fun GetPosterDataModel.Response.toGetPostersDataModelResponseItem() = GetPostersDataModel.ResponseItem(
+    anonymous = anonymous,
+    claim = claim,
+    commentNum = commentNum.toLong(),
+    createTime = createTime,
+    editTime = editTime,
+    id = id.toLong(),
+    images = images,
+    likeNum = likeNum.toLong(),
+    public = public,
+    tags = tags,
+    text = text,
+    title = title,
+    updateTime = updateTime,
+    user = user
+)
 
 class PostPostersDataModel private constructor() {
     data class Body(
