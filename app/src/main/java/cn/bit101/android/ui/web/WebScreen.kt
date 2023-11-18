@@ -48,11 +48,11 @@ fun WebScreen(
     //进度条
     AnimatedVisibility(visible = (progress != null && progress!! > 0f && progress!! < 1f)) {
         LinearProgressIndicator(
-            progress = progress ?: 0.0f,
+            progress = { progress ?: 0.0f },
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.secondary,
             trackColor = Color.Transparent,
-            strokeCap = StrokeCap.Round
+            strokeCap = StrokeCap.Round,
         )
     }
 }

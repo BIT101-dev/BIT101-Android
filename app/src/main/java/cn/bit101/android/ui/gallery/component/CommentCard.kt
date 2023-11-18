@@ -1,6 +1,8 @@
 package cn.bit101.android.ui.gallery.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -9,9 +11,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Divider
+import androidx.compose.material3.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.CopyAll
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.MoreVert
@@ -39,7 +43,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
@@ -48,9 +54,8 @@ import cn.bit101.android.ui.component.PreviewImages
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
-import cn.bit101.api.model.common.User
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CommentCard(
     mainController: MainController,
@@ -67,6 +72,8 @@ fun CommentCard(
     onOpenDeleteCommentDialog: () -> Unit,
     onReport: () -> Unit,
 ) {
+    val ctx = LocalContext.current
+    val cm = LocalClipboardManager.current
     var menuState by remember(comment.id) { mutableStateOf(false) }
 
     Card(
@@ -184,6 +191,16 @@ fun CommentCard(
                         onDismissRequest = { menuState = false }
                     ) {
                         DropdownMenuItem(
+                            text = { Text("复制") },
+                            onClick = { mainController.copyText(cm, buildAnnotatedString { append(comment.text) }) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.ContentCopy,
+                                    contentDescription = "复制"
+                                )
+                            }
+                        )
+                        DropdownMenuItem(
                             text = { Text("举报") },
                             onClick = onReport,
                             leadingIcon = {
@@ -213,15 +230,10 @@ fun CommentCard(
             Spacer(modifier = Modifier.padding(vertical = 6.dp))
 
             if(comment.text.isNotEmpty()) {
-                val text = if(comment.replyUser.id != 0) {
-                    "@${comment.replyUser.nickname} "
-                } else {
-                    ""
-                } + comment.text
-
                 AnnotatedText(
                     mainController = mainController,
-                    text = text,
+                    text = comment.text,
+                    replyUser = if(comment.replyUser.id != 0) comment.replyUser else null,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium.copy(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -247,7 +259,7 @@ fun CommentCard(
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    comment.sub.forEachIndexed { index, sub ->
+                    comment.sub.forEach { sub ->
                         val text = "${sub.user.nickname}： " + if(sub.replyUser.id != 0) {
                             "@${sub.replyUser.nickname} "
                         } else {

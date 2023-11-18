@@ -56,11 +56,6 @@ class WebViewModel @Inject constructor(
                             }
                         """.trimIndent(), null
                     )
-                    view.settings.forceDark = WebSettings.FORCE_DARK_ON
-
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        view.settings.isAlgorithmicDarkeningAllowed = true
-                    }
                 }
             }
         }

@@ -75,7 +75,7 @@ fun PostersTabPage(
                 item("header") {
                     header()
                 }
-                itemsIndexed(posters, { idx, it -> idx }) { index, it ->
+                itemsIndexed(posters, { idx, _ -> idx }) { _, it ->
                     if(it.id == highlightId) {
                         PosterCard(
                             data = it,

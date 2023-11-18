@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowRight
 import androidx.compose.material.icons.rounded.ArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -99,7 +100,7 @@ fun ConfigButton(title: String, content: String, onClick: () -> Unit) {
                 )
             }
             Icon(
-                imageVector = Icons.Rounded.ArrowRight,
+                imageVector = Icons.AutoMirrored.Rounded.ArrowRight,
                 tint = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.5f),
                 contentDescription = "select term",
             )

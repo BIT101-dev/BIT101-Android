@@ -1,12 +1,19 @@
 package cn.bit101.android.ui
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOut
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.interaction.HoverInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -213,14 +220,14 @@ fun MainApp(
                         WebScreen()
                     }
                 }
-                composable("setting") {
-                    Box(modifier = modifier(it)) {
-                        SettingScreen(mainController)
-                    }
-                }
                 composable("gallery") {
                     Box(modifier = modifier(it)) {
                         GalleryScreen(mainController)
+                    }
+                }
+                composable("setting") {
+                    Box(modifier = modifier(it)) {
+                        SettingScreen(mainController)
                     }
                 }
             }

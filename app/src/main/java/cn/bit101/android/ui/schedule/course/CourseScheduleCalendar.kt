@@ -28,6 +28,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -104,7 +105,7 @@ fun CourseScheduleCalendar(
             }
             for (i in 1..courseNumOfDay) {
                 if (settingData.showDivider && i != 1)
-                    Divider(color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
+                    HorizontalDivider(color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
@@ -129,7 +130,7 @@ fun CourseScheduleCalendar(
                         )
                     }
                     Spacer(modifier = Modifier.weight(topWeight))
-                    Divider(color = MaterialTheme.colorScheme.secondary)
+                    HorizontalDivider(color = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.weight(courseNumOfDay.toFloat() - topWeight))
                 }
             }

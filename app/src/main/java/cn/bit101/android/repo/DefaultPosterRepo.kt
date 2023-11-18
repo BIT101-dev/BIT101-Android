@@ -2,6 +2,7 @@ package cn.bit101.android.repo
 
 import cn.bit101.android.net.BIT101API
 import cn.bit101.android.repo.base.PosterRepo
+import cn.bit101.api.model.common.CommentsOrder
 import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersMode
 import cn.bit101.api.model.common.PostersOrder
@@ -92,6 +93,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         BIT101API.reaction.getComments(
             obj = "poster$id",
             page = page,
+            order = CommentsOrder.new,
         ).body() ?: throw Exception("get comments error")
     }
 
@@ -102,6 +104,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         BIT101API.reaction.getComments(
             obj = "comment$id",
             page = page,
+            order = CommentsOrder.new,
         ).body() ?: throw Exception("get comments error")
     }
 

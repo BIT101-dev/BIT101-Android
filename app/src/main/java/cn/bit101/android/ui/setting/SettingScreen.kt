@@ -320,9 +320,9 @@ fun SettingScreen(
     val rotate by vm.rotateFlow.collectAsState(initial = false)
     val dynamicTheme by vm.dynamicThemeFlow.collectAsState(initial = false)
     val disableDarkTheme by vm.disableDarkThemeFlow.collectAsState(initial = false)
-    val ignoreVersion by vm.settingIgnoreVersionFlow.collectAsState(initial = 0)
+//    val ignoreVersion by vm.settingIgnoreVersionFlow.collectAsState(initial = 0)
     val enableGallery by vm.settingEnableGalleryFlow.collectAsState(initial = false)
-    val useWebVpn by vm.settingUseWebVpnFlow.collectAsState(initial = false)
+//    val useWebVpn by vm.settingUseWebVpnFlow.collectAsState(initial = false)
 
     val scrollState = rememberScrollState()
 

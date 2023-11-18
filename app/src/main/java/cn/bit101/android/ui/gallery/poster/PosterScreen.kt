@@ -213,13 +213,15 @@ fun PosterContent(
             // 正文
             // 这个Selection现在有问题
             if(data.text.isNotEmpty()) {
-                AnnotatedText(
-                    mainController = mainController,
-                    text = data.text,
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.onSurface
+                SelectionContainer {
+                    AnnotatedText(
+                        mainController = mainController,
+                        text = data.text,
+                        style = MaterialTheme.typography.bodyLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
                     )
-                )
+                }
             }
         }
         // 图片
@@ -377,7 +379,7 @@ fun PosterContent(
 
         // 评论展示
         if(comments.isNotEmpty()) {
-            comments.forEachIndexed { index, comment ->
+            comments.forEach { comment ->
                 item(comment.id + 100) {
                     CommentCard(
                         mainController = mainController,
@@ -552,16 +554,12 @@ fun PosterScreen(
      */
     LaunchedEffect(deletePosterState) {
         if(deletePosterState is SimpleState.Success) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("帖子删除成功了！")
-            }
+            mainController.snackbar("帖子删除成功了！")
             mainController.navController.popBackStack()
             deletePosterDialogState = -1
             vm.setDeletePosterState(null)
         } else if(deletePosterState is SimpleState.Error) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("帖子删除失败Orz")
-            }
+            mainController.snackbar("帖子删除失败Orz")
             vm.setDeletePosterState(null)
         }
     }
@@ -581,17 +579,13 @@ fun PosterScreen(
      */
     LaunchedEffect(deleteCommentState) {
         if (deleteCommentState is SimpleState.Success) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("评论删除成功了！")
-            }
+            mainController.snackbar("评论删除成功了！")
             deleteCommentDialogState = -1
             vm.setShowMoreState(null)
             vm.refreshComments(id)
             vm.setDeleteCommentState(null)
         } else if (deleteCommentState is SimpleState.Error) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("评论删除失败Orz")
-            }
+            mainController.snackbar("评论删除失败Orz")
             vm.setDeleteCommentState(null)
         }
     }
@@ -628,15 +622,11 @@ fun PosterScreen(
      */
     LaunchedEffect(sendCommentToCommentState, needShowSnackbarForCommentToComment) {
         if(sendCommentToCommentState is SendCommentState.Success && needShowSnackbarForCommentToComment) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("评论成功被发出去了！")
-                needShowSnackbarForCommentToComment = false
-            }
+            mainController.snackbar("评论成功被发出去了！")
+            needShowSnackbarForCommentToComment = false
         } else if(sendCommentToCommentState is SendCommentState.Fail && needShowSnackbarForCommentToComment) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("评论失败Orz")
-                needShowSnackbarForCommentToComment = false
-            }
+            mainController.snackbar("评论失败Orz")
+            needShowSnackbarForCommentToComment = false
         }
     }
 
@@ -651,15 +641,11 @@ fun PosterScreen(
      */
     LaunchedEffect(sendCommentToPosterState, needShowSnackbarForCommentToPoster) {
         if(sendCommentToPosterState is SendCommentState.Success && needShowSnackbarForCommentToPoster) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("评论成功被发出去了！")
-                needShowSnackbarForCommentToPoster = false
-            }
+            mainController.snackbar("评论成功被发出去了！")
+            needShowSnackbarForCommentToPoster = false
         } else if(sendCommentToPosterState is SendCommentState.Fail && needShowSnackbarForCommentToPoster) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("评论失败Orz")
-                needShowSnackbarForCommentToPoster = false
-            }
+            mainController.snackbar("评论失败Orz")
+            needShowSnackbarForCommentToPoster = false
         }
     }
 

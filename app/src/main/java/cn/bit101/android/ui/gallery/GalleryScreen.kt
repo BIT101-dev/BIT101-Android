@@ -2,7 +2,6 @@ package cn.bit101.android.ui.gallery
 
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
@@ -12,21 +11,18 @@ import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import cn.bit101.android.MainActivity
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.image.ImageScreen
 import cn.bit101.android.ui.gallery.index.GalleryIndexScreen
@@ -123,16 +119,19 @@ fun GalleryScreen(
         }
     ) { paddingValues ->
         NavHost(
+            modifier = Modifier.padding(paddingValues),
             navController = galleryController.navController,
             startDestination = "index",
         ) {
-            composable("index") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    GalleryIndexScreen(
-                        mainController = galleryController,
-                        onOpenImage = onOpenImage,
-                    )
-                }
+
+
+            composable(
+                route = "index",
+            ) {
+                GalleryIndexScreen(
+                    mainController = galleryController,
+                    onOpenImage = onOpenImage,
+                )
             }
             composable(
                 route = "poster/{id}",
@@ -140,13 +139,11 @@ fun GalleryScreen(
                     navArgument("id") { type = NavType.LongType },
                 ),
             ) {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    PosterScreen(
-                        mainController = galleryController,
-                        id = it.arguments?.getLong("id") ?: 0L,
-                        onOpenImage = onOpenImage,
-                    )
-                }
+                PosterScreen(
+                    mainController = galleryController,
+                    id = it.arguments?.getLong("id") ?: 0L,
+                    onOpenImage = onOpenImage,
+                )
             }
 
             composable(
@@ -155,20 +152,16 @@ fun GalleryScreen(
                     navArgument("url") { type = NavType.StringType },
                 ),
             ) {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    val encodedUrl = it.arguments?.getString("url") ?: ""
-                    val url = URLDecoder.decode(encodedUrl, "UTF-8")
-                    ImageScreen(url)
-                }
+                val encodedUrl = it.arguments?.getString("url") ?: ""
+                val url = URLDecoder.decode(encodedUrl, "UTF-8")
+                ImageScreen(url)
             }
 
             composable("post") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    PostEditScreen(
-                        mainController = galleryController,
-                        onOpenImage = onOpenImage,
-                    )
-                }
+                PostEditScreen(
+                    mainController = galleryController,
+                    onOpenImage = onOpenImage,
+                )
             }
 
             composable(
@@ -177,14 +170,12 @@ fun GalleryScreen(
                     navArgument("id") { type = NavType.LongType },
                 ),
             ) {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    val id = it.arguments?.getLong("id") ?: 0L
-                    PostEditScreen(
-                        mainController = galleryController,
-                        id = id,
-                        onOpenImage = onOpenImage,
-                    )
-                }
+                val id = it.arguments?.getLong("id") ?: 0L
+                PostEditScreen(
+                    mainController = galleryController,
+                    id = id,
+                    onOpenImage = onOpenImage,
+                )
             }
 
             composable(
@@ -194,16 +185,14 @@ fun GalleryScreen(
                     navArgument("id") { type = NavType.LongType },
                 ),
             ) {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    val type = it.arguments?.getString("type") ?: ""
-                    val id = it.arguments?.getLong("id") ?: 0L
+                val type = it.arguments?.getString("type") ?: ""
+                val id = it.arguments?.getLong("id") ?: 0L
 
-                    ReportScreen(
-                        mainController = galleryController,
-                        objType = type,
-                        id = id,
-                    )
-                }
+                ReportScreen(
+                    mainController = galleryController,
+                    objType = type,
+                    id = id,
+                )
             }
 
             composable(
@@ -212,13 +201,11 @@ fun GalleryScreen(
                     navArgument("id") { type = NavType.LongType },
                 ),
             ) {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    val id = it.arguments?.getLong("id") ?: 0L
-                     UserScreen(
-                         mainController = galleryController,
-                         id = id,
-                     )
-                }
+                val id = it.arguments?.getLong("id") ?: 0L
+                 UserScreen(
+                     mainController = galleryController,
+                     id = id,
+                 )
             }
         }
     }
