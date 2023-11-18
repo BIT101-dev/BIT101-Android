@@ -3,8 +3,18 @@ package cn.bit101.android.ui.gallery.poster
 import android.app.Activity
 import android.content.Intent
 import android.provider.MediaStore
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.VisibilityThreshold
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideIn
+import androidx.compose.animation.slideOut
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,17 +24,25 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Comment
 import androidx.compose.material.icons.outlined.ThumbUp
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material.icons.rounded.Comment
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Error
@@ -32,13 +50,16 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.BottomSheetScaffold
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -46,17 +67,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -111,293 +137,328 @@ fun PosterContent(
     onOpenCommentDialog: (Comment, Comment) -> Unit,
     onOpenDeleteImageOfPosterDialog: (Int) -> Unit,
 ) {
-    // poster内容卡片
-    LoadableLazyColumnWithoutPullRequest(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 16.dp),
-        loading = loading,
-        state = state,
-    ) {
-        item(data.title) {
-            SelectionContainer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp)
-            ) {
-                Text(
-                    text = data.title,
-                    style = MaterialTheme.typography.titleLarge,
-                )
-            }
-            Spacer(modifier = Modifier.padding(10.dp))
-        }
-        item(2) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Row {
-                    Avatar(
-                        user = data.user,
-                        low = true,
-                        onClick = { mainController.navController.navigate("user/${data.user.id}") }
+    val cm = LocalClipboardManager.current
+
+    val scope = rememberCoroutineScope()
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // poster内容卡片
+        LoadableLazyColumnWithoutPullRequest(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp),
+            loading = loading,
+            state = state,
+        ) {
+            // 标题
+            item(data.title) {
+                SelectionContainer(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp)
+                ) {
+                    Text(
+                        text = data.title,
+                        style = MaterialTheme.typography.titleLarge,
                     )
-                    Column(
-                        modifier = Modifier
-                            .padding(start = 8.dp)
-                            .align(Alignment.CenterVertically)
-                    ) {
-                        Text(
-                            text = data.user.nickname,
-                            style = MaterialTheme.typography.titleMedium,
-                        )
-                        Text(
-                            text = data.user.identity.text,
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    }
                 }
-                if(data.claim.id != 0) {
-                    SuggestionChip(
-                        modifier = Modifier.align(Alignment.CenterEnd),
-                        shape = CircleShape,
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Rounded.Info,
-                                contentDescription = "claim",
-                            )
-                        },
-                        onClick = {},
-                        label = {
+                Spacer(modifier = Modifier.padding(10.dp))
+            }
+
+            // 用户信息
+            item(2) {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Row {
+                        Avatar(
+                            user = data.user,
+                            low = true,
+                            onClick = { mainController.navController.navigate("user/${data.user.id}") }
+                        )
+                        Column(
+                            modifier = Modifier
+                                .padding(start = 8.dp)
+                                .align(Alignment.CenterVertically)
+                        ) {
                             Text(
-                                text = data.claim.text,
-                                style = TextStyle(
-                                    fontSize = 12.sp,
-                                )
+                                text = data.user.nickname,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                text = data.user.identity.text,
+                                style = MaterialTheme.typography.labelMedium,
                             )
                         }
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.padding(4.dp))
-        }
-
-
-        item(3) {
-            Column {
-                if(data.own && !data.public) {
-                    Text(
-                        text = "仅自己可见",
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Spacer(modifier = Modifier.padding(1.dp))
-                }
-                Text(
-                    text = "POSTER ID：" + data.id,
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Spacer(modifier = Modifier.padding(1.dp))
-                Text(
-                    text = "首次创建时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.createTime)),
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Spacer(modifier = Modifier.padding(1.dp))
-                Text(
-                    text = "最后修改时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.updateTime)),
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-            Spacer(modifier = Modifier.padding(10.dp))
-        }
-
-        // 内容
-        item(4) {
-            // 正文
-            // 这个Selection现在有问题
-            if(data.text.isNotEmpty()) {
-                SelectionContainer {
-                    AnnotatedText(
-                        mainController = mainController,
-                        text = data.text,
-                        style = MaterialTheme.typography.bodyLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                    )
-                }
-            }
-        }
-        // 图片
-        item(5) {
-            if(data.images.isNotEmpty()) {
-                Spacer(modifier = Modifier.padding(8.dp))
-                LazyRow {
-                    items(data.images, { it.mid }) {
-                        PreviewImage(
-                            image = it,
-                            onClick = onOpenImage,
-                        )
                     }
-                }
-            }
-        }
-
-        // 标签
-        item(6) {
-            if(data.tags.isNotEmpty()) {
-                Spacer(modifier = Modifier.padding(4.dp))
-                FlowRow {
-                    data.tags.forEach { tag ->
+                    if(data.claim.id != 0) {
                         SuggestionChip(
-                            modifier = Modifier.padding(end = 8.dp),
+                            modifier = Modifier.align(Alignment.CenterEnd),
                             shape = CircleShape,
+                            icon = {
+                                Icon(
+                                    imageVector = Icons.Rounded.Info,
+                                    contentDescription = "claim",
+                                )
+                            },
                             onClick = {},
                             label = {
                                 Text(
-                                    text = tag,
+                                    text = data.claim.text,
+                                    style = TextStyle(
+                                        fontSize = 12.sp,
+                                    )
                                 )
                             }
                         )
                     }
                 }
+                Spacer(modifier = Modifier.padding(4.dp))
             }
-            Spacer(modifier = Modifier.padding(8.dp))
-        }
 
-        // 举报、分享、赞同（还有编辑、删除按钮）
-        item(7) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End
-            ) {
-                // 举报
-                Button(
-                    onClick = onOpenReportPoster,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
-                        contentColor = MaterialTheme.colorScheme.error,
-                    )
-                ) {
-                    Row {
-                        Icon(
-                            imageVector = Icons.Rounded.Error,
-                            contentDescription = "举报",
-                            modifier = Modifier.align(Alignment.CenterVertically)
-                        )
-                        Spacer(modifier = Modifier.padding(4.dp))
+            // 帖子信息
+            item(3) {
+                Column {
+                    if(data.own && !data.public) {
                         Text(
-                            text = "举报",
-                            modifier = Modifier.align(Alignment.CenterVertically)
+                            text = "仅自己可见",
+                            style = MaterialTheme.typography.labelMedium
                         )
+                        Spacer(modifier = Modifier.padding(1.dp))
                     }
-                }
-                if(data.own) {
-                    // 删除
-                    IconButton(onClick = onOpenDeletePosterDialog) {
-                        Icon(
-                            imageVector = Icons.Rounded.Delete,
-                            contentDescription = "删除",
-                        )
-                    }
-                    // 编辑
-                    IconButton(onClick = { onOpenEdit(data.id.toLong()) }) {
-                        Icon(
-                            imageVector = Icons.Rounded.Edit,
-                            contentDescription = "编辑",
-                        )
-                    }
-                }
-                // 分享
-//                IconButton(onClick = { }) {
-//                    Icon(
-//                        imageVector = Icons.Rounded.Share,
-//                        contentDescription = "分享",
-//                    )
-//                }
-                // 点赞
-                BadgedBox(
-                    badge = {
-                        if(data.likeNum > 0) Badge { Text(text = data.likeNum.toString()) }
-                    }
-                ) {
-                    val liking = posterLikes.contains(data.id.toLong())
-                    if(data.like) {
-                        IconButton(
-                            onClick = {
-                                onLikePoster(data.id.toLong())
-                            },
-                            colors = IconButtonColors(
-                                containerColor = Color.Transparent,
-                                contentColor = MaterialTheme.colorScheme.tertiary,
-                                disabledContainerColor = Color.Transparent,
-                                disabledContentColor = MaterialTheme.colorScheme.tertiary,
-                            ),
-                            enabled = !liking
-                        ) {
-                            if(liking) {
-                                CircularProgressIndicator()
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Rounded.ThumbUp,
-                                    contentDescription = "点赞",
-                                )
-                            }
+                    ClickableText(
+                        text = buildAnnotatedString { append("POSTER ID：" + data.id) },
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            color = MaterialTheme.colorScheme.onBackground
+                        ),
+                        onClick = {
+                            mainController.copyText(cm, buildAnnotatedString { append(data.id.toString()) })
                         }
+                    )
+                    Spacer(modifier = Modifier.padding(1.dp))
+                    Text(
+                        text = "首次创建时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.createTime)),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Spacer(modifier = Modifier.padding(1.dp))
+                    Text(
+                        text = "最后修改时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.updateTime)),
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                }
+                Spacer(modifier = Modifier.padding(10.dp))
+            }
 
-                    } else {
-                        IconButton(
-                            onClick = {
-                                onLikePoster(data.id.toLong())
-                            },
-                            enabled = !liking
-                        ) {
-                            if(liking) {
-                                CircularProgressIndicator()
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Outlined.ThumbUp,
-                                    contentDescription = "点赞",
-                                )
-                            }
+            // 内容
+            item(4) {
+                // 正文
+                if(data.text.isNotEmpty()) {
+                    SelectionContainer {
+                        AnnotatedText(
+                            mainController = mainController,
+                            text = data.text,
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        )
+                    }
+                }
+            }
+
+            // 图片
+            item(5) {
+                if(data.images.isNotEmpty()) {
+                    Spacer(modifier = Modifier.padding(8.dp))
+                    LazyRow {
+                        items(data.images, { it.mid }) {
+                            PreviewImage(
+                                image = it,
+                                onClick = onOpenImage,
+                            )
                         }
                     }
                 }
             }
-            Spacer(modifier = Modifier.padding(8.dp))
+
+            // 标签
+            item(6) {
+                if(data.tags.isNotEmpty()) {
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    FlowRow {
+                        data.tags.forEach { tag ->
+                            SuggestionChip(
+                                modifier = Modifier.padding(end = 8.dp),
+                                shape = CircleShape,
+                                onClick = { mainController.copyText(cm, buildAnnotatedString { append(tag) }) },
+                                label = { Text(text = tag) }
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.padding(8.dp))
+            }
+
+            // 举报、分享、赞同（还有编辑、删除按钮）
+            item(7) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    // 举报
+                    Button(
+                        onClick = onOpenReportPoster,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.error,
+                        )
+                    ) {
+                        Row {
+                            Icon(
+                                imageVector = Icons.Rounded.Error,
+                                contentDescription = "举报",
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            )
+                            Spacer(modifier = Modifier.padding(4.dp))
+                            Text(
+                                text = "举报",
+                                modifier = Modifier.align(Alignment.CenterVertically)
+                            )
+                        }
+                    }
+                    if(data.own) {
+                        // 删除
+                        IconButton(onClick = onOpenDeletePosterDialog) {
+                            Icon(
+                                imageVector = Icons.Rounded.Delete,
+                                contentDescription = "删除",
+                            )
+                        }
+                        // 编辑
+                        IconButton(onClick = { onOpenEdit(data.id.toLong()) }) {
+                            Icon(
+                                imageVector = Icons.Rounded.Edit,
+                                contentDescription = "编辑",
+                            )
+                        }
+                    }
+                    // 点赞
+                    BadgedBox(
+                        badge = {
+                            if(data.likeNum > 0) Badge { Text(text = data.likeNum.toString()) }
+                        }
+                    ) {
+                        val liking = posterLikes.contains(data.id.toLong())
+                        if(data.like) {
+                            IconButton(
+                                onClick = {
+                                    onLikePoster(data.id.toLong())
+                                },
+                                colors = IconButtonColors(
+                                    containerColor = Color.Transparent,
+                                    contentColor = MaterialTheme.colorScheme.tertiary,
+                                    disabledContainerColor = Color.Transparent,
+                                    disabledContentColor = MaterialTheme.colorScheme.tertiary,
+                                ),
+                                enabled = !liking
+                            ) {
+                                if(liking) {
+                                    CircularProgressIndicator()
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ThumbUp,
+                                        contentDescription = "点赞",
+                                    )
+                                }
+                            }
+
+                        } else {
+                            IconButton(
+                                onClick = {
+                                    onLikePoster(data.id.toLong())
+                                },
+                                enabled = !liking
+                            ) {
+                                if(liking) {
+                                    CircularProgressIndicator()
+                                } else {
+                                    Icon(
+                                        imageVector = Icons.Outlined.ThumbUp,
+                                        contentDescription = "点赞",
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.padding(8.dp))
+            }
+
+            // 评论编辑
+            item(8) {
+                CommentEditContent(
+                    commentEditData = commentEditData,
+                    sending = false,
+                    onEditComment = onEditComment,
+                    onSendComment = onSendCommentToPoster,
+                    onUploadImage = onUploadImage,
+                    onOpenImage = onOpenImage,
+                    onOpenDeleteImageDialog = onOpenDeleteImageOfPosterDialog,
+                )
+                Spacer(modifier = Modifier.padding(8.dp))
+            }
+
+            // 评论展示
+            if(comments.isNotEmpty()) {
+                comments.forEach { comment ->
+                    item(comment.id + 100) {
+                        CommentCard(
+                            mainController = mainController,
+                            comment = comment,
+                            onOpenImage = onOpenImage,
+                            onShowMoreComments = { onShowMoreComments(comment) },
+                            commentLikes = commentLikes,
+                            onLikeComment = { onLikeComment(comment.id.toLong()) },
+                            onClick = { onOpenCommentDialog(comment, comment) },
+                            onReport = { onOpenReportComment(comment) },
+                            onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(comment) },
+                        )
+                    }
+                }
+            }
+
+            item(10) {
+                Spacer(modifier = Modifier.padding(4.dp))
+            }
         }
 
-        // 评论编辑
-        item(8) {
-            CommentEditContent(
-                commentEditData = commentEditData,
-                sending = false,
-                onEditComment = onEditComment,
-                onSendComment = onSendCommentToPoster,
-                onUploadImage = onUploadImage,
-                onOpenImage = onOpenImage,
-                onOpenDeleteImageDialog = onOpenDeleteImageOfPosterDialog,
-            )
-            Spacer(modifier = Modifier.padding(8.dp))
-        }
+        val fabSize = 42.dp
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(10.dp, 20.dp)
+        ) {
+            val show by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex > 7 } }
+            AnimatedVisibility(
+                visible = show,
+                enter = fadeIn(),
+                exit = fadeOut(),
 
-        // 评论展示
-        if(comments.isNotEmpty()) {
-            comments.forEach { comment ->
-                item(comment.id + 100) {
-                    CommentCard(
-                        mainController = mainController,
-                        comment = comment,
-                        onOpenImage = onOpenImage,
-                        onShowMoreComments = { onShowMoreComments(comment) },
-                        commentLikes = commentLikes,
-                        onLikeComment = { onLikeComment(comment.id.toLong()) },
-                        onClick = { onOpenCommentDialog(comment, comment) },
-                        onReport = { onOpenReportComment(comment) },
-                        onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(comment) },
+            ) {
+                SmallFloatingActionButton(
+                    modifier = Modifier.size(fabSize),
+                    onClick = {
+                        scope.launch {
+                            state.lazyListState.animateScrollToItem(6, 0)
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.Comment,
+                        contentDescription = "回到评论"
                     )
                 }
             }
-        }
-
-        item(10) {
-            Spacer(modifier = Modifier.padding(4.dp))
         }
     }
 }
@@ -581,7 +642,7 @@ fun PosterScreen(
         if (deleteCommentState is SimpleState.Success) {
             mainController.snackbar("评论删除成功了！")
             deleteCommentDialogState = -1
-            vm.setShowMoreState(null)
+            vm.setShowMoreState(false, null)
             vm.refreshComments(id)
             vm.setDeleteCommentState(null)
         } else if (deleteCommentState is SimpleState.Error) {
@@ -591,14 +652,13 @@ fun PosterScreen(
     }
 
     /**
-     * 当showComment值变成非null时，加载评论
+     * 如果显示更多评论的状态改变了，并且要显示bottom sheet，且要显示的评论不为null，那么就获取这个评论的子评论
      */
     DisposableEffect(showComment) {
-        onDispose {
-            if(showComment != null) {
-                vm.getSubComments(showComment!!.toLong())
-            }
+        if(showComment.second != null && showComment.first) {
+            vm.getSubComments(showComment.second!!.toLong())
         }
+        onDispose {  }
     }
 
     /**
@@ -692,7 +752,7 @@ fun PosterScreen(
                     onLikePoster = vm::likePoster,
                     onLikeComment = vm::likeComment,
                     onEditComment = vm::editComment,
-                    onShowMoreComments = { vm.setShowMoreState(it.id.toLong()) },
+                    onShowMoreComments = { vm.setShowMoreState(true, it.id.toLong()) },
                     onUploadImage = { imagePickerLauncherForPoster.launch(intent) },
                     onSendCommentToPoster = {
                         needShowSnackbarForCommentToPoster = true
@@ -709,32 +769,52 @@ fun PosterScreen(
                     onOpenDeleteImageOfPosterDialog = { deleteImageOfPosterDialogState = it }
                 )
 
-                if(showComment != null) {
-
-                    val commentId = showComment!!
-                    val comment = vm.findCommentById(commentId)!!
-
-                    MoreCommentsSheet(
-                        mainController = mainController,
-                        comment = comment,
-                        subComments = subComments,
-                        sheetState = rememberModalBottomSheetState(
-                            skipPartiallyExpanded = true
-                        ),
-                        commentLikes = commentLikes,
-                        loading = subCommentsLoadMoreState is LoadMoreState.Loading,
-                        refreshing = subCommentsRefreshState is RefreshState.Loading,
-                        state = rememberLoadableLazyColumnWithoutPullRequestState(
-                            onLoadMore = { vm.loadMoreSubComments(commentId) }
-                        ),
-
-                        onCancel = { vm.setShowMoreState(null) },
-                        onOpenImage = onOpenImage,
-                        onLikeComment = vm::likeComment,
-                        onOpenCommentDialog = vm::setShowCommentDialogState,
-                        onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
-                        onReport = { mainController.navController.navigate("report/comment/${it.id}") },
+                AnimatedVisibility(
+                    visible = showComment.first,
+                    enter = slideIn(
+                        initialOffset = { IntOffset(0, it.height) },
+                        animationSpec = spring(
+                            stiffness = Spring.StiffnessMediumLow,
+                            visibilityThreshold = IntOffset.VisibilityThreshold
+                        )
+                    ),
+                    exit = slideOut(
+                        targetOffset = { IntOffset(0, it.height) },
+                        animationSpec = spring(
+                            stiffness = Spring.StiffnessMediumLow,
+                            visibilityThreshold = IntOffset.VisibilityThreshold
+                        )
                     )
+                ) {
+                    if(showComment.second != null) {
+                        val commentId = showComment.second!!.toLong()
+                        val comment = vm.findCommentById(commentId)!!
+
+                        MoreCommentsSheet(
+                            mainController = mainController,
+                            comment = comment,
+                            subComments = subComments,
+                            commentLikes = commentLikes,
+                            loading = subCommentsLoadMoreState is LoadMoreState.Loading,
+                            refreshing = subCommentsRefreshState is RefreshState.Loading,
+                            state = rememberLoadableLazyColumnWithoutPullRequestState(
+                                onLoadMore = { vm.loadMoreSubComments(commentId) }
+                            ),
+
+                            onCancel = { vm.setShowMoreState(false, null) },
+                            onOpenImage = onOpenImage,
+                            onLikeComment = vm::likeComment,
+                            onOpenCommentDialog = vm::setShowCommentDialogState,
+                            onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
+                            onReport = { mainController.navController.navigate("report/comment/${it.id}") },
+                        )
+                    } else {
+                        Surface(modifier = Modifier.fillMaxSize()) {}
+                    }
+                }
+
+                BackHandler(showComment.first) {
+                    vm.setShowMoreState(false, null)
                 }
 
                 if(sendCommentDialogState != null) {
@@ -748,6 +828,7 @@ fun PosterScreen(
                     )
 
                     SendCommentDialog(
+                        mainController = mainController,
                         replyUser = subComment.user,
                         commentEditData = commentEditDataForComment,
                         sending = false,

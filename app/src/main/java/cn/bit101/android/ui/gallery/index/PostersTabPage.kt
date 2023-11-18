@@ -1,6 +1,9 @@
 package cn.bit101.android.ui.gallery.index
 
 import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -25,6 +28,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -117,22 +123,29 @@ fun PostersTabPage(
                 .align(Alignment.BottomEnd)
                 .padding(10.dp, 20.dp)
         ) {
-            SmallFloatingActionButton(
-                modifier = Modifier
-                    .size(fabSize),
-                onClick = {
-                    scope.launch {
-                        state.lazyListState.animateScrollToItem(0, 0)
-                    }
-                },
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                contentColor = MaterialTheme.colorScheme.primary,
-                elevation = FloatingActionButtonDefaults.elevation(0.dp),
+            val show by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex > 1 } }
+            AnimatedVisibility(
+                visible = show,
+                enter = fadeIn(),
+                exit = fadeOut()
             ) {
-                Icon(
-                    imageVector = Icons.Rounded.ArrowUpward,
-                    contentDescription = "回到顶部"
-                )
+                SmallFloatingActionButton(
+                    modifier = Modifier
+                        .size(fabSize),
+                    onClick = {
+                        scope.launch {
+                            state.lazyListState.animateScrollToItem(0, 0)
+                        }
+                    },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowUpward,
+                        contentDescription = "回到顶部"
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(10.dp))

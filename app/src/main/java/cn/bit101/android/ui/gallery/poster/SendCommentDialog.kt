@@ -11,9 +11,14 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.gallery.component.AnnotatedText
 import cn.bit101.android.ui.gallery.component.CommentEditContent
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
@@ -22,6 +27,7 @@ import cn.bit101.api.model.common.User
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SendCommentDialog(
+    mainController: MainController,
     replyUser: User,
     commentEditData: CommentEditData,
     sending: Boolean,
@@ -40,7 +46,25 @@ fun SendCommentDialog(
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = "回复给@" + replyUser.nickname + "："
+                    text = buildAnnotatedString {
+                        withStyle(
+                            style = MaterialTheme.typography.bodyLarge.toSpanStyle(),
+                        ) {
+                            append("回复给")
+                        }
+                        withStyle(
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.tertiary
+                            ).toSpanStyle(),
+                        ) {
+                            append(" @" + replyUser.nickname + " ")
+                        }
+                        withStyle(
+                            style = MaterialTheme.typography.bodyLarge.toSpanStyle(),
+                        ) {
+                            append("：")
+                        }
+                    }
                 )
                 Spacer(modifier = Modifier.padding(6.dp))
                 CommentEditContent(

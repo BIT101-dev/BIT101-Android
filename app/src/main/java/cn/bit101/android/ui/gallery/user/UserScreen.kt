@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.ClickableText
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -37,11 +38,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -57,10 +58,10 @@ import cn.bit101.android.ui.component.rememberLoadableLazyColumnWithoutPullReque
 import cn.bit101.android.ui.gallery.common.LoadMoreState
 import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.android.ui.gallery.common.SimpleState
+import cn.bit101.android.ui.gallery.component.AnnotatedText
 import cn.bit101.android.ui.gallery.component.PosterCard
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Image
-import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 import kotlinx.coroutines.launch
@@ -68,7 +69,8 @@ import java.net.URLEncoder
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun UserScreenPage(
+fun UserScreenContent(
+    mainController: MainController,
     id: Long?,
     data: GetUserInfoDataModel.Response,
     posters: List<GetPostersDataModel.ResponseItem>,
@@ -85,6 +87,8 @@ fun UserScreenPage(
     onOpenFollowerDialog: () -> Unit,
     onOpenFollowingDialog: () -> Unit,
 ) {
+    val cm = LocalClipboardManager.current
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -176,12 +180,13 @@ fun UserScreenPage(
             }
 
             item("nickname") {
-                Text(
+                ClickableText(
                     modifier = Modifier.align(Alignment.CenterStart),
                     text = buildAnnotatedString {
                         withStyle(
                             style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
                             ).toSpanStyle()
                         ) {
                             append(data.user.nickname)
@@ -199,6 +204,9 @@ fun UserScreenPage(
                             append(" ${data.user.identity.text}")
                         }
                     },
+                    onClick = {
+                        mainController.copyText(cm, buildAnnotatedString{ append(data.user.nickname) })
+                    }
                 )
             }
 
@@ -210,9 +218,14 @@ fun UserScreenPage(
                 val time = DateTimeUtils.formatTime(data.user.createTime)
                 val timeStr = DateTimeUtils.format(time)
                 FlowRow {
-                    Text(
-                        text = "UID: ${data.user.id} | 创建于${timeStr}",
-                        style = MaterialTheme.typography.labelSmall
+                    ClickableText(
+                        text = buildAnnotatedString { append("UID: ${data.user.id} | 创建于${timeStr}") },
+                        onClick = {
+                            mainController.copyText(cm, buildAnnotatedString{ append("${data.user.id}") })
+                        },
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                     )
                 }
             }
@@ -222,10 +235,15 @@ fun UserScreenPage(
             }
 
             item("motto") {
-                Text(
-                    text = data.user.motto,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                SelectionContainer {
+                    AnnotatedText(
+                        mainController = mainController,
+                        text = data.user.motto,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    )
+                }
             }
 
             item(3) {
@@ -427,7 +445,8 @@ fun UserScreen(
         is SimpleDataState.Success -> {
             val data = (getUserInfoState as SimpleDataState.Success).data
 
-            UserScreenPage(
+            UserScreenContent(
+                mainController = mainController,
                 id = id,
                 data = data,
                 posters = posters,

@@ -135,7 +135,7 @@ fun PosterCard(
             if(data.text.isNotEmpty()) {
                 Text(
                     text = data.text,
-                    maxLines = 4,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium
                 )
@@ -148,6 +148,7 @@ fun PosterCard(
                     images = data.images,
                     maxCount = 4,
                     onClick = onOpenImage,
+                    size = 100.dp,
                 )
             }
 

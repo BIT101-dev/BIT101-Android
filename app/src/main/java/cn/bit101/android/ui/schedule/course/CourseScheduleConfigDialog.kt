@@ -1,6 +1,7 @@
 package cn.bit101.android.ui.schedule.course
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +25,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,6 +40,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -116,103 +119,101 @@ fun CourseScheduleConfigDialog(
         onDispose {}
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp, 10.dp, 10.dp, 0.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "课表设置", style = MaterialTheme.typography.titleLarge)
-            IconButton(onClick = { onDismiss() }) {
-                Icon(
-                    imageVector = Icons.Rounded.Close,
-                    contentDescription = "close config dialog",
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp, 10.dp, 10.dp, 0.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "课表设置", style = MaterialTheme.typography.titleLarge)
+                IconButton(onClick = { onDismiss() }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "close config dialog",
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            ConfigColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 10.dp),
+                items = listOf(
+                    ConfigItem.Button(
+                        title = "切换学期",
+                        content = term,
+                        onClick = {
+                            showTermListDialog.value = true
+                        }
+                    ),
+                    ConfigItem.Button(
+                        title = "刷新课表",
+                        content = if (coursesRefreshing) "刷新中..." else "点击重新拉取课表",
+                        onClick = onForceRefreshCourses
+                    ),
+                    ConfigItem.Switch(
+                        title = "显示周六",
+                        checked = settingData.showSaturday,
+                        onCheckedChange = { onSetSetting(settingData.copy(showSaturday = it)) }
+                    ),
+                    ConfigItem.Switch(
+                        title = "显示周日",
+                        checked = settingData.showSunday,
+                        onCheckedChange = { onSetSetting(settingData.copy(showSunday = it)) }
+                    ),
+                    ConfigItem.Switch(
+                        title = "显示边框",
+                        checked = settingData.showBorder,
+                        onCheckedChange = { onSetSetting(settingData.copy(showBorder = it)) }
+                    ),
+                    ConfigItem.Switch(
+                        title = "高亮今日",
+                        checked = settingData.showHighlightToday,
+                        onCheckedChange = { onSetSetting(settingData.copy(showHighlightToday = it)) }
+                    ),
+                    ConfigItem.Switch(
+                        title = "显示节次分割线",
+                        checked = settingData.showDivider,
+                        onCheckedChange = { onSetSetting(settingData.copy(showDivider = it)) }
+                    ),
+                    ConfigItem.Switch(
+                        title = "显示当前时间线",
+                        checked = settingData.showCurrentTime,
+                        onCheckedChange = { onSetSetting(settingData.copy(showCurrentTime = it)) }
+                    ),
+                    ConfigItem.Button(
+                        title = "设置时间表",
+                        content = "点击设置节次及时间",
+                        onClick = { showTimeTableDialog.value = true }
+                    ),
+                ))
+
+            if (showTermListDialog.value) {
+                TermListDialog(
+                    term = term,
+                    getTermListState = getTermListState,
+
+                    onRefreshTermList = onRefreshTermList,
+                    onChangeTerm = onChangeTerm,
+                    onDismiss = { showTermListDialog.value = false }
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(10.dp))
+            if (showTimeTableDialog.value) {
+                TimeTableDialog(
+                    timeTableStr = timeTableStr,
+                    errorMessage = setTimeTableError,
 
-        ConfigColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 10.dp),
-            items = listOf(
-                ConfigItem.Button(
-                    title = "切换学期",
-                    content = term,
-                    onClick = {
-                        showTermListDialog.value = true
-                    }
-                ),
-                ConfigItem.Button(
-                    title = "刷新课表",
-                    content = if (coursesRefreshing) "刷新中..." else "点击重新拉取课表",
-                    onClick = onForceRefreshCourses
-                ),
-                ConfigItem.Switch(
-                    title = "显示周六",
-                    checked = settingData.showSaturday,
-                    onCheckedChange = { onSetSetting(settingData.copy(showSaturday = it)) }
-                ),
-                ConfigItem.Switch(
-                    title = "显示周日",
-                    checked = settingData.showSunday,
-                    onCheckedChange = { onSetSetting(settingData.copy(showSunday = it)) }
-                ),
-                ConfigItem.Switch(
-                    title = "显示边框",
-                    checked = settingData.showBorder,
-                    onCheckedChange = { onSetSetting(settingData.copy(showBorder = it)) }
-                ),
-                ConfigItem.Switch(
-                    title = "高亮今日",
-                    checked = settingData.showHighlightToday,
-                    onCheckedChange = { onSetSetting(settingData.copy(showHighlightToday = it)) }
-                ),
-                ConfigItem.Switch(
-                    title = "显示节次分割线",
-                    checked = settingData.showDivider,
-                    onCheckedChange = { onSetSetting(settingData.copy(showDivider = it)) }
-                ),
-                ConfigItem.Switch(
-                    title = "显示当前时间线",
-                    checked = settingData.showCurrentTime,
-                    onCheckedChange = { onSetSetting(settingData.copy(showCurrentTime = it)) }
-                ),
-                ConfigItem.Button(
-                    title = "设置时间表",
-                    content = "点击设置节次及时间",
-                    onClick = { showTimeTableDialog.value = true }
-                ),
-            ))
-
-        if (showTermListDialog.value) {
-            TermListDialog(
-                term = term,
-                getTermListState = getTermListState,
-
-                onRefreshTermList = onRefreshTermList,
-                onChangeTerm = onChangeTerm,
-                onDismiss = { showTermListDialog.value = false }
-            )
-        }
-
-        if (showTimeTableDialog.value) {
-            TimeTableDialog(
-                timeTableStr = timeTableStr,
-                errorMessage = setTimeTableError,
-
-                onSetTimeTable = onSetTimeTableStr,
-                onDismiss = { showTimeTableDialog.value = false },
-            )
+                    onSetTimeTable = onSetTimeTableStr,
+                    onDismiss = { showTimeTableDialog.value = false },
+                )
+            }
         }
     }
 }

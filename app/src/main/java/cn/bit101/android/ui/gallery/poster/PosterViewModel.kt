@@ -63,7 +63,7 @@ class PosterViewModel @Inject constructor(
     private val _commentForCommentEditDataMapFlow = MutableStateFlow<Map<Pair<Int, Int>, CommentEditData?>>(emptyMap())
     val commentForCommentEditDataMapFlow = _commentForCommentEditDataMapFlow.asStateFlow()
 
-    private val _showMoreStateFlow = MutableStateFlow<Long?>(null)
+    private val _showMoreStateFlow = MutableStateFlow<Pair<Boolean, Long?>>(Pair(false, null))
     val showMoreStateFlow = _showMoreStateFlow.asStateFlow()
 
     private val _commentLikeStatesFlow = MutableStateFlow<Set<Long>>(emptySet())
@@ -139,8 +139,10 @@ class PosterViewModel @Inject constructor(
     /**
      * 设置显示更多评论的状态
      */
-    fun setShowMoreState(id: Long?) {
-        _showMoreStateFlow.value = id
+    fun setShowMoreState(show: Boolean, id: Long?) {
+        val lastValue = showMoreStateFlow.value
+        _showMoreStateFlow.value = if(id == null) lastValue.copy(first = show)
+        else lastValue.copy(first = show, second = id)
     }
 
     /**

@@ -3,6 +3,8 @@ package cn.bit101.android.ui.gallery
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
@@ -35,7 +37,7 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun GalleryScreen(
     mainController: MainController,

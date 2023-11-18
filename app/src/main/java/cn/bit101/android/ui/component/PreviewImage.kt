@@ -1,6 +1,7 @@
 package cn.bit101.android.ui.component
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -43,6 +44,7 @@ fun PreviewImages(
     modifier: Modifier = Modifier,
     images: List<Image>,
     maxCount: Int? = null,
+    size: Dp = 150.dp,
 
     onClick: (Image) -> Unit = {},
 ) {
@@ -53,7 +55,12 @@ fun PreviewImages(
         images.forEachIndexed { index, image ->
             if(maxCount == null || index < maxCount) {
                 item(index) {
-                    PreviewImage(image, onClick)
+                    PreviewImage(
+                        image = image,
+                        onClick = onClick,
+                        size = size,
+                    )
+                    Spacer(modifier = Modifier.padding(2.dp))
                 }
             } else if(index > maxCount) {
                 return@forEachIndexed

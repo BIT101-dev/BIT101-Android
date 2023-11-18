@@ -1,23 +1,38 @@
 package cn.bit101.android.ui.gallery.poster
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.ModalBottomSheetProperties
 import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.SecureFlagPolicy
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
@@ -115,13 +130,12 @@ fun MoreCommentsSheetContent(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreCommentsSheet(
     mainController: MainController,
     comment: Comment,
     subComments: List<Comment>,
-    sheetState: SheetState,
+//    sheetState: SheetState,
     commentLikes: Set<Long>,
     loading: Boolean,
     refreshing: Boolean,
@@ -138,26 +152,70 @@ fun MoreCommentsSheet(
     onReport: (Comment) -> Unit,
     onOpenDeleteCommentDialog: (Comment) -> Unit,
 ) {
-    ModalBottomSheet(
-        modifier = Modifier
-            .nestedScroll(rememberNestedScrollInteropConnection()),
-        onDismissRequest = onCancel,
-        sheetState = sheetState,
-    ) {
-        MoreCommentsSheetContent(
-            mainController = mainController,
-            comment = comment,
-            subComments = subComments,
-            commentLikes = commentLikes,
-            loading = loading,
-            refreshing = refreshing,
-            state = state,
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Spacer(modifier = Modifier.padding(4.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "更多回复", style = MaterialTheme.typography.titleLarge)
+                IconButton(onClick = onCancel) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "close config dialog",
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.padding(4.dp))
 
-            onLikeComment = onLikeComment,
-            onOpenCommentDialog = onOpenCommentDialog,
-            onOpenImage = onOpenImage,
-            onReport = onReport,
-            onOpenDeleteCommentDialog = onOpenDeleteCommentDialog,
-        )
+            MoreCommentsSheetContent(
+                mainController = mainController,
+                comment = comment,
+                subComments = subComments,
+                commentLikes = commentLikes,
+                loading = loading,
+                refreshing = refreshing,
+                state = state,
+
+                onLikeComment = onLikeComment,
+                onOpenCommentDialog = onOpenCommentDialog,
+                onOpenImage = onOpenImage,
+                onReport = onReport,
+                onOpenDeleteCommentDialog = onOpenDeleteCommentDialog,
+            )
+        }
     }
+
+
+//    ModalBottomSheet(
+//        modifier = Modifier
+//            .nestedScroll(rememberNestedScrollInteropConnection()),
+//        onDismissRequest = onCancel,
+//        sheetState = sheetState,
+//        properties = ModalBottomSheetProperties(
+//            securePolicy = SecureFlagPolicy.Inherit,
+//            isFocusable = true,
+//            shouldDismissOnBackPress = true
+//        ),
+//    ) {
+//        MoreCommentsSheetContent(
+//            mainController = mainController,
+//            comment = comment,
+//            subComments = subComments,
+//            commentLikes = commentLikes,
+//            loading = loading,
+//            refreshing = refreshing,
+//            state = state,
+//
+//            onLikeComment = onLikeComment,
+//            onOpenCommentDialog = onOpenCommentDialog,
+//            onOpenImage = onOpenImage,
+//            onReport = onReport,
+//            onOpenDeleteCommentDialog = onOpenDeleteCommentDialog,
+//        )
+//    }
 }

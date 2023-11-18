@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -48,6 +49,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -251,105 +253,103 @@ fun DDLScheduleConfigDialog(
     vm: DDLScheduleViewModel,
     onDismiss: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp, 10.dp, 10.dp, 0.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(text = "DDL设置", style = MaterialTheme.typography.titleLarge)
-            IconButton(onClick = { onDismiss() }) {
-                Icon(
-                    imageVector = Icons.Rounded.Close,
-                    contentDescription = "close config dialog",
-                )
+    Surface(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp, 10.dp, 10.dp, 0.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "DDL设置", style = MaterialTheme.typography.titleLarge)
+                IconButton(onClick = { onDismiss() }) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = "close config dialog",
+                    )
+                }
             }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            val showInputNumberDialog = remember { mutableStateOf(false) }
+            val inputNumberDialogTitle = remember { mutableStateOf("") }
+            val inputNumberDialogText = remember { mutableStateOf("") }
+            val inputNumberDialogValue = remember { mutableStateOf(0) }
+            val inputNumberDialogOnChange = remember { mutableStateOf({ _: Int -> }) }
+            var refreshing by remember { mutableStateOf(false) }
+            ConfigColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 10.dp),
+                items = listOf(
+                    ConfigItem.Button(
+                        title = "刷新",
+                        content = if (refreshing) "刷新中..." else "点击拉取乐学日程",
+                        onClick = {
+                            MainScope().launch {
+                                if (!refreshing) {
+                                    refreshing = true
+                                    if (vm.updateLexueCalendar()) mainController.snackbar("刷新成功OvO")
+                                    else mainController.snackbar("刷新失败Orz")
+                                    refreshing = false
+                                }
+                            }
+                        }
+                    ),
+                    ConfigItem.Button(
+                        title = "设置变色天数",
+                        content = "临近日程会改变颜色",
+                        onClick = {
+                            inputNumberDialogTitle.value = "设置变色天数"
+                            inputNumberDialogText.value = "距离DDL多少天时开始改变颜色"
+                            inputNumberDialogValue.value = vm.beforeDay
+                            inputNumberDialogOnChange.value = {
+                                vm.setBeforeDay(it.toLong())
+                            }
+                            showInputNumberDialog.value = true
+                        }
+                    ),
+                    ConfigItem.Button(
+                        title = "设置滞留天数",
+                        content = "过期日程会继续显示",
+                        onClick = {
+                            inputNumberDialogTitle.value = "设置滞留天数"
+                            inputNumberDialogText.value = "过期日程继续显示多少天"
+                            inputNumberDialogValue.value = vm.afterDay
+                            inputNumberDialogOnChange.value = {
+                                vm.setAfterDay(it.toLong())
+                            }
+                            showInputNumberDialog.value = true
+                        }
+                    ),
+                    ConfigItem.Button(
+                        title = "获取订阅链接",
+                        content = if (refreshing) "获取中..." else "重新获取日程订阅链接",
+                        onClick = {
+                            MainScope().launch {
+                                if (!refreshing) {
+                                    refreshing = true
+                                    if (vm.updateLexueCalendarUrl()) mainController.snackbar("获取成功OvO")
+                                    else mainController.snackbar("获取失败Orz")
+                                    refreshing = false
+                                }
+                            }
+                        }
+                    ),
+                ))
+
+            if (showInputNumberDialog.value) InputNumberDialog(
+                mainController = mainController,
+                title = inputNumberDialogTitle.value,
+                text = inputNumberDialogText.value,
+                initValue = inputNumberDialogValue.value,
+                onChange = inputNumberDialogOnChange.value,
+                showDialog = showInputNumberDialog
+            )
         }
-
-        Spacer(modifier = Modifier.height(10.dp))
-
-        val showInputNumberDialog = remember { mutableStateOf(false) }
-        val inputNumberDialogTitle = remember { mutableStateOf("") }
-        val inputNumberDialogText = remember { mutableStateOf("") }
-        val inputNumberDialogValue = remember { mutableStateOf(0) }
-        val inputNumberDialogOnChange = remember { mutableStateOf({ _: Int -> }) }
-        var refreshing by remember { mutableStateOf(false) }
-        ConfigColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .padding(horizontal = 10.dp),
-            items = listOf(
-                ConfigItem.Button(
-                    title = "刷新",
-                    content = if (refreshing) "刷新中..." else "点击拉取乐学日程",
-                    onClick = {
-                        MainScope().launch {
-                            if (!refreshing) {
-                                refreshing = true
-                                if (vm.updateLexueCalendar()) mainController.snackbar("刷新成功OvO")
-                                else mainController.snackbar("刷新失败Orz")
-                                refreshing = false
-                            }
-                        }
-                    }
-                ),
-                ConfigItem.Button(
-                    title = "设置变色天数",
-                    content = "临近日程会改变颜色",
-                    onClick = {
-                        inputNumberDialogTitle.value = "设置变色天数"
-                        inputNumberDialogText.value = "距离DDL多少天时开始改变颜色"
-                        inputNumberDialogValue.value = vm.beforeDay
-                        inputNumberDialogOnChange.value = {
-                            vm.setBeforeDay(it.toLong())
-                        }
-                        showInputNumberDialog.value = true
-                    }
-                ),
-                ConfigItem.Button(
-                    title = "设置滞留天数",
-                    content = "过期日程会继续显示",
-                    onClick = {
-                        inputNumberDialogTitle.value = "设置滞留天数"
-                        inputNumberDialogText.value = "过期日程继续显示多少天"
-                        inputNumberDialogValue.value = vm.afterDay
-                        inputNumberDialogOnChange.value = {
-                            vm.setAfterDay(it.toLong())
-                        }
-                        showInputNumberDialog.value = true
-                    }
-                ),
-                ConfigItem.Button(
-                    title = "获取订阅链接",
-                    content = if (refreshing) "获取中..." else "重新获取日程订阅链接",
-                    onClick = {
-                        MainScope().launch {
-                            if (!refreshing) {
-                                refreshing = true
-                                if (vm.updateLexueCalendarUrl()) mainController.snackbar("获取成功OvO")
-                                else mainController.snackbar("获取失败Orz")
-                                refreshing = false
-                            }
-                        }
-                    }
-                ),
-            ))
-
-        if (showInputNumberDialog.value) InputNumberDialog(
-            mainController = mainController,
-            title = inputNumberDialogTitle.value,
-            text = inputNumberDialogText.value,
-            initValue = inputNumberDialogValue.value,
-            onChange = inputNumberDialogOnChange.value,
-            showDialog = showInputNumberDialog
-        )
     }
 }
 
