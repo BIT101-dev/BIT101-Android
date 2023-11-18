@@ -2,6 +2,7 @@ package cn.bit101.android.ui.gallery.image
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.view.WindowMetrics
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -39,10 +40,13 @@ import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalAutofill
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.platform.LocalViewConfiguration
 import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
@@ -52,8 +56,18 @@ import coil.compose.rememberAsyncImagePainter
 @Composable
 fun ImageScreen(url: String) {
 
+    val viewWidth = LocalView.current.width
+    val viewHeight = LocalView.current.height
+
+    var size by remember { mutableStateOf(IntSize(viewWidth, viewHeight)) }
+
     SubcomposeAsyncImage(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .onGloballyPositioned {
+                // 获取组件的长和宽
+                size = it.size
+            },
         model = url,
         contentDescription = "image",
         contentScale = ContentScale.FillBounds,
@@ -96,30 +110,46 @@ fun ImageScreen(url: String) {
             var scale by remember { mutableFloatStateOf(1.0f) }
             var offset by remember { mutableStateOf(Offset(0f, 0f)) }
 
+            // 显示区域的长和宽
+            val showWidth = size.width
+            val showHeight = size.height
+
+            // 图片的初始显示倍数
+            val initScale = minOf(showWidth / width, showHeight / height)
+
+            // 最大的显示倍数
+            val maxScale = 5 / initScale
+
             val scaleState = rememberTransformableState(
                 onTransformation = { zoomChange, offsetChange, _ ->
 
-                    val canMulti = (scale * zoomChange >= 1.0f) && (scale * zoomChange <= 10.0f)
+                    // 以屏幕中心为中心进行缩放
+                    if(scale * zoomChange in 1.0f..maxScale) {
+                        scale *= zoomChange
 
-                    scale = (scale * zoomChange).coerceIn(
-                        1.0f,
-                        10.0f
+                        offset = Offset(
+                            x = offset.x * zoomChange,
+                            y = offset.y * zoomChange,
+                        )
+                    }
+
+                    // 移动
+                    offset = Offset(
+                        x = offset.x + offsetChange.x,
+                        y = offset.y + offsetChange.y
                     )
 
-                    // 以屏幕中心为中心进行缩放，移动到对应位置
-                    // 保证不会移动到图片外部
-                    offset = if (scale > 1) {
-                        Offset(
-                            x = (offset.x * if(canMulti) zoomChange else 1.0f + offsetChange.x).coerceIn(
-                                -width * scale / 2,
-                                width * scale / 2
-                            ),
-                            y = (offset.y * if(canMulti) zoomChange else 1.0f + offsetChange.y).coerceIn(
-                                -height * scale / 2,
-                                height * scale / 2
-                            )
+                    // 限制移动范围，屏幕中心部分必须在图片内
+                    offset = if(scale > 1.01f) Offset(
+                        x = offset.x.coerceIn(
+                            -width * initScale * scale / 2,
+                            width * initScale * scale / 2
+                        ),
+                        y = offset.y.coerceIn(
+                            -height * initScale * scale / 2,
+                            height * initScale * scale / 2
                         )
-                    } else Offset(0f, 0f)
+                    ) else Offset(0f, 0f)
                 }
             )
             Image(

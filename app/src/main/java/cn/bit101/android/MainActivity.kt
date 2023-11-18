@@ -62,15 +62,6 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // 打开文件选择窗口
-        App.activityResultLauncher =
-            registerForActivityResult(ActivityResultContracts.GetMultipleContents()) {
-                MainScope().launch {
-                    // 发送文件选择结果
-                    App.activityResult.emit(it)
-                }
-            }
-
         // 设置屏幕旋转
         MainScope().launch {
             SettingDataStore.settingRotate.flow.collect {

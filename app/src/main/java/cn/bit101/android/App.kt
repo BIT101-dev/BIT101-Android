@@ -23,20 +23,11 @@ import javax.inject.Inject
  */
 @HiltAndroidApp
 class App : Application() {
-
-//    @Inject lateinit var database: BIT101Database
-
     companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
 
         val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
-
-
-        // 用于WebView上传文件
-        lateinit var activityResultLauncher: ActivityResultLauncher<String>
-        val activityResult = MutableStateFlow(listOf(Uri.EMPTY))
-
     }
 
     override fun onCreate() {
@@ -52,10 +43,5 @@ class App : Application() {
             UMConfigure.DEVICE_TYPE_PHONE,
             ""
         )
-    }
-
-    override fun onTerminate() {
-        super.onTerminate()
-//        database.close()
     }
 }

@@ -64,11 +64,6 @@ import kotlin.math.roundToInt
  * _(:з」∠)_
  */
 
-// 45 分钟一节课，小课间5分钟休息，大课间20分钟，上午2节+3节（8:00开始），下午2节+3节（13:20开始），晚上3节（18:30）开始
-private val courseTimes = arrayOf(
-    "8:00", "8:50", "9:55", "10:45", "11:35", "13:20", "14:10", "15:15", "16:05", "16:55", "18:30", "19:20", "20:10"
-)
-
 @Composable
 fun CourseScheduleCalendar(
     courses: List<List<CourseScheduleEntity>>,
@@ -85,6 +80,8 @@ fun CourseScheduleCalendar(
      * 一天的节数
      */
     val courseNumOfDay = timeTable.size
+
+    val courseTimes = timeTable.map { it.startTime.format(DateTimeFormatter.ofPattern("HH:mm")) }
 
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
     Box(

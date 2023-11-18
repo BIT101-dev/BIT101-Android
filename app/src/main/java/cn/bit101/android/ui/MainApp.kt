@@ -217,7 +217,7 @@ fun MainApp(
                 }
                 composable("bit101-web") {
                     Box(modifier = modifier(it)) {
-                        WebScreen()
+                        WebScreen(mainController)
                     }
                 }
                 composable("gallery") {
