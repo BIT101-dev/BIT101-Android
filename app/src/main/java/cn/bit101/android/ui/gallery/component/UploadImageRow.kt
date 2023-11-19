@@ -32,13 +32,35 @@ import cn.bit101.android.ui.gallery.common.UploadImageState
 import cn.bit101.api.model.common.Image
 import coil.compose.AsyncImage
 
+/**
+ * 上传图片的部分
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UploadImageRow(
+    /**
+     * 最大图片数量
+     */
     maxImages: Int = 100,
+
+    /**
+     * 图片列表
+     */
     images: List<Pair<ImageData, UploadImageState>>,
+
+    /**
+     * 上传图片
+     */
     onUploadImage: () -> Unit,
+
+    /**
+     * 打开图片
+     */
     onOpenImage: (Image) -> Unit,
+
+    /**
+     * 打开删除图片的对话框
+     */
     onOpenDeleteDialog: (Int) -> Unit,
 ) {
     LazyRow(

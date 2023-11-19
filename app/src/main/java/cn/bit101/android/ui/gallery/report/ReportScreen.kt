@@ -235,7 +235,7 @@ fun ReportScreen(
             mainController.snackbar("举报成功")
             vm.stateLiveData.value = null
         } else {
-            if (state is SimpleState.Error) {
+            if (state is SimpleState.Fail) {
                 mainController.snackbar("举报失败（Tips: 不要举报自己哦！）")
                 vm.stateLiveData.value = null
             }
@@ -292,13 +292,13 @@ fun ReportScreen(
                         when(objType) {
                             ObjTypes.POSTER -> vm.reportPoster(id, reportType.id.toLong(), text)
                             ObjTypes.COMMENT -> vm.reportComment(id, reportType.id.toLong(), text)
-                            else -> { vm.stateLiveData.value = SimpleState.Error }
+                            else -> { vm.stateLiveData.value = SimpleState.Fail }
                         }
                     },
                 )
             }
         }
-        is SimpleDataState.Error -> {
+        is SimpleDataState.Fail -> {
 
         }
     }

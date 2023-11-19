@@ -52,6 +52,7 @@ import coil.compose.SubcomposeAsyncImage
 import kotlin.math.sqrt
 
 
+// 这里传入scale和offset可能会有性能问题
 @Composable
 fun ImageContent(
     url: String,
@@ -176,6 +177,9 @@ fun ImageContent(
     )
 }
 
+/**
+ * 显示一个图片
+ */
 @Composable
 fun ImageScreen(url: String) {
     val ctx = LocalContext.current
@@ -224,6 +228,9 @@ fun ImageScreen(url: String) {
 }
 
 
+/**
+ * 显示图片组
+ */
 @Composable
 fun ImageScreen(
     index: Int,

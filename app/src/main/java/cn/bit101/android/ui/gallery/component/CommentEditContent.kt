@@ -97,14 +97,44 @@ fun CommentEditContentAnonymous(
 
 @Composable
 fun CommentEditContent(
+    /**
+     * TextField最大行数
+     */
     textFieldMaxLines: Int = 1000,
+
+    /**
+     * 评论编辑数据
+     */
     commentEditData: CommentEditData,
+
+    /**
+     * 是否正在发送
+     */
     sending: Boolean,
 
+    /**
+     * 编辑评论
+     */
     onEditComment: (CommentEditData) -> Unit,
+
+    /**
+     * 打开图片
+     */
     onOpenImage: (Image) -> Unit,
+
+    /**
+     * 上传图片
+     */
     onUploadImage: () -> Unit,
+
+    /**
+     * 发送评论
+     */
     onSendComment: (CommentEditData) -> Unit,
+
+    /**
+     * 打开删除图片对话框
+     */
     onOpenDeleteImageDialog: (Int) -> Unit,
 ) {
     Column {

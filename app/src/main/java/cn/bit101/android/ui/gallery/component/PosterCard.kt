@@ -38,14 +38,23 @@ fun PosterCard(
     data: GetPostersDataModel.ResponseItem,
     colors: CardColors = CardDefaults.cardColors(),
 
-    onOpenPoster: (Long) -> Unit,
+    /**
+     * 打开帖子
+     */
+    onOpenPoster: () -> Unit,
+
+    /**
+     * 打开图片组，第一个参数是打开的图片的index，第二个参数是图片列表
+     */
     onOpenImages: (Int, List<Image>) -> Unit,
+
+    /**
+     * 打开用户详情，可以为null，如果为null，那么点击头像没响应，如果不为null，那么点击头像会打开用户详情
+     */
     onOpenUserDetail: ((User?) -> Unit)? = null,
 ) {
     Card(
-        onClick = {
-            onOpenPoster(data.id)
-        },
+        onClick = onOpenPoster,
         modifier = Modifier
             .padding(vertical = 8.dp)
             .fillMaxWidth(),

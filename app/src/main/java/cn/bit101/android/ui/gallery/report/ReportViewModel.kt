@@ -45,7 +45,7 @@ class ReportViewModel @Inject constructor(
                 _loadReportTypeStateFlow.value = SimpleDataState.Success(reportTypes)
             } catch (e: Exception) {
                 e.printStackTrace()
-                _loadReportTypeStateFlow.value = SimpleDataState.Error()
+                _loadReportTypeStateFlow.value = SimpleDataState.Fail()
             }
         }
     }
@@ -59,7 +59,7 @@ class ReportViewModel @Inject constructor(
                 stateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()
-                stateLiveData.postValue(SimpleState.Error)
+                stateLiveData.postValue(SimpleState.Fail)
             }
         }
     }
@@ -72,7 +72,7 @@ class ReportViewModel @Inject constructor(
                 stateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()
-                stateLiveData.postValue(SimpleState.Error)
+                stateLiveData.postValue(SimpleState.Fail)
             }
         }
     }

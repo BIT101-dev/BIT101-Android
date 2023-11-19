@@ -59,6 +59,9 @@ fun getUser(
     }
 }
 
+/**
+ * 带有超链接和回复用户高亮显示的文本
+ */
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalTextApi::class)
 @Composable
 fun AnnotatedText(

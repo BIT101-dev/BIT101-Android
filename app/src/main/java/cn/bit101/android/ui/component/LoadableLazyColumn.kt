@@ -25,6 +25,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.component.pullrefresh.PullRefreshDefaults
@@ -37,6 +39,7 @@ fun LoadableLazyColumnWithoutPullRequest(
     modifier: Modifier = Modifier,
     state: LoadableLazyColumnWithoutPullRequestState,
     loading: Boolean,
+    nestedScrollConnection: NestedScrollConnection? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     reverseLayout: Boolean = false,
     verticalArrangement: Arrangement.Vertical =
@@ -50,11 +53,10 @@ fun LoadableLazyColumnWithoutPullRequest(
     val lazyListState = state.lazyListState
     // 获取 lazyList 布局信息
     val listLayoutInfo by remember { derivedStateOf { lazyListState.layoutInfo } }
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
+    Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = Modifier.fillMaxSize(),
+            modifier = (if(nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier)
+                .fillMaxSize(),
             contentPadding = contentPadding,
             state = state.lazyListState,
             reverseLayout = reverseLayout,
@@ -116,6 +118,7 @@ fun LoadableLazyColumn(
     state: LoadableLazyColumnState,
     refreshing: Boolean,
     loading: Boolean,
+    nestedScrollConnection: NestedScrollConnection? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     reverseLayout: Boolean = false,
     verticalArrangement: Arrangement.Vertical =
@@ -129,12 +132,9 @@ fun LoadableLazyColumn(
     val lazyListState = state.lazyListState
     // 获取 lazyList 布局信息
     val listLayoutInfo by remember { derivedStateOf { lazyListState.layoutInfo } }
-    Box(
-        modifier = modifier.fillMaxSize()
-    ) {
-
+    Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = Modifier
+            modifier = (if(nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier)
                 .fillMaxSize()
                 .pullRefresh(state = state.pullRefreshState),
             contentPadding = contentPadding,

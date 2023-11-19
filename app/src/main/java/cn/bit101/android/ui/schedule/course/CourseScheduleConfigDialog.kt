@@ -1,7 +1,5 @@
 package cn.bit101.android.ui.schedule.course
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +29,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,7 +37,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -50,7 +46,6 @@ import cn.bit101.android.ui.component.ConfigColumn
 import cn.bit101.android.ui.component.ConfigItem
 import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.android.ui.gallery.common.SimpleState
-import kotlinx.coroutines.launch
 
 /**
  * @author flwfdd
@@ -97,7 +92,7 @@ fun CourseScheduleConfigDialog(
             setTimeTableError = ""
             showTimeTableDialog.value = false
             mainController.snackbar("设置成功OvO")
-        } else if(setTimeTableState == SimpleState.Error) {
+        } else if(setTimeTableState == SimpleState.Fail) {
             setTimeTableError = "格式校验失败Orz"
         }
         onDispose {}
@@ -107,7 +102,7 @@ fun CourseScheduleConfigDialog(
     DisposableEffect(changeTermState) {
         if(changeTermState == SimpleState.Success) {
             mainController.snackbar("切换成功OvO")
-        } else if(changeTermState == SimpleState.Error) {
+        } else if(changeTermState == SimpleState.Fail) {
             mainController.snackbar("切换失败Orz")
         }
         onDispose {}
@@ -289,7 +284,7 @@ fun TermListDialog(
                         }
                     }
                 }
-                is SimpleDataState.Error -> {
+                is SimpleDataState.Fail -> {
 
                 }
             }

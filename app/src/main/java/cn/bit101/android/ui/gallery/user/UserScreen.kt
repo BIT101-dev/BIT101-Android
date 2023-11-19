@@ -63,7 +63,6 @@ import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
-import java.net.URLEncoder
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -310,7 +309,7 @@ fun UserScreenContent(
                 item(index + 100) {
                     PosterCard(
                         data = poster,
-                        onOpenPoster = onOpenPoster,
+                        onOpenPoster = { onOpenPoster(poster.id) },
                         onOpenImages = onOpenImages,
                     )
                 }
@@ -348,7 +347,7 @@ fun UserScreen(
         if(followState is SimpleState.Success) {
             vm.followStateMutableLiveData.value = null
             mainController.snackbar("关注/取消关注成功")
-        } else if(followState is SimpleState.Error) {
+        } else if(followState is SimpleState.Fail) {
             vm.followStateMutableLiveData.value = null
             mainController.snackbar("关注/取消关注失败")
         }
@@ -400,7 +399,7 @@ fun UserScreen(
         if(uploadUserInfoState is SimpleState.Success) {
             vm.uploadUserInfoStateLiveData.value = null
             mainController.snackbar("保存成功OvO")
-        } else if(uploadUserInfoState is SimpleState.Error) {
+        } else if(uploadUserInfoState is SimpleState.Fail) {
             vm.uploadUserInfoStateLiveData.value = null
             mainController.snackbar("保存失败Orz")
         }
@@ -512,7 +511,7 @@ fun UserScreen(
             }
 
         }
-        is SimpleDataState.Error -> {
+        is SimpleDataState.Fail -> {
             Box(modifier = Modifier.fillMaxSize()) {
                 Text(
                     modifier = Modifier.align(Alignment.Center),

@@ -10,7 +10,7 @@ import cn.bit101.android.repo.base.UploadRepo
 import cn.bit101.android.repo.base.UserRepo
 import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.gallery.common.StateCombinedUseFlow
+import cn.bit101.android.ui.gallery.common.RefreshAndLoadMoreStatesCombined
 import cn.bit101.android.ui.gallery.common.UploadImageState
 import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
@@ -32,12 +32,12 @@ class UserViewModel @Inject constructor(
     private val _getUserInfoStateFlow = MutableStateFlow<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
     val getUserInfoStateFlow = _getUserInfoStateFlow
 
-    val posterState = StateCombinedUseFlow<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val posterState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
 
     val followStateMutableLiveData = MutableLiveData<SimpleState>(null)
 
-    val followersState = StateCombinedUseFlow<User>(viewModelScope)
-    val followingsState = StateCombinedUseFlow<User>(viewModelScope)
+    val followersState = RefreshAndLoadMoreStatesCombined<User>(viewModelScope)
+    val followingsState = RefreshAndLoadMoreStatesCombined<User>(viewModelScope)
 
     val uploadAvatarState = MutableLiveData<UploadImageState>(null)
 
@@ -55,7 +55,7 @@ class UserViewModel @Inject constructor(
                     _editUserDataFlow.value = it.user
                 }
             }.onFailure {
-                _getUserInfoStateFlow.value = SimpleDataState.Error()
+                _getUserInfoStateFlow.value = SimpleDataState.Fail()
             }
         }
     }
@@ -82,7 +82,7 @@ class UserViewModel @Inject constructor(
                 ))
                 followStateMutableLiveData.postValue(SimpleState.Success)
             }.onFailure {
-                followStateMutableLiveData.postValue(SimpleState.Error)
+                followStateMutableLiveData.postValue(SimpleState.Fail)
             }
         }
     }
@@ -145,7 +145,7 @@ class UserViewModel @Inject constructor(
                 uploadUserInfoStateLiveData.postValue(SimpleState.Success)
             }.onFailure {
                 it.printStackTrace()
-                uploadUserInfoStateLiveData.postValue(SimpleState.Error)
+                uploadUserInfoStateLiveData.postValue(SimpleState.Fail)
             }
         }
     }

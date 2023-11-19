@@ -17,7 +17,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -33,7 +32,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.database.entity.CourseScheduleEntity
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.common.SimpleState
-import kotlinx.coroutines.launch
 
 /**
  * @author flwfdd
@@ -114,7 +112,7 @@ fun CourseSchedule(
     DisposableEffect(forceRefreshCoursesState) {
         if(forceRefreshCoursesState == SimpleState.Success) {
             mainController.snackbar("刷新成功OvO")
-        } else if(forceRefreshCoursesState == SimpleState.Error) {
+        } else if(forceRefreshCoursesState == SimpleState.Fail) {
             mainController.snackbar("刷新失败Orz")
         }
         onDispose {}

@@ -22,11 +22,21 @@ val DEFAULT_LOCAL_URLS = ApiUrlOption(
     schoolLoginUrl = "https://login.bit.edu.cn"
 )
 
+val DEV_URLS = ApiUrlOption(
+    bit101Url = "https://dev.bit101.flwfdd.xyz",
+    jwmsUrl = "http://jwms.bit.edu.cn",
+    jwcUrl = "https://jwc.bit.edu.cn",
+    jxzxehallappUrl = "https://jxzxehallapp.bit.edu.cn",
+    lexueUrl = "https://lexue.bit.edu.cn",
+    androidUrl = "http://android.bit101.cn",
+    schoolLoginUrl = "https://login.bit.edu.cn"
+)
+
 
 val DEFAULT_API_OPTION = ApiOption(
     webVpn = false,
     bit101Client = OkHttpClient(),
     schoolClient = OkHttpClient(),
-    localUrls = DEFAULT_LOCAL_URLS,
-    webVpnUrls = DEFAULT_WEB_VPN_URLS,
+    localUrls = DEV_URLS,
+    webVpnUrls = DEV_URLS,
 )

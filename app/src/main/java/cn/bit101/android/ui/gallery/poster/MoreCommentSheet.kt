@@ -1,64 +1,93 @@
 package cn.bit101.android.ui.gallery.poster
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
-import androidx.compose.material3.SheetState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.ui.window.SecureFlagPolicy
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.gallery.component.CommentCard
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
-import java.net.URLEncoder
 
 
 @Composable
 fun MoreCommentsSheetContent(
     mainController: MainController,
+
+    /**
+     * 主评论
+     */
     comment: Comment,
+
+    /**
+     * 所有子评论
+     */
     subComments: List<Comment>,
-    commentLikes: Set<Long>,
+
+    /**
+     * 所有评论的点赞状态，存储在一个Set中，如果评论的id在Set中，说明正在进行点赞操作
+     */
+    commentLikings: Set<Long>,
+
+    /**
+     * 是否正在*加载更多*评论
+     */
     loading: Boolean,
+
+    /**
+     * 是否正在刷新评论
+     */
     refreshing: Boolean,
+
+    /**
+     * 评论列表的状态，这里依然没有下拉刷新这个操作
+     */
     state: LoadableLazyColumnWithoutPullRequestState,
 
-    onLikeComment: (Long) -> Unit,
     /**
-     * 第一个是主评论，第二个是回复的评论
+     * 点赞评论
+     */
+    onLikeComment: (Long) -> Unit,
+
+    /**
+     * 打开图片组
      */
     onOpenImages: (Int, List<Image>) -> Unit,
+
+    /**
+     * 打开*对评论的评论*的编辑框，第一个是主评论，第二个是回复的评论
+     */
     onOpenCommentDialog: (Comment, Comment) -> Unit,
+
+    /**
+     * 举报评论
+     */
     onReport: (Comment) -> Unit,
+
+    /**
+     * 打开删除评论的对话框
+     */
     onOpenDeleteCommentDialog: (Comment) -> Unit,
 ) {
     Surface(
@@ -77,7 +106,7 @@ fun MoreCommentsSheetContent(
                     comment = comment,
                     onOpenImage = { onOpenImages(it, comment.images) },
                     showSubComments = false,
-                    commentLikes = commentLikes,
+                    commentLikings = commentLikings,
                     onLikeComment = {
                         onLikeComment(comment.id.toLong())
                     },
@@ -114,7 +143,7 @@ fun MoreCommentsSheetContent(
                             comment = sub,
                             onOpenImage = { onOpenImages(it, sub.images) },
                             showSubComments = false,
-                            commentLikes = commentLikes,
+                            commentLikings = commentLikings,
                             onLikeComment = { onLikeComment(sub.id.toLong()) },
                             onClick = { onOpenCommentDialog(comment, sub) },
                             onReport = { onReport(sub) },
@@ -136,7 +165,7 @@ fun MoreCommentsSheet(
     mainController: MainController,
     comment: Comment,
     subComments: List<Comment>,
-    commentLikes: Set<Long>,
+    commentLikings: Set<Long>,
     loading: Boolean,
     refreshing: Boolean,
     state: LoadableLazyColumnWithoutPullRequestState,
@@ -176,7 +205,7 @@ fun MoreCommentsSheet(
                 mainController = mainController,
                 comment = comment,
                 subComments = subComments,
-                commentLikes = commentLikes,
+                commentLikings = commentLikings,
                 loading = loading,
                 refreshing = refreshing,
                 state = state,

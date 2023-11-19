@@ -27,15 +27,47 @@ import cn.bit101.api.model.common.User
 @Composable
 fun SendCommentDialog(
     mainController: MainController,
+
+    /**
+     * 要回复的用户
+     */
     replyUser: User,
+
+    /**
+     * 评论的编辑数据
+     */
     commentEditData: CommentEditData,
+
+    /**
+     * 是否正在发送评论
+     */
     sending: Boolean,
 
+    /**
+     * 编辑评论
+     */
     onEditComment: (CommentEditData) -> Unit,
+
+    /**
+     * 打开图片
+     */
     onOpenImage: (Image) -> Unit,
+
+    /**
+     * 上传图片
+     */
     onUploadImage: () -> Unit,
+
+    /**
+     * 发送评论
+     */
     onSendComment: (CommentEditData) -> Unit,
+
+    /**
+     * 打开删除图片的对话框
+     */
     onOpenDeleteImageDialog: (Int) -> Unit,
+
     onClose: () -> Unit,
 ) {
     AlertDialog(

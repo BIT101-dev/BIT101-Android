@@ -100,7 +100,7 @@ class PostEditViewModel @Inject constructor(
                     _loadPosterFlow.value = SimpleState.Success
                 } catch (e: Exception) {
                     e.printStackTrace()
-                    _loadPosterFlow.value = SimpleState.Error
+                    _loadPosterFlow.value = SimpleState.Fail
                 }
             }
         }

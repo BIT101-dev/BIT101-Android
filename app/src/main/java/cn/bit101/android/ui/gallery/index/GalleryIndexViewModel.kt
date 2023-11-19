@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.PosterRepo
-import cn.bit101.android.ui.gallery.common.StateCombined
+import cn.bit101.android.ui.gallery.common.RefreshAndLoadMoreStatesCombined
 import cn.bit101.api.model.common.PostersOrder
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.toGetPostersDataModelResponseItem
@@ -19,11 +19,11 @@ class GalleryIndexViewModel @Inject constructor(
 
     var initSelectedTabIndex = 2
 
-    val recommendStateCombined = StateCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val hotStateCombined = StateCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val followStateCombined = StateCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val newestStataCombined = StateCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val searchStateCombined = StateCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val recommendStateCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val hotStateCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val followStateCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val newestStataCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val searchStateCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
 
     val queryLiveData = MutableLiveData("")
     val selectOrderLiveData = MutableLiveData(PostersOrder.NEW)

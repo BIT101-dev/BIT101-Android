@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ThumbUp
@@ -53,16 +52,54 @@ import cn.bit101.api.model.common.Comment
 fun CommentCard(
     mainController: MainController,
 
+    /**
+     * 评论
+     */
     comment: Comment,
-    commentLikes: Set<Long>,
+
+    /**
+     * 正在点赞的评论
+     */
+    commentLikings: Set<Long>,
+
+    /**
+     * 是否显示子评论
+     */
     showSubComments: Boolean = true,
+
+    /**
+     * 卡片颜色
+     */
     colors: CardColors = CardDefaults.cardColors(),
 
+    /**
+     * 点赞评论
+     */
     onLikeComment: () -> Unit,
+
+    /**
+     * 打开图片
+     */
     onOpenImage: (Int) -> Unit,
+
+    /**
+     * 点击卡片的操作
+     */
     onClick: () -> Unit,
+
+    /**
+     * 显示更多评论
+     */
     onShowMoreComments: () -> Unit = {},
+
+    /**
+     * 打开删除评论的对话框
+     */
     onOpenDeleteCommentDialog: () -> Unit,
+
+    /**
+     * 举报评论
+     */
     onReport: () -> Unit,
 ) {
     val ctx = LocalContext.current
@@ -121,7 +158,7 @@ fun CommentCard(
                 ) {
                     // 点赞
                     Box {
-                        val liking = commentLikes.contains(comment.id.toLong())
+                        val liking = commentLikings.contains(comment.id.toLong())
                         if(comment.like) {
                             IconButton(
                                 onClick = onLikeComment,

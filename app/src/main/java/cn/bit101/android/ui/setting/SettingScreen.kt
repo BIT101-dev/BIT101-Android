@@ -10,11 +10,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -25,12 +28,15 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -40,6 +46,7 @@ import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.ConfigColumn
 import cn.bit101.android.ui.component.ConfigItem
+import cn.bit101.api.model.common.NameAndValue
 
 @Composable
 fun UserInfoShow(
@@ -134,6 +141,54 @@ fun LicenseDialog(
             }
         },
         properties = DialogProperties(usePlatformDefaultWidth = false)
+    )
+}
+
+@Composable
+fun SelectHomepageDialog(
+    currentHomepage: String,
+    pages: List<NameAndValue<String>>,
+
+    onSelectHomepage: (String) -> Unit,
+    onClose: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text("更改主页") },
+        text = {
+            Column(Modifier.selectableGroup()) {
+                pages.forEach { page ->
+                    Row(
+                        Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.medium)
+                            .selectable(
+                                selected = currentHomepage == page.value,
+                                onClick = { onSelectHomepage(page.value) },
+                                role = Role.RadioButton
+                            )
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = currentHomepage == page.value,
+                            onClick = null
+                        )
+                        Text(
+                            text = page.name,
+                            modifier = Modifier.padding(start = 10.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onClose) {
+                Text("关闭")
+            }
+        },
     )
 }
 
@@ -333,14 +388,16 @@ fun SettingScreen(
     // 首次开屏显示更新提醒
     val showedUpdateDialog = rememberSaveable { mutableStateOf(false) }
 
+    var showSelectHomepageDialog by remember { mutableStateOf(false) }
+
     val homepage by vm.homePageFlow.collectAsState(initial = "schedule")
     val homepages = mutableListOf(
-        "schedule",
-        "map",
-        "bit101-web",
+        NameAndValue("课程表", "schedule"),
+        NameAndValue("地图", "map"),
+        NameAndValue("BIT101", "bit101-web"),
     )
     if(enableGallery) {
-        homepages.add("gallery")
+        homepages.add(NameAndValue("话廊", "gallery"))
     }
 
     if(
@@ -415,10 +472,7 @@ fun SettingScreen(
                         "gallery" -> "话廊"
                         else -> ""
                     },
-                    onClick = {
-                        val idx = homepages.indexOf(homepage)
-                        vm.setHomePage(homepages[(idx + 1) % homepages.size])
-                    }
+                    onClick = { showSelectHomepageDialog = true }
                 ),
                 ConfigItem.Button(
                     title = "检查更新",
@@ -473,6 +527,20 @@ fun SettingScreen(
             AboutDialog(
                 onClose = {
                     showAboutDialog.value = false
+                }
+            )
+        }
+
+        if(showSelectHomepageDialog) {
+            SelectHomepageDialog(
+                currentHomepage = homepage,
+                pages = homepages,
+                onSelectHomepage = {
+                    vm.setHomePage(it)
+                    showSelectHomepageDialog = false
+                },
+                onClose = {
+                    showSelectHomepageDialog = false
                 }
             )
         }

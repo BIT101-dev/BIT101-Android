@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
@@ -35,20 +36,73 @@ import cn.bit101.api.model.http.bit101.GetPostersDataModel
 @Composable
 fun SearchTabPage(
     mainController: MainController,
+    nestedScrollConnection: NestedScrollConnection? = null,
+
+    /**
+     * 查询的文本
+     */
     query: String,
+
+    /**
+     * 上一次执行查询操作的查询文本
+     */
     lastSearchQuery: String,
+
+    /**
+     * 排序
+     * @see PostersOrder
+     */
     selectOrder: String,
+
+    /**
+     * 帖子列表
+     */
     posters: List<GetPostersDataModel.ResponseItem>,
+
+    /**
+     * 帖子列表的状态，这里既有下拉刷新又有上拉到底部加载更多
+     */
     state: LoadableLazyColumnState,
+
+    /**
+     * 搜索的状态（也是下拉刷新的状态）
+     */
     searchState: RefreshState?,
+
+    /**
+     * 加载更多的状态
+     */
     loadState: LoadMoreState?,
 
+    /**
+     * 查询文本改变的回调
+     */
     onQueryChange: (String) -> Unit,
+
+    /**
+     * 排序改变的回调
+     */
     onSelectOrderChange: (String) -> Unit,
+
+    /**
+     * 执行查询的回调
+     */
     onSearch: (String, String, Int) -> Unit,
+
+    /**
+     * 打开图片组
+     */
     onOpenImages: (Int, List<Image>) -> Unit,
+
+    /**
+     * 打开帖子
+     */
     onOpenPoster: (Long) -> Unit,
-    onPost: () -> Unit,
+
+    /**
+     * 打开发帖或者编辑帖子的界面
+     */
+    onOpenPostOrEdit: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
@@ -56,6 +110,7 @@ fun SearchTabPage(
 
     PostersTabPage(
         mainController = mainController,
+        nestedScrollConnection = nestedScrollConnection,
         header = {
             SearchBar(
                 modifier = Modifier
@@ -107,6 +162,6 @@ fun SearchTabPage(
         state = state,
         onOpenImages = onOpenImages,
         onOpenPoster = onOpenPoster,
-        onPost = onPost,
+        onOpenPostOrEdit = onOpenPostOrEdit,
     )
 }

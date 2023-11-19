@@ -28,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.LoadableLazyColumn
@@ -42,18 +43,53 @@ import kotlinx.coroutines.launch
 @Composable
 fun PostersTabPage(
     mainController: MainController,
+    nestedScrollConnection: NestedScrollConnection? = null,
     header: @Composable LazyItemScope.() -> Unit = {},
 
+    /**
+     * 帖子列表
+     */
     posters: List<GetPostersDataModel.ResponseItem>,
+
+    /**
+     * 高亮的帖子id
+     */
     highlightId: Long? = null,
+
+    /**
+     * 帖子列表的状态，这里既有下拉刷新又有上拉到底部加载更多
+     */
     state: LoadableLazyColumnState,
+
+    /**
+     * 下拉刷新的状态
+     */
     refreshState: RefreshState?,
+
+    /**
+     * 加载更多的状态
+     */
     loadState: LoadMoreState?,
 
+    /**
+     * 打开图片组
+     */
     onOpenImages: (Int, List<Image>) -> Unit,
+
+    /**
+     * 打开帖子
+     */
     onOpenPoster: (Long) -> Unit,
+
+    /**
+     * 刷新帖子列表
+     */
     onRefresh: () -> Unit,
-    onPost: () -> Unit,
+
+    /**
+     * 打开发帖或者编辑帖子的界面
+     */
+    onOpenPostOrEdit: () -> Unit,
 ) {
     val scope = rememberCoroutineScope() //供动画调用协程
 
@@ -68,6 +104,7 @@ fun PostersTabPage(
                     .fillMaxSize()
                     .align(Alignment.CenterHorizontally)
                     .padding(horizontal = 16.dp),
+                nestedScrollConnection = nestedScrollConnection,
                 state = state,
                 loading = loadState == LoadMoreState.Loading,
                 refreshing = refreshState == RefreshState.Loading,
@@ -85,7 +122,7 @@ fun PostersTabPage(
                                 disabledContentColor = MaterialTheme.colorScheme.secondaryContainer,
                                 disabledContainerColor = MaterialTheme.colorScheme.secondary,
                             ),
-                            onOpenPoster = onOpenPoster,
+                            onOpenPoster = { onOpenPoster(it.id) },
                             onOpenImages = onOpenImages,
                             onOpenUserDetail = { user ->
                                 user?.let {
@@ -96,7 +133,7 @@ fun PostersTabPage(
                     } else {
                         PosterCard(
                             data = it,
-                            onOpenPoster = onOpenPoster,
+                            onOpenPoster = { onOpenPoster(it.id) },
                             onOpenImages = onOpenImages,
                             onOpenUserDetail = { user ->
                                 user?.let {
@@ -147,7 +184,7 @@ fun PostersTabPage(
             SmallFloatingActionButton(
                 modifier = Modifier
                     .size(fabSize),
-                onClick = onPost,
+                onClick = onOpenPostOrEdit,
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                 contentColor = MaterialTheme.colorScheme.primary,
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),

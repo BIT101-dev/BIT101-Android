@@ -36,7 +36,6 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Comment
-import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Error
@@ -49,11 +48,11 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -98,36 +97,120 @@ import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
 import kotlinx.coroutines.launch
-import java.net.URLEncoder
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PosterContent(
     mainController: MainController,
 
+    /**
+     * 是否正在加载评论
+     */
     loading: Boolean,
+
+    /**
+     * 所有的评论
+     */
     comments: List<Comment>,
+
+    /**
+     * 评论区的加载状态，这里只有加载更多和，没有下拉刷新
+     */
     state: LoadableLazyColumnWithoutPullRequestState,
-    commentLikes: Set<Long>,
-    posterLikes: Set<Long>,
+
+    /**
+     * 正在进行点赞操作的评论的ID，存储在一个Set中，如果评论的id在Set中，说明正在进行点赞操作，正在点赞的需要转圈圈
+     */
+    commentLikings: Set<Long>,
+
+    /**
+     * 正在进行点赞操作的帖子的ID，存储在一个Set中，如果评论的id在Set中，说明正在进行点赞操作，正在点赞的需要转圈圈
+     */
+    posterLiking: Boolean,
+
+    /**
+     * 帖子的数据
+     */
     data: GetPosterDataModel.Response,
+
+    /**
+     * *对帖子的评论*编辑的数据
+     */
     commentEditData: CommentEditData,
 
-    onLikePoster: (Long) -> Unit,
+    /**
+     * 对当前的帖子进行点赞
+     */
+    onLikePoster: () -> Unit,
+
+    /**
+     * 对帖子进行评论，需要传入*对帖子的评论*的编辑数据
+     */
     onEditComment: (CommentEditData) -> Unit,
+
+    /**
+     * 对评论点赞，需要传入评论的ID
+     */
     onLikeComment: (Long) -> Unit,
+
+    /**
+     * 显示更多评论，需要传入*需要显示子评论的评论*的数据
+     */
     onShowMoreComments: (Comment) -> Unit,
+
+    /**
+     * 向帖子发送评论，需要传入*对帖子的评论*的编辑数据
+     */
     onSendCommentToPoster: (CommentEditData) -> Unit,
+
+    /**
+     * 上传图片
+     */
     onUploadImage: () -> Unit,
 
+    /**
+     * 打开对帖子的举报对话框
+     */
     onOpenReportPoster: () -> Unit,
+
+    /**
+     * 打开对评论的举报对话框
+     */
     onOpenReportComment: (Comment) -> Unit,
+
+    /**
+     * 打开对帖子的删除对话框
+     */
     onOpenDeletePosterDialog: () -> Unit,
+
+    /**
+     * 打开对评论的删除对话框
+     */
     onOpenDeleteCommentDialog: (Comment) -> Unit,
+
+    /**
+     * 打开图片
+     */
     onOpenImage: (Image) -> Unit,
+
+    /**
+     * 打开图片组，第一个参数是默认显示的图片序号，第二个参数是url列表
+     */
     onOpenImages: (Int, List<Image>) -> Unit,
-    onOpenEdit: (Long) -> Unit,
+
+    /**
+     * 打开编辑帖子的对话框
+     */
+    onOpenEdit: () -> Unit,
+
+    /**
+     * 打开*对评论的评论*的编辑对话框，第一个参数是主评论，第二个参数是子评论
+     */
     onOpenCommentDialog: (Comment, Comment) -> Unit,
+
+    /**
+     * 打开删除*对评论的评论*的对话框
+     */
     onOpenDeleteImageOfPosterDialog: (Int) -> Unit,
 ) {
     val cm = LocalClipboardManager.current
@@ -325,7 +408,7 @@ fun PosterContent(
                             )
                         }
                         // 编辑
-                        IconButton(onClick = { onOpenEdit(data.id.toLong()) }) {
+                        IconButton(onClick = onOpenEdit) {
                             Icon(
                                 imageVector = Icons.Rounded.Edit,
                                 contentDescription = "编辑",
@@ -334,45 +417,24 @@ fun PosterContent(
                     }
                     // 点赞
                     Box {
-                        val liking = posterLikes.contains(data.id.toLong())
-                        if(data.like) {
-                            IconButton(
-                                onClick = {
-                                    onLikePoster(data.id.toLong())
-                                },
-                                colors = IconButtonColors(
-                                    containerColor = Color.Transparent,
-                                    contentColor = MaterialTheme.colorScheme.tertiary,
-                                    disabledContainerColor = Color.Transparent,
-                                    disabledContentColor = MaterialTheme.colorScheme.tertiary,
-                                ),
-                                enabled = !liking
-                            ) {
-                                if(liking) {
-                                    CircularProgressIndicator()
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ThumbUp,
-                                        contentDescription = "点赞",
-                                    )
-                                }
-                            }
-
-                        } else {
-                            IconButton(
-                                onClick = {
-                                    onLikePoster(data.id.toLong())
-                                },
-                                enabled = !liking
-                            ) {
-                                if(liking) {
-                                    CircularProgressIndicator()
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Outlined.ThumbUp,
-                                        contentDescription = "点赞",
-                                    )
-                                }
+                        val liking = posterLiking
+                        IconButton(
+                            onClick = onLikePoster,
+                            colors = if(data.like) IconButtonColors(
+                                containerColor = Color.Transparent,
+                                contentColor = MaterialTheme.colorScheme.tertiary,
+                                disabledContainerColor = Color.Transparent,
+                                disabledContentColor = MaterialTheme.colorScheme.tertiary,
+                            ) else IconButtonDefaults.iconButtonColors(),
+                            enabled = !liking
+                        ) {
+                            if(liking) {
+                                CircularProgressIndicator()
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Rounded.ThumbUp,
+                                    contentDescription = "点赞",
+                                )
                             }
                         }
 
@@ -407,7 +469,7 @@ fun PosterContent(
                             comment = comment,
                             onOpenImage = { onOpenImages(it, comment.images) },
                             onShowMoreComments = { onShowMoreComments(comment) },
-                            commentLikes = commentLikes,
+                            commentLikings = commentLikings,
                             onLikeComment = { onLikeComment(comment.id.toLong()) },
                             onClick = { onOpenCommentDialog(comment, comment) },
                             onReport = { onOpenReportComment(comment) },
@@ -517,12 +579,12 @@ fun PosterScreen(
     /**
      * 所有正在进行点赞操作的帖子ID
      */
-    val posterLikes by vm.posterLikeStatesFlow.collectAsState()
+    val posterLikings by vm.posterLikeStatesFlow.collectAsState()
 
     /**
      * 所有正在进行点赞操作的评论ID
      */
-    val commentLikes by vm.commentLikeStatesFlow.collectAsState()
+    val commentLikings by vm.commentLikeStatesFlow.collectAsState()
 
     /**
      * 对评论的评论的编辑数据（一个Map，ID->CommentEditData）
@@ -612,7 +674,7 @@ fun PosterScreen(
             mainController.navController.popBackStack()
             deletePosterDialogState = -1
             vm.setDeletePosterState(null)
-        } else if(deletePosterState is SimpleState.Error) {
+        } else if(deletePosterState is SimpleState.Fail) {
             mainController.snackbar("帖子删除失败Orz")
             vm.setDeletePosterState(null)
         }
@@ -638,7 +700,7 @@ fun PosterScreen(
             vm.setShowMoreState(false, null)
             vm.refreshComments(id)
             vm.setDeleteCommentState(null)
-        } else if (deleteCommentState is SimpleState.Error) {
+        } else if (deleteCommentState is SimpleState.Fail) {
             mainController.snackbar("评论删除失败Orz")
             vm.setDeleteCommentState(null)
         }
@@ -730,8 +792,8 @@ fun PosterScreen(
 
                     data = (getPosterState as GetPosterState.Success).poster,
                     comments = comments,
-                    posterLikes = posterLikes,
-                    commentLikes = commentLikes,
+                    posterLiking = posterLikings.contains(id),
+                    commentLikings = commentLikings,
                     commentEditData = commentEditData ?: CommentEditData(
                         "",
                         UploadImageData(false, emptyList()),
@@ -742,7 +804,7 @@ fun PosterScreen(
                         onLoadMore = { vm.loadMoreComments(id) }
                     ),
 
-                    onLikePoster = vm::likePoster,
+                    onLikePoster = { vm.likePoster(id) },
                     onLikeComment = vm::likeComment,
                     onEditComment = vm::editComment,
                     onShowMoreComments = { vm.setShowMoreState(true, it.id.toLong()) },
@@ -755,7 +817,7 @@ fun PosterScreen(
                     onOpenImage = onOpenImage,
                     onOpenImages = onOpenImages,
                     onOpenCommentDialog = vm::setShowCommentDialogState,
-                    onOpenEdit = { mainController.navController.navigate("edit/$it") },
+                    onOpenEdit = { mainController.navController.navigate("edit/$id") },
                     onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
                     onOpenDeletePosterDialog = { deletePosterDialogState = id.toInt() },
                     onOpenReportPoster = { mainController.navController.navigate("report/poster/$id") },
@@ -788,7 +850,7 @@ fun PosterScreen(
                             mainController = mainController,
                             comment = comment,
                             subComments = subComments,
-                            commentLikes = commentLikes,
+                            commentLikings = commentLikings,
                             loading = subCommentsLoadMoreState is LoadMoreState.Loading,
                             refreshing = subCommentsRefreshState is RefreshState.Loading,
                             state = rememberLoadableLazyColumnWithoutPullRequestState(

@@ -249,6 +249,9 @@ fun PostScreenContentPublic(
 
 @Composable
 fun PostScreenContent(
+    /**
+     * 数据
+     */
     title: String,
     text: String,
     uploadImageData: UploadImageData,
@@ -257,17 +260,30 @@ fun PostScreenContent(
     anonymous: Boolean,
     public: Boolean,
 
+    /**
+     * 获取声明的状态
+     */
     claimsState: GetClaimsState?,
+
+    /**
+     * 发布的状态
+     */
     postState: PutOrPostPosterState?,
 
     onOpenImage: (Image) -> Unit,
     onUploadImage: () -> Unit,
+
+    /**
+     * 修改数据
+     */
     onSetTitle: (String) -> Unit,
     onSetText: (String) -> Unit,
     onSelectClaim: (Claim) -> Unit,
     onChangeAnonymous: () -> Unit,
     onChangePublic: () -> Unit,
+
     onShowEditTagDialog: (Int) -> Unit,
+
     onPost: () -> Unit,
     onOpenDeleteImageDialog: (Int) -> Unit,
 ) {

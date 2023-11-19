@@ -11,7 +11,7 @@ import cn.bit101.android.repo.base.ReactionRepo
 import cn.bit101.android.repo.base.UploadRepo
 import cn.bit101.android.ui.gallery.common.ImageData
 import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.gallery.common.StateCombinedUseFlow
+import cn.bit101.android.ui.gallery.common.RefreshAndLoadMoreStatesCombined
 import cn.bit101.android.ui.gallery.common.UploadImageData
 import cn.bit101.android.ui.gallery.common.UploadImageState
 import cn.bit101.api.model.common.Comment
@@ -24,6 +24,9 @@ import kotlinx.coroutines.launch
 import java.util.ArrayList
 import javax.inject.Inject
 
+/**
+ * 获取帖子的状态，成功后返回帖子数据
+ */
 sealed interface GetPosterState {
     object Loading : GetPosterState
     object Fail : GetPosterState
@@ -32,6 +35,9 @@ sealed interface GetPosterState {
     ) : GetPosterState
 }
 
+/**
+ * 编辑的评论数据
+ */
 data class CommentEditData(
     val text: String,
     val uploadImageData: UploadImageData,
@@ -53,9 +59,9 @@ class PosterViewModel @Inject constructor(
     private val _getPosterStateFlow = MutableStateFlow<GetPosterState?>(null)
     val getPosterStateFlow = _getPosterStateFlow.asStateFlow()
 
-    val commentState = StateCombinedUseFlow<Comment>(viewModelScope)
+    val commentState = RefreshAndLoadMoreStatesCombined<Comment>(viewModelScope)
 
-    val subCommentState = StateCombinedUseFlow<Comment>(viewModelScope)
+    val subCommentState = RefreshAndLoadMoreStatesCombined<Comment>(viewModelScope)
 
     private val _commentEditDataFlow = MutableStateFlow<CommentEditData?>(null)
     val commentEditDataFlow = _commentEditDataFlow.asStateFlow()
@@ -110,7 +116,7 @@ class PosterViewModel @Inject constructor(
     }
 
     /**
-     *
+     * 加载更多子评论
      */
     fun loadMoreSubComments(id: Long) {
         subCommentState.loadMore { page ->
@@ -255,15 +261,19 @@ class PosterViewModel @Inject constructor(
                 val res = reactionRepo.likeComment(id)
 
                 // 点赞成功后，更新评论列表
-                commentState._dataFlow.value = changeLike(
-                    commentState.dataFlow.value,
-                    id, res.like, res.likeNum
+                commentState.setData(
+                    changeLike(
+                        commentState.dataFlow.value,
+                        id, res.like, res.likeNum
+                    )
                 )
 
                 // 子评论列表也要更新
-                subCommentState._dataFlow.value = changeLike(
-                    subCommentState.dataFlow.value,
-                    id, res.like, res.likeNum,
+                subCommentState.setData(
+                    changeLike(
+                        subCommentState.dataFlow.value,
+                        id, res.like, res.likeNum,
+                    )
                 )
 
 
@@ -432,9 +442,9 @@ class PosterViewModel @Inject constructor(
 
                 // 发送成功后，添加到评论列表的第一个
                 val comments = commentState.dataFlow.value
-                commentState._dataFlow.value = comments.toMutableList().apply {
+                commentState.setData(comments.toMutableList().apply {
                     add(0, comment)
-                }
+                })
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -512,13 +522,15 @@ class PosterViewModel @Inject constructor(
                 // 发送成功后，将评论添加到对应的评论列表中
                 // 子评论的评论列表
                 val subComments = subCommentState.dataFlow.value.toMutableList()
-                subCommentState._dataFlow.value = subComments.apply { add(0, resComment) }
+                subCommentState.setData(subComments.apply {
+                    add(0, resComment)
+                })
 
                 // 帖子评论的评论列表
                 val allComments = commentState.dataFlow.value
-                commentState._dataFlow.value = addCommentToComment(
+                commentState.setData(addCommentToComment(
                     allComments, comment.id, resComment
-                )
+                ))
 
                 // 关闭评论对话框
                 setShowCommentDialogState(null, null)
@@ -539,7 +551,7 @@ class PosterViewModel @Inject constructor(
                 deletePosterStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()
-                deletePosterStateLiveData.postValue(SimpleState.Error)
+                deletePosterStateLiveData.postValue(SimpleState.Fail)
             }
         }
     }
@@ -552,7 +564,7 @@ class PosterViewModel @Inject constructor(
                 deleteCommentStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()
-                deleteCommentStateLiveData.postValue(SimpleState.Error)
+                deleteCommentStateLiveData.postValue(SimpleState.Fail)
             }
         }
     }

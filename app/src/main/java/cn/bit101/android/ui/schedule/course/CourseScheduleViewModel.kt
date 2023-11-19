@@ -137,7 +137,7 @@ class CourseScheduleViewModel @Inject constructor(
                 changeTermStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()
-                changeTermStateLiveData.postValue(SimpleState.Error)
+                changeTermStateLiveData.postValue(SimpleState.Fail)
             }
         }
     }
@@ -152,7 +152,7 @@ class CourseScheduleViewModel @Inject constructor(
                 val terms = coursesRepo.getTermList()
                 refreshTermListStateLiveData.postValue(SimpleDataState.Success(terms))
             } catch (e: Exception) {
-                refreshTermListStateLiveData.postValue(SimpleDataState.Error())
+                refreshTermListStateLiveData.postValue(SimpleDataState.Fail())
             }
         }
     }
@@ -196,7 +196,7 @@ class CourseScheduleViewModel @Inject constructor(
                 forceRefreshCoursesStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()
-                forceRefreshCoursesStateLiveData.postValue(SimpleState.Error)
+                forceRefreshCoursesStateLiveData.postValue(SimpleState.Fail)
             }
         }
     }
@@ -224,7 +224,7 @@ class CourseScheduleViewModel @Inject constructor(
                 refreshCoursesStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()
-                refreshCoursesStateLiveData.postValue(SimpleState.Error)
+                refreshCoursesStateLiveData.postValue(SimpleState.Fail)
             }
         }
     }
@@ -243,7 +243,7 @@ class CourseScheduleViewModel @Inject constructor(
         setTimeTableStateLiveData.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             if(!checkTimeTable(timeTable)) {
-                setTimeTableStateLiveData.postValue(SimpleState.Error)
+                setTimeTableStateLiveData.postValue(SimpleState.Fail)
                 return@launch
             }
             SettingDataStore.courseScheduleTimeTable.set(timeTable)
