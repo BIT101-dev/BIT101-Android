@@ -25,12 +25,13 @@ import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersOrder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
+import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun GalleryIndexScreen(
     mainController: MainController,
-    onOpenImage: (Image) -> Unit,
+    onOpenImages: (Int, List<Image>) -> Unit,
     vm: GalleryIndexViewModel = hiltViewModel(),
 ) {
     val followRefreshState by vm.followStateCombined.refreshStateLiveData.observeAsState()
@@ -115,8 +116,8 @@ fun GalleryIndexScreen(
 
                 onRefresh = vm::refreshFollow,
 
+                onOpenImages = onOpenImages,
                 onOpenPoster = onOpenPoster,
-                onOpenImage = onOpenImage,
                 onPost = onPost,
             )
         },
@@ -128,9 +129,9 @@ fun GalleryIndexScreen(
                 refreshState = newestRefreshPostersState,
                 loadState = newestLoadMorePostersState,
 
+                onOpenImages = onOpenImages,
                 onRefresh = vm::refreshNewest,
                 onOpenPoster = onOpenPoster,
-                onOpenImage = onOpenImage,
                 onPost = onPost,
             )
         },
@@ -142,9 +143,9 @@ fun GalleryIndexScreen(
                 refreshState = recommendRefreshPostersState,
                 loadState = recommendLoadMorePostersState,
 
+                onOpenImages = onOpenImages,
                 onRefresh = vm::refreshRecommend,
                 onOpenPoster = onOpenPoster,
-                onOpenImage = onOpenImage,
                 onPost = onPost,
             )
         },
@@ -158,8 +159,8 @@ fun GalleryIndexScreen(
 
                 onRefresh = vm::refreshHot,
 
+                onOpenImages = onOpenImages,
                 onOpenPoster = onOpenPoster,
-                onOpenImage = onOpenImage,
                 onPost = onPost,
             )
         },
@@ -179,8 +180,8 @@ fun GalleryIndexScreen(
                 onSearch = vm::refreshSearch,
                 onQueryChange = vm::setQuery,
                 onSelectOrderChange = vm::setSelectOrder,
+                onOpenImages = onOpenImages,
                 onOpenPoster = onOpenPoster,
-                onOpenImage = onOpenImage,
                 onPost = onPost,
             )
         },

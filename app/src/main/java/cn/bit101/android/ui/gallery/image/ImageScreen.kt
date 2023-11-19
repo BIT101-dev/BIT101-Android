@@ -2,33 +2,36 @@ package cn.bit101.android.ui.gallery.image
 
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
-import android.view.WindowMetrics
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.gestures.detectTransformGestures
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
+import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
+import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material.icons.rounded.Error
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,26 +39,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalAutofill
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
-import coil.compose.rememberAsyncImagePainter
+import kotlin.math.sqrt
+
 
 @Composable
-fun ImageScreen(url: String) {
+fun ImageContent(
+    url: String,
+    scale: Float,
+    offset: Offset,
 
+    onScale: (Float) -> Unit,
+    onOffset: (Offset) -> Unit,
+) {
     val viewWidth = LocalView.current.width
     val viewHeight = LocalView.current.height
 
@@ -105,11 +110,6 @@ fun ImageScreen(url: String) {
             val width = painter.intrinsicSize.width
             val height = painter.intrinsicSize.height
 
-            // 使用一个可缩放的图片
-            // 初始时短边fillMax
-            var scale by remember { mutableFloatStateOf(1.0f) }
-            var offset by remember { mutableStateOf(Offset(0f, 0f)) }
-
             // 显示区域的长和宽
             val showWidth = size.width
             val showHeight = size.height
@@ -118,38 +118,44 @@ fun ImageScreen(url: String) {
             val initScale = minOf(showWidth / width, showHeight / height)
 
             // 最大的显示倍数
-            val maxScale = 5 / initScale
+            val maxScale = 10 / initScale
 
             val scaleState = rememberTransformableState(
                 onTransformation = { zoomChange, offsetChange, _ ->
 
-                    // 以屏幕中心为中心进行缩放
-                    if(scale * zoomChange in 1.0f..maxScale) {
-                        scale *= zoomChange
+                    var newScale = scale
+                    var newOffset = offset
 
-                        offset = Offset(
-                            x = offset.x * zoomChange,
-                            y = offset.y * zoomChange,
+
+                    // 以屏幕中心为中心进行缩放
+                    if(newScale * zoomChange in 0.8f..maxScale) {
+                        newScale *= zoomChange
+                        newOffset = Offset(
+                            x = newOffset.x * zoomChange,
+                            y = newOffset.y * zoomChange,
                         )
                     }
 
                     // 移动
-                    offset = Offset(
-                        x = offset.x + offsetChange.x,
-                        y = offset.y + offsetChange.y
+                    newOffset = Offset(
+                        x = newOffset.x + offsetChange.x * maxOf(sqrt(newScale), 1.0f),
+                        y = newOffset.y + offsetChange.y * maxOf(sqrt(newScale), 1.0f),
                     )
 
                     // 限制移动范围，屏幕中心部分必须在图片内
-                    offset = if(scale > 1.01f) Offset(
-                        x = offset.x.coerceIn(
-                            -width * initScale * scale / 2,
-                            width * initScale * scale / 2
+                    newOffset = if(newScale > 1.01f) Offset(
+                        x = newOffset.x.coerceIn(
+                            -width * initScale * newScale / 2,
+                            width * initScale * newScale / 2
                         ),
-                        y = offset.y.coerceIn(
-                            -height * initScale * scale / 2,
-                            height * initScale * scale / 2
+                        y = newOffset.y.coerceIn(
+                            -height * initScale * newScale / 2,
+                            height * initScale * newScale / 2
                         )
-                    ) else Offset(0f, 0f)
+                    ) else Offset(0.0f, 0.0f)
+
+                    onScale(newScale)
+                    onOffset(newOffset)
                 }
             )
             Image(
@@ -168,7 +174,173 @@ fun ImageScreen(url: String) {
             )
         }
     )
+}
 
-    // 绘制UI
+@Composable
+fun ImageScreen(url: String) {
+    val ctx = LocalContext.current
 
+    // 使用一个可缩放的图片
+    // 初始时短边fillMax
+    var scale by remember { mutableFloatStateOf(1.0f) }
+    var offset by remember { mutableStateOf(Offset(0.0f, 0.0f)) }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        ImageContent(
+            url = url,
+            scale = scale,
+            offset = offset,
+            onScale = { scale = it },
+            onOffset = { offset = it },
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .padding(bottom = 16.dp)
+                .clip(CircleShape)
+                .align(Alignment.BottomCenter)
+                .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // 下载按钮
+            IconButton(
+                onClick = {
+                    // 下载
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.data = Uri.parse(url)
+                    ctx.startActivity(intent)
+                }
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Download,
+                    contentDescription = "download",
+                )
+            }
+        }
+    }
+
+}
+
+
+@Composable
+fun ImageScreen(
+    index: Int,
+    urls: List<String>
+) {
+
+    if(urls.isEmpty()) return
+
+    val ctx = LocalContext.current
+
+    var scale by remember { mutableFloatStateOf(1.0f) }
+    var offset by remember { mutableStateOf(Offset(0.0f, 0.0f)) }
+
+    var page by remember { mutableIntStateOf(index.coerceIn(0, urls.size - 1)) }
+
+    Box(
+        modifier = Modifier.fillMaxSize(),
+    ) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            ImageContent(
+                url = urls[page],
+                scale = scale,
+                offset = offset,
+                onScale = { scale = it },
+                onOffset = { offset = it },
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(0.8f)
+                    .padding(bottom = 16.dp)
+                    .clip(CircleShape)
+                    .align(Alignment.BottomCenter)
+                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                // 上一张
+                IconButton(
+                    onClick = {
+                        scale = 1.0f
+                        offset = Offset(0.0f, 0.0f)
+                        page -= 1
+                    },
+                    enabled = page > 0,
+                    colors = IconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        containerColor = Color.Transparent,
+
+                        disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        disabledContainerColor = Color.Transparent,
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
+                        contentDescription = "previous",
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(4.dp))
+
+                // 下载按钮
+                IconButton(
+                    onClick = {
+                        // 下载
+                        val intent = Intent(Intent.ACTION_VIEW)
+                        intent.data = Uri.parse(urls[page])
+                        ctx.startActivity(intent)
+                    },
+                    colors = IconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        containerColor = Color.Transparent,
+
+                        disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        disabledContainerColor = Color.Transparent,
+                    )
+
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Download,
+                        contentDescription = "download",
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(4.dp))
+
+                // 下一张
+                IconButton(
+                    onClick = {
+                        scale = 1.0f
+                        offset = Offset(0.0f, 0.0f)
+                        page += 1
+                    },
+                    enabled = page < urls.size - 1,
+                    colors = IconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        containerColor = Color.Transparent,
+
+                        disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
+                        disabledContainerColor = Color.Transparent,
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                        contentDescription = "next",
+                    )
+                }
+
+                Spacer(modifier = Modifier.padding(4.dp))
+
+                Text(
+                    modifier = Modifier.align(Alignment.CenterVertically),
+                    text = "${page + 1}/${urls.size}",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        color = MaterialTheme.colorScheme.primary,
+                    ),
+                )
+            }
+
+        }
+    }
 }

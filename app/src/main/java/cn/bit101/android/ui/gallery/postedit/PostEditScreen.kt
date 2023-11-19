@@ -482,21 +482,15 @@ fun PostEditScreen(
             if(id == null) {
                 mainController.navController.popBackStack()
                 mainController.navController.navigate("poster/${(postState as PutOrPostPosterState.Success).id}")
-                mainController.scope.launch {
-                    mainController.snackbarHostState.showSnackbar("帖子成功发布出去了")
-                }
+                mainController.snackbar("帖子成功发布出去了")
             } else {
                 mainController.navController.popBackStack()
                 mainController.navController.popBackStack()
                 mainController.navController.navigate("poster/$id")
-                mainController.scope.launch {
-                    mainController.snackbarHostState.showSnackbar("帖子修改成功了")
-                }
+                mainController.snackbar("帖子修改成功了")
             }
         } else if(postState is PutOrPostPosterState.Error) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("帖子发布或修改失败Orz")
-            }
+            mainController.snackbar("帖子发布或修改失败Orz")
         }
     }
 
@@ -548,17 +542,13 @@ fun PostEditScreen(
             onOpenDeleteImageDialog = { deleteImageDialogState = it },
             onPost = {
                 if(title.isEmpty()) {
-                    mainController.scope.launch {
-                        mainController.snackbarHostState.showSnackbar("标题不能为空哟")
-                    }
+                    mainController.snackbar("标题不能为空哟")
                 } else if(text.isEmpty()) {
-                    mainController.scope.launch {
-                        mainController.snackbarHostState.showSnackbar("内容不能为空哟")
-                    }
+                    mainController.snackbar("内容不能为空哟")
                 } else if(tags.size < 2) {
-                    mainController.scope.launch {
-                        mainController.snackbarHostState.showSnackbar("请至少添加2个标签哟")
-                    }
+                    mainController.snackbar("请至少添加2个标签哟")
+                } else if(tags.toSet().size != tags.size) {
+                    mainController.snackbar("不要添加重复的标签呦")
                 } else {
                     if (id == null) {
                         vm.post(

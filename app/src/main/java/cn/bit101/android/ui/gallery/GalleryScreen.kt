@@ -2,6 +2,7 @@ package cn.bit101.android.ui.gallery
 
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ModalBottomSheetLayout
@@ -20,6 +21,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavArgument
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -55,6 +57,15 @@ fun GalleryScreen(
         galleryController.navController.navigate("image/$encodedUrl")
     }
 
+    val onOpenImages: (Int, List<Image>) -> Unit = { index, images ->
+
+
+        val encodedUrls = images.map { URLEncoder.encode(it.url, "UTF-8") }.joinToString(",")
+        Log.i("GalleryScreen", "images/$encodedUrls/$index")
+
+        galleryController.navController.navigate("images/$encodedUrls/$index")
+    }
+
     val ctx = LocalContext.current
 
     Scaffold(
@@ -65,6 +76,7 @@ fun GalleryScreen(
                         "index" -> "话廊 · 主页"
                         "poster/{id}" -> "话廊 · 帖子"
                         "image/{url}" -> "话廊 · 图片"
+                        "images/{urls}/{index}" -> "话廊 · 图片组"
                         "post" -> "话廊 · 张贴"
                         "edit/{id}" -> "话廊 · 编辑"
                         "report/{type}/{id}" -> "话廊 · 举报"
@@ -92,26 +104,9 @@ fun GalleryScreen(
                     }
                 },
                 actions = {
-                    if(currentBackStackEntry?.destination?.route == "image/{url}") {
-                        val encodedUrl = currentBackStackEntry?.arguments?.getString("url") ?: ""
-                        val url = URLDecoder.decode(encodedUrl, "UTF-8")
+                    if(currentBackStackEntry?.destination?.route == "index") {
                         IconButton(
-                            onClick = {
-                                val urlIntent = Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse(url)
-                                )
-                                ctx.startActivity(urlIntent)
-                            }
-                        ) {
-                            Icon(imageVector = Icons.Rounded.Download, contentDescription = null)
-                        }
-                    }
-                    if(currentBackStackEntry?.destination?.route != "user/{id}") {
-                        IconButton(
-                            onClick = {
-                                galleryController.navController.navigate("user/0")
-                            }
+                            onClick = { galleryController.navController.navigate("user/0") }
                         ) {
                             Icon(imageVector = Icons.Rounded.AccountCircle, contentDescription = null)
                         }
@@ -132,7 +127,7 @@ fun GalleryScreen(
             ) {
                 GalleryIndexScreen(
                     mainController = galleryController,
-                    onOpenImage = onOpenImage,
+                    onOpenImages = onOpenImages,
                 )
             }
             composable(
@@ -145,6 +140,7 @@ fun GalleryScreen(
                     mainController = galleryController,
                     id = it.arguments?.getLong("id") ?: 0L,
                     onOpenImage = onOpenImage,
+                    onOpenImages = onOpenImages,
                 )
             }
 
@@ -157,6 +153,30 @@ fun GalleryScreen(
                 val encodedUrl = it.arguments?.getString("url") ?: ""
                 val url = URLDecoder.decode(encodedUrl, "UTF-8")
                 ImageScreen(url)
+            }
+
+            composable("post") {
+                PostEditScreen(
+                    mainController = galleryController,
+                    onOpenImage = onOpenImage,
+                )
+            }
+
+            composable(
+                route = "images/{urls}/{index}",
+                arguments = listOf(
+                    navArgument("urls") { type = NavType.StringType },
+                    navArgument("index") { type = NavType.IntType },
+                ),
+            ) {
+                val urls = (it.arguments?.getString("urls")?.split(",") ?: emptyList()).map { encodedUrl ->
+                    URLDecoder.decode(encodedUrl, "UTF-8")
+                }
+                val index = it.arguments?.getInt("index") ?: 0
+                ImageScreen(
+                    urls = urls,
+                    index = index
+                )
             }
 
             composable("post") {
@@ -207,6 +227,8 @@ fun GalleryScreen(
                  UserScreen(
                      mainController = galleryController,
                      id = id,
+                     onOpenImage = onOpenImage,
+                     onOpenImages = onOpenImages,
                  )
             }
         }

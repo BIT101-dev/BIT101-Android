@@ -96,9 +96,7 @@ fun CourseScheduleConfigDialog(
         if(setTimeTableState == SimpleState.Success) {
             setTimeTableError = ""
             showTimeTableDialog.value = false
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("设置成功OvO")
-            }
+            mainController.snackbar("设置成功OvO")
         } else if(setTimeTableState == SimpleState.Error) {
             setTimeTableError = "格式校验失败Orz"
         }
@@ -108,13 +106,9 @@ fun CourseScheduleConfigDialog(
     // 切换学期的状态改变
     DisposableEffect(changeTermState) {
         if(changeTermState == SimpleState.Success) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("切换成功OvO")
-            }
+            mainController.snackbar("切换成功OvO")
         } else if(changeTermState == SimpleState.Error) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("切换失败Orz")
-            }
+            mainController.snackbar("切换失败Orz")
         }
         onDispose {}
     }

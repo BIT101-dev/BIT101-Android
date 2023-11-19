@@ -21,13 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.PreviewImages
 import cn.bit101.android.utils.DateTimeUtils
@@ -42,7 +40,7 @@ fun PosterCard(
     colors: CardColors = CardDefaults.cardColors(),
 
     onOpenPoster: (Long) -> Unit,
-    onOpenImage: (Image) -> Unit = {},
+    onOpenImages: (Int, List<Image>) -> Unit,
     onOpenUserDetail: ((User?) -> Unit)? = null,
 ) {
     Card(
@@ -147,7 +145,7 @@ fun PosterCard(
                 PreviewImages(
                     images = data.images,
                     maxCount = 4,
-                    onClick = onOpenImage,
+                    onClick = { onOpenImages(it, data.images) },
                     size = 100.dp,
                 )
             }

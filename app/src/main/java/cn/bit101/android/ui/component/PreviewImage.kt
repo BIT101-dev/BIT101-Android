@@ -21,7 +21,7 @@ import coil.compose.AsyncImage
 @Composable
 fun PreviewImage(
     image: Image,
-    onClick: (Image) -> Unit = {},
+    onClick: () -> Unit = {},
     size: Dp = 150.dp,
 ) {
     AsyncImage(
@@ -29,9 +29,7 @@ fun PreviewImage(
             .padding(end = 5.dp)
             .size(size)
             .clip(RoundedCornerShape(10.dp))
-            .clickable {
-                onClick(image)
-            },
+            .clickable { onClick() },
 
         contentScale = ContentScale.Crop,
         model = image.lowUrl,
@@ -46,7 +44,7 @@ fun PreviewImages(
     maxCount: Int? = null,
     size: Dp = 150.dp,
 
-    onClick: (Image) -> Unit = {},
+    onClick: (Int) -> Unit = {},
 ) {
     LazyRow(
         modifier = modifier,
@@ -57,7 +55,7 @@ fun PreviewImages(
                 item(index) {
                     PreviewImage(
                         image = image,
-                        onClick = onClick,
+                        onClick = { onClick(index) },
                         size = size,
                     )
                     Spacer(modifier = Modifier.padding(2.dp))

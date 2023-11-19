@@ -15,7 +15,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import cn.bit101.android.datastore.SettingDataStore
-import cn.bit101.android.status.base.LoginStatusManager
 import cn.bit101.android.ui.MainApp
 import cn.bit101.android.ui.theme.BIT101Theme
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,8 +24,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-
-    @Inject lateinit var loginStatusManager: LoginStatusManager
 
     companion object {
         var window: Window? = null
@@ -72,12 +69,6 @@ class MainActivity : ComponentActivity() {
                 }
             }
         }
-
-        MainScope().launch {
-            // 更新乐学日程
-
-        }
-
     }
 }
 

@@ -64,7 +64,6 @@ import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
-import kotlinx.coroutines.launch
 import java.net.URLEncoder
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -84,6 +83,7 @@ fun UserScreenContent(
     onOpenEditDialog: () -> Unit,
     onOpenPoster: (Long) -> Unit,
     onOpenImage: (Image) -> Unit,
+    onOpenImages: (Int, List<Image>) -> Unit,
     onOpenFollowerDialog: () -> Unit,
     onOpenFollowingDialog: () -> Unit,
 ) {
@@ -312,7 +312,7 @@ fun UserScreenContent(
                     PosterCard(
                         data = poster,
                         onOpenPoster = onOpenPoster,
-                        onOpenImage = onOpenImage,
+                        onOpenImages = onOpenImages,
                     )
                 }
             }
@@ -328,6 +328,8 @@ fun UserScreenContent(
 @Composable
 fun UserScreen(
     mainController: MainController,
+    onOpenImage: (Image) -> Unit,
+    onOpenImages: (Int, List<Image>) -> Unit,
     vm: UserViewModel = hiltViewModel(),
     id: Long = 0,
 ) {
@@ -347,14 +349,10 @@ fun UserScreen(
     DisposableEffect(followState) {
         if(followState is SimpleState.Success) {
             vm.followStateMutableLiveData.value = null
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("关注/取消关注成功")
-            }
+            mainController.snackbar("关注/取消关注成功")
         } else if(followState is SimpleState.Error) {
             vm.followStateMutableLiveData.value = null
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("关注/取消关注失败")
-            }
+            mainController.snackbar("关注/取消关注失败")
         }
         onDispose { }
     }
@@ -403,14 +401,10 @@ fun UserScreen(
     DisposableEffect(uploadUserInfoState) {
         if(uploadUserInfoState is SimpleState.Success) {
             vm.uploadUserInfoStateLiveData.value = null
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("保存成功OvO")
-            }
+            mainController.snackbar("保存成功OvO")
         } else if(uploadUserInfoState is SimpleState.Error) {
             vm.uploadUserInfoStateLiveData.value = null
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("保存失败Orz")
-            }
+            mainController.snackbar("保存失败Orz")
         }
         onDispose {  }
     }
@@ -457,10 +451,8 @@ fun UserScreen(
                 loadState = postersLoadMoreState,
                 followState = followState,
 
-                onOpenImage = {
-                    val encodedUrl = URLEncoder.encode(it.url, "UTF-8")
-                    mainController.navController.navigate("image/$encodedUrl")
-                },
+                onOpenImage = onOpenImage,
+                onOpenImages = onOpenImages,
 
                 onOpenPoster = { mainController.navController.navigate("poster/$it") },
                 onFollow = { vm.follow(id) },

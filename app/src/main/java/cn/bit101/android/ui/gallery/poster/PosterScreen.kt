@@ -31,6 +31,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -107,6 +108,7 @@ import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
 import kotlinx.coroutines.launch
+import java.net.URLEncoder
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -268,10 +270,11 @@ fun PosterContent(
                 if(data.images.isNotEmpty()) {
                     Spacer(modifier = Modifier.padding(8.dp))
                     LazyRow {
-                        items(data.images, { it.mid }) {
+                        itemsIndexed(data.images, { i, _ -> i }) { index, image ->
+                            val urls = data.images.map { URLEncoder.encode(it.url, "UTF-8") }
                             PreviewImage(
-                                image = it,
-                                onClick = onOpenImage,
+                                image = image,
+                                onClick = { mainController.navController.navigate("images/$urls/${index}") },
                             )
                         }
                     }
@@ -412,7 +415,10 @@ fun PosterContent(
                         CommentCard(
                             mainController = mainController,
                             comment = comment,
-                            onOpenImage = onOpenImage,
+                            onOpenImage = { index ->
+                                val urls = comment.images.map { URLEncoder.encode(it.url, "UTF-8") }
+                                mainController.navController.navigate("images/$urls/${index}")
+                            },
                             onShowMoreComments = { onShowMoreComments(comment) },
                             commentLikes = commentLikes,
                             onLikeComment = { onLikeComment(comment.id.toLong()) },
@@ -469,6 +475,7 @@ fun PosterScreen(
     mainController: MainController,
     id: Long,
     onOpenImage: (Image) -> Unit,
+    onOpenImages: (Int, List<Image>) -> Unit,
     vm: PosterViewModel = hiltViewModel()
 ) {
     /**
@@ -802,7 +809,7 @@ fun PosterScreen(
                             ),
 
                             onCancel = { vm.setShowMoreState(false, null) },
-                            onOpenImage = onOpenImage,
+                            onOpenImages = onOpenImages,
                             onLikeComment = vm::likeComment,
                             onOpenCommentDialog = vm::setShowCommentDialogState,
                             onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },

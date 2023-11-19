@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.gallery.index
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -8,22 +7,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyItemScope
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ListItem
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
@@ -56,9 +50,9 @@ fun PostersTabPage(
     refreshState: RefreshState?,
     loadState: LoadMoreState?,
 
+    onOpenImages: (Int, List<Image>) -> Unit,
     onOpenPoster: (Long) -> Unit,
     onRefresh: () -> Unit,
-    onOpenImage: (Image) -> Unit,
     onPost: () -> Unit,
 ) {
     val scope = rememberCoroutineScope() //供动画调用协程
@@ -92,7 +86,7 @@ fun PostersTabPage(
                                 disabledContainerColor = MaterialTheme.colorScheme.secondary,
                             ),
                             onOpenPoster = onOpenPoster,
-                            onOpenImage = onOpenImage,
+                            onOpenImages = onOpenImages,
                             onOpenUserDetail = { user ->
                                 user?.let {
                                     mainController.navController.navigate("user/${it.id}")
@@ -103,7 +97,7 @@ fun PostersTabPage(
                         PosterCard(
                             data = it,
                             onOpenPoster = onOpenPoster,
-                            onOpenImage = onOpenImage,
+                            onOpenImages = onOpenImages,
                             onOpenUserDetail = { user ->
                                 user?.let {
                                     mainController.navController.navigate("user/${it.id}")

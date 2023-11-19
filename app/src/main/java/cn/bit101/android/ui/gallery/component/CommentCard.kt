@@ -66,7 +66,7 @@ fun CommentCard(
     colors: CardColors = CardDefaults.cardColors(),
 
     onLikeComment: () -> Unit,
-    onOpenImage: (Image) -> Unit,
+    onOpenImage: (Int) -> Unit,
     onClick: () -> Unit,
     onShowMoreComments: () -> Unit = {},
     onOpenDeleteCommentDialog: () -> Unit,
@@ -247,7 +247,7 @@ fun CommentCard(
             if(comment.images.isNotEmpty()) {
                 PreviewImages(
                     images = comment.images,
-                    onClick = onOpenImage,
+                    onClick = { onOpenImage(it) },
                 )
                 Spacer(modifier = Modifier.padding(vertical = 4.dp))
             }

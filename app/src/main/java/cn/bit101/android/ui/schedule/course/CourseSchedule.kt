@@ -113,13 +113,9 @@ fun CourseSchedule(
     // 强制刷新的状态在这里管理
     DisposableEffect(forceRefreshCoursesState) {
         if(forceRefreshCoursesState == SimpleState.Success) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("刷新成功OvO")
-            }
+            mainController.snackbar("刷新成功OvO")
         } else if(forceRefreshCoursesState == SimpleState.Error) {
-            mainController.scope.launch {
-                mainController.snackbarHostState.showSnackbar("刷新失败Orz")
-            }
+            mainController.snackbar("刷新失败Orz")
         }
         onDispose {}
     }

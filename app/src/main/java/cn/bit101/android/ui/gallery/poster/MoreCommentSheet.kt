@@ -39,6 +39,7 @@ import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.gallery.component.CommentCard
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
+import java.net.URLEncoder
 
 
 @Composable
@@ -55,8 +56,8 @@ fun MoreCommentsSheetContent(
     /**
      * 第一个是主评论，第二个是回复的评论
      */
+    onOpenImages: (Int, List<Image>) -> Unit,
     onOpenCommentDialog: (Comment, Comment) -> Unit,
-    onOpenImage: (Image) -> Unit,
     onReport: (Comment) -> Unit,
     onOpenDeleteCommentDialog: (Comment) -> Unit,
 ) {
@@ -74,7 +75,7 @@ fun MoreCommentsSheetContent(
                 CommentCard(
                     mainController = mainController,
                     comment = comment,
-                    onOpenImage = onOpenImage,
+                    onOpenImage = { onOpenImages(it, comment.images) },
                     showSubComments = false,
                     commentLikes = commentLikes,
                     onLikeComment = {
@@ -106,18 +107,18 @@ fun MoreCommentsSheetContent(
                     }
                 }
             } else {
-                subComments.forEach {
-                    item(it.id + 40) {
+                subComments.forEach { sub ->
+                    item(sub.id + 40) {
                         CommentCard(
                             mainController = mainController,
-                            comment = it,
-                            onOpenImage = onOpenImage,
+                            comment = sub,
+                            onOpenImage = { onOpenImages(it, comment.images) },
                             showSubComments = false,
                             commentLikes = commentLikes,
-                            onLikeComment = { onLikeComment(it.id.toLong()) },
-                            onClick = { onOpenCommentDialog(comment, it) },
-                            onReport = { onReport(it) },
-                            onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(it) },
+                            onLikeComment = { onLikeComment(sub.id.toLong()) },
+                            onClick = { onOpenCommentDialog(comment, sub) },
+                            onReport = { onReport(sub) },
+                            onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(sub) },
                         )
                     }
                 }
@@ -135,7 +136,6 @@ fun MoreCommentsSheet(
     mainController: MainController,
     comment: Comment,
     subComments: List<Comment>,
-//    sheetState: SheetState,
     commentLikes: Set<Long>,
     loading: Boolean,
     refreshing: Boolean,
@@ -148,7 +148,7 @@ fun MoreCommentsSheet(
      * 第一个是主评论，第二个是回复的评论
      */
     onOpenCommentDialog: (Comment, Comment) -> Unit,
-    onOpenImage: (Image) -> Unit,
+    onOpenImages: (Int, List<Image>) -> Unit,
     onReport: (Comment) -> Unit,
     onOpenDeleteCommentDialog: (Comment) -> Unit,
 ) {
@@ -182,40 +182,11 @@ fun MoreCommentsSheet(
                 state = state,
 
                 onLikeComment = onLikeComment,
+                onOpenImages = onOpenImages,
                 onOpenCommentDialog = onOpenCommentDialog,
-                onOpenImage = onOpenImage,
                 onReport = onReport,
                 onOpenDeleteCommentDialog = onOpenDeleteCommentDialog,
             )
         }
     }
-
-
-//    ModalBottomSheet(
-//        modifier = Modifier
-//            .nestedScroll(rememberNestedScrollInteropConnection()),
-//        onDismissRequest = onCancel,
-//        sheetState = sheetState,
-//        properties = ModalBottomSheetProperties(
-//            securePolicy = SecureFlagPolicy.Inherit,
-//            isFocusable = true,
-//            shouldDismissOnBackPress = true
-//        ),
-//    ) {
-//        MoreCommentsSheetContent(
-//            mainController = mainController,
-//            comment = comment,
-//            subComments = subComments,
-//            commentLikes = commentLikes,
-//            loading = loading,
-//            refreshing = refreshing,
-//            state = state,
-//
-//            onLikeComment = onLikeComment,
-//            onOpenCommentDialog = onOpenCommentDialog,
-//            onOpenImage = onOpenImage,
-//            onReport = onReport,
-//            onOpenDeleteCommentDialog = onOpenDeleteCommentDialog,
-//        )
-//    }
 }

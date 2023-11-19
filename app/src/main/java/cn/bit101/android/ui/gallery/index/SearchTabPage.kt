@@ -50,8 +50,8 @@ fun SearchTabPage(
     onQueryChange: (String) -> Unit,
     onSelectOrderChange: (PostersOrder) -> Unit,
     onSearch: (String, PostersOrder, Int) -> Unit,
+    onOpenImages: (Int, List<Image>) -> Unit,
     onOpenPoster: (Long) -> Unit,
-    onOpenImage: (Image) -> Unit,
     onPost: () -> Unit,
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -109,8 +109,8 @@ fun SearchTabPage(
         loadState = loadState,
         onRefresh = { onSearch(query, selectOrder, PostersFilter.PUBLIC_ANONYMOUS) },
         state = state,
+        onOpenImages = onOpenImages,
         onOpenPoster = onOpenPoster,
-        onOpenImage = onOpenImage,
         onPost = onPost,
     )
 }
