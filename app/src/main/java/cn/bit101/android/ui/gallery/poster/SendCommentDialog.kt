@@ -24,7 +24,6 @@ import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SendCommentDialog(
     mainController: MainController,

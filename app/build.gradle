@@ -2,8 +2,6 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'org.jetbrains.kotlin.kapt'
-    id 'kotlin-android'
-    id 'kotlin-kapt'
     id 'com.jaredsburrows.license' version "0.9.3" //用于生成开源声明
     id 'dagger.hilt.android.plugin'
 }
@@ -57,25 +55,19 @@ android {
 }
 
 dependencies {
-    implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'androidx.webkit:webkit:1.8.0'
     def room_version = "2.6.0"
-    implementation platform('androidx.compose:compose-bom:2023.06.01')
-    androidTestImplementation platform('androidx.compose:compose-bom:2023.06.01')
+    implementation platform('androidx.compose:compose-bom:2023.10.01')
+    androidTestImplementation platform('androidx.compose:compose-bom:2023.10.01')
 
     implementation("com.google.dagger:hilt-android:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
-    implementation("androidx.hilt:hilt-navigation:1.1.0")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
-    kapt("androidx.hilt:hilt-compiler:1.1.0")
 
     implementation "com.google.accompanist:accompanist-systemuicontroller:0.31.2-alpha"
 
     implementation 'androidx.core:core-ktx:1.12.0'
-    implementation 'androidx.compose.foundation:foundation-android:1.5.4'
     implementation "androidx.compose.ui:ui"
     implementation "androidx.compose.ui:ui-tooling-preview"
-    implementation 'androidx.compose.material:material-android:1.5.4'
     implementation 'androidx.compose.material3:material3-android:1.2.0-alpha11'
     implementation "androidx.compose.material:material-icons-extended"
     androidTestImplementation "androidx.compose.ui:ui-test-junit4"

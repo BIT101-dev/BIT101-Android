@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Autorenew
@@ -324,7 +323,6 @@ fun UserScreenContent(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun UserScreen(
     mainController: MainController,
