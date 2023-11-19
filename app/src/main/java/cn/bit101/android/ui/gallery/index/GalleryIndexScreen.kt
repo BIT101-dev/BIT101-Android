@@ -25,7 +25,6 @@ import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersOrder
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import java.net.URLEncoder
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -83,14 +82,14 @@ fun GalleryIndexScreen(
         onLoadMore = {
             vm.loadMoreSearch(
                 query ?: "",
-                selectOrder ?: PostersOrder.new,
+                selectOrder ?: PostersOrder.NEW,
                 PostersFilter.PUBLIC_ANONYMOUS
             )
         },
         onRefresh = {
             vm.refreshSearch(
                 query ?: "",
-                selectOrder ?: PostersOrder.new,
+                selectOrder ?: PostersOrder.NEW,
                 PostersFilter.PUBLIC_ANONYMOUS
             )
         }
@@ -174,7 +173,7 @@ fun GalleryIndexScreen(
                 loadState = searchLoadMorePostersState,
 
                 query = query ?: "",
-                selectOrder = selectOrder ?: PostersOrder.new,
+                selectOrder = selectOrder ?: PostersOrder.NEW,
                 lastSearchQuery = lastSearchQuery ?: "",
 
                 onSearch = vm::refreshSearch,

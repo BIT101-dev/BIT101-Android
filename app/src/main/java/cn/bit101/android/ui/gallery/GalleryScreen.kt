@@ -1,15 +1,14 @@
 package cn.bit101.android.ui.gallery
 
-import android.content.Intent
-import android.net.Uri
 import android.util.Log
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.ExperimentalMaterialApi
-import androidx.compose.material.ModalBottomSheetLayout
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.Mail
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -17,11 +16,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.navigation.NavArgument
+import androidx.compose.ui.zIndex
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -30,6 +34,7 @@ import androidx.navigation.navArgument
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.image.ImageScreen
 import cn.bit101.android.ui.gallery.index.GalleryIndexScreen
+import cn.bit101.android.ui.gallery.message.MessageScreen
 import cn.bit101.android.ui.gallery.postedit.PostEditScreen
 import cn.bit101.android.ui.gallery.poster.PosterScreen
 import cn.bit101.android.ui.gallery.report.ReportScreen
@@ -39,10 +44,11 @@ import java.net.URLDecoder
 import java.net.URLEncoder
 
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GalleryScreen(
     mainController: MainController,
+    vm: GalleryViewModel = hiltViewModel(),
 ) {
     val galleryController = MainController(
         scope = mainController.scope,
@@ -58,15 +64,17 @@ fun GalleryScreen(
     }
 
     val onOpenImages: (Int, List<Image>) -> Unit = { index, images ->
-
-
         val encodedUrls = images.map { URLEncoder.encode(it.url, "UTF-8") }.joinToString(",")
         Log.i("GalleryScreen", "images/$encodedUrls/$index")
 
         galleryController.navController.navigate("images/$encodedUrls/$index")
     }
 
-    val ctx = LocalContext.current
+    val unreadCount by vm.unreadMessageCountLiveData.observeAsState()
+
+    SideEffect {
+        vm.getUnreadMessageCount()
+    }
 
     Scaffold(
         topBar = {
@@ -85,6 +93,7 @@ fun GalleryScreen(
                             if(id == 0L) "话廊 · 我的"
                             else "话廊 · 用户"
                         }
+                        "message" -> "话廊 · 消息"
                         else -> "话廊"
                     }
 
@@ -105,11 +114,25 @@ fun GalleryScreen(
                 },
                 actions = {
                     if(currentBackStackEntry?.destination?.route == "index") {
+                        Box {
+                            if(unreadCount != null && unreadCount!! > 0) {
+                                Badge(modifier = Modifier.align(Alignment.TopEnd)) {
+                                    Text(text = unreadCount.toString())
+                                }
+                            }
+                            IconButton(
+                                onClick = { galleryController.navController.navigate("message") }
+                            ) {
+                                Icon(imageVector = Icons.Rounded.Mail, contentDescription = null)
+                            }
+                        }
+
                         IconButton(
                             onClick = { galleryController.navController.navigate("user/0") }
                         ) {
                             Icon(imageVector = Icons.Rounded.AccountCircle, contentDescription = null)
                         }
+
                     }
                 }
             )
@@ -230,6 +253,12 @@ fun GalleryScreen(
                      onOpenImage = onOpenImage,
                      onOpenImages = onOpenImages,
                  )
+            }
+
+            composable(
+                route = "message",
+            ) {
+                MessageScreen(mainController = galleryController)
             }
         }
     }

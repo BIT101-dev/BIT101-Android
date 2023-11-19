@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.gallery.report
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,8 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.rounded.Error
-import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -45,13 +42,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.gallery.postedit.PostScreenContentAnonymous
-import cn.bit101.android.ui.gallery.postedit.PostScreenContentPublic
-import cn.bit101.android.ui.gallery.postedit.PutOrPostPosterState
-import cn.bit101.api.model.common.Claim
 import cn.bit101.api.model.common.ObjTypes
 import cn.bit101.api.model.common.ReportType
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)

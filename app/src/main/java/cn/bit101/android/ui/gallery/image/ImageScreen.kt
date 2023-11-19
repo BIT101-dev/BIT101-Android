@@ -256,7 +256,7 @@ fun ImageScreen(
                     .padding(bottom = 16.dp)
                     .clip(CircleShape)
                     .align(Alignment.BottomCenter)
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)),
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
                 horizontalArrangement = Arrangement.Center
             ) {
                 // 上一张
@@ -264,16 +264,8 @@ fun ImageScreen(
                     onClick = {
                         scale = 1.0f
                         offset = Offset(0.0f, 0.0f)
-                        page -= 1
+                        page = (page - 1 + urls.size) % urls.size
                     },
-                    enabled = page > 0,
-                    colors = IconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        containerColor = Color.Transparent,
-
-                        disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                        disabledContainerColor = Color.Transparent,
-                    )
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
@@ -291,13 +283,6 @@ fun ImageScreen(
                         intent.data = Uri.parse(urls[page])
                         ctx.startActivity(intent)
                     },
-                    colors = IconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        containerColor = Color.Transparent,
-
-                        disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                        disabledContainerColor = Color.Transparent,
-                    )
 
                 ) {
                     Icon(
@@ -313,16 +298,8 @@ fun ImageScreen(
                     onClick = {
                         scale = 1.0f
                         offset = Offset(0.0f, 0.0f)
-                        page += 1
+                        page = (page + 1) % urls.size
                     },
-                    enabled = page < urls.size - 1,
-                    colors = IconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        containerColor = Color.Transparent,
-
-                        disabledContentColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f),
-                        disabledContainerColor = Color.Transparent,
-                    )
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
@@ -335,9 +312,6 @@ fun ImageScreen(
                 Text(
                     modifier = Modifier.align(Alignment.CenterVertically),
                     text = "${page + 1}/${urls.size}",
-                    style = MaterialTheme.typography.bodyLarge.copy(
-                        color = MaterialTheme.colorScheme.primary,
-                    ),
                 )
             }
 

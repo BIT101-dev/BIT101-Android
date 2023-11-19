@@ -1,7 +1,6 @@
 package cn.bit101.api.service.bit101
 
 import cn.bit101.api.model.common.PostersMode
-import cn.bit101.api.model.common.PostersOrder
 import cn.bit101.api.model.http.*
 import cn.bit101.api.model.http.bit101.GetClaimDataModel
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
@@ -16,7 +15,7 @@ interface PostersApiService : ApiService {
     @GET("/posters")
     suspend fun getPosters(
         @Query("mode") mode: PostersMode? = null,
-        @Query("order") order: PostersOrder? = null,
+        @Query("order") order: String? = null,
         @Query("page") page: Long? = null,
         @Query("search") search: String? = null,
         @Query("uid") uid: Int? = null,

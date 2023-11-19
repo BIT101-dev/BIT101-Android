@@ -22,9 +22,11 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.pointerInteropFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.UrlAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
@@ -35,6 +37,7 @@ import cn.bit101.android.utils.TextUtils
 import cn.bit101.api.model.common.User
 
 
+@OptIn(ExperimentalTextApi::class)
 fun getUrl(
     layoutResult: MutableState<TextLayoutResult?>,
     annotatedText: AnnotatedString,
@@ -42,15 +45,7 @@ fun getUrl(
 ): String? {
     return layoutResult.value?.let {
         val offset = it.getOffsetForPosition(pos)
-        var url: String? = null
-        annotatedText.getStringAnnotations(
-            tag = "URL",
-            start = offset,
-            end = offset
-        ).forEach { annotatedText ->
-            if(url == null || url!!.length < annotatedText.item.length) url = annotatedText.item
-        }
-        url
+        annotatedText.getUrlAnnotations(offset, offset).firstOrNull()?.item?.url
     }
 }
 
@@ -67,14 +62,11 @@ fun getUser(
             tag = "USER",
             start = offset,
             end = offset
-        ).forEach { annotatedText ->
-            if(user == null || user!!.length < annotatedText.item.length) user = annotatedText.item
-        }
-        user
+        ).firstOrNull()?.item
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalTextApi::class)
 @Composable
 fun AnnotatedText(
     mainController: MainController,
@@ -106,6 +98,7 @@ fun AnnotatedText(
             ) {
                 append("@${replyUser.nickname} ")
             }
+            pop()
         }
 
         matches.forEach {
@@ -113,17 +106,12 @@ fun AnnotatedText(
             val end = it.range.last + 1
             val url = it.value
             append(text.substring(lastEnd, start))
-            pushStringAnnotation(
-                tag = "URL",
-                annotation = url
-            )
+            pushUrlAnnotation(urlAnnotation = UrlAnnotation(url))
             withStyle(
                 style = SpanStyle(
                     color = MaterialTheme.colorScheme.primary,
                 )
-            ) {
-                append(url)
-            }
+            ) { append(url) }
             pop()
             lastEnd = end
         }
@@ -163,13 +151,14 @@ fun AnnotatedText(
                                 }
                                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                                 ctx.startActivity(intent)
+                                true
                             } else if(user != null) {
                                 val id = user.toLongOrNull()
                                 if(id != null) {
                                     mainController.navController.navigate("user/$id")
-                                }
-                            }
-                            true
+                                    true
+                                } else false
+                            } else false
                         }
                         else -> {
                             false

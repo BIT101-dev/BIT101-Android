@@ -30,8 +30,8 @@ object APIManager {
                 .addHeader("fake-cookie", fakeCookie)
                 .build()
 
-//            Log.i("fakeCookie", fakeCookie)
-//            Log.i("APIManager", request.url.toString())
+            Log.i("fakeCookie", fakeCookie)
+            Log.i("APIManager", request.url.toString())
 
             it.proceed(request)
 

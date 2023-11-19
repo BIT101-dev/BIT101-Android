@@ -33,7 +33,6 @@ import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PosterCard(
     data: GetPostersDataModel.ResponseItem,

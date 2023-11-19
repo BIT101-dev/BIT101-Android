@@ -4,6 +4,7 @@ import cn.bit101.android.repo.base.DDLScheduleRepo
 import cn.bit101.android.repo.base.PosterRepo
 import cn.bit101.android.repo.base.CoursesRepo
 import cn.bit101.android.repo.base.ManageRepo
+import cn.bit101.android.repo.base.MessageRepo
 import cn.bit101.android.repo.base.ReactionRepo
 import cn.bit101.android.repo.base.UploadRepo
 import cn.bit101.android.repo.base.UserRepo
@@ -32,4 +33,6 @@ abstract class RepoModule {
     abstract fun bindManageRepo(manageRepo: DefaultManageRepo): ManageRepo
     @Binds
     abstract fun bindUserRepo(userRepo: DefaultUserRepo): UserRepo
+    @Binds
+    abstract fun bindMessageRepo(messageRepo: DefaultMessageRepo): MessageRepo
 }

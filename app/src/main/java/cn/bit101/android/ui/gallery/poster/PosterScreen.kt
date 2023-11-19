@@ -343,11 +343,7 @@ fun PosterContent(
                         }
                     }
                     // 点赞
-                    BadgedBox(
-                        badge = {
-                            if(data.likeNum > 0) Badge { Text(text = data.likeNum.toString()) }
-                        }
-                    ) {
+                    Box {
                         val liking = posterLikes.contains(data.id.toLong())
                         if(data.like) {
                             IconButton(
@@ -388,6 +384,10 @@ fun PosterContent(
                                     )
                                 }
                             }
+                        }
+
+                        if(data.likeNum > 0) Badge(modifier = Modifier.align(Alignment.TopEnd)) {
+                            Text(text = data.likeNum.toString())
                         }
                     }
                 }

@@ -17,7 +17,7 @@ interface CoursesApiService : ApiService {
     @GET("/courses")
     suspend fun getCourses(
         @Query("search") search: String? = null,
-        @Query("order") order: CoursesOrder? = null,
+        @Query("order") order: String? = null,
         @Query("page") page: Int? = null,
     ): Response<GetCoursesDataModel.Response>
 

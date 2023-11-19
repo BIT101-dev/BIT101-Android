@@ -20,7 +20,7 @@ interface ReactionApiService : ApiService {
     @GET("/reaction/comments")
     suspend fun getComments(
         @Query("obj") obj: String,
-        @Query("order") order: CommentsOrder? = null,
+        @Query("order") order: String? = null,
         @Query("page") page: Int? = null,
     ): Response<GetCommentsDataModel.Response>
 

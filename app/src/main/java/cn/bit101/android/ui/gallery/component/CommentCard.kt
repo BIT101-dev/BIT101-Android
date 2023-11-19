@@ -1,8 +1,6 @@
 package cn.bit101.android.ui.gallery.component
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,24 +9,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.CopyAll
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -54,9 +48,7 @@ import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.PreviewImages
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Comment
-import cn.bit101.api.model.common.Image
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CommentCard(
     mainController: MainController,
@@ -128,14 +120,7 @@ fun CommentCard(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     // 点赞
-                    BadgedBox(
-                        modifier = Modifier.size(35.dp),
-                        badge = {
-                            if(comment.likeNum > 0) Badge {
-                                Text(text = comment.likeNum.toString())
-                            }
-                        }
-                    ) {
+                    Box {
                         val liking = commentLikes.contains(comment.id.toLong())
                         if(comment.like) {
                             IconButton(
@@ -173,13 +158,19 @@ fun CommentCard(
                                 }
                             }
                         }
-                    }
 
-                    Spacer(modifier = Modifier.padding(4.dp))
+
+                        if(comment.likeNum > 0) {
+                            Badge(
+                                modifier = Modifier.align(Alignment.TopEnd)
+                            ) {
+                                Text(text = comment.likeNum.toString())
+                            }
+                        }
+                    }
 
                     // 菜单
                     IconButton(
-                        modifier = Modifier.size(35.dp),
                         onClick = { menuState = !menuState }
                     ) {
                         Icon(
@@ -255,7 +246,7 @@ fun CommentCard(
             // 子评论
             if(comment.sub.isNotEmpty() && showSubComments) {
                 Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                HorizontalDivider()
+                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.padding(vertical = 4.dp))
                 Column(
                     modifier = Modifier.fillMaxWidth()

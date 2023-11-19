@@ -6,7 +6,6 @@ import cn.bit101.api.model.common.CommentsOrder
 import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersMode
 import cn.bit101.api.model.common.PostersOrder
-import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.PostPostersDataModel
 import cn.bit101.api.model.http.bit101.PutPosterDataModel
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +42,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
     override suspend fun getSearchPosters(
         search: String,
         page: Long?,
-        order: PostersOrder?,
+        order: String?,
         uid: Int?
     ) = withContext(Dispatchers.IO) {
         BIT101API.posters.getPosters(
@@ -61,7 +60,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         BIT101API.posters.getPosters(
             mode = PostersMode.search,
             page = page,
-            order = PostersOrder.new,
+            order = PostersOrder.NEW,
             uid = PostersFilter.PUBLIC_ANONYMOUS,
         ).body() ?: throw Exception("get posters error")
     }
@@ -93,7 +92,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         BIT101API.reaction.getComments(
             obj = "poster$id",
             page = page,
-            order = CommentsOrder.new,
+            order = CommentsOrder.NEW,
         ).body() ?: throw Exception("get comments error")
     }
 
@@ -104,7 +103,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         BIT101API.reaction.getComments(
             obj = "comment$id",
             page = page,
-            order = CommentsOrder.new,
+            order = CommentsOrder.NEW,
         ).body() ?: throw Exception("get comments error")
     }
 

@@ -14,7 +14,7 @@ interface PapersApiService : ApiService {
     @GET("/papers")
     suspend fun getPapers(
         @Query("search") search: String? = null,
-        @Query("order") order: PapersOrder? = null,
+        @Query("order") order: String? = null,
         @Query("page") page: Int? = null,
     ): Response<GetPapersDataModel.Response>
 

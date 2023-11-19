@@ -26,7 +26,7 @@ class GalleryIndexViewModel @Inject constructor(
     val searchStateCombined = StateCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
 
     val queryLiveData = MutableLiveData("")
-    val selectOrderLiveData = MutableLiveData(PostersOrder.new)
+    val selectOrderLiveData = MutableLiveData(PostersOrder.NEW)
 
     val lastSearchQueryLiveData = MutableLiveData("")
 
@@ -34,7 +34,7 @@ class GalleryIndexViewModel @Inject constructor(
         queryLiveData.value = query
     }
 
-    fun setSelectOrder(order: PostersOrder) {
+    fun setSelectOrder(order: String) {
         selectOrderLiveData.value = order
     }
 
@@ -66,7 +66,7 @@ class GalleryIndexViewModel @Inject constructor(
 
     fun refreshSearch(
         search: String,
-        order: PostersOrder,
+        order: String,
         filter: Int,
     ) = searchStateCombined.refresh {
         val posters = posterRepo.getSearchPosters(
@@ -92,7 +92,7 @@ class GalleryIndexViewModel @Inject constructor(
 
     fun loadMoreSearch(
         search: String,
-        order: PostersOrder,
+        order: String,
         filter: Int,
     ) = searchStateCombined.loadMore { page ->
         posterRepo.getSearchPosters(

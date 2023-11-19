@@ -1,7 +1,6 @@
 package cn.bit101.android.repo.base
 
 import cn.bit101.api.model.common.Claim
-import cn.bit101.api.model.common.PostersOrder
 import cn.bit101.api.model.http.bit101.GetCommentsDataModel
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
@@ -23,7 +22,7 @@ interface PosterRepo {
     suspend fun getSearchPosters(
         search: String,
         page: Long? = null,
-        order: PostersOrder? = null,
+        order: String? = null,
         uid: Int? = null,
     ): List<GetPostersDataModel.ResponseItem>
 
