@@ -112,7 +112,7 @@ fun MoreCommentsSheetContent(
                         CommentCard(
                             mainController = mainController,
                             comment = sub,
-                            onOpenImage = { onOpenImages(it, comment.images) },
+                            onOpenImage = { onOpenImages(it, sub.images) },
                             showSubComments = false,
                             commentLikes = commentLikes,
                             onLikeComment = { onLikeComment(sub.id.toLong()) },

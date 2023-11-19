@@ -135,6 +135,7 @@ fun PosterContent(
     onOpenDeletePosterDialog: () -> Unit,
     onOpenDeleteCommentDialog: (Comment) -> Unit,
     onOpenImage: (Image) -> Unit,
+    onOpenImages: (Int, List<Image>) -> Unit,
     onOpenEdit: (Long) -> Unit,
     onOpenCommentDialog: (Comment, Comment) -> Unit,
     onOpenDeleteImageOfPosterDialog: (Int) -> Unit,
@@ -271,10 +272,9 @@ fun PosterContent(
                     Spacer(modifier = Modifier.padding(8.dp))
                     LazyRow {
                         itemsIndexed(data.images, { i, _ -> i }) { index, image ->
-                            val urls = data.images.map { URLEncoder.encode(it.url, "UTF-8") }
                             PreviewImage(
                                 image = image,
-                                onClick = { mainController.navController.navigate("images/$urls/${index}") },
+                                onClick = { onOpenImages(index, data.images) },
                             )
                         }
                     }
@@ -415,10 +415,7 @@ fun PosterContent(
                         CommentCard(
                             mainController = mainController,
                             comment = comment,
-                            onOpenImage = { index ->
-                                val urls = comment.images.map { URLEncoder.encode(it.url, "UTF-8") }
-                                mainController.navController.navigate("images/$urls/${index}")
-                            },
+                            onOpenImage = { onOpenImages(it, comment.images) },
                             onShowMoreComments = { onShowMoreComments(comment) },
                             commentLikes = commentLikes,
                             onLikeComment = { onLikeComment(comment.id.toLong()) },
@@ -469,7 +466,7 @@ fun PosterContent(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun PosterScreen(
     mainController: MainController,
@@ -767,13 +764,14 @@ fun PosterScreen(
                     },
 
                     onOpenImage = onOpenImage,
+                    onOpenImages = onOpenImages,
                     onOpenCommentDialog = vm::setShowCommentDialogState,
                     onOpenEdit = { mainController.navController.navigate("edit/$it") },
                     onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
                     onOpenDeletePosterDialog = { deletePosterDialogState = id.toInt() },
                     onOpenReportPoster = { mainController.navController.navigate("report/poster/$id") },
                     onOpenReportComment = { mainController.navController.navigate("report/comment/${it.id}") },
-                    onOpenDeleteImageOfPosterDialog = { deleteImageOfPosterDialogState = it }
+                    onOpenDeleteImageOfPosterDialog = { deleteImageOfPosterDialogState = it },
                 )
 
                 AnimatedVisibility(

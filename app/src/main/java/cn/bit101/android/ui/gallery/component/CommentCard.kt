@@ -29,6 +29,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
@@ -254,7 +255,7 @@ fun CommentCard(
             // 子评论
             if(comment.sub.isNotEmpty() && showSubComments) {
                 Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                Divider()
+                HorizontalDivider()
                 Spacer(modifier = Modifier.padding(vertical = 4.dp))
                 Column(
                     modifier = Modifier.fillMaxWidth()

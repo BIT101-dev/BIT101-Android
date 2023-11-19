@@ -51,7 +51,6 @@ fun CommentEditContentTextField(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentEditContentUploadImageChip(
     selected: Boolean,
@@ -75,7 +74,6 @@ fun CommentEditContentUploadImageChip(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CommentEditContentAnonymous(
     selected: Boolean,
