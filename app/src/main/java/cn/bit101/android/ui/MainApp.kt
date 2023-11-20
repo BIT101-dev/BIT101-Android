@@ -160,23 +160,21 @@ fun MainApp(
                             label = { Text(text = screen.label) },
                             selected = selected,
                             onClick = {
-                                // 路由跳转 保证一次返回就能回到主页
-                                mainController.navController.navigate(screen.route) {
-                                    popUpTo(mainController.navController.graph.startDestinationId) {
-                                        saveState = true
+                                if(!selected) {
+                                    // 路由跳转 保证一次返回就能回到主页
+                                    mainController.navController.navigate(screen.route) {
+                                        popUpTo(mainController.navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
                             })
                     }
                 }
             }
         },
-        topBar = {
-
-
-        }
     ) {
         // 用于处理底部导航栏的Padding
         val modifier =

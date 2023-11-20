@@ -36,6 +36,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Comment
+import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Error
@@ -209,7 +210,7 @@ fun PosterContent(
     onOpenCommentDialog: (Comment, Comment) -> Unit,
 
     /**
-     * 打开删除*对评论的评论*的对话框
+     * 打开删除*对帖子的评论*中的图片的对话框
      */
     onOpenDeleteImageOfPosterDialog: (Int) -> Unit,
 ) {
@@ -417,22 +418,21 @@ fun PosterContent(
                     }
                     // 点赞
                     Box {
-                        val liking = posterLiking
                         IconButton(
                             onClick = onLikePoster,
-                            colors = if(data.like) IconButtonColors(
+                            colors = if (data.like) IconButtonColors(
                                 containerColor = Color.Transparent,
                                 contentColor = MaterialTheme.colorScheme.tertiary,
                                 disabledContainerColor = Color.Transparent,
                                 disabledContentColor = MaterialTheme.colorScheme.tertiary,
                             ) else IconButtonDefaults.iconButtonColors(),
-                            enabled = !liking
+                            enabled = !posterLiking
                         ) {
-                            if(liking) {
+                            if (posterLiking) {
                                 CircularProgressIndicator()
                             } else {
                                 Icon(
-                                    imageVector = Icons.Rounded.ThumbUp,
+                                    imageVector = if (data.like) Icons.Rounded.ThumbUp else Icons.Outlined.ThumbUp,
                                     contentDescription = "点赞",
                                 )
                             }

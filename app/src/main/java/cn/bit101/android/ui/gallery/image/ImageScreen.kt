@@ -42,6 +42,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -52,128 +53,81 @@ import coil.compose.SubcomposeAsyncImage
 import kotlin.math.sqrt
 
 
-// 这里传入scale和offset可能会有性能问题
 @Composable
 fun ImageContent(
-    url: String,
+    size: IntSize,
     scale: Float,
     offset: Offset,
+    painter: Painter,
 
     onScale: (Float) -> Unit,
     onOffset: (Offset) -> Unit,
 ) {
-    val viewWidth = LocalView.current.width
-    val viewHeight = LocalView.current.height
+    // 图片的长和宽
+    val width = painter.intrinsicSize.width
+    val height = painter.intrinsicSize.height
 
-    var size by remember { mutableStateOf(IntSize(viewWidth, viewHeight)) }
+    // 显示区域的长和宽
+    val showWidth = size.width
+    val showHeight = size.height
 
-    SubcomposeAsyncImage(
+    // 图片的初始显示倍数
+    val initScale = minOf(showWidth / width, showHeight / height)
+
+    // 最大的显示倍数
+    val maxScale = 10 / initScale
+
+    val scaleState = rememberTransformableState(
+        onTransformation = { zoomChange, offsetChange, _ ->
+
+            var newScale = scale
+            var newOffset = offset
+
+
+            // 以屏幕中心为中心进行缩放
+            if(newScale * zoomChange in 0.8f..maxScale) {
+                newScale *= zoomChange
+                newOffset = Offset(
+                    x = newOffset.x * zoomChange,
+                    y = newOffset.y * zoomChange,
+                )
+            }
+
+            // 移动
+            newOffset = Offset(
+                x = newOffset.x + offsetChange.x * maxOf(sqrt(newScale), 1.0f),
+                y = newOffset.y + offsetChange.y * maxOf(sqrt(newScale), 1.0f),
+            )
+
+            // 限制移动范围，屏幕中心部分必须在图片内
+            newOffset = if(newScale > 1.01f) Offset(
+                x = newOffset.x.coerceIn(
+                    -width * initScale * newScale / 2,
+                    width * initScale * newScale / 2
+                ),
+                y = newOffset.y.coerceIn(
+                    -height * initScale * newScale / 2,
+                    height * initScale * newScale / 2
+                )
+            ) else Offset(0.0f, 0.0f)
+
+            onScale(newScale)
+            onOffset(newOffset)
+        }
+    )
+    Image(
+        painter = painter,
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
         modifier = Modifier
             .fillMaxSize()
-            .onGloballyPositioned {
-                // 获取组件的长和宽
-                size = it.size
-            },
-        model = url,
-        contentDescription = "image",
-        contentScale = ContentScale.FillBounds,
-        filterQuality = FilterQuality.High,
-        loading = {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .wrapContentSize(Alignment.Center)
-                    .width(64.dp)
-            ) {
-                CircularProgressIndicator(
-                    modifier = Modifier.width(64.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-        },
-        error = {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .wrapContentSize(Alignment.Center)
-                    .width(64.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Error,
-                    contentDescription = "error",
-                    modifier = Modifier.width(64.dp),
-                    tint = MaterialTheme.colorScheme.error,
-                )
-            }
-        },
-        success = {
-            // 图片的长和宽
-            val width = painter.intrinsicSize.width
-            val height = painter.intrinsicSize.height
-
-            // 显示区域的长和宽
-            val showWidth = size.width
-            val showHeight = size.height
-
-            // 图片的初始显示倍数
-            val initScale = minOf(showWidth / width, showHeight / height)
-
-            // 最大的显示倍数
-            val maxScale = 10 / initScale
-
-            val scaleState = rememberTransformableState(
-                onTransformation = { zoomChange, offsetChange, _ ->
-
-                    var newScale = scale
-                    var newOffset = offset
-
-
-                    // 以屏幕中心为中心进行缩放
-                    if(newScale * zoomChange in 0.8f..maxScale) {
-                        newScale *= zoomChange
-                        newOffset = Offset(
-                            x = newOffset.x * zoomChange,
-                            y = newOffset.y * zoomChange,
-                        )
-                    }
-
-                    // 移动
-                    newOffset = Offset(
-                        x = newOffset.x + offsetChange.x * maxOf(sqrt(newScale), 1.0f),
-                        y = newOffset.y + offsetChange.y * maxOf(sqrt(newScale), 1.0f),
-                    )
-
-                    // 限制移动范围，屏幕中心部分必须在图片内
-                    newOffset = if(newScale > 1.01f) Offset(
-                        x = newOffset.x.coerceIn(
-                            -width * initScale * newScale / 2,
-                            width * initScale * newScale / 2
-                        ),
-                        y = newOffset.y.coerceIn(
-                            -height * initScale * newScale / 2,
-                            height * initScale * newScale / 2
-                        )
-                    ) else Offset(0.0f, 0.0f)
-
-                    onScale(newScale)
-                    onOffset(newOffset)
-                }
+            .transformable(scaleState)
+            .graphicsLayer(
+                scaleX = scale,
+                scaleY = scale,
+                translationX = offset.x,
+                translationY = offset.y
             )
-            Image(
-                painter = it.painter,
-                contentDescription = null,
-                contentScale = ContentScale.Fit,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .transformable(scaleState)
-                    .graphicsLayer(
-                        scaleX = scale,
-                        scaleY = scale,
-                        translationX = offset.x,
-                        translationY = offset.y
-                    )
-            )
-        }
     )
 }
 
@@ -184,21 +138,67 @@ fun ImageContent(
 fun ImageScreen(url: String) {
     val ctx = LocalContext.current
 
-    // 使用一个可缩放的图片
-    // 初始时短边fillMax
-    var scale by remember { mutableFloatStateOf(1.0f) }
-    var offset by remember { mutableStateOf(Offset(0.0f, 0.0f)) }
+    val viewWidth = LocalView.current.width
+    val viewHeight = LocalView.current.height
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        ImageContent(
-            url = url,
-            scale = scale,
-            offset = offset,
-            onScale = { scale = it },
-            onOffset = { offset = it },
+    var size by remember { mutableStateOf(IntSize(viewWidth, viewHeight)) }
+    Box(modifier = Modifier.fillMaxSize()) {
+        SubcomposeAsyncImage(
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned {
+                    // 获取组件的长和宽
+                    size = it.size
+                },
+            model = url,
+            contentDescription = "image",
+            contentScale = ContentScale.FillBounds,
+            filterQuality = FilterQuality.High,
+            loading = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentSize(Alignment.Center)
+                        .width(64.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(64.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            error = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentSize(Alignment.Center)
+                        .width(64.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Error,
+                        contentDescription = "error",
+                        modifier = Modifier.width(64.dp),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            success = {
+                // 使用一个可缩放的图片
+                // 初始时短边fillMax
+                var scale by remember { mutableFloatStateOf(1.0f) }
+                var offset by remember { mutableStateOf(Offset(0.0f, 0.0f)) }
+
+                ImageContent(
+                    size = size,
+                    scale = scale,
+                    offset = offset,
+                    painter = painter,
+                    onScale = { scale = it },
+                    onOffset = { offset = it }
+                )
+            }
         )
+
         Row(
             modifier = Modifier
                 .fillMaxWidth(0.8f)
@@ -224,7 +224,6 @@ fun ImageScreen(url: String) {
             }
         }
     }
-
 }
 
 
@@ -246,82 +245,126 @@ fun ImageScreen(
 
     var page by remember { mutableIntStateOf(index.coerceIn(0, urls.size - 1)) }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
-    ) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            ImageContent(
-                url = urls[page],
-                scale = scale,
-                offset = offset,
-                onScale = { scale = it },
-                onOffset = { offset = it },
-            )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth(0.8f)
-                    .padding(bottom = 16.dp)
-                    .clip(CircleShape)
-                    .align(Alignment.BottomCenter)
-                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
-                horizontalArrangement = Arrangement.Center
+    val viewWidth = LocalView.current.width
+    val viewHeight = LocalView.current.height
+
+    var size by remember { mutableStateOf(IntSize(viewWidth, viewHeight)) }
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        SubcomposeAsyncImage(
+            modifier = Modifier
+                .fillMaxSize()
+                .onGloballyPositioned {
+                    // 获取组件的长和宽
+                    size = it.size
+                },
+            model = urls[page],
+            contentDescription = "image",
+            contentScale = ContentScale.FillBounds,
+            filterQuality = FilterQuality.High,
+            loading = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentSize(Alignment.Center)
+                        .width(64.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.width(64.dp),
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            error = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .wrapContentSize(Alignment.Center)
+                        .width(64.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Error,
+                        contentDescription = "error",
+                        modifier = Modifier.width(64.dp),
+                        tint = MaterialTheme.colorScheme.error,
+                    )
+                }
+            },
+            success = {
+                ImageContent(
+                    painter = painter,
+                    scale = scale,
+                    offset = offset,
+                    size = size,
+                    onScale = { scale = it },
+                    onOffset = { offset = it },
+                )
+            }
+        )
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth(0.8f)
+                .padding(bottom = 16.dp)
+                .clip(CircleShape)
+                .align(Alignment.BottomCenter)
+                .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.5f)),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            // 上一张
+            IconButton(
+                onClick = {
+                    scale = 1.0f
+                    offset = Offset(0.0f, 0.0f)
+                    page = (page - 1 + urls.size) % urls.size
+                },
             ) {
-                // 上一张
-                IconButton(
-                    onClick = {
-                        scale = 1.0f
-                        offset = Offset(0.0f, 0.0f)
-                        page = (page - 1 + urls.size) % urls.size
-                    },
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
-                        contentDescription = "previous",
-                    )
-                }
-
-                Spacer(modifier = Modifier.padding(4.dp))
-
-                // 下载按钮
-                IconButton(
-                    onClick = {
-                        // 下载
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.data = Uri.parse(urls[page])
-                        ctx.startActivity(intent)
-                    },
-
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Download,
-                        contentDescription = "download",
-                    )
-                }
-
-                Spacer(modifier = Modifier.padding(4.dp))
-
-                // 下一张
-                IconButton(
-                    onClick = {
-                        scale = 1.0f
-                        offset = Offset(0.0f, 0.0f)
-                        page = (page + 1) % urls.size
-                    },
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
-                        contentDescription = "next",
-                    )
-                }
-
-                Spacer(modifier = Modifier.padding(4.dp))
-
-                Text(
-                    modifier = Modifier.align(Alignment.CenterVertically),
-                    text = "${page + 1}/${urls.size}",
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
+                    contentDescription = "previous",
                 )
             }
 
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            // 下载按钮
+            IconButton(
+                onClick = {
+                    // 下载
+                    val intent = Intent(Intent.ACTION_VIEW)
+                    intent.data = Uri.parse(urls[page])
+                    ctx.startActivity(intent)
+                },
+
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Download,
+                    contentDescription = "download",
+                )
+            }
+
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            // 下一张
+            IconButton(
+                onClick = {
+                    scale = 1.0f
+                    offset = Offset(0.0f, 0.0f)
+                    page = (page + 1) % urls.size
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.ArrowForwardIos,
+                    contentDescription = "next",
+                )
+            }
+
+            Spacer(modifier = Modifier.padding(4.dp))
+
+            Text(
+                modifier = Modifier.align(Alignment.CenterVertically),
+                text = "${page + 1}/${urls.size}",
+            )
         }
     }
 }
