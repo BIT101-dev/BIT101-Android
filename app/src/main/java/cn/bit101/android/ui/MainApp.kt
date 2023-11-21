@@ -213,8 +213,7 @@ fun MainApp(
     ) { paddingValues ->
         NavHost(
             navController = mainController.navController,
-//            startDestination = homePage.ifBlank { "schedule" },
-            startDestination = "gallery"
+            startDestination = homePage.ifBlank { "schedule" },
         ) {
             composable("schedule") {
                 Box(modifier = Modifier.padding(paddingValues)) {
