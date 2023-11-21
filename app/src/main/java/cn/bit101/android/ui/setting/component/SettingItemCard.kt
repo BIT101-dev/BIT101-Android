@@ -1,7 +1,6 @@
-package cn.bit101.android.ui.setting2.component
+package cn.bit101.android.ui.setting.component
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -25,7 +24,7 @@ fun SettingItemCardContent(
     title: String,
     enabled: Boolean = true,
     subTitle: String? = null,
-    suffix: @Composable RowScope.() -> Unit = {},
+    suffix: @Composable (RowScope.() -> Unit)? = null,
 ) {
     Row(
         modifier = Modifier
@@ -34,7 +33,9 @@ fun SettingItemCardContent(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(modifier = Modifier.fillMaxWidth(0.7f)) {
+
+
+        Column(modifier = Modifier.fillMaxWidth(if(suffix == null) 1.0f else 0.7f)) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium.copy(
@@ -54,7 +55,9 @@ fun SettingItemCardContent(
             }
         }
         Row {
-            suffix()
+            if (suffix != null) {
+                suffix()
+            }
         }
     }
 }
@@ -65,7 +68,7 @@ fun SettingItem(
     enable: Boolean = true,
     subTitle: String? = null,
     onClick: (() -> Unit)? = null,
-    suffix: @Composable RowScope.() -> Unit = {},
+    suffix: @Composable (RowScope.() -> Unit)? = null,
 ) {
     if(onClick != null) {
         Card(
@@ -108,7 +111,7 @@ data class SettingItemData(
     val enable: Boolean = true,
     val subTitle: String? = null,
     val onClick: () -> Unit = {},
-    val suffix: @Composable RowScope.() -> Unit = {},
+    val suffix: @Composable (RowScope.() -> Unit)? = null,
 )
 
 

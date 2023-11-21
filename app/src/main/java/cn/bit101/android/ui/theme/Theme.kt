@@ -94,8 +94,12 @@ fun BIT101Theme(
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
         else false
 
-    val useDarkTheme =
-        isSystemInDarkTheme() && !SettingDataStore.settingDisableDarkTheme.flow.collectAsState(initial = false).value
+    val useDarkTheme = when(SettingDataStore.settingDarkTheme.flow.collectAsState(initial = false).value) {
+        "system" -> isSystemInDarkTheme()
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
 
     // 应用 Material You 动态颜色
     val colors = when {

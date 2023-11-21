@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.setting2.page
+package cn.bit101.android.ui.setting.page
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -31,7 +30,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -40,20 +38,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.setting2.component.SettingItem
-import cn.bit101.android.ui.setting2.component.SettingItemData
-import cn.bit101.android.ui.setting2.component.itemsGroup
-import cn.bit101.android.ui.setting2.viewmodel.CalendarViewModel
-import cn.bit101.android.ui.setting2.viewmodel.SettingData
-import cn.bit101.android.utils.TimeTableUtils
-import java.time.LocalDate
+import cn.bit101.android.ui.setting.component.SettingItemData
+import cn.bit101.android.ui.setting.component.itemsGroup
+import cn.bit101.android.ui.setting.viewmodel.CalendarViewModel
+import cn.bit101.android.ui.setting.viewmodel.SettingData
 import java.time.format.DateTimeFormatter
 
 
@@ -123,7 +117,7 @@ fun CalendarSettingPageContent(
         SettingItemData(
             title = "显示周六",
             subTitle = "设置是否显示周六",
-            onClick = {},
+            onClick = { onSettingChange(settingData.copy(showSaturday = !settingData.showSaturday)) },
             suffix = {
                 Switch(
                     checked = settingData.showSaturday,
@@ -134,7 +128,7 @@ fun CalendarSettingPageContent(
         SettingItemData(
             title = "显示周日",
             subTitle = "设置是否显示周日",
-            onClick = {},
+            onClick = { onSettingChange(settingData.copy(showSunday = !settingData.showSunday)) },
             suffix = {
                 Switch(
                     checked = settingData.showSunday,
@@ -145,7 +139,7 @@ fun CalendarSettingPageContent(
         SettingItemData(
             title = "显示边框",
             subTitle = "在课程卡片上加上边框",
-            onClick = {},
+            onClick = { onSettingChange(settingData.copy(showBorder = !settingData.showBorder)) },
             suffix = {
                 Switch(
                     checked = settingData.showBorder,
@@ -156,7 +150,7 @@ fun CalendarSettingPageContent(
         SettingItemData(
             title = "高亮今日",
             subTitle = "设置今日对应的列是否高亮",
-            onClick = {},
+            onClick = { onSettingChange(settingData.copy(showHighlightToday = !settingData.showHighlightToday)) },
             suffix = {
                 Switch(
                     checked = settingData.showHighlightToday,
@@ -167,7 +161,7 @@ fun CalendarSettingPageContent(
         SettingItemData(
             title = "显示节次分割线",
             subTitle = "用分割线将每节课分开",
-            onClick = {},
+            onClick = { onSettingChange(settingData.copy(showDivider = !settingData.showDivider)) },
             suffix = {
                 Switch(
                     checked = settingData.showDivider,
@@ -178,7 +172,7 @@ fun CalendarSettingPageContent(
         SettingItemData(
             title = "显示当前时间线",
             subTitle = "在当前时间显示一条线",
-            onClick = {},
+            onClick = { onSettingChange(settingData.copy(showCurrentTime = !settingData.showCurrentTime)) },
             suffix = {
                 Switch(
                     checked = settingData.showCurrentTime,
@@ -223,9 +217,7 @@ fun TermListDialog(
     AlertDialog(
         modifier = Modifier.fillMaxHeight(0.9f),
         onDismissRequest = onDismiss,
-        title = {
-            Text(text = "切换学期")
-        },
+        title = { Text(text = "切换学期") },
         text = {
             if(isGettingTermList || termList.isEmpty()) {
                 Box(
@@ -244,7 +236,7 @@ fun TermListDialog(
                 ) {
                     termList.forEach { text ->
                         Row(
-                            Modifier
+                            modifier = Modifier
                                 .fillMaxWidth()
                                 .clip(MaterialTheme.shapes.medium)
                                 .selectable(

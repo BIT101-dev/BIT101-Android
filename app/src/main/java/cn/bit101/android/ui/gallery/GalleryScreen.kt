@@ -143,8 +143,6 @@ fun GalleryScreen(
             navController = galleryController.navController,
             startDestination = "index",
         ) {
-
-
             composable(
                 route = "index",
             ) {

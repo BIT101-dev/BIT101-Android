@@ -30,18 +30,13 @@ object SettingDataStore {
     private val SETTING_DYNAMIC_THEME = booleanPreferencesKey("setting_dynamic_theme")
     val settingDynamicTheme = DataStoreItem(SETTING_DYNAMIC_THEME, true)
 
-
     // 忽略更新版本
     private val SETTING_IGNORE_VERSION = longPreferencesKey("setting_ignore_version")
     val settingIgnoreVersion = DataStoreItem(SETTING_IGNORE_VERSION, -1L)
 
     // 是否禁用暗黑主题
-    private val SETTING_DISABLE_DARK_THEME = booleanPreferencesKey("setting_disable_dark_theme")
-    val settingDisableDarkTheme = DataStoreItem(SETTING_DISABLE_DARK_THEME, false)
-
-    // 是否启用话廊
-    private val SETTING_ENABLE_GALLERY = booleanPreferencesKey("setting_enable_gallery")
-    val settingEnableGallery = DataStoreItem(SETTING_ENABLE_GALLERY, true)
+    private val SETTING_DARK_THEME = stringPreferencesKey("setting_dark_theme")
+    val settingDarkTheme = DataStoreItem(SETTING_DARK_THEME, "system")
 
     // 是否使用webVpn
     private val SETTING_USE_WEB_VPN = booleanPreferencesKey("setting_use_web_vpn")
@@ -132,5 +127,16 @@ object SettingDataStore {
     // 主页设置
     private val HOME_PAGE = stringPreferencesKey("home_page")
     val settingHomePage = DataStoreItem(HOME_PAGE, "schedule")
+
+    // 页面的顺序
+    private val SETTING_PAGE_ORDER = stringPreferencesKey("setting_page_order")
+    val settingPageOrder = DataStoreItem(SETTING_PAGE_ORDER, "schedule,map,bit101-web,gallery,mine")
+
+    // 页面是否可见，不可见的在字符串中
+    private val SETTING_PAGE_VISIBLE = stringPreferencesKey("setting_page_visible")
+    val settingPageVisible = DataStoreItem(SETTING_PAGE_VISIBLE, "")
+
+    private val SETTING_AUTO_DETECT_UPGRADE = booleanPreferencesKey("setting_auto_detect_upgrade")
+    val settingAutoDetectUpgrade = DataStoreItem(SETTING_AUTO_DETECT_UPGRADE, true)
 }
 

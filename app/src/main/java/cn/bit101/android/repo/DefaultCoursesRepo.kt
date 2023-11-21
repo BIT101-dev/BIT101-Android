@@ -34,17 +34,16 @@ class DefaultCoursesRepo @Inject constructor(
     }
 
     override suspend fun saveCourses(
-        term: String,
         courses: List<CourseScheduleEntity>
     ) = withContext(Dispatchers.IO) {
-        // 删掉这个学期的所有课程
-        database.coursesDao().deleteCoursesByTerm(term)
+        // 删掉所有课程
+        database.coursesDao().deleteAllCourses()
 
         // 放入进现在获得的所有课程
         database.coursesDao().insertCourses(courses)
     }
 
-    override suspend fun getCoursesFromLocal(
+    override fun getCoursesFromLocal(
         term: String,
     ) = database.coursesDao().getCoursesByTerm(term)
 
@@ -52,6 +51,8 @@ class DefaultCoursesRepo @Inject constructor(
         term: String,
         week: Int
     ) = database.coursesDao().getCoursesByTermWeek(term, week)
+
+    override fun getCoursesFromLocal() = database.coursesDao().getAllCourses()
 
     override suspend fun getTermListFromNet() = withContext(Dispatchers.IO) {
         BIT101API.schoolJxzxehallapp.getAppConfig()
@@ -79,14 +80,14 @@ class DefaultCoursesRepo @Inject constructor(
             requestParamStr = "{\"XNXQDM\":\"$term\",\"ZC\":\"1\"}"
         )
 
-        Log.i("SchoolSchedule", "Get First Day Response: ${res.code()} ${res.errorBody()?.string()}")
+//        Log.i("SchoolSchedule", "Get First Day Response: ${res.code()} ${res.errorBody()?.string()}")
 
 
         val data = res.body()?.data ?: throw Exception("get first day response error")
 
         var firstDay: LocalDate? = null
 
-        Log.i("SchoolSchedule", "Get First Day Success: $data")
+//        Log.i("SchoolSchedule", "Get First Day Success: $data")
 
         data.forEach {
             if(it.week == 1) {

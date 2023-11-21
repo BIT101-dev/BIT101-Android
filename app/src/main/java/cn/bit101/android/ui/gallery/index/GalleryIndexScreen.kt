@@ -124,7 +124,7 @@ fun GalleryIndexScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
-                posters = followPosters ?: emptyList(),
+                posters = followPosters,
 
                 state = followState,
                 refreshState = followRefreshState,
@@ -141,7 +141,7 @@ fun GalleryIndexScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
-                posters = newestPosters ?: emptyList(),
+                posters = newestPosters,
                 state = newestState,
                 refreshState = newestRefreshPostersState,
                 loadState = newestLoadMorePostersState,
@@ -156,7 +156,7 @@ fun GalleryIndexScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
-                posters = recommendPosters ?: emptyList(),
+                posters = recommendPosters,
                 state = recommendState,
                 refreshState = recommendRefreshPostersState,
                 loadState = recommendLoadMorePostersState,
@@ -171,7 +171,7 @@ fun GalleryIndexScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
-                posters = hotPosters ?: emptyList(),
+                posters = hotPosters,
                 state = hotState,
                 refreshState = hotRefreshPostersState,
                 loadState = hotLoadMorePostersState,
@@ -187,7 +187,7 @@ fun GalleryIndexScreen(
             SearchTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
-                posters = searchPosters ?: emptyList(),
+                posters = searchPosters,
 
                 state = searchState,
                 searchState = searchRefreshPostersState,

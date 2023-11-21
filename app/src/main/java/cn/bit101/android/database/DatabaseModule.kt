@@ -7,6 +7,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
 import dagger.hilt.components.SingletonComponent
+import javax.inject.Singleton
 
 
 private const val FILE_NAME = "bit101.db"
@@ -16,6 +17,7 @@ private const val FILE_NAME = "bit101.db"
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
     @Provides
+    @Singleton
     fun provideDatabase(): BIT101Database {
         return Room.databaseBuilder(
             App.context,

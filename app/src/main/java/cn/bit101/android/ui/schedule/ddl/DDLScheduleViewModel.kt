@@ -38,6 +38,7 @@ class DDLScheduleViewModel @Inject constructor(
     private var job: Job? = null
 
     init {
+
         viewModelScope.launch {
             beforeDay = SettingDataStore.ddlScheduleBeforeDay.get().toInt()
         }
@@ -51,20 +52,6 @@ class DDLScheduleViewModel @Inject constructor(
         // 更新日程
         viewModelScope.launch {
             updateLexueCalendar()
-        }
-    }
-
-    // 设置颜色改变天数
-    fun setBeforeDay(day: Long) {
-        viewModelScope.launch {
-            SettingDataStore.ddlScheduleBeforeDay.set(day)
-        }
-    }
-
-    // 设置滞留天数
-    fun setAfterDay(day: Long) {
-        viewModelScope.launch {
-            SettingDataStore.ddlScheduleAfterDay.set(day)
         }
     }
 
@@ -195,7 +182,7 @@ class DDLScheduleViewModel @Inject constructor(
                 Log.e("DDLScheduleViewModel", "no lexue calendar url")
                 return false
             }
-            val events = ddlScheduleRepo.getCalendar(url)
+            val events = ddlScheduleRepo.getCalendarFromNet(url)
             val UIDs = events.map { it.uid }
             // 获取数据库中已有日程
             val existItems = HashMap<String, DDLScheduleEntity>()

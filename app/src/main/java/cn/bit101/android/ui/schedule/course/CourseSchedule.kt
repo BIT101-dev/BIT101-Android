@@ -1,12 +1,6 @@
 package cn.bit101.android.ui.schedule.course
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,12 +20,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.database.entity.CourseScheduleEntity
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.common.SimpleState
+import cn.bit101.android.utils.TimeTableUtils
 
 /**
  * @author flwfdd
@@ -49,7 +43,7 @@ fun CourseSchedule(
     /**
      * 当前选择的学期
      */
-    val term by vm.termFlow.collectAsState(initial = null)
+    val term by vm.currentTermFlow.collectAsState(initial = null)
 
     /**
      * 课表数据
@@ -64,7 +58,7 @@ fun CourseSchedule(
     /**
      * 学期开始日期
      */
-    val firstDay by vm.firstDayFlow.collectAsState()
+    val firstDay by vm.firstDayFlow.collectAsState(initial = null)
 
     /**
      * 课表相关配置
@@ -95,18 +89,9 @@ fun CourseSchedule(
      */
     var showCourseDetailState by remember { mutableStateOf<CourseScheduleEntity?>(null) }
 
-    /**
-     * 设置时间表的这个动作的状态
-     */
-    val setTimeTableState by vm.setTimeTableStateLiveData.observeAsState()
-
     val refreshCoursesState by vm.refreshCoursesStateLiveData.observeAsState()
 
     val forceRefreshCoursesState by vm.forceRefreshCoursesStateLiveData.observeAsState()
-
-    val getTermListState by vm.refreshTermListStateLiveData.observeAsState()
-
-    val changeTermState by vm.changeTermStateLiveData.observeAsState()
 
     // 强制刷新的状态在这里管理
     DisposableEffect(forceRefreshCoursesState) {
@@ -135,20 +120,7 @@ fun CourseSchedule(
             showBorder == null ||
             currentTime == null ||
             timeTableStr == null
-        ) {
-            // 一开始要在datastore中加载数据，如果没有数据就显示加载中
-//            Column(
-//                modifier = Modifier
-//                    .fillMaxSize()
-//                    .wrapContentSize(Alignment.Center)
-//                    .width(64.dp)
-//            ) {
-//                CircularProgressIndicator(
-//                    modifier = Modifier.width(64.dp),
-//                    color = MaterialTheme.colorScheme.primary
-//                )
-//            }
-        }
+        ) { }
         else if(
             term!!.isEmpty() ||
             week == Int.MAX_VALUE ||
@@ -176,7 +148,7 @@ fun CourseSchedule(
             }
         }
         else {
-            val timeTable = vm.parseTimeTable(timeTableStr!!)
+            val timeTable = TimeTableUtils.parseTimeTable(timeTableStr!!)
             val settingData = SettingData(
                 showDivider = showDivider!!,
                 showSaturday = showSaturday!!,
@@ -198,7 +170,7 @@ fun CourseSchedule(
                     timeTable = timeTable,
                     settingData = settingData,
 
-                    onConfig = { showConfigDialog = true },
+                    onConfig = { mainController.navController.navigate("setting?route=calendar") },
                     onShowDetailDialog = { showCourseDetailState = it },
                     onChangeWeek = { vm.changeWeek(it) }
                 )
@@ -209,52 +181,6 @@ fun CourseSchedule(
                         onDismiss = { showCourseDetailState = null }
                     )
                 }
-            }
-
-            // 设置对话框 自定义进入和退出动画
-            AnimatedVisibility(
-                visible = showConfigDialog,
-                enter = slideIn(
-                    initialOffset = { IntOffset(0, it.height) },
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMediumLow,
-                        visibilityThreshold = IntOffset.VisibilityThreshold
-                    )
-                ),
-                exit = slideOut(
-                    targetOffset = { IntOffset(0, it.height) },
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMediumLow,
-                        visibilityThreshold = IntOffset.VisibilityThreshold
-                    )
-                )
-            ) {
-                CourseScheduleConfigDialog(
-                    mainController = mainController,
-                    term = term!!,
-                    settingData = settingData,
-                    timeTableStr = timeTableStr!!,
-
-                    coursesRefreshing = forceRefreshCoursesState is SimpleState.Loading,
-
-                    getTermListState = getTermListState,
-                    setTimeTableState = setTimeTableState,
-                    changeTermState = changeTermState,
-
-                    onClearStates = {
-                        vm.setTimeTableStateLiveData.value = null
-                        vm.changeTermStateLiveData.value = null
-                    },
-
-                    onForceRefreshCourses = vm::forceRefreshCourses,
-                    onSetSetting = vm::setSettingData,
-                    onSetTimeTableStr = vm::setTimeTable,
-
-                    onRefreshTermList = vm::refreshTermList,
-                    onChangeTerm = vm::changeTerm,
-
-                    onDismiss = { showConfigDialog = false },
-                )
             }
         }
     }

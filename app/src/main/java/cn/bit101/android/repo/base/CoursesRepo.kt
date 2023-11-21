@@ -36,9 +36,14 @@ interface CoursesRepo {
     fun getCoursesFromLocal(term: String, week: Int): Flow<List<CourseScheduleEntity>>
 
     /**
+     * 从本地获得所有课表
+     */
+    fun getCoursesFromLocal(): Flow<List<CourseScheduleEntity>>
+
+    /**
      * 根据学期从本地获得课表
      */
-    suspend fun getCoursesFromLocal(term: String): Flow<List<CourseScheduleEntity>>
+    fun getCoursesFromLocal(term: String): Flow<List<CourseScheduleEntity>>
 
     /**
      * 从网络中获取学期对应的课表
@@ -48,6 +53,6 @@ interface CoursesRepo {
     /**
      * 更新数据库中某学期的课表
      */
-    suspend fun saveCourses(term: String, courses: List<CourseScheduleEntity>)
+    suspend fun saveCourses(courses: List<CourseScheduleEntity>)
 
 }

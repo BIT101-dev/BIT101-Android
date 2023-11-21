@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.setting2
+package cn.bit101.android.ui.setting
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues

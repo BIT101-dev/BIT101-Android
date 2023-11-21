@@ -1,6 +1,5 @@
-package cn.bit101.android.ui.setting2.viewmodel
+package cn.bit101.android.ui.setting.viewmodel
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,7 +12,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.LocalDate
 import javax.inject.Inject
 
 data class SettingData(
@@ -142,7 +140,7 @@ class CalendarViewModel @Inject constructor(
     private suspend fun getCoursesWithoutState() {
         val term = currentTermFlow.first() ?: throw Exception("no term")
         val courses = coursesRepo.getCoursesFromNet(term)
-        coursesRepo.saveCourses(term, courses)
+        coursesRepo.saveCourses(courses)
     }
 
     fun getCourses() {
