@@ -780,11 +780,11 @@ fun PosterScreen(
 
 
     if(getPosterState is GetPosterState.Loading || refreshState is RefreshState.Loading) {
-        Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
+        Box(modifier = Modifier.fillMaxSize()) {
             CircularProgressIndicator(
-                modifier = Modifier.width(64.dp),
+                modifier = Modifier
+                    .width(64.dp)
+                    .align(Alignment.Center),
                 color = MaterialTheme.colorScheme.primary
             )
         }

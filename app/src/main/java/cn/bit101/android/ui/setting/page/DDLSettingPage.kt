@@ -71,8 +71,8 @@ fun DDLSettingPageContent(
 
     val displayItems = listOf(
         SettingItemData(
-            title = "滞留天数",
-            subTitle = "过期日程会继续显示",
+            title = "变色天数",
+            subTitle = "临近日程会改变颜色",
             onClick = onOpenBeforeDayDialog,
             suffix = {
                 Text(
@@ -84,8 +84,8 @@ fun DDLSettingPageContent(
             }
         ),
         SettingItemData(
-            title = "变色天数",
-            subTitle = "临近日程会改变颜色",
+            title = "滞留天数",
+            subTitle = "过期日程会继续显示",
             onClick = onOpenAfterDayDialog,
             suffix = {
                 Text(
@@ -192,9 +192,9 @@ fun DDLSettingPage(
     vm: DDLViewModel = hiltViewModel(),
 ) {
 
-    val afterDay by vm.beforeDayFlow.collectAsState(initial = null)
+    val afterDay by vm.afterDayFlow.collectAsState(initial = null)
 
-    val beforeDay by vm.afterDayFlow.collectAsState(initial = null)
+    val beforeDay by vm.beforeDayFlow.collectAsState(initial = null)
 
     val updateCalendarUrlState by vm.updateLexueCalendarUrlStateLiveData.observeAsState()
 
@@ -240,6 +240,17 @@ fun DDLSettingPage(
         onOpenBeforeDayDialog = { showBeforeDayDialog = true },
     )
 
+    if(showBeforeDayDialog) {
+        InputNumberDialog(
+            mainController = mainController,
+            title = "变色天数",
+            text = "临近日程会改变颜色",
+            initValue = beforeDay?.toInt() ?: 0,
+            onChange = { vm.setBeforeDay(it.toLong()) },
+            onDismiss = { showAfterDayDialog = false },
+        )
+    }
+
     if(showAfterDayDialog) {
         InputNumberDialog(
             mainController = mainController,
@@ -248,17 +259,6 @@ fun DDLSettingPage(
             initValue = afterDay?.toInt() ?: 0,
             onChange = { vm.setAfterDay(it.toLong()) },
             onDismiss = { showAfterDayDialog = false },
-        )
-    }
-
-    if(showBeforeDayDialog) {
-        InputNumberDialog(
-            mainController = mainController,
-            title = "变色天数",
-            text = "临近日程会改变颜色",
-            initValue = beforeDay?.toInt() ?: 0,
-            onChange = { vm.setBeforeDay(it.toLong()) },
-            onDismiss = { showBeforeDayDialog = false },
         )
     }
 }
