@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.database.entity.CourseScheduleEntity
+import cn.bit101.android.utils.TimeTableItem
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -70,7 +71,7 @@ fun CourseScheduleCalendar(
     week: Int,
     firstDay: LocalDate,
     settingData: SettingData,
-    timeTable: List<CourseScheduleViewModel.TimeTableItem>,
+    timeTable: List<TimeTableItem>,
 
     onConfig: () -> Unit,
     onShowDetailDialog: (CourseScheduleEntity) -> Unit,

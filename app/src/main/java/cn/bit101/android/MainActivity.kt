@@ -16,7 +16,9 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.ui.MainApp
+import cn.bit101.android.ui.setting2.SettingContent
 import cn.bit101.android.ui.theme.BIT101Theme
+import cn.bit101.android.utils.ColorUtils
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -29,33 +31,21 @@ class MainActivity : ComponentActivity() {
         var window: Window? = null
     }
 
-    // 判断一个颜色是否是浅色
-    private fun isLightColor(c: Color): Boolean {
-        val color = c.toArgb()
-        val red = color shr 16 and 0xFF
-        val green = color shr 8 and 0xFF
-        val blue = color shr 0 and 0xFF
-        val grayLevel = 0.2126 * red + 0.7152 * green + 0.0722 * blue
-        return grayLevel >= 192
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
         MainActivity.window = window
 
         setContent {
             BIT101Theme {
-                // 设置状态栏文字颜色
-                WindowCompat.getInsetsController(
-                    window,
-                    LocalView.current
-                ).isAppearanceLightStatusBars = isLightColor(MaterialTheme.colorScheme.background)
-
                 // 设置导航栏颜色与应用内导航栏匹配
                 window?.navigationBarColor =
                     MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
                         .toArgb()
-                MainApp()
+//                MainApp()
+                SettingContent()
             }
         }
 

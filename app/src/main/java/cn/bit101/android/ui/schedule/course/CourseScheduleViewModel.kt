@@ -9,6 +9,8 @@ import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.repo.base.CoursesRepo
 import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.android.ui.gallery.common.SimpleState
+import cn.bit101.android.utils.TimeTableItem
+import cn.bit101.android.utils.TimeTableUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -88,7 +90,7 @@ class CourseScheduleViewModel @Inject constructor(
                 val term = SettingDataStore.courseScheduleTerm.get()
 
                 // 获取课表
-                val courses = coursesRepo.getCoursesFromLocal(term, week)
+                val courses = coursesRepo.getCoursesFromLocal(term, week).first()
 
                 // 将获取的课表放入流中
                 _courses.value = convertWeekCourse(courses)
@@ -117,7 +119,7 @@ class CourseScheduleViewModel @Inject constructor(
                 _weekFlow.value = week
 
                 // 获取课表
-                val courses = coursesRepo.getCoursesFromLocal(term, week).ifEmpty {
+                val courses = coursesRepo.getCoursesFromLocal(term, week).first().ifEmpty {
                     // 如果为空，那么从网络中获取学期的课表
                     val allCourses = coursesRepo.getCoursesFromNet(term)
 
@@ -125,7 +127,7 @@ class CourseScheduleViewModel @Inject constructor(
                     coursesRepo.saveCourses(term, allCourses)
 
                     // 最后再获取一遍
-                    coursesRepo.getCoursesFromLocal(term, week)
+                    coursesRepo.getCoursesFromLocal(term, week).first()
                 }
 
                 // 将获取的课表放入流中
@@ -149,7 +151,7 @@ class CourseScheduleViewModel @Inject constructor(
         refreshTermListStateLiveData.value = SimpleDataState.Loading()
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val terms = coursesRepo.getTermList()
+                val terms = coursesRepo.getTermListFromNet()
                 refreshTermListStateLiveData.postValue(SimpleDataState.Success(terms))
             } catch (e: Exception) {
                 refreshTermListStateLiveData.postValue(SimpleDataState.Fail())
@@ -166,7 +168,7 @@ class CourseScheduleViewModel @Inject constructor(
             try {
                 // 获得学期
                 val term = SettingDataStore.courseScheduleTerm.get().ifBlank {
-                    coursesRepo.getCurrentTerm()
+                    coursesRepo.getCurrentTermFromNet()
                 }
                 SettingDataStore.courseScheduleTerm.set(term)
 
@@ -190,7 +192,7 @@ class CourseScheduleViewModel @Inject constructor(
                 coursesRepo.saveCourses(term, allCourses)
 
                 // 最后再获取一遍
-                val courses = coursesRepo.getCoursesFromLocal(term, week)
+                val courses = coursesRepo.getCoursesFromLocal(term, week).first()
                 _courses.value = convertWeekCourse(courses)
 
                 forceRefreshCoursesStateLiveData.postValue(SimpleState.Success)
@@ -218,7 +220,7 @@ class CourseScheduleViewModel @Inject constructor(
                 val week = firstDay.until(LocalDate.now(), ChronoUnit.WEEKS).plus(1).toInt()
                 _weekFlow.value = week
 
-                val courses = coursesRepo.getCoursesFromLocal(term, week)
+                val courses = coursesRepo.getCoursesFromLocal(term, week).first()
                 _courses.value = convertWeekCourse(courses)
 
                 refreshCoursesStateLiveData.postValue(SimpleState.Success)
@@ -242,7 +244,7 @@ class CourseScheduleViewModel @Inject constructor(
     fun setTimeTable(timeTable: String) {
         setTimeTableStateLiveData.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
-            if(!checkTimeTable(timeTable)) {
+            if(!TimeTableUtils.checkTimeTable(timeTable)) {
                 setTimeTableStateLiveData.postValue(SimpleState.Fail)
                 return@launch
             }
@@ -265,44 +267,5 @@ class CourseScheduleViewModel @Inject constructor(
             weekCourses.add(dayCourses)
         }
         return weekCourses
-    }
-
-    // 解析时间表
-    data class TimeTableItem(
-        val startTime: LocalTime,
-        val endTime: LocalTime,
-    )
-
-    private fun checkTimeTable(timeTable: String): Boolean {
-        return try {
-            val l = parseTimeTable(timeTable)
-            if (l.isEmpty()) return false
-            l.forEachIndexed { index, time ->
-                if (time.endTime <= time.startTime) return false
-                if (index != 0) {
-                    if (time.startTime <= l[index - 1].endTime) return false
-                }
-            }
-            true
-        } catch (e: Exception) {
-            false
-        }
-    }
-
-
-    fun parseTimeTable(s: String): List<TimeTableItem> {
-        val timeTable = mutableListOf<TimeTableItem>()
-
-        s.split("\n").forEach {
-            if (it.isBlank()) return@forEach
-            val x = it.split(",")
-            timeTable.add(
-                TimeTableItem(
-                    LocalTime.parse(x[0]),
-                    LocalTime.parse(x[1])
-                )
-            )
-        }
-        return timeTable
     }
 }

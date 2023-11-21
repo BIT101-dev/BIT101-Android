@@ -125,7 +125,7 @@ fun PosterContent(
     commentLikings: Set<Long>,
 
     /**
-     * 正在进行点赞操作的帖子的ID，存储在一个Set中，如果评论的id在Set中，说明正在进行点赞操作，正在点赞的需要转圈圈
+     * 是否正在对帖子进行点赞
      */
     posterLiking: Boolean,
 

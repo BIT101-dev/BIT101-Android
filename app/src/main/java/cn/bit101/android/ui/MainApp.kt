@@ -16,6 +16,7 @@ import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.interaction.HoverInteraction
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.rounded.Event
@@ -60,6 +61,7 @@ import cn.bit101.android.ui.login.LoginOrLogoutScreen
 import cn.bit101.android.ui.map.MapScreen
 import cn.bit101.android.ui.schedule.ScheduleScreen
 import cn.bit101.android.ui.setting.SettingScreen
+import cn.bit101.android.ui.theme.BIT101Theme
 import cn.bit101.android.ui.web.WebScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.MainScope
@@ -125,6 +127,7 @@ fun MainApp(
     }
 
     Scaffold(
+        modifier = Modifier.statusBarsPadding(),
         snackbarHost = { SnackbarHost(mainController.snackbarHostState) },
         bottomBar = {
             AnimatedVisibility(
@@ -230,6 +233,5 @@ fun MainApp(
                 }
             }
         }
-
     }
 }

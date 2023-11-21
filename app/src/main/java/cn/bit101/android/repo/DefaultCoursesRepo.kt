@@ -8,7 +8,9 @@ import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.net.BIT101API
 import cn.bit101.android.repo.base.CoursesRepo
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -44,18 +46,14 @@ class DefaultCoursesRepo @Inject constructor(
 
     override suspend fun getCoursesFromLocal(
         term: String,
-    ) = withContext(Dispatchers.IO) {
-        database.coursesDao().getCoursesByTerm(term).first()
-    }
+    ) = database.coursesDao().getCoursesByTerm(term)
 
-    override suspend fun getCoursesFromLocal(
+    override fun getCoursesFromLocal(
         term: String,
         week: Int
-    ) = withContext(Dispatchers.IO) {
-        database.coursesDao().getCoursesByTermWeek(term, week).first()
-    }
+    ) = database.coursesDao().getCoursesByTermWeek(term, week)
 
-    override suspend fun getTermList() = withContext(Dispatchers.IO) {
+    override suspend fun getTermListFromNet() = withContext(Dispatchers.IO) {
         BIT101API.schoolJxzxehallapp.getAppConfig()
         val terms = BIT101API.schoolJxzxehallapp.getTerms().body()?.datas?.xnxqcx?.rows?.map { it.DM }
             ?: throw Exception("Get Term List Error")
@@ -63,23 +61,28 @@ class DefaultCoursesRepo @Inject constructor(
         terms
     }
 
-    override suspend fun getCurrentTerm() = withContext(Dispatchers.IO) {
-        val terms = getTermList()
-        terms.forEach {
-            val firstDay = SettingDataStore.courseScheduleFirstDay.get(it) ?: getFirstDayFromNet(it)
-            if(firstDay < LocalDate.now()) {
-                return@withContext it
-            }
-        }
-        throw Exception("get current term error")
+    override suspend fun getCurrentTermFromNet() = withContext(Dispatchers.IO) {
+        BIT101API.schoolJxzxehallapp.getAppConfig()
+
+        BIT101API.schoolJxzxehallapp.getCurrentTerm().body()?.datas?.dqxnxq?.rows?.get(0)?.DM
+            ?: throw Exception("get current term error")
     }
+
+    override fun getCurrentTermFromLocal() = SettingDataStore.courseScheduleTerm.flow
 
     override suspend fun getFirstDayFromNet(
         term: String
     ) = withContext(Dispatchers.IO) {
-        val data = BIT101API.schoolJxzxehallapp.getWeekAndDate(
+        BIT101API.schoolJxzxehallapp.getAppConfig()
+
+        val res = BIT101API.schoolJxzxehallapp.getWeekAndDate(
             requestParamStr = "{\"XNXQDM\":\"$term\",\"ZC\":\"1\"}"
-        ).body()?.data ?: throw Exception("get first day response error")
+        )
+
+        Log.i("SchoolSchedule", "Get First Day Response: ${res.code()} ${res.errorBody()?.string()}")
+
+
+        val data = res.body()?.data ?: throw Exception("get first day response error")
 
         var firstDay: LocalDate? = null
 
@@ -94,4 +97,7 @@ class DefaultCoursesRepo @Inject constructor(
 
         firstDay!!
     }
+
+    override fun getFirstDayFromLocal() =
+        SettingDataStore.courseScheduleFirstDay.getFlow("")
 }
