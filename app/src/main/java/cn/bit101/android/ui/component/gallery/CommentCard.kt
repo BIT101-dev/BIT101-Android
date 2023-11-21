@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.component
+package cn.bit101.android.ui.component.gallery
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

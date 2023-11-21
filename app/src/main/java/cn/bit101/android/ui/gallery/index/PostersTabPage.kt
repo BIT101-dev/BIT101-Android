@@ -28,6 +28,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawWithCache
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
@@ -35,7 +37,7 @@ import cn.bit101.android.ui.component.LoadableLazyColumn
 import cn.bit101.android.ui.component.LoadableLazyColumnState
 import cn.bit101.android.ui.gallery.common.LoadMoreState
 import cn.bit101.android.ui.gallery.common.RefreshState
-import cn.bit101.android.ui.gallery.component.PosterCard
+import cn.bit101.android.ui.component.gallery.PosterCard
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import kotlinx.coroutines.launch
@@ -97,7 +99,9 @@ fun PostersTabPage(
         if(refreshState == null) onRefresh()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize().drawWithContent {
+        drawContent()
+    }) {
         Column {
             LoadableLazyColumn(
                 modifier = Modifier

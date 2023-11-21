@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.component
+package cn.bit101.android.ui.component.gallery
 
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text

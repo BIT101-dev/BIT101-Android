@@ -63,7 +63,7 @@ fun DDLSettingPageContent(
         ),
         SettingItemData(
             title = "重新拉取乐学日程",
-            subTitle = "重新拉取乐学日程",
+            subTitle = "请先获取订阅链接哦",
             onClick = onUpdateLexueCalendar,
             enable = !isUpdatingLexueCalendar,
         ),

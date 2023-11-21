@@ -5,22 +5,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.ui.gallery.component.AnnotatedText
-import cn.bit101.android.ui.gallery.component.CommentEditContent
-import cn.bit101.api.model.common.Comment
+import cn.bit101.android.ui.component.gallery.CommentEditContent
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
 

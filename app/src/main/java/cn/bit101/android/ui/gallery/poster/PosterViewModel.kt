@@ -296,7 +296,7 @@ class PosterViewModel @Inject constructor(
                 images = commentEditData.uploadImageData.images.plus(Pair(ImageData.Local(uri), UploadImageState.Loading))
             )
         )
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val res = uploadRepo.uploadImage(context, uri)
 
@@ -354,7 +354,7 @@ class PosterViewModel @Inject constructor(
             )
         )))
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val res = uploadRepo.uploadImage(context, uri)
                 // 上传成功后，更新列表
@@ -415,7 +415,7 @@ class PosterViewModel @Inject constructor(
         editData: CommentEditData
     ) {
         _sendCommentToPosterStateFlow.value = SendCommentState.Sending
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val comment = reactionRepo.sendCommentToPoster(
                     id = id,
@@ -500,7 +500,7 @@ class PosterViewModel @Inject constructor(
         editData: CommentEditData,
     ) {
         _sendCommentToCommentStateFlow.value = SendCommentState.Sending
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 val resComment = reactionRepo.sendCommentToComment(
                     id = comment.id.toLong(),

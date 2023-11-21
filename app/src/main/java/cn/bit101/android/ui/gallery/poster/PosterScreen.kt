@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
@@ -45,15 +46,20 @@ import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material3.Badge
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -69,8 +75,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.IntOffset
@@ -87,19 +95,19 @@ import cn.bit101.android.ui.gallery.common.LoadMoreState
 import cn.bit101.android.ui.gallery.common.RefreshState
 import cn.bit101.android.ui.gallery.common.SimpleState
 import cn.bit101.android.ui.gallery.common.UploadImageData
-import cn.bit101.android.ui.gallery.component.CommentCard
-import cn.bit101.android.ui.gallery.component.CommentEditContent
-import cn.bit101.android.ui.gallery.component.AnnotatedText
-import cn.bit101.android.ui.gallery.component.DeleteCommentDialog
-import cn.bit101.android.ui.gallery.component.DeleteImageDialog
-import cn.bit101.android.ui.gallery.component.DeletePosterDialog
+import cn.bit101.android.ui.component.gallery.CommentCard
+import cn.bit101.android.ui.component.gallery.CommentEditContent
+import cn.bit101.android.ui.component.gallery.AnnotatedText
+import cn.bit101.android.ui.component.gallery.DeleteCommentDialog
+import cn.bit101.android.ui.component.gallery.DeleteImageDialog
+import cn.bit101.android.ui.component.gallery.DeletePosterDialog
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PosterContent(
     mainController: MainController,
@@ -291,36 +299,45 @@ fun PosterContent(
                 Spacer(modifier = Modifier.padding(4.dp))
             }
 
-            // 帖子信息
             item(3) {
-                Column {
-                    if(data.own && !data.public) {
-                        Text(
-                            text = "仅自己可见",
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                        Spacer(modifier = Modifier.padding(1.dp))
-                    }
-                    ClickableText(
-                        text = buildAnnotatedString { append("POSTER ID：" + data.id) },
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            color = MaterialTheme.colorScheme.onBackground
-                        ),
-                        onClick = {
-                            mainController.copyText(cm, buildAnnotatedString { append(data.id.toString()) })
-                        }
-                    )
-                    Spacer(modifier = Modifier.padding(1.dp))
+                if(data.own && !data.public) {
                     Text(
-                        text = "首次创建时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.createTime)),
+                        text = "仅自己可见",
                         style = MaterialTheme.typography.labelMedium
                     )
                     Spacer(modifier = Modifier.padding(1.dp))
-                    Text(
-                        text = "最后修改时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.updateTime)),
-                        style = MaterialTheme.typography.labelMedium
-                    )
                 }
+            }
+            item(11) {
+                ClickableText(
+                    text = buildAnnotatedString { append("POSTER ID：" + data.id) },
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = MaterialTheme.colorScheme.onBackground
+                    ),
+                    onClick = {
+                        mainController.copyText(cm, buildAnnotatedString { append(data.id.toString()) })
+                    }
+                )
+                Spacer(modifier = Modifier.padding(1.dp))
+            }
+
+            item(12) {
+                Text(
+                    text = "首次创建时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.createTime)),
+                    style = MaterialTheme.typography.labelMedium
+                )
+                Spacer(modifier = Modifier.padding(1.dp))
+            }
+
+            item(13) {
+                Text(
+                    text = "最后修改时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.updateTime)),
+                    style = MaterialTheme.typography.labelMedium
+                )
+            }
+
+            // 帖子信息
+            item(14) {
                 Spacer(modifier = Modifier.padding(10.dp))
             }
 
@@ -461,22 +478,19 @@ fun PosterContent(
             }
 
             // 评论展示
-            if(comments.isNotEmpty()) {
-                comments.forEach { comment ->
-                    item(comment.id + 100) {
-                        CommentCard(
-                            mainController = mainController,
-                            comment = comment,
-                            onOpenImage = { onOpenImages(it, comment.images) },
-                            onShowMoreComments = { onShowMoreComments(comment) },
-                            commentLikings = commentLikings,
-                            onLikeComment = { onLikeComment(comment.id.toLong()) },
-                            onClick = { onOpenCommentDialog(comment, comment) },
-                            onReport = { onOpenReportComment(comment) },
-                            onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(comment) },
-                        )
-                    }
-                }
+
+            items(comments, { it.id + 100 }) { comment ->
+                CommentCard(
+                    mainController = mainController,
+                    comment = comment,
+                    onOpenImage = { onOpenImages(it, comment.images) },
+                    onShowMoreComments = { onShowMoreComments(comment) },
+                    commentLikings = commentLikings,
+                    onLikeComment = { onLikeComment(comment.id.toLong()) },
+                    onClick = { onOpenCommentDialog(comment, comment) },
+                    onReport = { onOpenReportComment(comment) },
+                    onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(comment) },
+                )
             }
 
             item(10) {
@@ -496,7 +510,7 @@ fun PosterContent(
                 enter = fadeIn(),
                 exit = fadeOut(),
 
-            ) {
+                ) {
                 SmallFloatingActionButton(
                     modifier = Modifier.size(fabSize),
                     onClick = {
@@ -764,174 +778,162 @@ fun PosterScreen(
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize()
-    ) {
-        when(getPosterState) {
-            // 失败
-            null, is GetPosterState.Fail -> {
 
-            }
-            // 正在加载
-            is GetPosterState.Loading -> {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .wrapContentSize(Alignment.Center)
-                        .width(64.dp)
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.width(64.dp),
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
-            }
-            is GetPosterState.Success -> {
-                PosterContent(
-                    mainController = mainController,
+    if(getPosterState is GetPosterState.Loading || refreshState is RefreshState.Loading) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            CircularProgressIndicator(
+                modifier = Modifier.width(64.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    } else if(getPosterState is GetPosterState.Success && refreshState is RefreshState.Success) {
+        PosterContent(
+            mainController = mainController,
 
-                    data = (getPosterState as GetPosterState.Success).poster,
-                    comments = comments,
-                    posterLiking = posterLikings.contains(id),
-                    commentLikings = commentLikings,
-                    commentEditData = commentEditData ?: CommentEditData(
-                        "",
-                        UploadImageData(false, emptyList()),
-                        false
-                    ),
-                    loading = loadMoreState is LoadMoreState.Loading,
-                    state = rememberLoadableLazyColumnWithoutPullRequestState(
-                        onLoadMore = { vm.loadMoreComments(id) }
-                    ),
+            data = (getPosterState as GetPosterState.Success).poster,
+            comments = comments,
+            posterLiking = posterLikings.contains(id),
+            commentLikings = commentLikings,
+            commentEditData = commentEditData ?: CommentEditData(
+                "",
+                UploadImageData(false, emptyList()),
+                false
+            ),
+            loading = loadMoreState is LoadMoreState.Loading,
+            state = rememberLoadableLazyColumnWithoutPullRequestState(
+                onLoadMore = { vm.loadMoreComments(id) }
+            ),
 
-                    onLikePoster = { vm.likePoster(id) },
-                    onLikeComment = vm::likeComment,
-                    onEditComment = vm::editComment,
-                    onShowMoreComments = { vm.setShowMoreState(true, it.id.toLong()) },
-                    onUploadImage = { imagePickerLauncherForPoster.launch(intent) },
-                    onSendCommentToPoster = {
-                        needShowSnackbarForCommentToPoster = true
-                        vm.sendCommentToPoster(id, it)
-                    },
+            onLikePoster = { vm.likePoster(id) },
+            onLikeComment = vm::likeComment,
+            onEditComment = vm::editComment,
+            onShowMoreComments = { vm.setShowMoreState(true, it.id.toLong()) },
+            onUploadImage = { imagePickerLauncherForPoster.launch(intent) },
+            onSendCommentToPoster = {
+                needShowSnackbarForCommentToPoster = true
+                vm.sendCommentToPoster(id, it)
+            },
 
-                    onOpenImage = onOpenImage,
-                    onOpenImages = onOpenImages,
-                    onOpenCommentDialog = vm::setShowCommentDialogState,
-                    onOpenEdit = { mainController.navController.navigate("edit/$id") },
-                    onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
-                    onOpenDeletePosterDialog = { deletePosterDialogState = id.toInt() },
-                    onOpenReportPoster = { mainController.navController.navigate("report/poster/$id") },
-                    onOpenReportComment = { mainController.navController.navigate("report/comment/${it.id}") },
-                    onOpenDeleteImageOfPosterDialog = { deleteImageOfPosterDialogState = it },
+            onOpenImage = onOpenImage,
+            onOpenImages = onOpenImages,
+            onOpenCommentDialog = vm::setShowCommentDialogState,
+            onOpenEdit = { mainController.navController.navigate("edit/$id") },
+            onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
+            onOpenDeletePosterDialog = { deletePosterDialogState = id.toInt() },
+            onOpenReportPoster = { mainController.navController.navigate("report/poster/$id") },
+            onOpenReportComment = { mainController.navController.navigate("report/comment/${it.id}") },
+            onOpenDeleteImageOfPosterDialog = { deleteImageOfPosterDialogState = it },
+        )
+
+        AnimatedVisibility(
+            visible = showComment.first,
+            enter = slideIn(
+                initialOffset = { IntOffset(0, it.height) },
+                animationSpec = spring(
+                    stiffness = Spring.StiffnessMediumLow,
+                    visibilityThreshold = IntOffset.VisibilityThreshold
                 )
+            ),
+            exit = slideOut(
+                targetOffset = { IntOffset(0, it.height) },
+                animationSpec = spring(
+                    stiffness = Spring.StiffnessMediumLow,
+                    visibilityThreshold = IntOffset.VisibilityThreshold
+                )
+            )
+        ) {
+            if(showComment.second != null) {
+                val commentId = showComment.second!!.toLong()
+                val comment = vm.findCommentById(commentId)!!
 
-                AnimatedVisibility(
-                    visible = showComment.first,
-                    enter = slideIn(
-                        initialOffset = { IntOffset(0, it.height) },
-                        animationSpec = spring(
-                            stiffness = Spring.StiffnessMediumLow,
-                            visibilityThreshold = IntOffset.VisibilityThreshold
-                        )
+                MoreCommentsSheet(
+                    mainController = mainController,
+                    comment = comment,
+                    subComments = subComments,
+                    commentLikings = commentLikings,
+                    loading = subCommentsLoadMoreState is LoadMoreState.Loading,
+                    refreshing = subCommentsRefreshState is RefreshState.Loading,
+                    state = rememberLoadableLazyColumnWithoutPullRequestState(
+                        onLoadMore = { vm.loadMoreSubComments(commentId) }
                     ),
-                    exit = slideOut(
-                        targetOffset = { IntOffset(0, it.height) },
-                        animationSpec = spring(
-                            stiffness = Spring.StiffnessMediumLow,
-                            visibilityThreshold = IntOffset.VisibilityThreshold
-                        )
-                    )
-                ) {
-                    if(showComment.second != null) {
-                        val commentId = showComment.second!!.toLong()
-                        val comment = vm.findCommentById(commentId)!!
 
-                        MoreCommentsSheet(
-                            mainController = mainController,
-                            comment = comment,
-                            subComments = subComments,
-                            commentLikings = commentLikings,
-                            loading = subCommentsLoadMoreState is LoadMoreState.Loading,
-                            refreshing = subCommentsRefreshState is RefreshState.Loading,
-                            state = rememberLoadableLazyColumnWithoutPullRequestState(
-                                onLoadMore = { vm.loadMoreSubComments(commentId) }
-                            ),
-
-                            onCancel = { vm.setShowMoreState(false, null) },
-                            onOpenImages = onOpenImages,
-                            onLikeComment = vm::likeComment,
-                            onOpenCommentDialog = vm::setShowCommentDialogState,
-                            onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
-                            onReport = { mainController.navController.navigate("report/comment/${it.id}") },
-                        )
-                    } else {
-                        Surface(modifier = Modifier.fillMaxSize()) {}
-                    }
-                }
-
-                BackHandler(showComment.first) {
-                    vm.setShowMoreState(false, null)
-                }
-
-                if(sendCommentDialogState != null) {
-                    val comment = sendCommentDialogState!!.first
-                    val subComment = sendCommentDialogState!!.second
-
-                    val commentEditDataForComment = commentForCommentEditDataMap[Pair(comment.id, subComment.id)] ?: CommentEditData(
-                        "",
-                        UploadImageData(false, emptyList()),
-                        false
-                    )
-
-                    SendCommentDialog(
-                        mainController = mainController,
-                        replyUser = subComment.user,
-                        commentEditData = commentEditDataForComment,
-                        sending = false,
-
-                        onSendComment = {
-                            needShowSnackbarForCommentToComment = true
-                            vm.sendCommentToComment(comment, subComment, it)
-                        },
-                        onEditComment = { vm.editCommentOfComment(comment, subComment, it) },
-                        onOpenImage = onOpenImage,
-                        onUploadImage = { imagePickerLauncherForComment.launch(intent) },
-                        onClose = { vm.setShowCommentDialogState(null, null) },
-                        onOpenDeleteImageDialog = { deleteImageOfCommentDialogState = Pair(Pair(comment, subComment), it) }
-                    )
-                }
-
-                if(deletePosterDialogState != -1) {
-                    DeletePosterDialog(
-                        onConfirm = { vm.deletePosterById(id) },
-                        onDismiss = { deletePosterDialogState = -1 }
-                    )
-                }
-
-                if(deleteCommentDialogState != -1) {
-                    DeleteCommentDialog(
-                        onConfirm = { vm.deleteCommentById(deleteCommentDialogState.toLong()) },
-                        onDismiss = { deleteCommentDialogState = -1 }
-                    )
-                }
-
-                if(deleteImageOfCommentDialogState != null) {
-                    val comment = deleteImageOfCommentDialogState!!.first.first
-                    val subComment = deleteImageOfCommentDialogState!!.first.second
-                    val index = deleteImageOfCommentDialogState!!.second
-                    DeleteImageDialog(
-                        onConfirm = { vm.deleteImageOfCommentByIndex(comment, subComment, index) },
-                        onDismiss = { deleteImageOfCommentDialogState = null }
-                    )
-                }
-
-                if(deleteImageOfPosterDialogState != -1) {
-                    DeleteImageDialog(
-                        onConfirm = { vm.deleteImageOfPosterByIndex(deleteImageOfPosterDialogState) },
-                        onDismiss = { deleteImageOfPosterDialogState = -1 }
-                    )
-                }
+                    onCancel = { vm.setShowMoreState(false, null) },
+                    onOpenImages = onOpenImages,
+                    onLikeComment = vm::likeComment,
+                    onOpenCommentDialog = vm::setShowCommentDialogState,
+                    onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
+                    onReport = { mainController.navController.navigate("report/comment/${it.id}") },
+                )
+            } else {
+                Surface(modifier = Modifier.fillMaxSize()) {}
             }
         }
+
+        BackHandler(showComment.first) {
+            vm.setShowMoreState(false, null)
+        }
+
+        if(sendCommentDialogState != null) {
+            val comment = sendCommentDialogState!!.first
+            val subComment = sendCommentDialogState!!.second
+
+            val commentEditDataForComment = commentForCommentEditDataMap[Pair(comment.id, subComment.id)] ?: CommentEditData(
+                "",
+                UploadImageData(false, emptyList()),
+                false
+            )
+
+            SendCommentDialog(
+                mainController = mainController,
+                replyUser = subComment.user,
+                commentEditData = commentEditDataForComment,
+                sending = false,
+
+                onSendComment = {
+                    needShowSnackbarForCommentToComment = true
+                    vm.sendCommentToComment(comment, subComment, it)
+                },
+                onEditComment = { vm.editCommentOfComment(comment, subComment, it) },
+                onOpenImage = onOpenImage,
+                onUploadImage = { imagePickerLauncherForComment.launch(intent) },
+                onClose = { vm.setShowCommentDialogState(null, null) },
+                onOpenDeleteImageDialog = { deleteImageOfCommentDialogState = Pair(Pair(comment, subComment), it) }
+            )
+        }
+
+        if(deletePosterDialogState != -1) {
+            DeletePosterDialog(
+                onConfirm = { vm.deletePosterById(id) },
+                onDismiss = { deletePosterDialogState = -1 }
+            )
+        }
+
+        if(deleteCommentDialogState != -1) {
+            DeleteCommentDialog(
+                onConfirm = { vm.deleteCommentById(deleteCommentDialogState.toLong()) },
+                onDismiss = { deleteCommentDialogState = -1 }
+            )
+        }
+
+        if(deleteImageOfCommentDialogState != null) {
+            val comment = deleteImageOfCommentDialogState!!.first.first
+            val subComment = deleteImageOfCommentDialogState!!.first.second
+            val index = deleteImageOfCommentDialogState!!.second
+            DeleteImageDialog(
+                onConfirm = { vm.deleteImageOfCommentByIndex(comment, subComment, index) },
+                onDismiss = { deleteImageOfCommentDialogState = null }
+            )
+        }
+
+        if(deleteImageOfPosterDialogState != -1) {
+            DeleteImageDialog(
+                onConfirm = { vm.deleteImageOfPosterByIndex(deleteImageOfPosterDialogState) },
+                onDismiss = { deleteImageOfPosterDialogState = -1 }
+            )
+        }
+    } else {
+
     }
 }

@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.gallery.component.CommentCard
+import cn.bit101.android.ui.component.gallery.CommentCard
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
 

@@ -57,8 +57,8 @@ import cn.bit101.android.ui.component.rememberLoadableLazyColumnWithoutPullReque
 import cn.bit101.android.ui.gallery.common.LoadMoreState
 import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.gallery.component.AnnotatedText
-import cn.bit101.android.ui.gallery.component.PosterCard
+import cn.bit101.android.ui.component.gallery.AnnotatedText
+import cn.bit101.android.ui.component.gallery.PosterCard
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel

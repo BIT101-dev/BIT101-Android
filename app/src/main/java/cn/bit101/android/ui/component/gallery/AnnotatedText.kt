@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.component
+package cn.bit101.android.ui.component.gallery
 
 import android.content.Intent
 import android.net.Uri
