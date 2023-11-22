@@ -29,6 +29,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import cn.bit101.android.ui.MainController
@@ -45,6 +46,7 @@ import cn.bit101.api.model.http.bit101.GetPostersDataModel
 fun SearchTabPage(
     mainController: MainController,
     nestedScrollConnection: NestedScrollConnection? = null,
+    navBarHeight: Dp,
 
     /**
      * 查询的文本
@@ -123,7 +125,7 @@ fun SearchTabPage(
 
             SearchBar(
                 modifier = Modifier
-                    .padding(vertical = 8.dp)
+                    .padding(bottom = 8.dp)
                     .fillMaxWidth(),
                 query = query,
                 onQueryChange = onQueryChange,
@@ -164,6 +166,7 @@ fun SearchTabPage(
         },
         posters = posters,
         highlightId = lastSearchQuery.toLongOrNull(),
+        navBarHeight = navBarHeight,
 
         refreshState = searchState,
         loadState = loadState,

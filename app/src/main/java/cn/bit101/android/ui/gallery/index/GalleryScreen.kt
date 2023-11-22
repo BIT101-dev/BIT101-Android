@@ -21,6 +21,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.rememberLoadableLazyColumnState
@@ -44,6 +46,7 @@ data class TabPagerItemWithNestedScroll(
 fun GalleryScreen(
     mainController: MainController,
     onOpenImages: (Int, List<Image>) -> Unit,
+    navBarHeight: Dp = 0.dp,
     vm: GalleryIndexViewModel = hiltViewModel(),
 ) {
     val followRefreshState by vm.followStateCombined.refreshStateFlow.collectAsState()
@@ -121,6 +124,7 @@ fun GalleryScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
+                navBarHeight = navBarHeight,
                 posters = followPosters,
 
                 state = followState,
@@ -138,6 +142,7 @@ fun GalleryScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
+                navBarHeight = navBarHeight,
                 posters = newestPosters,
                 state = newestState,
                 refreshState = newestRefreshPostersState,
@@ -153,6 +158,7 @@ fun GalleryScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
+                navBarHeight = navBarHeight,
                 posters = recommendPosters,
                 state = recommendState,
                 refreshState = recommendRefreshPostersState,
@@ -168,6 +174,7 @@ fun GalleryScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
+                navBarHeight = navBarHeight,
                 posters = hotPosters,
                 state = hotState,
                 refreshState = hotRefreshPostersState,
@@ -184,6 +191,7 @@ fun GalleryScreen(
             SearchTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
+                navBarHeight = navBarHeight,
                 posters = searchPosters,
 
                 state = searchState,
@@ -235,8 +243,6 @@ fun GalleryScreen(
                 )
             }
         }
-
-        val nestedScrollConnection = rememberNestedScrollInteropConnection()
 
         //禁用overscroll阴影效果
         CompositionLocalProvider(LocalOverscrollConfiguration provides null) {

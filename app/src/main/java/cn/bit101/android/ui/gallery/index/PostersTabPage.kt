@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -31,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.LoadableLazyColumn
@@ -47,6 +49,8 @@ fun PostersTabPage(
     mainController: MainController,
     nestedScrollConnection: NestedScrollConnection? = null,
     header: @Composable LazyItemScope.() -> Unit = {},
+
+    navBarHeight: Dp,
 
     /**
      * 帖子列表
@@ -106,12 +110,12 @@ fun PostersTabPage(
             LoadableLazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
-                    .align(Alignment.CenterHorizontally)
-                    .padding(horizontal = 16.dp),
+                    .align(Alignment.CenterHorizontally),
                 nestedScrollConnection = nestedScrollConnection,
                 state = state,
                 loading = loadState == LoadMoreState.Loading,
                 refreshing = refreshState == RefreshState.Loading,
+                contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 16.dp + navBarHeight)
             ) {
                 item("header") {
                     header()
@@ -156,7 +160,7 @@ fun PostersTabPage(
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(10.dp, 20.dp)
+                .padding(10.dp, 20.dp, 10.dp, 20.dp + navBarHeight)
         ) {
             val show by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex > 1 } }
             AnimatedVisibility(

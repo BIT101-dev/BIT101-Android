@@ -573,7 +573,7 @@ fun PosterContent(
                     .align(Alignment.BottomEnd)
                     .padding(10.dp, 20.dp)
             ) {
-                val show by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex > commentItemIndex + 1 } }
+                val show by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex > commentItemIndex + 1 || state.lazyListState.firstVisibleItemIndex <= 6 } }
                 AnimatedVisibility(
                     visible = show,
                     enter = fadeIn(),
