@@ -2,20 +2,13 @@ package cn.bit101.android.ui
 
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOut
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
@@ -23,13 +16,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -52,6 +45,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import cn.bit101.android.datastore.SettingDataStore
+import cn.bit101.android.ui.component.NavigationBar
 import cn.bit101.android.ui.image.ImageScreen
 import cn.bit101.android.ui.gallery.index.GalleryScreen
 import cn.bit101.android.ui.gallery.message.MessageScreen
@@ -82,6 +76,39 @@ fun MainApp(
         navController = rememberNavController(),
         snackbarHostState = remember { SnackbarHostState() }
     )
+
+    val currentBackStackEntry by mainController.navController.currentBackStackEntryFlow.collectAsState(initial = null)
+
+    val isDarkMode = MaterialTheme.colorScheme.background.luminance() > 0.5f
+
+    val statusColor = when(currentBackStackEntry?.destination?.route) {
+        "bit101-web" -> Color(0xFFFF9A57)
+        "setting?route={route}" -> Color.Transparent
+        "user/{id}" -> Color.Transparent
+        "edit/{id}" -> Color.Transparent
+        "post" -> Color.Transparent
+        "report/{type}/{id}" -> Color.Transparent
+        "poster/{id}" -> Color.Transparent
+        else -> MaterialTheme.colorScheme.background
+    }
+
+    LaunchedEffect(statusColor) {
+        val darkIcons = when(statusColor) {
+            Color.Transparent -> isDarkMode
+            else -> statusColor.luminance() > 0.5f
+        }
+
+        systemUiController.setStatusBarColor(
+            color = statusColor,
+            darkIcons = darkIcons,
+        )
+    }
+
+    val navBarColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+
+    LaunchedEffect(navBarColor) {
+        systemUiController.setNavigationBarColor(navBarColor)
+    }
 
     // 底部导航栏路由
     data class Screen(val route: String, val label: String, val icon: ImageVector)
@@ -114,33 +141,6 @@ fun MainApp(
         remember { MutableTransitionState(false) }
     bottomBarTransitionState.apply { targetState = showBottomBar }
 
-    val currentBackStackEntry by mainController.navController.currentBackStackEntryFlow.collectAsState(initial = null)
-
-    val isDarkMode = MaterialTheme.colorScheme.background.luminance() > 0.5f
-
-    val statusColor = when(currentBackStackEntry?.destination?.route) {
-        "bit101-web" -> Color(0xFFFF9A57)
-        "setting?route={route}" -> Color.Transparent
-        "user/{id}" -> Color.Transparent
-        "edit/{id}" -> Color.Transparent
-        "post" -> Color.Transparent
-        "report/{type}/{id}" -> Color.Transparent
-        "poster/{id}" -> Color.Transparent
-        else -> MaterialTheme.colorScheme.background
-    }
-
-    LaunchedEffect(statusColor) {
-        val darkIcons = when(statusColor) {
-            Color.Transparent -> isDarkMode
-            else -> statusColor.luminance() > 0.5f
-        }
-
-        systemUiController.setStatusBarColor(
-            color = statusColor,
-            darkIcons = darkIcons,
-        )
-    }
-
     val onOpenImage: (Image) -> Unit = { image ->
         val encodedUrl = URLEncoder.encode(image.url, "UTF-8")
         mainController.navController.navigate("image/$encodedUrl")
@@ -152,7 +152,7 @@ fun MainApp(
     }
 
 
-    val navBarHeight = 70f
+    val navBarHeight = 80f
 
     Scaffold(
         snackbarHost = { SnackbarHost(mainController.snackbarHostState) },
@@ -174,10 +174,7 @@ fun MainApp(
                     )
                 )
             ) {
-                NavigationBar(
-                    modifier = Modifier
-                        .height(navBarHeight.dp)
-                ) {
+                NavigationBar(height = navBarHeight.dp) {
                     val currentDestination = currentBackStackEntry?.destination
                     routes.forEach { screen ->
                         val selected =

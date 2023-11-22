@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.surfaceColorAtElevation
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -35,14 +36,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             BIT101Theme {
-                WindowCompat.getInsetsController(
-                    window,
-                    LocalView.current
-                ).isAppearanceLightStatusBars = false
-                // 设置导航栏颜色与应用内导航栏匹配
-                window?.navigationBarColor =
-                    MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-                        .toArgb()
                 MainApp()
             }
         }
