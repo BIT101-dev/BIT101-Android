@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.image
+package cn.bit101.android.ui.image
 
 import androidx.lifecycle.ViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel

@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.user
+package cn.bit101.android.ui.user
 
 import android.content.Context
 import android.net.Uri

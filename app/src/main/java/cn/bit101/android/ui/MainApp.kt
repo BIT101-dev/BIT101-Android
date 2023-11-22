@@ -1,25 +1,17 @@
 package cn.bit101.android.ui
 
 import android.util.Log
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOut
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material3.Icon
@@ -31,17 +23,12 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
@@ -57,13 +44,13 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import cn.bit101.android.datastore.SettingDataStore
-import cn.bit101.android.ui.gallery.image.ImageScreen
+import cn.bit101.android.ui.image.ImageScreen
 import cn.bit101.android.ui.gallery.index.GalleryScreen
 import cn.bit101.android.ui.gallery.message.MessageScreen
 import cn.bit101.android.ui.gallery.postedit.PostEditScreen
 import cn.bit101.android.ui.gallery.poster.PosterScreen
 import cn.bit101.android.ui.gallery.report.ReportScreen
-import cn.bit101.android.ui.gallery.user.UserScreen
+import cn.bit101.android.ui.user.UserScreen
 import cn.bit101.android.ui.login.LoginOrLogoutScreen
 import cn.bit101.android.ui.map.MapScreen
 import cn.bit101.android.ui.schedule.ScheduleScreen
@@ -126,6 +113,11 @@ fun MainApp(
     val statusColor = when(currentBackStackEntry?.destination?.route) {
         "bit101-web" -> Color(0xFFFF9A57)
         "setting?route={route}" -> Color.Transparent
+        "user/{id}" -> Color.Transparent
+        "edit/{id}" -> Color.Transparent
+        "post" -> Color.Transparent
+        "report/{type}/{id}" -> Color.Transparent
+        "poster/{id}" -> Color.Transparent
         else -> MaterialTheme.colorScheme.background
     }
 
@@ -148,8 +140,6 @@ fun MainApp(
 
     val onOpenImages: (Int, List<Image>) -> Unit = { index, images ->
         val encodedUrls = images.map { URLEncoder.encode(it.url, "UTF-8") }.joinToString(",")
-        Log.i("GalleryScreen", "images/$encodedUrls/$index")
-
         mainController.navController.navigate("images/$encodedUrls/$index")
     }
 
@@ -328,11 +318,7 @@ fun MainApp(
                 ),
             ) {
                 val id = it.arguments?.getLong("id") ?: 0L
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
+                Box(modifier = Modifier.navigationBarsPadding()) {
                     UserScreen(
                         mainController = mainController,
                         id = id,
@@ -348,11 +334,7 @@ fun MainApp(
                     navArgument("id") { type = NavType.LongType },
                 ),
             ) {
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
+                Box(modifier = Modifier.navigationBarsPadding()) {
                     PosterScreen(
                         mainController = mainController,
                         id = it.arguments?.getLong("id") ?: 0L,
@@ -363,24 +345,7 @@ fun MainApp(
             }
 
             composable("post") {
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
-                    PostEditScreen(
-                        mainController = mainController,
-                        onOpenImage = onOpenImage,
-                    )
-                }
-            }
-
-            composable("post") {
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
+                Box(modifier = Modifier.navigationBarsPadding()) {
                     PostEditScreen(
                         mainController = mainController,
                         onOpenImage = onOpenImage,
@@ -395,11 +360,7 @@ fun MainApp(
                 ),
             ) {
                 val id = it.arguments?.getLong("id") ?: 0L
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
+                Box(modifier = Modifier.navigationBarsPadding()) {
                     PostEditScreen(
                         mainController = mainController,
                         id = id,
@@ -417,11 +378,7 @@ fun MainApp(
             ) {
                 val type = it.arguments?.getString("type") ?: ""
                 val id = it.arguments?.getLong("id") ?: 0L
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
+                Box(modifier = Modifier.navigationBarsPadding()) {
                     ReportScreen(
                         mainController = mainController,
                         objType = type,

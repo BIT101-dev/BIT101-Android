@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -42,26 +43,31 @@ fun Avatar(
     val painter = rememberDrawablePainter(icon)
     Box {
 
-        var modifier = Modifier
-            .size(size)
-            .clip(CircleShape)
-            .background(Color(App.context.getColor(R.color.ic_launcher_background)))
+        val offset = size / 10
 
-        if(onClick != null) {
-            modifier = modifier.clickable {
-                onClick(user)
+        Box(modifier = Modifier.padding(bottom = offset, end = offset)) {
+            var modifier = Modifier
+                .size(size)
+                .clip(CircleShape)
+                .background(Color(App.context.getColor(R.color.ic_launcher_background)))
+
+            if(onClick != null) {
+                modifier = modifier.clickable {
+                    onClick(user)
+                }
             }
+
+            AsyncImage(
+                modifier = modifier,
+                contentScale = ContentScale.FillBounds,
+                model = if(low == true) user?.avatar?.lowUrl else user?.avatar?.url,
+                placeholder = painter,
+                error = painter,
+                fallback = painter,
+                contentDescription = "avatar"
+            )
         }
 
-        AsyncImage(
-            modifier = modifier,
-            contentScale = ContentScale.FillBounds,
-            model = if(low == true) user?.avatar?.lowUrl else user?.avatar?.url,
-            placeholder = painter,
-            error = painter,
-            fallback = painter,
-            contentDescription = "avatar"
-        )
         if(user != null && user.identity.id != 0 && showIdentity) {
             val colorStr = user.identity.color
             val color = Color(android.graphics.Color.parseColor(colorStr))
@@ -69,7 +75,6 @@ fun Avatar(
             Icon(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .offset(5.dp, 5.dp)
                     .size(size * 2 / 5),
                 imageVector = Icons.Rounded.Verified,
                 contentDescription = "认证",

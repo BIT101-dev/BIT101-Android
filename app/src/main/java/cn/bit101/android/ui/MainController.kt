@@ -1,5 +1,8 @@
 package cn.bit101.android.ui
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.util.Log
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -34,5 +37,11 @@ class MainController(
                 withDismissAction = true,
             )
         }
+    }
+
+    fun openUrl(ctx: Context, url: String) {
+        val uri = Uri.parse(url)
+        val intent = Intent(Intent.ACTION_VIEW, uri)
+        ctx.startActivity(intent)
     }
 }

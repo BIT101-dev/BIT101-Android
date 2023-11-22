@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
@@ -35,12 +37,15 @@ import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -53,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -245,8 +251,12 @@ fun PostScreenContentPublic(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostScreenContent(
+    mainController: MainController,
+
+    id: Long?,
     /**
      * 数据
      */
@@ -285,170 +295,191 @@ fun PostScreenContent(
     onPost: () -> Unit,
     onOpenDeleteImageDialog: (Int) -> Unit,
 ) {
-    LazyColumn(
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .fillMaxWidth()
-    ) {
-        // 标题
-        item("title") {
-            Text(text = "标题", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.padding(4.dp))
-            TextField(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                value = title,
-                onValueChange = onSetTitle,
-                singleLine = true,
-                placeholder = { Text(text = "在这里输入标题哦") },
-                shape = RoundedCornerShape(10.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                ),
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            LargeTopAppBar(
+                title = { Text(text = if(id == null) "新建帖子" else "编辑帖子#$id") },
+                navigationIcon = {
+                    IconButton(onClick = { mainController.navController.popBackStack() }) {
+                        Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                    }
+                },
+                scrollBehavior = scrollBehavior
             )
-        }
+        },
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .padding(paddingValues)
+                .fillMaxSize(),
+            contentPadding = PaddingValues(16.dp)
+        ) {
+            // 标题
+            item("title") {
+                Text(text = "标题", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.padding(4.dp))
+                TextField(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    value = title,
+                    onValueChange = onSetTitle,
+                    singleLine = true,
+                    placeholder = { Text(text = "在这里输入标题哦") },
+                    shape = RoundedCornerShape(10.dp),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                    ),
+                )
+            }
 
-        item(0) {
-            Spacer(modifier = Modifier.padding(8.dp))
-        }
+            item(0) {
+                Spacer(modifier = Modifier.padding(8.dp))
+            }
 
-        // 内容
-        item("text") {
-            Text(text = "内容", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.padding(4.dp))
-            TextField(
-                modifier = Modifier
-                    .fillMaxWidth(),
-                value = text,
-                onValueChange = onSetText,
-                placeholder = { Text(text = "在这里输入内容哦") },
-                shape = RoundedCornerShape(10.dp),
-                minLines = 5,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                ),
-            )
-        }
+            // 内容
+            item("text") {
+                Text(text = "内容", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.padding(4.dp))
+                TextField(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    value = text,
+                    onValueChange = onSetText,
+                    placeholder = { Text(text = "在这里输入内容哦") },
+                    shape = RoundedCornerShape(10.dp),
+                    minLines = 5,
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent,
+                        disabledIndicatorColor = Color.Transparent,
+                    ),
+                )
+            }
 
-        item(1) {
-            Spacer(Modifier.padding(8.dp))
-        }
+            item(1) {
+                Spacer(Modifier.padding(8.dp))
+            }
 
-        // 图片
-        item("image") {
-            Text(text = "图片", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.padding(4.dp))
-            UploadImageRow(
-                images = uploadImageData.images,
-                onUploadImage = onUploadImage,
-                onOpenImage = onOpenImage,
-                onOpenDeleteDialog = onOpenDeleteImageDialog,
-            )
-        }
+            // 图片
+            item("image") {
+                Text(text = "图片", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.padding(4.dp))
+                UploadImageRow(
+                    images = uploadImageData.images,
+                    onUploadImage = onUploadImage,
+                    onOpenImage = onOpenImage,
+                    onOpenDeleteDialog = onOpenDeleteImageDialog,
+                )
+            }
 
-        item(2) {
-            Spacer(Modifier.padding(8.dp))
-        }
+            item(2) {
+                Spacer(Modifier.padding(8.dp))
+            }
 
-        // 标签
-        item("tags") {
-            Text(text = "标签", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.padding(1.dp))
-            Text(text = "请至少添加2个标签，合适的标签将有助于内容推荐。", style = MaterialTheme.typography.labelMedium)
-            Spacer(modifier = Modifier.padding(6.dp))
-            TagsContent(
-                tags = tags,
-                onClick = { onShowEditTagDialog(it) },
-                onAddTag = { onShowEditTagDialog(tags.size) }
-            )
-        }
+            // 标签
+            item("tags") {
+                Text(text = "标签", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.padding(1.dp))
+                Text(text = "请至少添加2个标签，合适的标签将有助于内容推荐。", style = MaterialTheme.typography.labelMedium)
+                Spacer(modifier = Modifier.padding(6.dp))
+                TagsContent(
+                    tags = tags,
+                    onClick = { onShowEditTagDialog(it) },
+                    onAddTag = { onShowEditTagDialog(tags.size) }
+                )
+            }
 
-        item(3) {
-            Spacer(Modifier.padding(8.dp))
-        }
-        // 声明
-        item("claim") {
-            Text(text = "声明", style = MaterialTheme.typography.titleMedium)
-            Spacer(modifier = Modifier.padding(1.dp))
-            Text(text = "请根据社区公约选择合适的声明，否则可能会被制裁。", style = MaterialTheme.typography.labelMedium)
-            Spacer(modifier = Modifier.padding(6.dp))
+            item(3) {
+                Spacer(Modifier.padding(8.dp))
+            }
+            // 声明
+            item("claim") {
+                Text(text = "声明", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.padding(1.dp))
+                Text(text = "请根据社区公约选择合适的声明，否则可能会被制裁。", style = MaterialTheme.typography.labelMedium)
+                Spacer(modifier = Modifier.padding(6.dp))
 
-            when(claimsState) {
-                is GetClaimsState.Loading, null -> {
-                    Text(text = "加载中")
-                }
-                is GetClaimsState.Success -> {
-                    ClaimsDropDownBox(
-                        selected = claim,
-                        claims = claimsState.claims,
-                        onSelectIndex = onSelectClaim
-                    )
-                }
-                is GetClaimsState.Error -> {
-                    Text(text = "加载失败")
+                when(claimsState) {
+                    is GetClaimsState.Loading, null -> {
+                        Text(text = "加载中")
+                    }
+                    is GetClaimsState.Success -> {
+                        ClaimsDropDownBox(
+                            selected = claim,
+                            claims = claimsState.claims,
+                            onSelectIndex = onSelectClaim
+                        )
+                    }
+                    is GetClaimsState.Error -> {
+                        Text(text = "加载失败")
+                    }
                 }
             }
-        }
 
-        item(23) {
-            Spacer(modifier = Modifier.padding(8.dp))
-        }
+            item(23) {
+                Spacer(modifier = Modifier.padding(8.dp))
+            }
 
-        // 发布按钮
-        item("publish") {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    Button(
-                        onClick = onPost,
-                        enabled = postState !is PutOrPostPosterState.Loading,
+            // 发布按钮
+            item("publish") {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd),
+                        horizontalArrangement = Arrangement.End
                     ) {
-                        if(postState is PutOrPostPosterState.Loading) {
-                            CircularProgressIndicator()
-                        } else {
-                            Row {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Rounded.Send,
-                                    contentDescription = "发布",
-                                    modifier = Modifier.align(Alignment.CenterVertically)
-                                )
-                                Spacer(modifier = Modifier.padding(4.dp))
-                                Text(
-                                    text = "发布",
-                                    modifier = Modifier.align(Alignment.CenterVertically)
-                                )
+                        Button(
+                            onClick = onPost,
+                            enabled = postState !is PutOrPostPosterState.Loading,
+                        ) {
+                            if(postState is PutOrPostPosterState.Loading) {
+                                CircularProgressIndicator()
+                            } else {
+                                Row {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Rounded.Send,
+                                        contentDescription = "发布",
+                                        modifier = Modifier.align(Alignment.CenterVertically)
+                                    )
+                                    Spacer(modifier = Modifier.padding(4.dp))
+                                    Text(
+                                        text = "发布",
+                                        modifier = Modifier.align(Alignment.CenterVertically)
+                                    )
+                                }
                             }
                         }
                     }
-                }
-                Row(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart),
-                ) {
-                    PostScreenContentAnonymous(
-                        selected = anonymous,
-                        onClick = onChangeAnonymous,
-                    )
-                    Spacer(modifier = Modifier.padding(4.dp))
-                    PostScreenContentPublic(
-                        selected = public,
-                        onClick = onChangePublic,
-                    )
+                    Row(
+                        modifier = Modifier
+                            .align(Alignment.CenterStart),
+                    ) {
+                        PostScreenContentAnonymous(
+                            selected = anonymous,
+                            onClick = onChangeAnonymous,
+                        )
+                        Spacer(modifier = Modifier.padding(4.dp))
+                        PostScreenContentPublic(
+                            selected = public,
+                            onClick = onChangePublic,
+                        )
+                    }
                 }
             }
-        }
 
-        item(25) {
-            Spacer(modifier = Modifier.padding(8.dp))
+            item(25) {
+                Spacer(modifier = Modifier.padding(8.dp))
+            }
         }
     }
+
+
 }
 
 
@@ -534,6 +565,8 @@ fun PostEditScreen(
         }
 
         if(claim != null) PostScreenContent(
+            mainController = mainController,
+            id = id,
             title = title,
             text = text,
             uploadImageData = uploadImageData,

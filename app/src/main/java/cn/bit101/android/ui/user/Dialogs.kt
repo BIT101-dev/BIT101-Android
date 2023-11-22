@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.user
+package cn.bit101.android.ui.user
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
