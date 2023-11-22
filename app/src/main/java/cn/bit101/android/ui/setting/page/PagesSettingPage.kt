@@ -1,6 +1,8 @@
 package cn.bit101.android.ui.setting.page
 
+import android.util.Log
 import android.view.HapticFeedbackConstants
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
@@ -70,6 +73,9 @@ fun PagesSettingPageContent(
     val view = LocalView.current
     val state = rememberReorderableLazyListState(
         onMove = { from, to ->
+
+            Log.i("onMove", "from: $from, to: $to")
+
             // 触觉反馈
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             changeablePages = changeablePages.toMutableList().apply {
@@ -83,7 +89,6 @@ fun PagesSettingPageContent(
             .fillMaxSize()
             .padding(paddingValues)
     ) {
-
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.padding(8.dp))
             Box(modifier = Modifier.padding(horizontal = 16.dp)) {

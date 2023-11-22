@@ -235,6 +235,11 @@ fun PosterContent(
      * 打开删除*对帖子的评论*中的图片的对话框
      */
     onOpenDeleteImageOfPosterDialog: (Int) -> Unit,
+
+    /**
+     * 显示更多评论
+     */
+    bottomSheet: @Composable () -> Unit,
 ) {
     val ctx = LocalContext.current
     val cm = LocalClipboardManager.current
@@ -594,7 +599,9 @@ fun PosterContent(
                 }
             }
         }
-
+        Box(modifier = Modifier.padding(paddingValues)) {
+            bottomSheet()
+        }
     }
 }
 
@@ -896,54 +903,54 @@ fun PosterScreen(
                 deleteImageOfPosterDialogState = it
                 view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             },
-        )
-
-        AnimatedVisibility(
-            visible = showComment.first,
-            enter = slideIn(
-                initialOffset = { IntOffset(0, it.height) },
-                animationSpec = spring(
-                    stiffness = Spring.StiffnessMediumLow,
-                    visibilityThreshold = IntOffset.VisibilityThreshold
-                )
-            ),
-            exit = slideOut(
-                targetOffset = { IntOffset(0, it.height) },
-                animationSpec = spring(
-                    stiffness = Spring.StiffnessMediumLow,
-                    visibilityThreshold = IntOffset.VisibilityThreshold
-                )
-            )
         ) {
-            if(showComment.second != null) {
-                val commentId = showComment.second!!.toLong()
-                val comment = vm.findCommentById(commentId)!!
-
-                MoreCommentsSheet(
-                    mainController = mainController,
-                    comment = comment,
-                    subComments = subComments,
-                    commentLikings = commentLikings,
-                    loading = subCommentsLoadMoreState is LoadMoreState.Loading,
-                    refreshing = subCommentsRefreshState is RefreshState.Loading,
-                    state = rememberLoadableLazyColumnWithoutPullRequestState(
-                        onLoadMore = { vm.loadMoreSubComments(commentId) }
-                    ),
-
-                    onCancel = { vm.setShowMoreState(false, null) },
-                    onOpenImages = onOpenImages,
-                    onLikeComment = vm::likeComment,
-                    onOpenCommentDialog = vm::setShowCommentDialogState,
-                    onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
-                    onReport = { mainController.navController.navigate("report/comment/${it.id}") },
+            AnimatedVisibility(
+                visible = showComment.first,
+                enter = slideIn(
+                    initialOffset = { IntOffset(0, it.height) },
+                    animationSpec = spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        visibilityThreshold = IntOffset.VisibilityThreshold
+                    )
+                ),
+                exit = slideOut(
+                    targetOffset = { IntOffset(0, it.height) },
+                    animationSpec = spring(
+                        stiffness = Spring.StiffnessMediumLow,
+                        visibilityThreshold = IntOffset.VisibilityThreshold
+                    )
                 )
-            } else {
-                Surface(modifier = Modifier.fillMaxSize()) {}
-            }
-        }
+            ) {
+                if(showComment.second != null) {
+                    val commentId = showComment.second!!.toLong()
+                    val comment = vm.findCommentById(commentId)!!
 
-        BackHandler(showComment.first) {
-            vm.setShowMoreState(false, null)
+                    MoreCommentsSheet(
+                        mainController = mainController,
+                        comment = comment,
+                        subComments = subComments,
+                        commentLikings = commentLikings,
+                        loading = subCommentsLoadMoreState is LoadMoreState.Loading,
+                        refreshing = subCommentsRefreshState is RefreshState.Loading,
+                        state = rememberLoadableLazyColumnWithoutPullRequestState(
+                            onLoadMore = { vm.loadMoreSubComments(commentId) }
+                        ),
+
+                        onCancel = { vm.setShowMoreState(false, null) },
+                        onOpenImages = onOpenImages,
+                        onLikeComment = vm::likeComment,
+                        onOpenCommentDialog = vm::setShowCommentDialogState,
+                        onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
+                        onReport = { mainController.navController.navigate("report/comment/${it.id}") },
+                    )
+                } else {
+                    Surface(modifier = Modifier.fillMaxSize()) {}
+                }
+            }
+
+            BackHandler(showComment.first) {
+                vm.setShowMoreState(false, null)
+            }
         }
 
         if(sendCommentDialogState != null) {

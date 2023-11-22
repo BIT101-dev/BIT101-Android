@@ -351,12 +351,14 @@ fun UserScreenContent(
     ) { paddingValues ->
         var count by remember { mutableIntStateOf(0) }
 
+        val maxCount = 3
+
         LoadableLazyColumnWithoutPullRequest(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .then(
-                    if (count <= 2) Modifier.onSizeChanged {
+                    if (count <= maxCount) Modifier.onSizeChanged {
                         count += 1
                         scope.launch { state.lazyListState.scrollToItem(0) }
                     } else Modifier
@@ -366,7 +368,7 @@ fun UserScreenContent(
             loading = loadState == LoadMoreState.Loading,
             nestedScrollConnection = topAppBarBehavior.nestedScrollConnection
         ) {
-            if(count > 2) {
+            if(count > maxCount) {
                 posters.forEachIndexed { index, poster ->
                     item(index + 100) {
                         PosterCard(

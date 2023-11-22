@@ -3,6 +3,7 @@ package cn.bit101.android.ui.mine
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -124,36 +125,38 @@ fun MineScreen(
         vm.updateUserInfo()
     }
 
-    Column(
-        modifier = Modifier
-            .verticalScroll(scrollState)
-            .fillMaxWidth()
-            .padding(top = 10.dp)
-    ) {
-
-        // 用户基本信息展示
-        UserInfoShow(userInfoState)
-
-        // 设置选项
-        ConfigColumn(
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(
             modifier = Modifier
+                .verticalScroll(scrollState)
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp),
-            scrollable = false,
-            items = listOf(
-                ConfigItem.Button(
-                    title = "登陆管理",
-                    onClick = {
-                        mainController.navController.navigate("login") {
-                            launchSingleTop = true
+                .padding(top = 10.dp)
+        ) {
+
+            // 用户基本信息展示
+            UserInfoShow(userInfoState)
+
+            // 设置选项
+            ConfigColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
+                scrollable = false,
+                items = listOf(
+                    ConfigItem.Button(
+                        title = "登陆管理",
+                        onClick = {
+                            mainController.navController.navigate("login") {
+                                launchSingleTop = true
+                            }
                         }
-                    }
-                ),
-                ConfigItem.Button(
-                    title = "设置",
-                    onClick = { mainController.navController.navigate("setting?route=") }
-                ),
+                    ),
+                    ConfigItem.Button(
+                        title = "设置",
+                        onClick = { mainController.navController.navigate("setting?route=") }
+                    ),
+                )
             )
-        )
+        }
     }
 }
