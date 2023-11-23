@@ -1,6 +1,10 @@
 package cn.bit101.android.ui.component
 
+import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -12,6 +16,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -26,7 +33,6 @@ fun PreviewImage(
 ) {
     AsyncImage(
         modifier = Modifier
-            .padding(end = 5.dp)
             .size(size)
             .clip(RoundedCornerShape(10.dp))
             .clickable { onClick() },
@@ -72,6 +78,44 @@ fun PreviewImages(
                     )
                 }
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun PreviewImagesWithGridLayout(
+    modifier: Modifier = Modifier,
+    images: List<Image>,
+    maxCountInEachRow: Int,
+
+    onClick: (Int) -> Unit = {},
+) {
+    val width = LocalDensity.current.run {
+        LocalView.current.width - 32.dp.toPx()
+    }
+
+    val newMaxCountInEachRow = if(images.size < maxCountInEachRow) images.size
+    else maxCountInEachRow
+
+    FlowRow(
+        modifier = modifier,
+        maxItemsInEachRow = maxCountInEachRow,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        images.forEachIndexed { index, image ->
+            PreviewImage(
+                image = image,
+                onClick = { onClick(index) },
+                size = LocalDensity.current.run {
+                    val padding = if(newMaxCountInEachRow == 1) 0
+                    else if(index % newMaxCountInEachRow == 0 || index % newMaxCountInEachRow == 1) 3
+                    else 4
+
+                    (width / newMaxCountInEachRow).toDp() - padding.dp
+                }
+            )
         }
     }
 }

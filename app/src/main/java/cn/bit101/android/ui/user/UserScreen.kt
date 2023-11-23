@@ -26,6 +26,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.EditNote
@@ -332,20 +333,21 @@ fun UserScreenContent(
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center,
                     ) {
-                        Avatar(
-                            user = data.user,
-                            low = true,
-                            size = 35.dp,
-                        )
-                        Spacer(modifier = Modifier.padding(4.dp))
                         Text(
                             text = data.user.nickname,
                             style = MaterialTheme.typography.titleMedium
                         )
                     }
                 },
+                navigationIcon = {
+                    IconButton(onClick = { mainController.navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "back"
+                        )
+                    }
+                }
             )
         }
     ) { paddingValues ->
