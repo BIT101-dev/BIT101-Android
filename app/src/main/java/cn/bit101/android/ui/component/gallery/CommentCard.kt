@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.component.gallery
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -7,6 +8,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ThumbUp
@@ -27,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,13 +44,110 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.PreviewImages
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Comment
+import cn.bit101.api.model.common.User
+
+@Composable
+fun CommentCardContent(
+    mainController: MainController,
+    comment: Comment,
+    liking: Boolean,
+    isSub: Boolean = false,
+
+    leftSize: Dp,
+    iconSize: Dp,
+
+    onClick: () -> Unit,
+    onLike: () -> Unit,
+    onClickIcon: (User?) -> Unit,
+    onOpenImage: (Int) -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .clickable { onClick() }
+            .background(Color.Transparent)
+            .fillMaxWidth(),
+    ) {
+        Column(
+            modifier = Modifier
+                .clickable { onClick() }
+                .fillMaxWidth(),
+        ) {
+            Row {
+                Box(modifier = Modifier.width(leftSize)) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 4.dp)
+                    ) {
+                        Avatar(
+                            user = comment.user,
+                            low = true,
+                            size = iconSize,
+                            onClick = { onClickIcon(comment.user) }
+                        )
+                    }
+                }
+                Column {
+                    val spacePadding = if (isSub) 1.dp else 2.dp
+
+                    Spacer(modifier = Modifier.padding(spacePadding))
+                    Text(
+                        text = comment.user.nickname,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        style = MaterialTheme.typography.titleSmall
+                    )
+
+                    Spacer(modifier = Modifier.padding(spacePadding))
+
+                    if (comment.text.isNotEmpty()) {
+                        AnnotatedText(
+                            mainController = mainController,
+                            text = comment.text,
+                            replyUser = if (comment.replyUser.id != 0) comment.replyUser else null,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                        Spacer(modifier = Modifier.padding(spacePadding))
+                    }
+
+                    // 图片
+                    if (comment.images.isNotEmpty()) {
+                        PreviewImages(
+                            size = if (isSub) 80.dp else 100.dp,
+                            images = comment.images,
+                            onClick = { onOpenImage(it) },
+                        )
+                        Spacer(modifier = Modifier.padding(spacePadding))
+                    }
+
+                    val time = DateTimeUtils.formatTime(comment.updateTime)
+                    val diff = if(time == null) "未知"
+                    else DateTimeUtils.calculateTimeDiff(time)
+
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = diff,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                        ),
+                    )
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun CommentCard(
@@ -106,209 +207,65 @@ fun CommentCard(
     val cm = LocalClipboardManager.current
     var menuState by remember(comment.id) { mutableStateOf(false) }
 
-    Card(
+    Surface(
         modifier = Modifier
-            .padding(vertical = 8.dp)
+            .padding(vertical = 2.dp)
+            .background(colors.containerColor)
             .fillMaxWidth(),
-        onClick = onClick,
-        colors = colors,
     ) {
         Column(
             modifier = Modifier
-                .padding(15.dp)
+                .padding(vertical = 4.dp)
                 .fillMaxWidth(),
         ) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.align(Alignment.CenterStart),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Avatar(
-                        user = comment.user,
-                        low = true,
-                        size = 45.dp,
-                        onClick = { mainController.navController.navigate("user/${comment.user.id}") }
-                    )
 
-                    Column(
-                        modifier = Modifier
-                            .padding(start = 8.dp),
-                    ) {
-                        Text(
-                            text = comment.user.nickname,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.labelLarge
-                        )
+            CommentCardContent(
+                mainController = mainController,
+                comment = comment,
+                liking = comment.id.toLong() in commentLikings,
+                leftSize = 50.dp,
+                iconSize = 35.dp,
+                onClick = onClick,
+                onLike = onLikeComment,
+                onClickIcon = { mainController.navController.navigate("user/${comment.user.id}") },
+                onOpenImage = onOpenImage,
+            )
 
-                        Spacer(modifier = Modifier.padding(vertical = 1.dp))
-                        val time = DateTimeUtils.format(DateTimeUtils.formatTime(comment.updateTime))
-
-                        Text(
-                            text = time ?: "获取失败了捏",
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                    }
-                }
-                Row(
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    // 点赞
-                    Box {
-                        val liking = commentLikings.contains(comment.id.toLong())
-                        if(comment.like) {
-                            IconButton(
-                                onClick = onLikeComment,
-                                colors = IconButtonColors(
-                                    containerColor = Color.Transparent,
-                                    contentColor = MaterialTheme.colorScheme.tertiary,
-                                    disabledContainerColor = Color.Transparent,
-                                    disabledContentColor = MaterialTheme.colorScheme.tertiary,
-                                ),
-                                enabled = !liking
-                            ) {
-                                if(liking) {
-                                    CircularProgressIndicator()
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Rounded.ThumbUp,
-                                        contentDescription = "点赞",
-                                    )
-                                }
-                            }
-
-                        } else {
-                            IconButton(
-                                onClick = onLikeComment,
-                                enabled = !liking
-                            ) {
-                                if(liking) {
-                                    CircularProgressIndicator()
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Outlined.ThumbUp,
-                                        contentDescription = "点赞",
-                                    )
-                                }
-                            }
-                        }
-
-
-                        if(comment.likeNum > 0) {
-                            Badge(
-                                modifier = Modifier.align(Alignment.TopEnd)
-                            ) {
-                                Text(text = comment.likeNum.toString())
-                            }
-                        }
-                    }
-
-                    // 菜单
-                    IconButton(
-                        onClick = { menuState = !menuState }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.MoreVert,
-                            contentDescription = "",
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = menuState,
-                        onDismissRequest = { menuState = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text("复制") },
-                            onClick = { mainController.copyText(cm, buildAnnotatedString { append(comment.text) }) },
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Rounded.ContentCopy,
-                                    contentDescription = "复制"
-                                )
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("举报") },
-                            onClick = onReport,
-                            leadingIcon = {
-                                Icon(
-                                    imageVector = Icons.Rounded.Error,
-                                    contentDescription = "举报"
-                                )
-                            }
-                        )
-                        if(comment.own) {
-                            DropdownMenuItem(
-                                text = { Text("删除") },
-                                onClick = onOpenDeleteCommentDialog,
-                                leadingIcon = {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Delete,
-                                        contentDescription = "删除"
-                                    )
-                                }
-                            )
-                        }
-                    }
-                }
-
-            }
-
-            Spacer(modifier = Modifier.padding(vertical = 6.dp))
-
-            if(comment.text.isNotEmpty()) {
-                AnnotatedText(
-                    mainController = mainController,
-                    text = comment.text,
-                    replyUser = if(comment.replyUser.id != 0) comment.replyUser else null,
-                    overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                )
-
-                Spacer(modifier = Modifier.padding(vertical = 4.dp))
-            }
-
-            // 图片
-            if(comment.images.isNotEmpty()) {
-                PreviewImages(
-                    images = comment.images,
-                    onClick = { onOpenImage(it) },
-                )
-                Spacer(modifier = Modifier.padding(vertical = 4.dp))
-            }
-            // 子评论
-            if(comment.sub.isNotEmpty() && showSubComments) {
-                Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                HorizontalDivider(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f))
-                Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                Column(
-                    modifier = Modifier.fillMaxWidth()
-                ) {
+            if (comment.sub.isNotEmpty() && showSubComments) {
+                Spacer(modifier = Modifier.padding(2.dp))
+                Column(Modifier.padding(start = 50.dp)) {
                     comment.sub.forEach { sub ->
-                        val text = "${sub.user.nickname}： " + if(sub.replyUser.id != 0) {
-                            "@${sub.replyUser.nickname} "
-                        } else {
-                            ""
-                        } + sub.text.replace("\n", " ") + "[图片]".repeat(sub.images.size)
-
-                        Text(
-                            text = text,
-                            style = MaterialTheme.typography.bodySmall,
-                            overflow = TextOverflow.Ellipsis,
+                        CommentCardContent(
+                            mainController = mainController,
+                            comment = sub,
+                            liking = sub.id.toLong() in commentLikings,
+                            isSub = true,
+                            leftSize = 38.dp,
+                            iconSize = 30.dp,
+                            onClick = onClick,
+                            onLike = onLikeComment,
+                            onClickIcon = { mainController.navController.navigate("user/${comment.sub[0].user.id}") },
+                            onOpenImage = onOpenImage,
                         )
+                        Spacer(modifier = Modifier.padding(1.dp))
                     }
-                    Spacer(modifier = Modifier.padding(vertical = 4.dp))
+                }
+
+                Spacer(modifier = Modifier.padding(2.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 50.dp + 38.dp),
+                ) {
                     Text(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(RoundedCornerShape(4.dp))
-                            .clickable(onClick = onShowMoreComments),
-                        text = "共${comment.commentNum}条回复 >>",
-                        style = MaterialTheme.typography.labelMedium,
+                            .align(Alignment.CenterVertically)
+                            .clickable { onShowMoreComments() },
+                        text = "查看共${comment.commentNum}条评论",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurface,
+                            fontWeight = FontWeight.Bold
+                        ),
                     )
                 }
             }

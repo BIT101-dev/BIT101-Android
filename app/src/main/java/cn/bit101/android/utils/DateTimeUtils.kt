@@ -15,7 +15,9 @@ object DateTimeUtils {
     }
 
     fun format(time: LocalDateTime?): String? {
-        return time?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+        return if(LocalDateTime.now().year == time?.year) {
+            time.format(DateTimeFormatter.ofPattern("MM-dd HH:mm:ss"))
+        } else time?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
     }
 
     fun calculateTimeDiff(time: LocalDateTime): String {

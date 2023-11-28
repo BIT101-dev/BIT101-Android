@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.component
 
+import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -39,17 +40,19 @@ fun Avatar(
 ) {
     // 头像
     // 默认头像为APP图标
-    val icon = App.context.applicationInfo.loadIcon(App.context.packageManager)
+//    val icon = App.context.applicationInfo.loadIcon(App.context.packageManager)
+    val icon: Drawable? = null
     val painter = rememberDrawablePainter(icon)
     Box {
 
         val offset = size / 10
 
-        Box(modifier = Modifier.padding(bottom = offset, end = offset)) {
+        Box(modifier = Modifier.padding(offset)) {
             var modifier = Modifier
                 .size(size)
                 .clip(CircleShape)
-                .background(Color(App.context.getColor(R.color.ic_launcher_background)))
+                .background(Color.Black)
+//                .background(Color(App.context.getColor(R.color.ic_launcher_background)))
 
             if(onClick != null) {
                 modifier = modifier.clickable {

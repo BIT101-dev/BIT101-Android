@@ -22,7 +22,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -48,8 +47,8 @@ import cn.bit101.android.BuildConfig
 import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.common.SimpleDataState
-import cn.bit101.android.ui.setting.component.SettingItemData
-import cn.bit101.android.ui.setting.component.itemsGroup
+import cn.bit101.android.ui.component.setting.SettingItemData
+import cn.bit101.android.ui.component.setting.itemsGroup
 import cn.bit101.android.ui.setting.viewmodel.AboutViewModel
 import cn.bit101.api.model.http.app.GetVersionDataModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter

@@ -44,8 +44,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.setting.component.SettingItemData
-import cn.bit101.android.ui.setting.component.itemsGroup
+import cn.bit101.android.ui.component.setting.SettingItemData
+import cn.bit101.android.ui.component.setting.itemsGroup
 import cn.bit101.android.ui.setting.viewmodel.CalendarViewModel
 import cn.bit101.android.ui.setting.viewmodel.SettingData
 import java.time.format.DateTimeFormatter

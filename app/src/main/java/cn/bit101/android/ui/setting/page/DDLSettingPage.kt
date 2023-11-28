@@ -16,7 +16,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
@@ -32,8 +31,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.setting.component.SettingItemData
-import cn.bit101.android.ui.setting.component.itemsGroup
+import cn.bit101.android.ui.component.setting.SettingItemData
+import cn.bit101.android.ui.component.setting.itemsGroup
 import cn.bit101.android.ui.setting.viewmodel.DDLViewModel
 
 

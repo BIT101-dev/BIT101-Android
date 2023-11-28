@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.setting.component
+package cn.bit101.android.ui.component.setting
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

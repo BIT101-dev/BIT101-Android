@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.component
+package cn.bit101.android.ui.component.topbar
 
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationState
@@ -49,7 +49,6 @@ import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.layout.layoutId
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Constraints
@@ -95,7 +94,8 @@ internal fun ProvideContentColorTextStyle(
 @Composable
 private fun TopAppBarLayout(
     modifier: Modifier,
-    heightPx: Float,
+    heightPx: Float? = null,
+    deltaHeightPx: Float? = null,
     navigationIconContentColor: Color,
     titleContentColor: Color,
     actionIconContentColor: Color,
@@ -171,7 +171,10 @@ private fun TopAppBarLayout(
                 0
             }
 
-        val layoutHeight = if (heightPx.isNaN()) 0 else heightPx.roundToInt()
+        // measure title height
+        val layoutHeight = if(heightPx == null && deltaHeightPx == null) 0
+        else if(heightPx != null) { if (heightPx.isNaN()) 0 else heightPx.roundToInt() }
+        else titlePlaceable.height + if (deltaHeightPx!!.isNaN()) 0 else deltaHeightPx.roundToInt()
 
         layout(constraints.maxWidth, layoutHeight) {
             // Navigation icon
@@ -309,9 +312,7 @@ fun BasicTwoRowsTopAppBar(
     val maxHeightPx: Float
     val titleBottomPaddingPx: Int
 
-    val size = IntSize(LocalView.current.width, LocalView.current.height)
-
-    var bottomLayoutViewSize: IntSize by remember { mutableStateOf(size) }
+    var bottomLayoutViewSize: IntSize by remember { mutableStateOf(IntSize(0, 0)) }
     //计算布局高度
     val bottomLayoutBox = @Composable {
         Box(
@@ -388,6 +389,7 @@ fun BasicTwoRowsTopAppBar(
                     .windowInsetsPadding(windowInsets)
                     // clip after padding so we don't show the title over the inset area
                     .clipToBounds(),
+                // fixed height
                 heightPx = pinnedHeightPx,
                 navigationIconContentColor =
                 colors.navigationIconContentColor,
@@ -410,8 +412,8 @@ fun BasicTwoRowsTopAppBar(
                     // padding will always be applied by the layout above
                     .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Horizontal))
                     .clipToBounds(),
-                heightPx = maxHeightPx - pinnedHeightPx + (scrollBehavior?.state?.heightOffset
-                    ?: 0f),
+                deltaHeightPx = (scrollBehavior?.state?.heightOffset
+                    ?: 0f) + windowInsets.getTop(LocalDensity.current),
                 navigationIconContentColor =
                 colors.navigationIconContentColor,
                 titleContentColor = colors.titleContentColor,

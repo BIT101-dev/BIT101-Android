@@ -16,6 +16,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +36,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Button
@@ -50,6 +53,7 @@ import androidx.compose.material.icons.rounded.Comment
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.ModeEdit
 import androidx.compose.material.icons.rounded.ThumbUp
 import androidx.compose.material.icons.rounded.TurnLeft
@@ -62,8 +66,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
@@ -105,6 +111,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
@@ -455,31 +462,68 @@ fun PosterContent(
                     .padding(paddingValues),
                 loading = loading,
                 state = state,
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
             ) {
                 // 标题
-                item(data.title) {
-                    SelectionContainer(modifier = Modifier.fillMaxWidth()) {
-                        Text(
-                            text = data.title,
-                            style = MaterialTheme.typography.titleLarge,
-                        )
+                item(-1) {
+                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        SelectionContainer(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = data.title,
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                            )
+                        }
                     }
-                    Spacer(modifier = Modifier.padding(10.dp))
+                }
+
+                item(0) {
+                    if(data.claim.id > 0) {
+                        Spacer(modifier = Modifier.padding(4.dp))
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Surface(
+                                contentColor = MaterialTheme.colorScheme.secondary,
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                shape = CircleShape,
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Info,
+                                        contentDescription = "警告",
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.padding(2.dp))
+                                    Text(
+                                        text = data.claim.text,
+                                        style = MaterialTheme.typography.labelLarge
+                                    )
+                                }
+                            }
+                        }
+                        Spacer(modifier = Modifier.padding(8.dp))
+                    } else {
+                        Spacer(modifier = Modifier.padding(8.dp))
+                    }
                 }
 
                 // 内容
                 item(4) {
                     // 正文
                     if (data.text.isNotEmpty()) {
-                        SelectionContainer {
-                            AnnotatedText(
-                                mainController = mainController,
-                                text = data.text,
-                                style = MaterialTheme.typography.bodyLarge.copy(
-                                    color = MaterialTheme.colorScheme.onSurface
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            SelectionContainer {
+                                AnnotatedText(
+                                    mainController = mainController,
+                                    text = data.text,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = MaterialTheme.colorScheme.onSurface
+                                    )
                                 )
-                            )
+                            }
                         }
                     }
                 }
@@ -487,48 +531,58 @@ fun PosterContent(
                 // 图片
                 item(5) {
                     if (data.images.isNotEmpty()) {
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        PreviewImagesWithGridLayout(
-                            modifier = Modifier.fillMaxWidth(),
-                            images = data.images,
-                            maxCountInEachRow = 3,
-                            onClick = { onOpenImages(it, data.images) },
-                        )
+                        Spacer(modifier = Modifier.padding(2.dp))
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            PreviewImagesWithGridLayout(
+                                modifier = Modifier.fillMaxWidth(),
+                                images = data.images,
+                                maxCountInEachRow = 3,
+                                onClick = { onOpenImages(it, data.images) },
+                            )
+                        }
                     }
                 }
 
                 // 标签
                 item(6) {
                     if (data.tags.isNotEmpty()) {
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        FlowRow {
-                            data.tags.forEach { tag ->
-                                SuggestionChip(
-                                    modifier = Modifier.padding(end = 8.dp),
-                                    shape = CircleShape,
-                                    onClick = {
-                                        mainController.copyText(
-                                            cm,
-                                            buildAnnotatedString { append(tag) })
-                                    },
-                                    label = { Text(text = tag) }
-                                )
+                        Spacer(modifier = Modifier.padding(8.dp))
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            FlowRow {
+                                data.tags.forEach { tag ->
+                                    Text(
+                                        modifier = Modifier.clickable { mainController.copyText(cm, buildAnnotatedString { append(tag) }) },
+                                        text = "#$tag",
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            color = MaterialTheme.colorScheme.tertiary
+                                        ),
+                                    )
+                                    Spacer(modifier = Modifier.padding(end = 6.dp))
+                                }
                             }
                         }
                     }
-                    Spacer(modifier = Modifier.padding(8.dp))
+                    Spacer(modifier = Modifier.padding(4.dp))
                 }
 
                 item(12) {
-                    Text(
-                        text = "首次创建时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.createTime)),
-                        style = MaterialTheme.typography.labelMedium
-                    )
-                    Spacer(modifier = Modifier.padding(1.dp))
-                    Text(
-                        text = "最后修改时间：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.updateTime)),
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Text(
+                            text = "最后编辑于：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.updateTime)),
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
+                }
+
+                item(8) {
+                    Spacer(modifier = Modifier.padding(16.dp))
+                    Box(modifier = Modifier.padding(horizontal = 6.dp)) {
+                        Text(
+                            text = "评论",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                    Spacer(modifier = Modifier.padding(2.dp))
                 }
 
                 // 评论展示
@@ -551,10 +605,6 @@ fun PosterContent(
                         onReport = { onOpenReportComment(comment) },
                         onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(comment) },
                     )
-                }
-
-                item(10) {
-                    Spacer(modifier = Modifier.padding(4.dp))
                 }
             }
 

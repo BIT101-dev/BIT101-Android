@@ -2,7 +2,6 @@ package cn.bit101.android.ui.setting.page
 
 import android.util.Log
 import android.view.HapticFeedbackConstants
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
@@ -40,7 +38,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.ui.setting.component.SettingItem
+import cn.bit101.android.ui.component.setting.SettingItem
 import cn.bit101.android.utils.PageUtils
 import cn.bit101.api.model.common.NameAndValue
 import kotlinx.coroutines.Dispatchers

@@ -115,7 +115,7 @@ fun PostersTabPage(
                 state = state,
                 loading = loadState == LoadMoreState.Loading,
                 refreshing = refreshState == RefreshState.Loading,
-                contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 16.dp + navBarHeight)
+                contentPadding = PaddingValues(4.dp, 4.dp, 4.dp, 8.dp + navBarHeight)
             ) {
                 item("header") {
                     header()
@@ -150,9 +150,6 @@ fun PostersTabPage(
                             }
                         )
                     }
-                }
-                item("spacer") {
-                    Spacer(modifier = Modifier.padding(8.dp))
                 }
             }
         }
