@@ -12,6 +12,8 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -53,6 +55,7 @@ fun SettingScreen(
 
     // 沉浸式状态栏
     Scaffold(
+        modifier = Modifier.nestedScroll(topAppBarBehavior.nestedScrollConnection),
         topBar = {
             LargeTopAppBar (
                 title = { Text(text = title) },
@@ -82,7 +85,6 @@ fun SettingScreen(
                 SettingIndexPage(
                     mainController = settingController,
                     paddingValues = paddingValues,
-                    nestedScrollConnection = topAppBarBehavior.nestedScrollConnection,
                     onOpenPagesSettingPage = { navController.navigate("pages") },
                     onOpenThemeSettingPage = { navController.navigate("theme") },
                     onOpenCalendarSettingPage = { navController.navigate("calendar") },
@@ -94,7 +96,6 @@ fun SettingScreen(
                 PagesSettingPage(
                     mainController = settingController,
                     paddingValues = paddingValues,
-                    nestedScrollConnection = topAppBarBehavior.nestedScrollConnection,
                 )
             }
 
@@ -102,7 +103,6 @@ fun SettingScreen(
                 ThemeSettingPage(
                     mainController = settingController,
                     paddingValues = paddingValues,
-                    nestedScrollConnection = topAppBarBehavior.nestedScrollConnection,
                 )
             }
 
@@ -110,7 +110,6 @@ fun SettingScreen(
                 CalendarSettingPage(
                     mainController = settingController,
                     paddingValues = paddingValues,
-                    nestedScrollConnection = topAppBarBehavior.nestedScrollConnection,
                 )
             }
 
@@ -118,7 +117,6 @@ fun SettingScreen(
                 AboutPage(
                     mainController = settingController,
                     paddingValues = paddingValues,
-                    nestedScrollConnection = topAppBarBehavior.nestedScrollConnection,
                 )
             }
 
@@ -126,7 +124,6 @@ fun SettingScreen(
                 DDLSettingPage(
                     mainController = settingController,
                     paddingValues = paddingValues,
-                    nestedScrollConnection = topAppBarBehavior.nestedScrollConnection,
                 )
             }
         }

@@ -48,6 +48,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.buildAnnotatedString
@@ -300,6 +301,7 @@ fun UserScreenContent(
     val scope = rememberCoroutineScope()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(topAppBarBehavior.nestedScrollConnection),
         topBar = {
             BasicTwoRowsTopAppBar(
                 title = {
@@ -349,7 +351,6 @@ fun UserScreenContent(
             contentPadding = PaddingValues(16.dp),
             state = state,
             loading = loadState == LoadMoreState.Loading,
-            nestedScrollConnection = topAppBarBehavior.nestedScrollConnection
         ) {
             posters.forEachIndexed { index, poster ->
                 item(index + 100) {

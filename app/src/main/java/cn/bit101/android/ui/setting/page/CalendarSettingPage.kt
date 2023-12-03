@@ -54,7 +54,6 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun CalendarSettingPageContent(
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 
     currentTerm: String,
     firstDay: String,
@@ -185,8 +184,7 @@ fun CalendarSettingPageContent(
     LazyColumn(
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize()
-            .nestedScroll(nestedScrollConnection),
+            .fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
     ) {
         itemsGroup(
@@ -329,7 +327,6 @@ fun TimeTableDialog(
 fun CalendarSettingPage(
     mainController: MainController,
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 
     vm: CalendarViewModel = hiltViewModel(),
 ) {
@@ -409,7 +406,6 @@ fun CalendarSettingPage(
 
     CalendarSettingPageContent(
         paddingValues = paddingValues,
-        nestedScrollConnection = nestedScrollConnection,
 
         currentTerm = currentTerm ?: "未设置",
         firstDay = firstDay?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) ?: "未设置",

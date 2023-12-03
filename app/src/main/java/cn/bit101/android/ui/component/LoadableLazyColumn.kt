@@ -5,8 +5,11 @@ import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
@@ -14,6 +17,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import cn.bit101.android.ui.component.pullrefresh.pullRefresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,16 +72,22 @@ fun LoadableLazyColumnWithoutPullRequest(
             content = {
                 content()
                 item {
-                    if (loadingContent != null) {
-                        loadingContent()
-                    } else {
+                    if (loadingContent != null) { loadingContent() }
+                    else {
                         if (loading) {
                             Box(modifier = Modifier.fillMaxWidth()) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier
-                                        .size(30.dp)
-                                        .align(Alignment.Center)
-                                )
+                                Row(modifier = Modifier.align(Alignment.Center)) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(30.dp)
+                                    )
+                                    Spacer(modifier = Modifier.padding(2.dp))
+                                    Text(
+                                        text = "加载中...",
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            color = MaterialTheme.typography.titleSmall.color.copy(alpha = 0.6f)
+                                        )
+                                    )
+                                }
                             }
                         }
                     }
@@ -134,7 +145,9 @@ fun LoadableLazyColumn(
     val listLayoutInfo by remember { derivedStateOf { lazyListState.layoutInfo } }
     Box(modifier = modifier.fillMaxSize()) {
         LazyColumn(
-            modifier = (if(nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection) else Modifier)
+            modifier = (if (nestedScrollConnection != null) Modifier.nestedScroll(
+                nestedScrollConnection
+            ) else Modifier)
                 .fillMaxSize()
                 .pullRefresh(state = state.pullRefreshState),
             contentPadding = contentPadding,
@@ -152,11 +165,18 @@ fun LoadableLazyColumn(
                     } else {
                         if (loading) {
                             Box(modifier = Modifier.fillMaxWidth()) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier
-                                        .size(30.dp)
-                                        .align(Alignment.Center)
-                                )
+                                Row(modifier = Modifier.align(Alignment.Center)) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(30.dp)
+                                    )
+                                    Spacer(modifier = Modifier.padding(2.dp))
+                                    Text(
+                                        text = "加载中...",
+                                        style = MaterialTheme.typography.titleSmall.copy(
+                                            color = MaterialTheme.typography.titleSmall.color.copy(alpha = 0.6f)
+                                        )
+                                    )
+                                }
                             }
                         }
                     }

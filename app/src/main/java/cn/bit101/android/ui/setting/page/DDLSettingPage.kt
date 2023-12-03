@@ -39,7 +39,6 @@ import cn.bit101.android.ui.setting.viewmodel.DDLViewModel
 @Composable
 fun DDLSettingPageContent(
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 
     afterDay: String,
     beforeDay: String,
@@ -100,8 +99,7 @@ fun DDLSettingPageContent(
     LazyColumn(
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize()
-            .nestedScroll(nestedScrollConnection),
+            .fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
     ) {
         itemsGroup(
@@ -186,7 +184,6 @@ fun InputNumberDialog(
 fun DDLSettingPage(
     mainController: MainController,
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 
     vm: DDLViewModel = hiltViewModel(),
 ) {
@@ -224,7 +221,6 @@ fun DDLSettingPage(
 
     DDLSettingPageContent(
         paddingValues = paddingValues,
-        nestedScrollConnection = nestedScrollConnection,
 
         afterDay = afterDay?.toString() ?: "未设置",
         beforeDay = beforeDay?.toString() ?: "未设置",

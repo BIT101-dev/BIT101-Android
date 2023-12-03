@@ -60,7 +60,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun AboutPageContent(
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 
     autoDetectUpgrade: Boolean,
 
@@ -168,8 +167,7 @@ fun AboutPageContent(
     LazyColumn(
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize()
-            .nestedScroll(nestedScrollConnection),
+            .fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
     ) {
         item("logo") {
@@ -453,7 +451,6 @@ fun UpdateDialog(
 fun AboutPage(
     mainController: MainController,
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 
     vm: AboutViewModel = hiltViewModel(),
 ) {
@@ -494,7 +491,6 @@ fun AboutPage(
 
     AboutPageContent(
         paddingValues = paddingValues,
-        nestedScrollConnection = nestedScrollConnection,
 
         autoDetectUpgrade = autoDetectUpgrade,
         isDetectingUpgrade = checkUpdateState is SimpleDataState.Loading,

@@ -53,7 +53,6 @@ import org.burnoutcrew.reorderable.reorderable
 @Composable
 fun PagesSettingPageContent(
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 
     pages: List<NameAndValue<String>>,
     homePage: String,
@@ -100,7 +99,6 @@ fun PagesSettingPageContent(
                 state = state.listState,
                 modifier = Modifier
                     .fillMaxSize()
-                    .nestedScroll(nestedScrollConnection)
                     .reorderable(state),
                 contentPadding = PaddingValues(16.dp),
             ) {
@@ -171,7 +169,6 @@ fun PagesSettingPageContent(
 fun PagesSettingPage(
     mainController: MainController,
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 ) {
     val pagesStr by SettingDataStore.settingPageOrder.flow.collectAsState(initial = null)
     val homePageStr by SettingDataStore.settingHomePage.flow.collectAsState(initial = null)
@@ -187,7 +184,6 @@ fun PagesSettingPage(
 
     PagesSettingPageContent(
         paddingValues = paddingValues,
-        nestedScrollConnection = nestedScrollConnection,
 
         pages = pages,
         homePage = homePage,

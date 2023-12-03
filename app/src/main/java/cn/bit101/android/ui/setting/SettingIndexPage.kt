@@ -86,7 +86,6 @@ data class SubSettingItem(
 fun SettingIndexPage(
     mainController: MainController,
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 
     onOpenAboutPage: () -> Unit = {},
     onOpenPagesSettingPage: () -> Unit = {},
@@ -131,8 +130,7 @@ fun SettingIndexPage(
     LazyColumn(
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize()
-            .nestedScroll(nestedScrollConnection),
+            .fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
     ) {
         items(subSettings) {

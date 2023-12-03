@@ -44,7 +44,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun ThemeSettingPageContent(
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 
     dynamic: Boolean,
     darkMode: String,
@@ -90,8 +89,7 @@ fun ThemeSettingPageContent(
     LazyColumn(
         modifier = Modifier
             .padding(paddingValues)
-            .fillMaxSize()
-            .nestedScroll(nestedScrollConnection),
+            .fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
     ) {
         items(settings) {
@@ -170,7 +168,6 @@ fun DarkModeDialog(
 fun ThemeSettingPage(
     mainController: MainController,
     paddingValues: PaddingValues,
-    nestedScrollConnection: NestedScrollConnection,
 ) {
 
     val dynamic by SettingDataStore.settingDynamicTheme.flow.collectAsState(initial = false)
@@ -188,7 +185,6 @@ fun ThemeSettingPage(
 
     ThemeSettingPageContent(
         paddingValues = paddingValues,
-        nestedScrollConnection = nestedScrollConnection,
 
         dynamic = dynamic,
         darkMode = darkModeCh,

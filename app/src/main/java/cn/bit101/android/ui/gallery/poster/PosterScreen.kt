@@ -16,9 +16,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -32,20 +30,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Comment
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.outlined.ThumbUp
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material.icons.rounded.ArrowBackIosNew
@@ -62,6 +52,7 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
@@ -79,14 +70,19 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.ModalBottomSheetDefaults
 import androidx.compose.material3.ModalBottomSheetProperties
+import androidx.compose.material3.OutlinedCard
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.material3.SmallTopAppBar
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -479,35 +475,22 @@ fun PosterContent(
                 }
 
                 item(0) {
-                    if(data.claim.id > 0) {
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                            Surface(
-                                contentColor = MaterialTheme.colorScheme.secondary,
-                                color = MaterialTheme.colorScheme.secondaryContainer,
-                                shape = CircleShape,
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Info,
-                                        contentDescription = "警告",
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Spacer(modifier = Modifier.padding(2.dp))
-                                    Text(
-                                        text = data.claim.text,
-                                        style = MaterialTheme.typography.labelLarge
-                                    )
-                                }
+                    if(data.claim.id != 0) {
+                        Spacer(modifier = Modifier.padding(2.dp))
+                        Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(
+                                    text = data.claim.text,
+                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                        color = MaterialTheme.colorScheme.error,
+                                        fontWeight = FontWeight.Bold
+                                    ),
+                                )
                             }
                         }
-                        Spacer(modifier = Modifier.padding(8.dp))
-                    } else {
-                        Spacer(modifier = Modifier.padding(8.dp))
+                        Spacer(modifier = Modifier.padding(2.dp))
                     }
+                    Spacer(modifier = Modifier.padding(2.dp))
                 }
 
                 // 内容
@@ -553,8 +536,8 @@ fun PosterContent(
                                     Text(
                                         modifier = Modifier.clickable { mainController.copyText(cm, buildAnnotatedString { append(tag) }) },
                                         text = "#$tag",
-                                        style = MaterialTheme.typography.titleSmall.copy(
-                                            color = MaterialTheme.colorScheme.tertiary
+                                        style = MaterialTheme.typography.bodyLarge.copy(
+                                            color = MaterialTheme.colorScheme.primary,
                                         ),
                                     )
                                     Spacer(modifier = Modifier.padding(end = 6.dp))
@@ -574,37 +557,50 @@ fun PosterContent(
                     }
                 }
 
-                item(8) {
-                    Spacer(modifier = Modifier.padding(16.dp))
-                    Box(modifier = Modifier.padding(horizontal = 6.dp)) {
-                        Text(
-                            text = "评论",
-                            style = MaterialTheme.typography.titleMedium
+                if(data.commentNum > 0) {
+                    item(8) {
+                        Spacer(modifier = Modifier.padding(16.dp))
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Text(
+                                text = "共${data.commentNum}条评论",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                        Spacer(modifier = Modifier.padding(2.dp))
+                    }
+
+                    // 评论展示
+                    items(comments, { it.id + 100 }) { comment ->
+                        CommentCard(
+                            mainController = mainController,
+                            comment = comment,
+                            onOpenImage = { onOpenImages(it, comment.images) },
+                            onShowMoreComments = { onShowMoreComments(comment) },
+                            commentLikings = commentLikings,
+                            onLikeComment = onLikeComment,
+                            onClick = {
+                                onOpenCommentDialog(comment, comment)
+                                focus = Focus.Comment(comment, comment)
+                            },
+                            colors = if(focus == Focus.Comment(comment, comment)) CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                            )
+                            else CardDefaults.cardColors(),
+                            onReport = { onOpenReportComment(comment) },
+                            onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(comment) },
                         )
                     }
-                    Spacer(modifier = Modifier.padding(2.dp))
-                }
-
-                // 评论展示
-                items(comments, { it.id + 100 }) { comment ->
-                    CommentCard(
-                        mainController = mainController,
-                        comment = comment,
-                        onOpenImage = { onOpenImages(it, comment.images) },
-                        onShowMoreComments = { onShowMoreComments(comment) },
-                        commentLikings = commentLikings,
-                        onLikeComment = { onLikeComment(comment.id.toLong()) },
-                        onClick = {
-                            onOpenCommentDialog(comment, comment)
-                            focus = Focus.Comment(comment, comment)
-                        },
-                        colors = if(focus == Focus.Comment(comment, comment)) CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                        )
-                        else CardDefaults.cardColors(),
-                        onReport = { onOpenReportComment(comment) },
-                        onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(comment) },
-                    )
+                } else {
+                    item(8) {
+                        Spacer(modifier = Modifier.padding(16.dp))
+                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                            Text(
+                                text = "暂无评论",
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                        }
+                        Spacer(modifier = Modifier.padding(2.dp))
+                    }
                 }
             }
 

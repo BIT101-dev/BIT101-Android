@@ -93,7 +93,7 @@ fun MoreCommentsSheetContent(
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(vertical = 16.dp)
             .nestedScroll(rememberNestedScrollInteropConnection()),
     ) {
         LoadableLazyColumnWithoutPullRequest(
@@ -107,9 +107,7 @@ fun MoreCommentsSheetContent(
                     onOpenImage = { onOpenImages(it, comment.images) },
                     showSubComments = false,
                     commentLikings = commentLikings,
-                    onLikeComment = {
-                        onLikeComment(comment.id.toLong())
-                    },
+                    onLikeComment = onLikeComment,
                     onClick = {
                         // 第一个是主评论，第二个是回复的评论
                         onOpenCommentDialog(comment, comment)
@@ -144,7 +142,7 @@ fun MoreCommentsSheetContent(
                             onOpenImage = { onOpenImages(it, sub.images) },
                             showSubComments = false,
                             commentLikings = commentLikings,
-                            onLikeComment = { onLikeComment(sub.id.toLong()) },
+                            onLikeComment = onLikeComment,
                             onClick = { onOpenCommentDialog(comment, sub) },
                             onReport = { onReport(sub) },
                             onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(sub) },
