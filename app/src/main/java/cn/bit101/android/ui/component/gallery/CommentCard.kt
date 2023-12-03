@@ -275,12 +275,12 @@ fun CommentCard(
                 onLike = { onLikeComment(comment.id.toLong()) },
                 onClickIcon = { mainController.navController.navigate("user/${comment.user.id}") },
                 onOpenImage = onOpenImage,
-                paddingValues = PaddingValues(horizontal = 16.dp),
+                paddingValues = PaddingValues(horizontal = 8.dp),
             )
 
             if (comment.sub.isNotEmpty() && showSubComments) {
                 Spacer(modifier = Modifier.padding(2.dp))
-                Column(Modifier.padding(start = 45.dp + 16.dp)) {
+                Column(Modifier.padding(start = 45.dp + 8.dp)) {
                     comment.sub.forEach { sub ->
                         CommentCardContent(
                             mainController = mainController,
@@ -293,7 +293,7 @@ fun CommentCard(
                             onLike = { onLikeComment(sub.id.toLong()) },
                             onClickIcon = { mainController.navController.navigate("user/${comment.sub[0].user.id}") },
                             onOpenImage = onOpenImage,
-                            paddingValues = PaddingValues(end = 16.dp),
+                            paddingValues = PaddingValues(end = 8.dp),
                         )
                         Spacer(modifier = Modifier.padding(1.dp))
                     }
@@ -303,7 +303,7 @@ fun CommentCard(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(start = 45.dp + 16.dp + 0.dp),
+                        .padding(start = 45.dp + 8.dp + 0.dp),
                 ) {
                     Text(
                         modifier = Modifier

@@ -145,9 +145,10 @@ fun AnnotatedText(
                                     if (id != null) {
                                         mainController.navController.navigate("poster/$id")
                                     }
+                                } else {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+                                    ctx.startActivity(intent)
                                 }
-                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
-                                ctx.startActivity(intent)
                                 true
                             } else if(user != null) {
                                 val id = user.toLongOrNull()

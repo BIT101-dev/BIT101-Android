@@ -462,7 +462,7 @@ fun PosterContent(
             ) {
                 // 标题
                 item(-1) {
-                    Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                         SelectionContainer(modifier = Modifier.fillMaxWidth()) {
                             Text(
                                 text = data.title,
@@ -477,7 +477,7 @@ fun PosterContent(
                 item(0) {
                     if(data.claim.id != 0) {
                         Spacer(modifier = Modifier.padding(2.dp))
-                        Row(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Row(modifier = Modifier.padding(horizontal = 8.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = data.claim.text,
@@ -497,7 +497,7 @@ fun PosterContent(
                 item(4) {
                     // 正文
                     if (data.text.isNotEmpty()) {
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                             SelectionContainer {
                                 AnnotatedText(
                                     mainController = mainController,
@@ -515,7 +515,7 @@ fun PosterContent(
                 item(5) {
                     if (data.images.isNotEmpty()) {
                         Spacer(modifier = Modifier.padding(2.dp))
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                             PreviewImagesWithGridLayout(
                                 modifier = Modifier.fillMaxWidth(),
                                 images = data.images,
@@ -530,7 +530,7 @@ fun PosterContent(
                 item(6) {
                     if (data.tags.isNotEmpty()) {
                         Spacer(modifier = Modifier.padding(8.dp))
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                             FlowRow {
                                 data.tags.forEach { tag ->
                                     Text(
@@ -549,7 +549,7 @@ fun PosterContent(
                 }
 
                 item(12) {
-                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
                         Text(
                             text = "最后编辑于：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.updateTime)),
                             style = MaterialTheme.typography.labelMedium
@@ -560,7 +560,7 @@ fun PosterContent(
                 if(data.commentNum > 0) {
                     item(8) {
                         Spacer(modifier = Modifier.padding(16.dp))
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                             Text(
                                 text = "共${data.commentNum}条评论",
                                 style = MaterialTheme.typography.titleMedium
@@ -593,7 +593,7 @@ fun PosterContent(
                 } else {
                     item(8) {
                         Spacer(modifier = Modifier.padding(16.dp))
-                        Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                             Text(
                                 text = "暂无评论",
                                 style = MaterialTheme.typography.titleMedium
