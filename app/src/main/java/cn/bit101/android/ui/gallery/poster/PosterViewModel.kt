@@ -145,7 +145,7 @@ class PosterViewModel @Inject constructor(
     /**
      * 设置显示更多评论的状态
      */
-    fun setShowMoreState(show: Boolean, id: Long?) {
+    fun setShowMoreState(show: Boolean, id: Long? = null) {
         val lastValue = showMoreStateFlow.value
         _showMoreStateFlow.value = if(id == null) lastValue.copy(first = show)
         else lastValue.copy(first = show, second = id)

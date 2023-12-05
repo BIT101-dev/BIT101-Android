@@ -3,20 +3,16 @@ package cn.bit101.android.ui.gallery.poster
 import android.app.Activity
 import android.content.Intent
 import android.provider.MediaStore
+import android.util.Log
 import android.view.HapticFeedbackConstants
-import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -24,65 +20,37 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material3.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.Comment
-import androidx.compose.material.icons.outlined.ThumbUp
-import androidx.compose.material.icons.outlined.WarningAmber
-import androidx.compose.material.icons.rounded.ArrowBackIosNew
-import androidx.compose.material.icons.rounded.Comment
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Edit
-import androidx.compose.material.icons.rounded.Error
-import androidx.compose.material.icons.rounded.Info
-import androidx.compose.material.icons.rounded.ModeEdit
-import androidx.compose.material.icons.rounded.ThumbUp
-import androidx.compose.material.icons.rounded.TurnLeft
-import androidx.compose.material.icons.rounded.Warning
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.BottomAppBarDefaults
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FavoriteBorder
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetDefaults
-import androidx.compose.material3.ModalBottomSheetProperties
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SmallFloatingActionButton
-import androidx.compose.material3.SmallTopAppBar
-import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTooltipState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -93,34 +61,28 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.Layout
+import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.SecureFlagPolicy
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.component.PreviewImage
 import cn.bit101.android.ui.component.PreviewImagesWithGridLayout
 import cn.bit101.android.ui.component.rememberLoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.gallery.common.LoadMoreState
@@ -128,24 +90,15 @@ import cn.bit101.android.ui.gallery.common.RefreshState
 import cn.bit101.android.ui.gallery.common.SimpleState
 import cn.bit101.android.ui.gallery.common.UploadImageData
 import cn.bit101.android.ui.component.gallery.CommentCard
-import cn.bit101.android.ui.component.gallery.CommentEditContent
 import cn.bit101.android.ui.component.gallery.AnnotatedText
 import cn.bit101.android.ui.component.gallery.DeleteCommentDialog
 import cn.bit101.android.ui.component.gallery.DeleteImageDialog
 import cn.bit101.android.ui.component.gallery.DeletePosterDialog
 import cn.bit101.android.utils.DateTimeUtils
+import cn.bit101.android.utils.NumberUtils
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
-import kotlinx.coroutines.launch
-
-sealed interface Focus {
-    object Poster : Focus
-    data class Comment(
-        val comment: cn.bit101.api.model.common.Comment,
-        val subComment: cn.bit101.api.model.common.Comment
-    ) : Focus
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -158,7 +111,7 @@ fun PosterScreenTopBar(
         title = {
             // 如果目前在评论区，那么显示帖子的标题
             // 否则显示头像、昵称、身份
-            val showTitle by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex > 4} }
+            val showTitle by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex >= 7} }
 
             AnimatedContent(
                 targetState = showTitle,
@@ -208,98 +161,17 @@ fun PosterScreenTopBar(
                 Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
             }
         },
-    )
-}
-
-@Composable
-fun PosterScreenBottomBar(
-    focus: Focus,
-
-    data: GetPosterDataModel.Response,
-    posterLiking: Boolean,
-
-    onOpenReportPoster: () -> Unit,
-    onOpenEdit: () -> Unit,
-    onOpenDeletePosterDialog: () -> Unit,
-    onLikePoster: () -> Unit,
-
-    onChangeFocus: (Focus) -> Unit,
-) {
-    BottomAppBar(
         actions = {
-            AnimatedContent(
-                targetState = focus is Focus.Comment,
-                label = ""
+            IconButton(
+                onClick = {}
             ) {
-                if(it) {
-                    Row {
-                        IconButton(onClick = onOpenReportPoster) {
-                            Icon(imageVector = Icons.AutoMirrored.Rounded.Comment, contentDescription = "举报")
-                        }
-                        IconButton(onClick = onOpenReportPoster) {
-                            Icon(imageVector = Icons.Rounded.Warning, contentDescription = "举报")
-                        }
-                    }
-                } else {
-                    Row {
-                        IconButton(onClick = onOpenReportPoster) {
-                            Icon(imageVector = Icons.Rounded.Warning, contentDescription = "举报")
-                        }
-                        IconButton(onClick = onOpenEdit) {
-                            Icon(imageVector = Icons.Rounded.ModeEdit, contentDescription = "编辑")
-                        }
-                        IconButton(onClick = onOpenDeletePosterDialog) {
-                            Icon(imageVector = Icons.Rounded.Delete, contentDescription = "删除")
-                        }
-                        IconButton(onClick = onOpenReportPoster) {
-                            Icon(imageVector = Icons.AutoMirrored.Rounded.Comment, contentDescription = "举报")
-                        }
-                        Box {
-                            IconButton(
-                                onClick = onLikePoster,
-                                colors = if (data.like) IconButtonColors(
-                                    containerColor = Color.Transparent,
-                                    contentColor = MaterialTheme.colorScheme.tertiary,
-                                    disabledContainerColor = Color.Transparent,
-                                    disabledContentColor = MaterialTheme.colorScheme.tertiary,
-                                ) else IconButtonDefaults.iconButtonColors(),
-                                enabled = !posterLiking
-                            ) {
-                                if (posterLiking) {
-                                    CircularProgressIndicator()
-                                } else {
-                                    Icon(
-                                        imageVector = if (data.like) Icons.Rounded.ThumbUp else Icons.Outlined.ThumbUp,
-                                        contentDescription = "点赞",
-                                    )
-                                }
-                            }
-
-                            if (data.likeNum > 0) Badge(modifier = Modifier.align(Alignment.TopEnd)) {
-                                Text(text = data.likeNum.toString())
-                            }
-                        }
-                    }
-                }
+                Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = "更多")
             }
         },
-        floatingActionButton = {
-
-            AnimatedVisibility(visible = focus is Focus.Comment) {
-                FloatingActionButton(
-                    onClick = { onChangeFocus(Focus.Poster) },
-                    containerColor = BottomAppBarDefaults.bottomAppBarFabColor,
-                    elevation = FloatingActionButtonDefaults.bottomAppBarFabElevation()
-                ) {
-                    Icon(Icons.Rounded.ArrowBackIosNew, "Localized description")
-                }
-            }
-        }
     )
 }
 
-
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PosterContent(
     mainController: MainController,
@@ -308,6 +180,11 @@ fun PosterContent(
      * 是否正在加载评论
      */
     loading: Boolean,
+
+    /**
+     * 是否已经加载完所有的评论
+     */
+    loaded: Boolean,
 
     /**
      * 所有的评论
@@ -375,19 +252,9 @@ fun PosterContent(
     onOpenReportPoster: () -> Unit,
 
     /**
-     * 打开对评论的举报对话框
-     */
-    onOpenReportComment: (Comment) -> Unit,
-
-    /**
      * 打开对帖子的删除对话框
      */
     onOpenDeletePosterDialog: () -> Unit,
-
-    /**
-     * 打开对评论的删除对话框
-     */
-    onOpenDeleteCommentDialog: (Comment) -> Unit,
 
     /**
      * 打开图片
@@ -415,18 +282,18 @@ fun PosterContent(
     onOpenDeleteImageOfPosterDialog: (Int) -> Unit,
 
     /**
+     * 打开评论的更多操作的bottom sheet，需要传入评论的数据
+     */
+    onOpenMoreActionOfCommentBottomSheet: (Comment) -> Unit,
+
+    /**
      * 显示更多评论
      */
     bottomSheet: @Composable () -> Unit,
 ) {
-    val ctx = LocalContext.current
     val cm = LocalClipboardManager.current
 
-    val scope = rememberCoroutineScope()
-
-    val commentItemIndex = 10
-
-    var focus by remember { mutableStateOf<Focus>(Focus.Poster) }
+    val bottomContentHeight = 60.dp
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -437,25 +304,17 @@ fun PosterContent(
                 data = data,
             )
         },
-        bottomBar = {
-            PosterScreenBottomBar(
-                focus = focus,
-                data = data,
-                posterLiking = posterLiking,
-                onOpenReportPoster = onOpenReportPoster,
-                onOpenEdit = onOpenEdit,
-                onOpenDeletePosterDialog = onOpenDeletePosterDialog,
-                onChangeFocus = { focus = it },
-                onLikePoster = onLikePoster,
-            )
-        }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+        ) {
             // poster内容卡片
             LoadableLazyColumnWithoutPullRequest(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
+                    .fillMaxWidth()
+                    .padding(bottom = bottomContentHeight),
                 loading = loading,
                 state = state,
                 contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
@@ -476,7 +335,7 @@ fun PosterContent(
 
                 item(0) {
                     if(data.claim.id != 0) {
-                        Spacer(modifier = Modifier.padding(2.dp))
+                        Spacer(modifier = Modifier.padding(4.dp))
                         Row(modifier = Modifier.padding(horizontal = 8.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
@@ -557,16 +416,25 @@ fun PosterContent(
                     }
                 }
 
+                item {
+                    Spacer(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp)
+                            .height(6.dp)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                    )
+                }
+
                 if(data.commentNum > 0) {
                     item(8) {
-                        Spacer(modifier = Modifier.padding(16.dp))
                         Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                             Text(
                                 text = "共${data.commentNum}条评论",
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }
-                        Spacer(modifier = Modifier.padding(2.dp))
+                        Spacer(modifier = Modifier.padding(4.dp))
                     }
 
                     // 评论展示
@@ -574,29 +442,48 @@ fun PosterContent(
                         CommentCard(
                             mainController = mainController,
                             comment = comment,
-                            onOpenImage = { onOpenImages(it, comment.images) },
+                            onOpenImage = onOpenImages,
                             onShowMoreComments = { onShowMoreComments(comment) },
                             commentLikings = commentLikings,
                             onLikeComment = onLikeComment,
-                            onClick = {
-                                onOpenCommentDialog(comment, comment)
-                                focus = Focus.Comment(comment, comment)
-                            },
-                            colors = if(focus == Focus.Comment(comment, comment)) CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                            )
-                            else CardDefaults.cardColors(),
-                            onReport = { onOpenReportComment(comment) },
-                            onOpenDeleteCommentDialog = { onOpenDeleteCommentDialog(comment) },
+                            onClick = { onOpenCommentDialog(comment, comment) },
+                            onMoreAction = onOpenMoreActionOfCommentBottomSheet
                         )
+                    }
+
+                    if(loaded) {
+                        item("footer") {
+                            Spacer(modifier = Modifier.padding(4.dp))
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = "没有更多评论了",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
                     }
                 } else {
                     item(8) {
-                        Spacer(modifier = Modifier.padding(16.dp))
-                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            Icon(
+                                modifier = Modifier.size(45.dp),
+                                imageVector = Icons.Rounded.Category,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            )
+
+                            Spacer(modifier = Modifier.padding(2.dp))
+
                             Text(
-                                text = "暂无评论",
-                                style = MaterialTheme.typography.titleMedium
+                                text = "这里没有评论呢",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                )
                             )
                         }
                         Spacer(modifier = Modifier.padding(2.dp))
@@ -604,38 +491,86 @@ fun PosterContent(
                 }
             }
 
-            val fabSize = 42.dp
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(10.dp, 20.dp)
-            ) {
-                val show by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex > commentItemIndex + 1 || state.lazyListState.firstVisibleItemIndex <= 6 } }
-                AnimatedVisibility(
-                    visible = show,
-                    enter = fadeIn(),
-                    exit = fadeOut(),
+            // 底部评论、点赞、举报等操作
 
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(bottomContentHeight)
+                    .align(Alignment.BottomCenter),
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(elevation = 3.dp),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .height(bottomContentHeight - 15.dp)
+                            .padding(end = 4.dp, start = 8.dp, top = 4.dp, bottom = 4.dp)
+                            .weight(1f)
+                            .pointerInput(Unit) {
+                                detectTapGestures(onTap = { onOpenEdit() })
+                            },
                     ) {
-                    SmallFloatingActionButton(
-                        modifier = Modifier.size(fabSize),
-                        onClick = {
-                            scope.launch {
-                                state.lazyListState.animateScrollToItem(commentItemIndex, 0)
-                            }
-                        },
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                        Row(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Start,
+                        ) {
+                            Text(
+                                text = "快来评论吧",
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                ),
+                            )
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .size(bottomContentHeight - 10.dp)
+                            .pointerInput(Unit) {
+                                detectTapGestures(onTap = { if(!posterLiking) onLikePoster() })
+                            },
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.Comment,
-                            contentDescription = "回到评论"
+                            modifier = Modifier.size(24.dp),
+                            imageVector = if(data.like) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                            contentDescription = "点赞",
+                            tint = if(posterLiking) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            else if(data.like) MaterialTheme.colorScheme.tertiary
+                            else MaterialTheme.colorScheme.onSurface
                         )
+                        Text(text = NumberUtils.format(data.likeNum), style = MaterialTheme.typography.labelSmall)
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .size(bottomContentHeight - 10.dp)
+                            .pointerInput(Unit) {
+                                detectTapGestures(onTap = {  })
+                            },
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(24.dp),
+                            imageVector = Icons.Rounded.Share,
+                            contentDescription = "分享",
+                        )
+                        Text(text = "分享", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }
         }
+
         Box(modifier = Modifier.padding(paddingValues)) {
             bottomSheet()
         }
@@ -654,6 +589,8 @@ fun PosterScreen(
      * 上下文
      */
     val ctx = LocalContext.current
+
+    val cm = LocalClipboardManager.current
 
     val view = LocalView.current
 
@@ -891,6 +828,14 @@ fun PosterScreen(
     }
 
 
+    var showMoreActionOfCommentState by remember { mutableStateOf<Comment?>(null) }
+
+
+    val commentLoaded = vm.commentState.pageFlow.collectAsState().value == -1
+
+    val subCommentLoaded = vm.subCommentState.pageFlow.collectAsState().value == -1
+
+
     if(getPosterState is GetPosterState.Loading || refreshState is RefreshState.Loading) {
         Box(modifier = Modifier.fillMaxSize()) {
             CircularProgressIndicator(
@@ -914,6 +859,7 @@ fun PosterScreen(
                 false
             ),
             loading = loadMoreState is LoadMoreState.Loading,
+            loaded = commentLoaded,
             state = rememberLoadableLazyColumnWithoutPullRequestState(
                 onLoadMore = { vm.loadMoreComments(id) }
             ),
@@ -932,62 +878,51 @@ fun PosterScreen(
             onOpenImages = onOpenImages,
             onOpenCommentDialog = vm::setShowCommentDialogState,
             onOpenEdit = { mainController.navController.navigate("edit/$id") },
-            onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
             onOpenDeletePosterDialog = { deletePosterDialogState = id.toInt() },
             onOpenReportPoster = { mainController.navController.navigate("report/poster/$id") },
-            onOpenReportComment = { mainController.navController.navigate("report/comment/${it.id}") },
             onOpenDeleteImageOfPosterDialog = {
                 deleteImageOfPosterDialogState = it
                 view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             },
+            onOpenMoreActionOfCommentBottomSheet = { showMoreActionOfCommentState = it },
         ) {
-            AnimatedVisibility(
-                visible = showComment.first,
-                enter = slideIn(
-                    initialOffset = { IntOffset(0, it.height) },
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMediumLow,
-                        visibilityThreshold = IntOffset.VisibilityThreshold
-                    )
+
+        }
+
+
+        if(showComment.first) {
+            val commentId = showComment.second!!
+            val comment = vm.findCommentById(commentId)!!
+            MoreCommentsSheet(
+                mainController = mainController,
+                comment = comment,
+                subComments = subComments,
+                commentLikings = commentLikings,
+                loading = subCommentsLoadMoreState is LoadMoreState.Loading,
+                loaded = subCommentLoaded,
+                refreshing = subCommentsRefreshState is RefreshState.Loading,
+                state = rememberLoadableLazyColumnWithoutPullRequestState(
+                    onLoadMore = { vm.loadMoreSubComments(commentId) }
                 ),
-                exit = slideOut(
-                    targetOffset = { IntOffset(0, it.height) },
-                    animationSpec = spring(
-                        stiffness = Spring.StiffnessMediumLow,
-                        visibilityThreshold = IntOffset.VisibilityThreshold
-                    )
-                )
-            ) {
-                if(showComment.second != null) {
-                    val commentId = showComment.second!!.toLong()
-                    val comment = vm.findCommentById(commentId)!!
 
-                    MoreCommentsSheet(
-                        mainController = mainController,
-                        comment = comment,
-                        subComments = subComments,
-                        commentLikings = commentLikings,
-                        loading = subCommentsLoadMoreState is LoadMoreState.Loading,
-                        refreshing = subCommentsRefreshState is RefreshState.Loading,
-                        state = rememberLoadableLazyColumnWithoutPullRequestState(
-                            onLoadMore = { vm.loadMoreSubComments(commentId) }
-                        ),
+                onCancel = { vm.setShowMoreState(false) },
+                onOpenImages = onOpenImages,
+                onLikeComment = vm::likeComment,
+                onOpenCommentDialog = vm::setShowCommentDialogState,
+                onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
+                onReport = { mainController.navigate("report/comment/${it.id}") },
+                onOpenMoreActionOfCommentBottomSheet = { showMoreActionOfCommentState = it },
+            )
+        }
 
-                        onCancel = { vm.setShowMoreState(false, null) },
-                        onOpenImages = onOpenImages,
-                        onLikeComment = vm::likeComment,
-                        onOpenCommentDialog = vm::setShowCommentDialogState,
-                        onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
-                        onReport = { mainController.navController.navigate("report/comment/${it.id}") },
-                    )
-                } else {
-                    Surface(modifier = Modifier.fillMaxSize()) {}
-                }
-            }
-
-            BackHandler(showComment.first) {
-                vm.setShowMoreState(false, null)
-            }
+        if(showMoreActionOfCommentState != null) {
+            val commentForActions = showMoreActionOfCommentState!!
+            MoreActionBottomSheet(
+                onDelete = { vm.deleteCommentById(commentForActions.id.toLong()) },
+                onReport = { mainController.navigate("report/comment/${commentForActions.id}") },
+                onCopy = { mainController.copyText(cm, commentForActions.text) },
+                onDismiss = { showMoreActionOfCommentState = null }
+            )
         }
 
         if(sendCommentDialogState != null) {

@@ -76,7 +76,11 @@ fun LoadableLazyColumnWithoutPullRequest(
                     else {
                         if (loading) {
                             Box(modifier = Modifier.fillMaxWidth()) {
-                                Row(modifier = Modifier.align(Alignment.Center)) {
+                                Row(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(30.dp)
                                     )
@@ -84,7 +88,7 @@ fun LoadableLazyColumnWithoutPullRequest(
                                     Text(
                                         text = "加载中...",
                                         style = MaterialTheme.typography.titleSmall.copy(
-                                            color = MaterialTheme.typography.titleSmall.color.copy(alpha = 0.6f)
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                         )
                                     )
                                 }
@@ -165,7 +169,11 @@ fun LoadableLazyColumn(
                     } else {
                         if (loading) {
                             Box(modifier = Modifier.fillMaxWidth()) {
-                                Row(modifier = Modifier.align(Alignment.Center)) {
+                                Row(
+                                    modifier = Modifier.align(Alignment.Center),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(30.dp)
                                     )
@@ -173,7 +181,7 @@ fun LoadableLazyColumn(
                                     Text(
                                         text = "加载中...",
                                         style = MaterialTheme.typography.titleSmall.copy(
-                                            color = MaterialTheme.typography.titleSmall.color.copy(alpha = 0.6f)
+                                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                         )
                                     )
                                 }

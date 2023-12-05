@@ -343,12 +343,11 @@ fun UserScreenContent(
             )
         }
     ) { paddingValues ->
-
         LoadableLazyColumnWithoutPullRequest(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(8.dp),
             state = state,
             loading = loadState == LoadMoreState.Loading,
         ) {

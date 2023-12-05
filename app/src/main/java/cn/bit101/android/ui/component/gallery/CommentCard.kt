@@ -1,8 +1,10 @@
 package cn.bit101.android.ui.component.gallery
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,24 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ThumbUp
-import androidx.compose.material.icons.rounded.ContentCopy
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.ThumbUp
-import androidx.compose.material3.Badge
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,12 +33,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.modifier.modifierLocalMapOf
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -60,8 +47,13 @@ import cn.bit101.android.ui.component.PreviewImages
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.android.utils.NumberUtils
 import cn.bit101.api.model.common.Comment
+import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
 
+
+internal fun calculateLeftSize(iconSize: Dp) = iconSize * 11 / 10 + 8.dp
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CommentCardContent(
     mainController: MainController,
@@ -70,17 +62,24 @@ fun CommentCardContent(
     isSub: Boolean = false,
     paddingValues: PaddingValues,
 
-    leftSize: Dp,
     iconSize: Dp,
+    leftSize: Dp,
 
     onClick: () -> Unit,
     onLike: () -> Unit,
-    onClickIcon: (User?) -> Unit,
+    onOpenUserDetail: (User?) -> Unit,
     onOpenImage: (Int) -> Unit,
+
+    onMoreAction: () -> Unit,
 ) {
     Surface(
         modifier = Modifier
-            .clickable { onClick() }
+            .combinedClickable(
+                onClick = onClick,
+                onClickLabel = "reply",
+                onLongClickLabel = "action",
+                onLongClick = onMoreAction
+            )
             .background(Color.Transparent)
             .fillMaxWidth(),
     ) {
@@ -92,46 +91,30 @@ fun CommentCardContent(
             Row {
                 Box(modifier = Modifier.width(leftSize)) {
                     Box(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .padding(end = 4.dp)
+                        modifier = Modifier.align(Alignment.CenterStart)
                     ) {
                         Avatar(
                             user = comment.user,
                             low = true,
                             size = iconSize,
-                            onClick = { onClickIcon(comment.user) }
+                            onClick = { onOpenUserDetail(comment.user) }
                         )
                     }
                 }
                 Column {
                     val spacePadding = if (isSub) 1.dp else 2.dp
-
-                    Spacer(modifier = Modifier.padding(spacePadding))
-                    Box(modifier = Modifier.fillMaxWidth(),) {
-                        Text(
-                            modifier = Modifier.padding(end = 22.dp),
-                            text = comment.user.nickname,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        IconButton(
-                            modifier = Modifier
-                                .size(18.dp)
-                                .align(Alignment.CenterEnd),
-                            onClick = { /*TODO*/ },
-                        ) {
-                            Icon(imageVector = Icons.Rounded.MoreHoriz, contentDescription = "更多")
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.padding(spacePadding))
-
+                    val suffixIconSize = 24.dp
                     Box(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
-                        Column(modifier = Modifier.padding(end = 22.dp)) {
+                        Column(modifier = Modifier.padding(end = suffixIconSize + 4.dp)) {
+                            Text(
+                                text = comment.user.nickname,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            Spacer(modifier = Modifier.padding(spacePadding))
                             AnnotatedText(
                                 mainController = mainController,
                                 text = comment.text,
@@ -163,29 +146,28 @@ fun CommentCardContent(
                                 ),
                             )
                         }
-                        Column(modifier = Modifier.align(Alignment.TopEnd)) {
-                            IconButton(
-                                modifier = Modifier.size(18.dp).align(Alignment.CenterHorizontally),
-                                colors = IconButtonColors(
-                                    containerColor = Color.Transparent,
-                                    contentColor = if(comment.like) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurface,
-                                    disabledContainerColor = Color.Transparent,
-                                    disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                ),
-                                onClick = onLike,
-                                enabled = !liking,
-                            ) {
-                                Icon(
-                                    imageVector = if(comment.like) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                                    contentDescription = "喜欢"
-                                )
-                            }
+                        Column(
+                            modifier = Modifier
+                                .pointerInput(Unit) {
+                                    detectTapGestures(onTap = { if(!liking) onLike() })
+                                }
+                                .align(Alignment.TopEnd)
+                        ) {
+                            Icon(
+                                imageVector = if(comment.like) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                                contentDescription = "喜欢",
+                                modifier = Modifier
+                                    .size(suffixIconSize)
+                                    .align(Alignment.CenterHorizontally),
+                                tint = if(liking) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                else if(comment.like) MaterialTheme.colorScheme.tertiary
+                                else MaterialTheme.colorScheme.onSurface,
+                            )
+
                             Text(
                                 modifier = Modifier.align(Alignment.CenterHorizontally),
                                 text = NumberUtils.format(comment.likeNum),
-                                style = MaterialTheme.typography.labelSmall.copy(
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                )
+                                style = MaterialTheme.typography.labelSmall
                             )
                         }
                     }
@@ -203,6 +185,11 @@ fun CommentCard(
      * 评论
      */
     comment: Comment,
+
+    /**
+     * 是否显示分割线
+     */
+    showDivider: Boolean = true,
 
     /**
      * 正在点赞的评论
@@ -227,7 +214,7 @@ fun CommentCard(
     /**
      * 打开图片
      */
-    onOpenImage: (Int) -> Unit,
+    onOpenImage: (Int, List<Image>) -> Unit,
 
     /**
      * 点击卡片的操作
@@ -240,19 +227,11 @@ fun CommentCard(
     onShowMoreComments: () -> Unit = {},
 
     /**
-     * 打开删除评论的对话框
+     * 更多操作
      */
-    onOpenDeleteCommentDialog: () -> Unit,
+    onMoreAction: (Comment) -> Unit,
 
-    /**
-     * 举报评论
-     */
-    onReport: () -> Unit,
 ) {
-    val ctx = LocalContext.current
-    val cm = LocalClipboardManager.current
-    var menuState by remember(comment.id) { mutableStateOf(false) }
-
     Surface(
         modifier = Modifier
             .padding(vertical = 2.dp)
@@ -265,17 +244,21 @@ fun CommentCard(
                 .fillMaxWidth(),
         ) {
 
+            val mainAvatarSize = 36.dp
+            val subAvatarSize = 30.dp
+
             CommentCardContent(
                 mainController = mainController,
                 comment = comment,
                 liking = comment.id.toLong() in commentLikings,
-                leftSize = 45.dp,
-                iconSize = 35.dp,
+                iconSize = mainAvatarSize,
+                leftSize = calculateLeftSize(mainAvatarSize),
                 onClick = onClick,
                 onLike = { onLikeComment(comment.id.toLong()) },
-                onClickIcon = { mainController.navController.navigate("user/${comment.user.id}") },
-                onOpenImage = onOpenImage,
+                onOpenUserDetail = { mainController.navController.navigate("user/${comment.user.id}") },
+                onOpenImage = { onOpenImage(it, comment.images) },
                 paddingValues = PaddingValues(horizontal = 8.dp),
+                onMoreAction = { onMoreAction(comment) },
             )
 
             if (comment.sub.isNotEmpty() && showSubComments) {
@@ -287,35 +270,47 @@ fun CommentCard(
                             comment = sub,
                             liking = sub.id.toLong() in commentLikings,
                             isSub = true,
-                            leftSize = 40.dp,
-                            iconSize = 30.dp,
+                            iconSize = subAvatarSize,
+                            leftSize = calculateLeftSize(subAvatarSize),
                             onClick = onClick,
                             onLike = { onLikeComment(sub.id.toLong()) },
-                            onClickIcon = { mainController.navController.navigate("user/${comment.sub[0].user.id}") },
-                            onOpenImage = onOpenImage,
+                            onOpenUserDetail = { mainController.navController.navigate("user/${comment.sub[0].user.id}") },
+                            onOpenImage = { onOpenImage(it, sub.images) },
                             paddingValues = PaddingValues(end = 8.dp),
+                            onMoreAction = { onMoreAction(sub) },
                         )
                         Spacer(modifier = Modifier.padding(1.dp))
                     }
                 }
 
                 Spacer(modifier = Modifier.padding(2.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(start = 45.dp + 8.dp + 0.dp),
-                ) {
-                    Text(
+                if(comment.sub.size < comment.commentNum) {
+                    Row(
                         modifier = Modifier
-                            .align(Alignment.CenterVertically)
-                            .clickable { onShowMoreComments() },
-                        text = "查看共${comment.commentNum}条评论",
-                        style = MaterialTheme.typography.labelMedium.copy(
-                            color = MaterialTheme.colorScheme.onSurface,
-                            fontWeight = FontWeight.Bold
-                        ),
-                    )
+                            .fillMaxWidth()
+                            .padding(start = 45.dp + 8.dp + 0.dp),
+                    ) {
+                        Text(
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                                .clickable { onShowMoreComments() },
+                            text = "查看共${comment.commentNum}条评论",
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold
+                            ),
+                        )
+                    }
                 }
+            }
+
+            if(showDivider) {
+                Spacer(modifier = Modifier.padding(6.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(top = 2.dp, bottom = 2.dp, start = calculateLeftSize(mainAvatarSize)),
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
+                    thickness = 0.5.dp
+                )
             }
         }
     }

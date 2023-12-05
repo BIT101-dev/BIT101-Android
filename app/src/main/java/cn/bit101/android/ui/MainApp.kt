@@ -1,6 +1,5 @@
 package cn.bit101.android.ui
 
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
@@ -9,7 +8,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -19,6 +17,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -36,6 +35,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
@@ -59,6 +59,7 @@ import cn.bit101.android.ui.schedule.ScheduleScreen
 import cn.bit101.android.ui.mine.MineScreen
 import cn.bit101.android.ui.setting.SettingScreen
 import cn.bit101.android.ui.web.WebScreen
+import cn.bit101.android.utils.ColorUtils
 import cn.bit101.android.utils.PageUtils
 import cn.bit101.api.model.common.Image
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -95,7 +96,7 @@ fun MainApp(
     LaunchedEffect(statusColor) {
         val darkIcons = when(statusColor) {
             Color.Transparent -> isDarkMode
-            else -> statusColor.luminance() > 0.5f
+            else -> ColorUtils.isLightColor(statusColor)
         }
 
         systemUiController.setStatusBarColor(
@@ -155,7 +156,17 @@ fun MainApp(
     val navBarHeight = 80f
 
     Scaffold(
-        snackbarHost = { SnackbarHost(mainController.snackbarHostState) },
+        snackbarHost = {
+            SnackbarHost(
+                hostState = mainController.snackbarHostState,
+                snackbar = {
+                    Snackbar(
+                        modifier = Modifier.zIndex(Float.MAX_VALUE),
+                        snackbarData = it
+                    )
+                }
+            )
+        },
         bottomBar = {
             AnimatedVisibility(
                 visibleState = bottomBarTransitionState,

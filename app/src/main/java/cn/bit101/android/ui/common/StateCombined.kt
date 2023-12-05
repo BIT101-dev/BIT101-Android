@@ -39,6 +39,9 @@ class RefreshAndLoadMoreStatesCombined <T>(
     private val _dataFlow = MutableStateFlow<List<T>>(emptyList())
     val dataFlow = _dataFlow.asStateFlow()
 
+    private val _pageFlow = MutableStateFlow(0)
+    val pageFlow = _pageFlow.asStateFlow()
+
     private var page = 0
 
     fun refresh(
@@ -55,6 +58,7 @@ class RefreshAndLoadMoreStatesCombined <T>(
                 e.printStackTrace()
                 _refreshStateFlow.value = RefreshState.Fail
             }
+            _pageFlow.value = page
         }
     }
 
@@ -79,6 +83,7 @@ class RefreshAndLoadMoreStatesCombined <T>(
                 e.printStackTrace()
                 _loadMoreStateFlow.value = LoadMoreState.Fail
             }
+            _pageFlow.value = page
         }
     }
 
