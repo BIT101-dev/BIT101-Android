@@ -270,7 +270,7 @@ fun MoreCommentsSheet(
                     onClick = onCancel
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
+                        imageVector = Icons.Rounded.Close,
                         contentDescription = "关闭",
                     )
                 }

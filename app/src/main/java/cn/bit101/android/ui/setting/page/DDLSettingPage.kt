@@ -242,7 +242,7 @@ fun DDLSettingPage(
             text = "临近日程会改变颜色",
             initValue = beforeDay?.toInt() ?: 0,
             onChange = { vm.setBeforeDay(it.toLong()) },
-            onDismiss = { showAfterDayDialog = false },
+            onDismiss = { showBeforeDayDialog = false },
         )
     }
 
