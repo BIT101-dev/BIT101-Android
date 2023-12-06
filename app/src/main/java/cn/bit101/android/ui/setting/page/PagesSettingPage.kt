@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Apps
+import androidx.compose.material.icons.outlined.DragIndicator
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -123,7 +124,7 @@ fun PagesSettingPageContent(
                                         modifier = Modifier.detectReorder(state),
                                         onClick = { }
                                     ) {
-                                        Icon(imageVector = Icons.Outlined.Apps, contentDescription = "move")
+                                        Icon(imageVector = Icons.Outlined.DragIndicator, contentDescription = "move")
                                     }
                                     Spacer(modifier = Modifier.padding(4.dp))
                                     Text(

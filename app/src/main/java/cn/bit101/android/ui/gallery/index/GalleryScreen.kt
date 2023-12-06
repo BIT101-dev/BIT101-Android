@@ -4,10 +4,23 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.NotificationsNone
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -16,9 +29,15 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -124,31 +143,15 @@ fun GalleryScreen(
                 mainController = mainController,
                 nestedScrollConnection = it,
                 navBarHeight = navBarHeight,
-                posters = followPosters,
-
-                state = followState,
-                refreshState = followRefreshState,
-                loadState = followLoadMoreState,
-
-                onRefresh = vm::refreshFollow,
-
-                onOpenImages = onOpenImages,
-                onOpenPoster = onOpenPoster,
-                onOpenPostOrEdit = onPost,
-            )
-        },
-        TabPagerItemWithNestedScroll("最新") {
-            PostersTabPage(
-                mainController = mainController,
-                nestedScrollConnection = it,
-                navBarHeight = navBarHeight,
-                posters = newestPosters,
-                state = newestState,
-                refreshState = newestRefreshPostersState,
-                loadState = newestLoadMorePostersState,
+                postersState = PostersState(
+                    posters = followPosters,
+                    state = followState,
+                    refreshState = followRefreshState,
+                    loadState = followLoadMoreState,
+                    onRefresh = vm::refreshFollow,
+                ),
 
                 onOpenImages = onOpenImages,
-                onRefresh = vm::refreshNewest,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -158,52 +161,40 @@ fun GalleryScreen(
                 mainController = mainController,
                 nestedScrollConnection = it,
                 navBarHeight = navBarHeight,
-                posters = recommendPosters,
-                state = recommendState,
-                refreshState = recommendRefreshPostersState,
-                loadState = recommendLoadMorePostersState,
-
-                onOpenImages = onOpenImages,
-                onRefresh = vm::refreshRecommend,
-                onOpenPoster = onOpenPoster,
-                onOpenPostOrEdit = onPost,
-            )
-        },
-        TabPagerItemWithNestedScroll("热门") {
-            PostersTabPage(
-                mainController = mainController,
-                nestedScrollConnection = it,
-                navBarHeight = navBarHeight,
-                posters = hotPosters,
-                state = hotState,
-                refreshState = hotRefreshPostersState,
-                loadState = hotLoadMorePostersState,
-
-                onRefresh = vm::refreshHot,
+                postersState = PostersState(
+                    posters = recommendPosters,
+                    state = recommendState,
+                    refreshState = recommendRefreshPostersState,
+                    loadState = recommendLoadMorePostersState,
+                    onRefresh = vm::refreshRecommend,
+                ),
 
                 onOpenImages = onOpenImages,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
         },
-        TabPagerItemWithNestedScroll("搜索") {
-            SearchTabPage(
+        TabPagerItemWithNestedScroll("全部") {
+            AllTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
                 navBarHeight = navBarHeight,
-                posters = searchPosters,
 
-                state = searchState,
-                searchState = searchRefreshPostersState,
-                loadState = searchLoadMorePostersState,
+                newestPostersState = PostersState(
+                    posters = newestPosters,
+                    state = newestState,
+                    refreshState = newestRefreshPostersState,
+                    loadState = newestLoadMorePostersState,
+                    onRefresh = vm::refreshNewest,
+                ),
+                hotPostersState = PostersState(
+                    posters = hotPosters,
+                    state = hotState,
+                    refreshState = hotRefreshPostersState,
+                    loadState = hotLoadMorePostersState,
+                    onRefresh = vm::refreshHot,
+                ),
 
-                query = query ?: "",
-                selectOrder = selectOrder ?: PostersOrder.NEW,
-                lastSearchQuery = lastSearchQuery ?: "",
-
-                onSearch = vm::refreshSearch,
-                onQueryChange = vm::setQuery,
-                onSelectOrderChange = vm::setSelectOrder,
                 onOpenImages = onOpenImages,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
@@ -213,43 +204,84 @@ fun GalleryScreen(
 
     val horizontalPagerState = rememberPagerState(
         pageCount = { pages.size },
-        initialPage = vm.initSelectedTabIndex,
+        initialPage = 1,
     )
     val scope = rememberCoroutineScope()
 
-    Column {
-        PrimaryTabRow(
-            selectedTabIndex = horizontalPagerState.currentPage,
-        ) {
-            pages.forEachIndexed { index, page ->
-                Tab(
-                    selected = horizontalPagerState.currentPage == index,
-                    onClick = {
-                        scope.launch {
-                            horizontalPagerState.scrollToPage(index, 0f)
-                        }
-                        vm.initSelectedTabIndex = index
-                    },
-                    text = { Text(text = page.title, maxLines = 2, overflow = TextOverflow.Ellipsis) },
-                    //禁用水波纹特效
-                    interactionSource = remember {
-                        object : MutableInteractionSource {
-                            override val interactions: Flow<Interaction> = emptyFlow()
-                            override suspend fun emit(interaction: Interaction) {}
-                            override fun tryEmit(interaction: Interaction) = true
-                        }
-                    },
-                )
-            }
-        }
+    val topAppBarHeight = 48.dp
 
-        //禁用overscroll阴影效果
-        CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
-            HorizontalPager(
-                state = horizontalPagerState,
-                userScrollEnabled = false,
-            ) { index ->
-                pages[index].content(null)
+    Column {
+        CenterAlignedTopAppBar(
+            modifier = Modifier
+                .statusBarsPadding()
+                .height(topAppBarHeight),
+            title = {
+                PrimaryTabRow(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(200.dp),
+                    selectedTabIndex = horizontalPagerState.currentPage,
+                    divider = {},
+                ) {
+                    pages.forEachIndexed { index, page ->
+                        Tab(
+                            selected = horizontalPagerState.currentPage == index,
+                            onClick = {
+                                scope.launch {
+                                    horizontalPagerState.scrollToPage(index, 0f)
+                                }
+                            },
+                            text = {
+                                Text(
+                                    text = page.title,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        color = if (horizontalPagerState.currentPage == index) MaterialTheme.colorScheme.onSurface
+                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                        fontWeight = if (horizontalPagerState.currentPage == index) MaterialTheme.typography.titleMedium.fontWeight
+                                        else FontWeight.Bold,
+                                    )
+                                )
+                            },
+                            //禁用水波纹特效
+                            interactionSource = remember {
+                                object : MutableInteractionSource {
+                                    override val interactions: Flow<Interaction> = emptyFlow()
+                                    override suspend fun emit(interaction: Interaction) {}
+                                    override fun tryEmit(interaction: Interaction) = true
+                                }
+                            },
+                        )
+                    }
+                }
+            },
+            actions = {
+                IconButton(
+                    onClick = { /*TODO*/ }
+                ) {
+                    Icon(imageVector = Icons.Rounded.NotificationsNone, contentDescription = "通知")
+                }
+            },
+            navigationIcon = {
+                IconButton(
+                    onClick = { /*TODO*/ }
+                ) {
+                    Icon(imageVector = Icons.Rounded.Search, contentDescription = "搜索")
+                }
+            }
+        )
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val nestedScrollConnection = rememberNestedScrollInteropConnection()
+            CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
+                HorizontalPager(
+                    state = horizontalPagerState,
+                    userScrollEnabled = false,
+                ) { index ->
+                    pages[index].content(null)
+                }
             }
         }
     }

@@ -1,6 +1,8 @@
 package cn.bit101.android.ui.component.gallery
 
 import android.util.Log
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,12 +21,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -46,7 +50,10 @@ import com.google.gson.Gson
 @Composable
 fun PosterCard(
     data: GetPostersDataModel.ResponseItem,
-    colors: CardColors = CardDefaults.cardColors(),
+    colors: CardColors = CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.surface,
+        disabledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
+    ),
 
     /**
      * 打开帖子
@@ -63,19 +70,16 @@ fun PosterCard(
      */
     onOpenUserDetail: ((User?) -> Unit)? = null,
 ) {
-    Card(
-        onClick = onOpenPoster,
+    Surface(
         modifier = Modifier
-            .padding(vertical = 4.dp)
-            .fillMaxWidth(),
-        colors = colors,
-        shape = RoundedCornerShape(8.dp),
+            .fillMaxWidth()
+            .clickable { onOpenPoster() },
+        shape = RectangleShape,
     ) {
         Column(
             modifier = Modifier
                 .padding(12.dp)
                 .fillMaxWidth(),
-
         ) {
             Text(
                 text = data.title,

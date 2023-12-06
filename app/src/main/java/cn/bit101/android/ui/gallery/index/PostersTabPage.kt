@@ -3,11 +3,13 @@ package cn.bit101.android.ui.gallery.index
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,6 +20,7 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
@@ -42,6 +45,36 @@ import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import kotlinx.coroutines.launch
 
+/**
+ * 帖子列表的状态
+ */
+data class PostersState(
+    /**
+     * 帖子列表
+     */
+    val posters: List<GetPostersDataModel.ResponseItem>,
+
+    /**
+     * 帖子列表的状态，这里既有下拉刷新又有上拉到底部加载更多
+     */
+    val state: LoadableLazyColumnState,
+
+    /**
+     * 下拉刷新的状态
+     */
+    val refreshState: SimpleState?,
+
+    /**
+     * 加载更多的状态
+     */
+    val loadState: SimpleState?,
+
+    /**
+     * 刷新
+     */
+    val onRefresh: () -> Unit,
+)
+
 @Composable
 fun PostersTabPage(
     mainController: MainController,
@@ -50,30 +83,12 @@ fun PostersTabPage(
 
     navBarHeight: Dp,
 
-    /**
-     * 帖子列表
-     */
-    posters: List<GetPostersDataModel.ResponseItem>,
+    postersState: PostersState,
 
     /**
      * 高亮的帖子id
      */
     highlightId: Long? = null,
-
-    /**
-     * 帖子列表的状态，这里既有下拉刷新又有上拉到底部加载更多
-     */
-    state: LoadableLazyColumnState,
-
-    /**
-     * 下拉刷新的状态
-     */
-    refreshState: SimpleState?,
-
-    /**
-     * 加载更多的状态
-     */
-    loadState: SimpleState?,
 
     /**
      * 打开图片组
@@ -86,39 +101,32 @@ fun PostersTabPage(
     onOpenPoster: (Long) -> Unit,
 
     /**
-     * 刷新帖子列表
-     */
-    onRefresh: () -> Unit,
-
-    /**
      * 打开发帖或者编辑帖子的界面
      */
     onOpenPostOrEdit: () -> Unit,
 ) {
     val scope = rememberCoroutineScope() //供动画调用协程
 
-    LaunchedEffect(refreshState) {
-        if(refreshState == null) onRefresh()
+    LaunchedEffect(postersState.refreshState) {
+        if(postersState.refreshState == null) postersState.onRefresh()
     }
 
-    Box(modifier = Modifier.fillMaxSize().drawWithContent {
-        drawContent()
-    }) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column {
             LoadableLazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .align(Alignment.CenterHorizontally),
                 nestedScrollConnection = nestedScrollConnection,
-                state = state,
-                loading = loadState == SimpleState.Loading,
-                refreshing = refreshState == SimpleState.Loading,
-                contentPadding = PaddingValues(0.dp, 4.dp, 0.dp, 8.dp + navBarHeight)
+                state = postersState.state,
+                loading = postersState.loadState == SimpleState.Loading,
+                refreshing = postersState.refreshState == SimpleState.Loading,
+                contentPadding = PaddingValues(start = 0.dp, end = 0.dp, bottom = 8.dp + navBarHeight)
             ) {
                 item("header") {
                     header()
                 }
-                itemsIndexed(posters, { idx, _ -> idx }) { _, it ->
+                itemsIndexed(postersState.posters, { idx, _ -> idx }) { _, it ->
                     if(it.id == highlightId) {
                         PosterCard(
                             data = it,
@@ -148,6 +156,12 @@ fun PostersTabPage(
                             }
                         )
                     }
+
+                    HorizontalDivider(
+                        modifier = Modifier.fillMaxWidth().padding(0.dp),
+                        thickness = 0.5.dp,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                    )
                 }
             }
         }
@@ -157,7 +171,7 @@ fun PostersTabPage(
                 .align(Alignment.BottomEnd)
                 .padding(10.dp, 20.dp, 10.dp, 20.dp + navBarHeight)
         ) {
-            val show by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex > 1 } }
+            val show by remember { derivedStateOf { postersState.state.lazyListState.firstVisibleItemIndex > 1 } }
             AnimatedVisibility(
                 visible = show,
                 enter = fadeIn(),
@@ -168,7 +182,7 @@ fun PostersTabPage(
                         .size(fabSize),
                     onClick = {
                         scope.launch {
-                            state.lazyListState.animateScrollToItem(0, 0)
+                            postersState.state.lazyListState.animateScrollToItem(0, 0)
                         }
                     },
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
@@ -197,7 +211,6 @@ fun PostersTabPage(
                     contentDescription = "张贴Poster"
                 )
             }
-
         }
     }
 }

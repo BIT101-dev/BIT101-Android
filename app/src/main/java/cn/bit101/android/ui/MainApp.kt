@@ -246,11 +246,7 @@ fun MainApp(
             }
 
             composable("gallery") {
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
+                Box {
                     GalleryScreen(
                         mainController = mainController,
                         onOpenImages = onOpenImages,

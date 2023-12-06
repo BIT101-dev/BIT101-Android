@@ -407,7 +407,7 @@ fun PosterContent(
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                            .background(MaterialTheme.colorScheme.surfaceContainer),
                     ) {
                         val cornerRadius = 8.dp
                         Card(
@@ -516,7 +516,7 @@ fun PosterContent(
                     .fillMaxWidth()
                     .height(bottomContentHeight)
                     .align(Alignment.BottomCenter),
-                color = MaterialTheme.colorScheme.surfaceColorAtElevation(elevation = 3.dp),
+                color = MaterialTheme.colorScheme.surface,
             ) {
                 Row(
                     modifier = Modifier

@@ -17,8 +17,6 @@ class GalleryIndexViewModel @Inject constructor(
     private val posterRepo: PosterRepo
 ) : ViewModel() {
 
-    var initSelectedTabIndex = 2
-
     private val _recommendState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
     val recommendStateFlows = _recommendState.flows()
 

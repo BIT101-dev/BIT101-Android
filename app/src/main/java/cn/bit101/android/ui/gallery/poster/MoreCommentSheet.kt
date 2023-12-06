@@ -148,7 +148,7 @@ fun MoreCommentsSheetContent(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceVariant),
+                        .background(MaterialTheme.colorScheme.surfaceContainer),
                 ) {
                     val cornerRadius = 8.dp
                     Card(
