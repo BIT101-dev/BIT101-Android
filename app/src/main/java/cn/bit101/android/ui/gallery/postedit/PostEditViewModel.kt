@@ -7,10 +7,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.PosterRepo
 import cn.bit101.android.repo.base.UploadRepo
-import cn.bit101.android.ui.gallery.common.ImageData
-import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.gallery.common.UploadImageData
-import cn.bit101.android.ui.gallery.common.UploadImageState
+import cn.bit101.android.ui.common.ImageData
+import cn.bit101.android.ui.common.ImageDataWithUploadState
+import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.UploadImageData
+import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.api.model.common.Claim
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -93,7 +94,12 @@ class PostEditViewModel @Inject constructor(
                     _claimFlow.value = poster.claim
                     _uploadImagesStateFlow.value = UploadImageData(
                         true,
-                        poster.images.map { Pair(ImageData.Remote(it), UploadImageState.Success(it)) }
+                        poster.images.map {
+                            ImageDataWithUploadState(
+                                imageData = ImageData.Remote(it),
+                                uploadImageState = UploadImageState.Success(it)
+                            )
+                        }
                     )
                     _anonymousFlow.value = poster.anonymous
                     _publicFlow.value = poster.public
@@ -122,7 +128,10 @@ class PostEditViewModel @Inject constructor(
     fun uploadImage(context: Context, uri: Uri) {
         _uploadImagesStateFlow.value = uploadImagesStateFlow.value.copy(
             images = uploadImagesStateFlow.value.images.plus(
-                Pair(ImageData.Local(uri), UploadImageState.Loading)
+                ImageDataWithUploadState(
+                    imageData = ImageData.Local(uri),
+                    uploadImageState = UploadImageState.Loading
+                )
             )
         )
 
@@ -131,16 +140,20 @@ class PostEditViewModel @Inject constructor(
                 val image = uploadRepo.uploadImage(context, uri)
                 _uploadImagesStateFlow.value = uploadImagesStateFlow.value.copy(
                     images = uploadImagesStateFlow.value.images.map {
-                        if(it.first is ImageData.Local && (it.first as ImageData.Local).uri == uri) Pair(ImageData.Local(uri), UploadImageState.Success(image))
-                        else it
+                        if(it.imageData is ImageData.Local && it.imageData.uri == uri) ImageDataWithUploadState(
+                            imageData = ImageData.Local(uri),
+                            uploadImageState = UploadImageState.Success(image)
+                        ) else it
                     }
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
                 _uploadImagesStateFlow.value = uploadImagesStateFlow.value.copy(
                     images = uploadImagesStateFlow.value.images.map {
-                        if(it.first is ImageData.Local && (it.first as ImageData.Local).uri == uri) Pair(ImageData.Local(uri), UploadImageState.Fail)
-                        else it
+                        if(it.imageData is ImageData.Local && it.imageData.uri == uri) ImageDataWithUploadState(
+                            imageData = ImageData.Local(uri),
+                            uploadImageState = UploadImageState.Fail
+                        ) else it
                     }
                 )
             }
@@ -160,13 +173,13 @@ class PostEditViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 uploadImageData.images.forEach {
-                    if(it.second !is UploadImageState.Success) throw Exception("upload image error")
+                    if(it.uploadImageState !is UploadImageState.Success) throw Exception("upload image error")
                 }
                 val id = posterRepo.post(
                     anonymous = anonymous,
                     claimId = claim.id,
                     imageMids = uploadImageData.images.map {
-                        (it.second as UploadImageState.Success).image.mid
+                        (it.uploadImageState as UploadImageState.Success).image.mid
                     },
                     public = public,
                     tags = tags,
@@ -196,14 +209,14 @@ class PostEditViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 uploadImageData.images.forEach {
-                    if(it.second !is UploadImageState.Success) throw Exception("upload image error")
+                    if(it.uploadImageState !is UploadImageState.Success) throw Exception("upload image error")
                 }
                 posterRepo.update(
                     id = id,
                     anonymous = anonymous,
                     claimId = claim.id,
                     imageMids = uploadImageData.images.map {
-                        (it.second as UploadImageState.Success).image.mid
+                        (it.uploadImageState as UploadImageState.Success).image.mid
                     },
                     public = public,
                     tags = tags,

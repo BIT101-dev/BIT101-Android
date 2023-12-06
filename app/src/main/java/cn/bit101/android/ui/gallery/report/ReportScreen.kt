@@ -47,8 +47,8 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.ui.gallery.common.SimpleDataState
-import cn.bit101.android.ui.gallery.common.SimpleState
+import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.api.model.common.ObjTypes
 import cn.bit101.api.model.common.ReportType
 

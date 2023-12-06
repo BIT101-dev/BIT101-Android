@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.schedule.course
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,11 +7,9 @@ import cn.bit101.android.database.BIT101Database
 import cn.bit101.android.database.entity.CourseScheduleEntity
 import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.repo.base.CoursesRepo
-import cn.bit101.android.ui.gallery.common.SimpleDataState
-import cn.bit101.android.ui.gallery.common.SimpleState
+import cn.bit101.android.ui.common.SimpleState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.LocalDate

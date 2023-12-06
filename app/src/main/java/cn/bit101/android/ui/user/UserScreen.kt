@@ -63,9 +63,8 @@ import cn.bit101.android.ui.component.topbar.BasicTwoRowsTopAppBar
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.component.rememberLoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.gallery.common.LoadMoreState
-import cn.bit101.android.ui.gallery.common.SimpleDataState
-import cn.bit101.android.ui.gallery.common.SimpleState
+import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.gallery.AnnotatedText
 import cn.bit101.android.ui.component.gallery.PosterCard
 import cn.bit101.android.utils.DateTimeUtils
@@ -283,7 +282,7 @@ fun UserScreenContent(
     data: GetUserInfoDataModel.Response,
     posters: List<GetPostersDataModel.ResponseItem>,
     state: LoadableLazyColumnWithoutPullRequestState,
-    loadState: LoadMoreState?,
+    loadState: SimpleState?,
     followState: SimpleState?,
 
     onFollow: () -> Unit,
@@ -349,7 +348,7 @@ fun UserScreenContent(
                 .padding(paddingValues),
             contentPadding = PaddingValues(8.dp),
             state = state,
-            loading = loadState == LoadMoreState.Loading,
+            loading = loadState == SimpleState.Loading,
         ) {
             posters.forEachIndexed { index, poster ->
                 item(index + 100) {
@@ -381,11 +380,11 @@ fun UserScreen(
 
     val getUserInfoState by vm.getUserInfoStateFlow.collectAsState()
 
-    val posters by vm.posterState.dataFlow.collectAsState()
+    val posters by vm.posterStateFlows.dataFlow.collectAsState()
 
-    val postersLoadMoreState by vm.posterState.loadMoreStateFlow.collectAsState()
+    val postersLoadMoreState by vm.posterStateFlows.loadMoreStateFlow.collectAsState()
 
-    val postersRefreshState by vm.posterState.refreshStateFlow.collectAsState()
+    val postersRefreshState by vm.posterStateFlows.refreshStateFlow.collectAsState()
 
     val followState by vm.followStateMutableLiveData.observeAsState()
 
@@ -407,13 +406,13 @@ fun UserScreen(
     var showFollowingDialog by remember { mutableStateOf(false) }
 
 
-    val followers by vm.followersState.dataFlow.collectAsState()
-    val refreshFollowersState by vm.followersState.refreshStateFlow.collectAsState()
-    val loadMoreFollowersState by vm.followersState.loadMoreStateFlow.collectAsState()
+    val followers by vm.followersStateFlows.dataFlow.collectAsState()
+    val refreshFollowersState by vm.followersStateFlows.refreshStateFlow.collectAsState()
+    val loadMoreFollowersState by vm.followersStateFlows.loadMoreStateFlow.collectAsState()
 
-    val followings by vm.followingsState.dataFlow.collectAsState()
-    val refreshFollowingsState by vm.followingsState.refreshStateFlow.collectAsState()
-    val loadMoreFollowingsState by vm.followingsState.loadMoreStateFlow.collectAsState()
+    val followings by vm.followingsStateFlows.dataFlow.collectAsState()
+    val refreshFollowingsState by vm.followingsStateFlows.refreshStateFlow.collectAsState()
+    val loadMoreFollowingsState by vm.followingsStateFlows.loadMoreStateFlow.collectAsState()
 
 
     val uploadAvatarState by vm.uploadAvatarState.observeAsState()

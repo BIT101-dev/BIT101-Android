@@ -19,14 +19,13 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.rememberLoadableLazyColumnState
-import cn.bit101.android.ui.gallery.common.RefreshState
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersOrder
@@ -49,42 +48,42 @@ fun GalleryScreen(
     navBarHeight: Dp = 0.dp,
     vm: GalleryIndexViewModel = hiltViewModel(),
 ) {
-    val followRefreshState by vm.followStateCombined.refreshStateFlow.collectAsState()
-    val newestRefreshPostersState by vm.newestStataCombined.refreshStateFlow.collectAsState()
-    val hotRefreshPostersState by vm.hotStateCombined.refreshStateFlow.collectAsState()
-    val recommendRefreshPostersState by vm.recommendStateCombined.refreshStateFlow.collectAsState()
-    val searchRefreshPostersState by vm.searchStateCombined.refreshStateFlow.collectAsState()
+    val followRefreshState by vm.followStateFlows.refreshStateFlow.collectAsState()
+    val newestRefreshPostersState by vm.newestStataFlows.refreshStateFlow.collectAsState()
+    val hotRefreshPostersState by vm.hotStateFlows.refreshStateFlow.collectAsState()
+    val recommendRefreshPostersState by vm.recommendStateFlows.refreshStateFlow.collectAsState()
+    val searchRefreshPostersState by vm.searchStateFlows.refreshStateFlow.collectAsState()
 
-    val followLoadMoreState by vm.followStateCombined.loadMoreStateFlow.collectAsState()
-    val newestLoadMorePostersState by vm.newestStataCombined.loadMoreStateFlow.collectAsState()
-    val hotLoadMorePostersState by vm.hotStateCombined.loadMoreStateFlow.collectAsState()
-    val recommendLoadMorePostersState by vm.recommendStateCombined.loadMoreStateFlow.collectAsState()
-    val searchLoadMorePostersState by vm.searchStateCombined.loadMoreStateFlow.collectAsState()
+    val followLoadMoreState by vm.followStateFlows.loadMoreStateFlow.collectAsState()
+    val newestLoadMorePostersState by vm.newestStataFlows.loadMoreStateFlow.collectAsState()
+    val hotLoadMorePostersState by vm.hotStateFlows.loadMoreStateFlow.collectAsState()
+    val recommendLoadMorePostersState by vm.recommendStateFlows.loadMoreStateFlow.collectAsState()
+    val searchLoadMorePostersState by vm.searchStateFlows.loadMoreStateFlow.collectAsState()
 
-    val followPosters by vm.followStateCombined.dataFlow.collectAsState()
-    val newestPosters by vm.newestStataCombined.dataFlow.collectAsState()
-    val hotPosters by vm.hotStateCombined.dataFlow.collectAsState()
-    val recommendPosters by vm.recommendStateCombined.dataFlow.collectAsState()
-    val searchPosters by vm.searchStateCombined.dataFlow.collectAsState()
+    val followPosters by vm.followStateFlows.dataFlow.collectAsState()
+    val newestPosters by vm.newestStataFlows.dataFlow.collectAsState()
+    val hotPosters by vm.hotStateFlows.dataFlow.collectAsState()
+    val recommendPosters by vm.recommendStateFlows.dataFlow.collectAsState()
+    val searchPosters by vm.searchStateFlows.dataFlow.collectAsState()
 
 
     val followState = rememberLoadableLazyColumnState(
-        refreshing = followRefreshState == RefreshState.Loading,
+        refreshing = followRefreshState == SimpleState.Loading,
         onLoadMore = vm::loadMoreFollow,
         onRefresh = vm::refreshFollow
     )
     val newestState = rememberLoadableLazyColumnState(
-        refreshing = newestRefreshPostersState == RefreshState.Loading,
+        refreshing = newestRefreshPostersState == SimpleState.Loading,
         onLoadMore = vm::loadMoreNewest,
         onRefresh = vm::refreshNewest
     )
     val hotState = rememberLoadableLazyColumnState(
-        refreshing = hotRefreshPostersState == RefreshState.Loading,
+        refreshing = hotRefreshPostersState == SimpleState.Loading,
         onLoadMore = vm::loadMoreHot,
         onRefresh = vm::refreshHot
     )
     val recommendState = rememberLoadableLazyColumnState(
-        refreshing = recommendRefreshPostersState == RefreshState.Loading,
+        refreshing = recommendRefreshPostersState == SimpleState.Loading,
         onLoadMore = vm::loadMoreRecommend,
         onRefresh = vm::refreshRecommend
     )
@@ -94,7 +93,7 @@ fun GalleryScreen(
     val lastSearchQuery by vm.lastSearchQueryLiveData.observeAsState()
 
     val searchState = rememberLoadableLazyColumnState(
-        refreshing = searchRefreshPostersState == RefreshState.Loading,
+        refreshing = searchRefreshPostersState == SimpleState.Loading,
         onLoadMore = {
             vm.loadMoreSearch(
                 query ?: "",

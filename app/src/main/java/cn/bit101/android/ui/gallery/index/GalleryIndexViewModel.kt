@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.PosterRepo
-import cn.bit101.android.ui.gallery.common.RefreshAndLoadMoreStatesCombined
+import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombined
 import cn.bit101.api.model.common.PostersOrder
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.toGetPostersDataModelResponseItem
@@ -19,11 +19,20 @@ class GalleryIndexViewModel @Inject constructor(
 
     var initSelectedTabIndex = 2
 
-    val recommendStateCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val hotStateCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val followStateCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val newestStataCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val searchStateCombined = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    private val _recommendState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val recommendStateFlows = _recommendState.flows()
+
+    private val _hotState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val hotStateFlows = _hotState.flows()
+
+    private val _followState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val followStateFlows = _followState.flows()
+
+    private val _newestStata = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val newestStataFlows = _newestStata.flows()
+
+    private val _searchState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val searchStateFlows = _searchState.flows()
 
     val queryLiveData = MutableLiveData("")
     val selectOrderLiveData = MutableLiveData(PostersOrder.NEW)
@@ -38,29 +47,29 @@ class GalleryIndexViewModel @Inject constructor(
         selectOrderLiveData.value = order
     }
 
-    fun refreshRecommend() = recommendStateCombined.refresh {
+    fun refreshRecommend() = _recommendState.refresh {
         posterRepo.getRecommendPosters()
     }
 
-    fun loadMoreRecommend() = recommendStateCombined.loadMore { page ->
+    fun loadMoreRecommend() = _recommendState.loadMore { page ->
         posterRepo.getRecommendPosters(page)
     }
 
 
-    fun refreshHot() = hotStateCombined.refresh {
+    fun refreshHot() = _hotState.refresh {
         posterRepo.getHotPosters()
     }
 
-    fun loadMoreHot() = hotStateCombined.loadMore { page ->
+    fun loadMoreHot() = _hotState.loadMore { page ->
         posterRepo.getHotPosters(page)
     }
 
 
-    fun refreshFollow() = followStateCombined.refresh {
+    fun refreshFollow() = _followState.refresh {
         posterRepo.getFollowPosters()
     }
 
-    fun loadMoreFollow() = followStateCombined.loadMore { page ->
+    fun loadMoreFollow() = _followState.loadMore { page ->
         posterRepo.getFollowPosters(page)
     }
 
@@ -68,7 +77,7 @@ class GalleryIndexViewModel @Inject constructor(
         search: String,
         order: String,
         filter: Int,
-    ) = searchStateCombined.refresh {
+    ) = _searchState.refresh {
         val posters = posterRepo.getSearchPosters(
             search = search,
             order = order,
@@ -94,7 +103,7 @@ class GalleryIndexViewModel @Inject constructor(
         search: String,
         order: String,
         filter: Int,
-    ) = searchStateCombined.loadMore { page ->
+    ) = _searchState.loadMore { page ->
         posterRepo.getSearchPosters(
             search = search,
             page = page,
@@ -103,11 +112,11 @@ class GalleryIndexViewModel @Inject constructor(
         )
     }
 
-    fun refreshNewest() = newestStataCombined.refresh {
+    fun refreshNewest() = _newestStata.refresh {
         posterRepo.getNewestPosters()
     }
 
-    fun loadMoreNewest() = newestStataCombined.loadMore { page ->
+    fun loadMoreNewest() = _newestStata.loadMore { page ->
         posterRepo.getNewestPosters(page)
     }
 

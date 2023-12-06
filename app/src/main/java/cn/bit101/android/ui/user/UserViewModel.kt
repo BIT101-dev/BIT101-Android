@@ -8,10 +8,10 @@ import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.PosterRepo
 import cn.bit101.android.repo.base.UploadRepo
 import cn.bit101.android.repo.base.UserRepo
-import cn.bit101.android.ui.gallery.common.SimpleDataState
-import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.gallery.common.RefreshAndLoadMoreStatesCombined
-import cn.bit101.android.ui.gallery.common.UploadImageState
+import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombined
+import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
@@ -32,12 +32,16 @@ class UserViewModel @Inject constructor(
     private val _getUserInfoStateFlow = MutableStateFlow<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
     val getUserInfoStateFlow = _getUserInfoStateFlow
 
-    val posterState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    private val _posterState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
+    val posterStateFlows = _posterState.flows()
 
     val followStateMutableLiveData = MutableLiveData<SimpleState>(null)
 
-    val followersState = RefreshAndLoadMoreStatesCombined<User>(viewModelScope)
-    val followingsState = RefreshAndLoadMoreStatesCombined<User>(viewModelScope)
+    private val _followersState = RefreshAndLoadMoreStatesCombined<User>(viewModelScope)
+    val followersStateFlows = _followersState.flows()
+
+    private val _followingsState = RefreshAndLoadMoreStatesCombined<User>(viewModelScope)
+    val followingsStateFlows = _followingsState.flows()
 
     val uploadAvatarState = MutableLiveData<UploadImageState>(null)
 
@@ -60,11 +64,11 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    fun loadMorePosters(uid: Long) = posterState.loadMore { page ->
+    fun loadMorePosters(uid: Long) = _posterState.loadMore { page ->
         posterRepo.getPostersOfUserByUid(uid, page)
     }
 
-    fun refreshPoster(uid: Long) = posterState.refresh {
+    fun refreshPoster(uid: Long) = _posterState.refresh {
         posterRepo.getPostersOfUserByUid(uid)
     }
 
@@ -87,19 +91,19 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    fun refreshFollowers() = followersState.refresh {
+    fun refreshFollowers() = _followersState.refresh {
         userRepo.getFollowers()
     }
 
-    fun loadMoreFollowers() = followersState.loadMore { page ->
+    fun loadMoreFollowers() = _followersState.loadMore { page ->
         userRepo.getFollowers(page.toInt())
     }
 
-    fun refreshFollowings() = followingsState.refresh {
+    fun refreshFollowings() = _followingsState.refresh {
         userRepo.getFollowings()
     }
 
-    fun loadMoreFollowings() = followingsState.loadMore { page ->
+    fun loadMoreFollowings() = _followingsState.loadMore { page ->
         userRepo.getFollowings(page.toInt())
     }
 

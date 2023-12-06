@@ -31,8 +31,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -46,7 +44,7 @@ import cn.bit101.android.App
 import cn.bit101.android.BuildConfig
 import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.ui.gallery.common.SimpleDataState
+import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.component.setting.SettingItemData
 import cn.bit101.android.ui.component.setting.itemsGroup
 import cn.bit101.android.ui.setting.viewmodel.AboutViewModel

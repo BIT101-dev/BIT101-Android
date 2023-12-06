@@ -146,7 +146,7 @@ fun CommentEditContent(
         )
         Spacer(modifier = Modifier.padding(4.dp))
 
-        if(commentEditData.uploadImageData.ifUpdate) {
+        if(commentEditData.uploadImageData.ifUpload) {
             Spacer(modifier = Modifier.padding(4.dp))
             UploadImageRow(
                 images = commentEditData.uploadImageData.images,
@@ -160,11 +160,11 @@ fun CommentEditContent(
         Box(modifier = Modifier.fillMaxWidth()) {
             Row {
                 CommentEditContentUploadImageChip(
-                    selected = commentEditData.uploadImageData.ifUpdate,
+                    selected = commentEditData.uploadImageData.ifUpload,
                     onClick = {
                         onEditComment(commentEditData.copy(
                             uploadImageData = commentEditData.uploadImageData.copy(
-                                ifUpdate = !commentEditData.uploadImageData.ifUpdate
+                                ifUpload = !commentEditData.uploadImageData.ifUpload
                             )
                         ))
                     },

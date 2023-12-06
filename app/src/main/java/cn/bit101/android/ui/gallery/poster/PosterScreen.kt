@@ -3,13 +3,11 @@ package cn.bit101.android.ui.gallery.poster
 import android.app.Activity
 import android.content.Intent
 import android.provider.MediaStore
-import android.util.Log
 import android.view.HapticFeedbackConstants
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -20,16 +18,15 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
@@ -48,7 +45,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -66,10 +62,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.Layout
-import androidx.compose.ui.layout.MeasurePolicy
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
@@ -85,15 +78,14 @@ import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.component.PreviewImagesWithGridLayout
 import cn.bit101.android.ui.component.rememberLoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.gallery.common.LoadMoreState
-import cn.bit101.android.ui.gallery.common.RefreshState
-import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.gallery.common.UploadImageData
+import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.UploadImageData
 import cn.bit101.android.ui.component.gallery.CommentCard
 import cn.bit101.android.ui.component.gallery.AnnotatedText
 import cn.bit101.android.ui.component.gallery.DeleteCommentDialog
 import cn.bit101.android.ui.component.gallery.DeleteImageDialog
 import cn.bit101.android.ui.component.gallery.DeletePosterDialog
+import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.android.utils.NumberUtils
 import cn.bit101.api.model.common.Comment
@@ -285,11 +277,6 @@ fun PosterContent(
      * 打开评论的更多操作的bottom sheet，需要传入评论的数据
      */
     onOpenMoreActionOfCommentBottomSheet: (Comment) -> Unit,
-
-    /**
-     * 显示更多评论
-     */
-    bottomSheet: @Composable () -> Unit,
 ) {
     val cm = LocalClipboardManager.current
 
@@ -317,7 +304,7 @@ fun PosterContent(
                     .padding(bottom = bottomContentHeight),
                 loading = loading,
                 state = state,
-                contentPadding = PaddingValues(top = 16.dp, bottom = 16.dp),
+                contentPadding = PaddingValues(bottom = 16.dp),
             ) {
                 // 标题
                 item(-1) {
@@ -417,13 +404,34 @@ fun PosterContent(
                 }
 
                 item {
-                    Spacer(
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 16.dp)
-                            .height(6.dp)
                             .background(MaterialTheme.colorScheme.surfaceVariant),
-                    )
+                    ) {
+                        val cornerRadius = 8.dp
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(20.dp),
+                            shape = RoundedCornerShape(bottomStart = cornerRadius, bottomEnd = cornerRadius),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                            ),
+                        ) {}
+                        Spacer(modifier = Modifier.padding(4.dp))
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(20.dp),
+                            shape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.surface,
+                                disabledContainerColor = MaterialTheme.colorScheme.surface,
+                            ),
+                        ) {}
+                    }
                 }
 
                 if(data.commentNum > 0) {
@@ -457,6 +465,16 @@ fun PosterContent(
                             Text(
                                 modifier = Modifier.fillMaxWidth(),
                                 text = "没有更多评论了",
+                                style = MaterialTheme.typography.bodyMedium,
+                                textAlign = TextAlign.Center,
+                            )
+                        }
+                    } else if(!loading) {
+                        item("footer2") {
+                            Spacer(modifier = Modifier.padding(4.dp))
+                            Text(
+                                modifier = Modifier.fillMaxWidth(),
+                                text = "上滑查看更多哦",
                                 style = MaterialTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Center,
                             )
@@ -535,7 +553,7 @@ fun PosterContent(
                         modifier = Modifier
                             .size(bottomContentHeight - 10.dp)
                             .pointerInput(Unit) {
-                                detectTapGestures(onTap = { if(!posterLiking) onLikePoster() })
+                                detectTapGestures(onTap = { if (!posterLiking) onLikePoster() })
                             },
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -555,7 +573,7 @@ fun PosterContent(
                         modifier = Modifier
                             .size(bottomContentHeight - 10.dp)
                             .pointerInput(Unit) {
-                                detectTapGestures(onTap = {  })
+                                detectTapGestures(onTap = { })
                             },
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -569,10 +587,6 @@ fun PosterContent(
                     }
                 }
             }
-        }
-
-        Box(modifier = Modifier.padding(paddingValues)) {
-            bottomSheet()
         }
     }
 }
@@ -602,12 +616,12 @@ fun PosterScreen(
     /**
      * 加载更多评论这个动作的状态
      */
-    val loadMoreState by vm.commentState.loadMoreStateFlow.collectAsState() // 加载更多评论
+    val loadMoreState by vm.commentStateFlows.loadMoreStateFlow.collectAsState() // 加载更多评论
 
     /**
      * 刷新评论这个动作的状态
      */
-    val refreshState by vm.commentState.refreshStateFlow.collectAsState() // 刷新
+    val refreshState by vm.commentStateFlows.refreshStateFlow.collectAsState() // 刷新
 
     /**
      * 对帖子的评论的编辑数据
@@ -617,22 +631,22 @@ fun PosterScreen(
     /**
      * 子评论的刷新状态
      */
-    val subCommentsRefreshState by vm.subCommentState.refreshStateFlow.collectAsState()
+    val subCommentsRefreshState by vm.subCommentStateFlows.refreshStateFlow.collectAsState()
 
     /**
      * 子评论的加载更多状态
      */
-    val subCommentsLoadMoreState by vm.subCommentState.loadMoreStateFlow.collectAsState()
+    val subCommentsLoadMoreState by vm.subCommentStateFlows.loadMoreStateFlow.collectAsState()
 
     /**
      * 子评论
      */
-    val subComments by vm.subCommentState.dataFlow.collectAsState()
+    val subComments by vm.subCommentStateFlows.dataFlow.collectAsState()
 
     /**
      * 所有的评论
      */
-    val comments by vm.commentState.dataFlow.collectAsState()
+    val comments by vm.commentStateFlows.dataFlow.collectAsState()
 
     /**
      * 通过bottom sheet展开的评论
@@ -799,10 +813,10 @@ fun PosterScreen(
      * 当发送对评论的评论的状态为Success时，显示Snackbar
      */
     LaunchedEffect(sendCommentToCommentState, needShowSnackbarForCommentToComment) {
-        if(sendCommentToCommentState is SendCommentState.Success && needShowSnackbarForCommentToComment) {
+        if(sendCommentToCommentState is SimpleState.Success && needShowSnackbarForCommentToComment) {
             mainController.snackbar("评论成功被发出去了！")
             needShowSnackbarForCommentToComment = false
-        } else if(sendCommentToCommentState is SendCommentState.Fail && needShowSnackbarForCommentToComment) {
+        } else if(sendCommentToCommentState is SimpleState.Fail && needShowSnackbarForCommentToComment) {
             mainController.snackbar("评论失败Orz")
             needShowSnackbarForCommentToComment = false
         }
@@ -818,10 +832,10 @@ fun PosterScreen(
      * 当发送对帖子的评论的状态为Success时，显示Snackbar
      */
     LaunchedEffect(sendCommentToPosterState, needShowSnackbarForCommentToPoster) {
-        if(sendCommentToPosterState is SendCommentState.Success && needShowSnackbarForCommentToPoster) {
+        if(sendCommentToPosterState is SimpleState.Success && needShowSnackbarForCommentToPoster) {
             mainController.snackbar("评论成功被发出去了！")
             needShowSnackbarForCommentToPoster = false
-        } else if(sendCommentToPosterState is SendCommentState.Fail && needShowSnackbarForCommentToPoster) {
+        } else if(sendCommentToPosterState is SimpleState.Fail && needShowSnackbarForCommentToPoster) {
             mainController.snackbar("评论失败Orz")
             needShowSnackbarForCommentToPoster = false
         }
@@ -831,12 +845,12 @@ fun PosterScreen(
     var showMoreActionOfCommentState by remember { mutableStateOf<Comment?>(null) }
 
 
-    val commentLoaded = vm.commentState.pageFlow.collectAsState().value == -1
+    val commentLoaded = vm.commentStateFlows.pageFlow.collectAsState().value == -1
 
-    val subCommentLoaded = vm.subCommentState.pageFlow.collectAsState().value == -1
+    val subCommentLoaded = vm.subCommentStateFlows.pageFlow.collectAsState().value == -1
 
 
-    if(getPosterState is GetPosterState.Loading || refreshState is RefreshState.Loading) {
+    if(getPosterState is SimpleDataState.Loading || refreshState is SimpleState.Loading) {
         Box(modifier = Modifier.fillMaxSize()) {
             CircularProgressIndicator(
                 modifier = Modifier
@@ -845,11 +859,11 @@ fun PosterScreen(
                 color = MaterialTheme.colorScheme.primary
             )
         }
-    } else if(getPosterState is GetPosterState.Success && refreshState is RefreshState.Success) {
+    } else if(getPosterState is SimpleDataState.Success && refreshState is SimpleState.Success) {
         PosterContent(
             mainController = mainController,
 
-            data = (getPosterState as GetPosterState.Success).poster,
+            data = (getPosterState as SimpleDataState.Success).data,
             comments = comments,
             posterLiking = posterLikings.contains(id),
             commentLikings = commentLikings,
@@ -858,7 +872,7 @@ fun PosterScreen(
                 UploadImageData(false, emptyList()),
                 false
             ),
-            loading = loadMoreState is LoadMoreState.Loading,
+            loading = loadMoreState is SimpleState.Loading,
             loaded = commentLoaded,
             state = rememberLoadableLazyColumnWithoutPullRequestState(
                 onLoadMore = { vm.loadMoreComments(id) }
@@ -885,10 +899,7 @@ fun PosterScreen(
                 view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             },
             onOpenMoreActionOfCommentBottomSheet = { showMoreActionOfCommentState = it },
-        ) {
-
-        }
-
+        )
 
         if(showComment.first) {
             val commentId = showComment.second!!
@@ -898,9 +909,9 @@ fun PosterScreen(
                 comment = comment,
                 subComments = subComments,
                 commentLikings = commentLikings,
-                loading = subCommentsLoadMoreState is LoadMoreState.Loading,
+                loading = subCommentsLoadMoreState is SimpleState.Loading,
                 loaded = subCommentLoaded,
-                refreshing = subCommentsRefreshState is RefreshState.Loading,
+                refreshing = subCommentsRefreshState is SimpleState.Loading,
                 state = rememberLoadableLazyColumnWithoutPullRequestState(
                     onLoadMore = { vm.loadMoreSubComments(commentId) }
                 ),

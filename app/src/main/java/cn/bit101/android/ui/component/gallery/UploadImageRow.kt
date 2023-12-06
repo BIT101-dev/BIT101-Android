@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -22,13 +21,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusEvent
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import cn.bit101.android.ui.gallery.common.ImageData
-import cn.bit101.android.ui.gallery.common.UploadImageState
+import cn.bit101.android.ui.common.ImageData
+import cn.bit101.android.ui.common.ImageDataWithUploadState
+import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.api.model.common.Image
 import coil.compose.AsyncImage
 
@@ -46,7 +43,7 @@ fun UploadImageRow(
     /**
      * 图片列表
      */
-    images: List<Pair<ImageData, UploadImageState>>,
+    images: List<ImageDataWithUploadState>,
 
     /**
      * 上传图片
@@ -74,19 +71,19 @@ fun UploadImageRow(
                         .padding(end = 5.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .combinedClickable(
-                            onClick = { onOpenImage((it.second as UploadImageState.Success).image) },
+                            onClick = { onOpenImage((it.uploadImageState as UploadImageState.Success).image) },
                             onLongClick = { onOpenDeleteDialog(index) }
                         ),
                     contentScale = ContentScale.Crop,
-                    model = if (it.second is UploadImageState.Success) (it.second as UploadImageState.Success).image.lowUrl
-                    else when (it.first) {
-                        is ImageData.Local -> (it.first as ImageData.Local).uri
-                        is ImageData.Remote -> (it.first as ImageData.Remote).image.lowUrl
+                    model = if (it.uploadImageState is UploadImageState.Success) it.uploadImageState.image.lowUrl
+                    else when (it.imageData) {
+                        is ImageData.Local -> it.imageData.uri
+                        is ImageData.Remote -> it.imageData.image.lowUrl
                     },
                     contentDescription = "image",
                 )
 
-                when (it.second) {
+                when (it.uploadImageState) {
                     is UploadImageState.Success -> {}
                     is UploadImageState.Loading -> {
                         CircularProgressIndicator(

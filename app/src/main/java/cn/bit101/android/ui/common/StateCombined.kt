@@ -1,28 +1,21 @@
-package cn.bit101.android.ui.gallery.common
+package cn.bit101.android.ui.common
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
- * 刷新状态
+ * 暴露出来的状态
  */
-sealed interface RefreshState {
-    object Loading : RefreshState
-    object Fail : RefreshState
-    object Success : RefreshState
-}
-
-/**
- * 加载更多状态
- */
-sealed interface LoadMoreState {
-    object Loading : LoadMoreState
-    object Fail : LoadMoreState
-    object Success : LoadMoreState
-}
+data class RefreshAndLoadMoreStatesCombinedFlows <T>(
+    val refreshStateFlow: StateFlow<SimpleState?>,
+    val loadMoreStateFlow: StateFlow<SimpleState?>,
+    val dataFlow: StateFlow<List<T>>,
+    val pageFlow: StateFlow<Int>,
+)
 
 /**
  * 将*刷新*和*加载更多*的状态组合在一起
@@ -30,64 +23,63 @@ sealed interface LoadMoreState {
 class RefreshAndLoadMoreStatesCombined <T>(
     private val viewModelScope: CoroutineScope,
 ) {
-    private val _refreshStateFlow = MutableStateFlow<RefreshState?>(null)
-    val refreshStateFlow = _refreshStateFlow.asStateFlow()
+    private val refreshStateFlow = MutableStateFlow<SimpleState?>(null)
+    private val loadMoreStateFlow = MutableStateFlow<SimpleState?>(null)
+    private val dataFlow = MutableStateFlow<List<T>>(emptyList())
+    private val pageFlow = MutableStateFlow(0)
 
-    private val _loadMoreStateFlow = MutableStateFlow<LoadMoreState?>(null)
-    val loadMoreStateFlow = _loadMoreStateFlow.asStateFlow()
+    var data: List<T>
+        get() = dataFlow.value
+        set(value) { dataFlow.value = value }
 
-    private val _dataFlow = MutableStateFlow<List<T>>(emptyList())
-    val dataFlow = _dataFlow.asStateFlow()
-
-    private val _pageFlow = MutableStateFlow(0)
-    val pageFlow = _pageFlow.asStateFlow()
-
-    private var page = 0
+    /**
+     * 将所有的状态暴露出来给组合函数
+     */
+    fun flows() = RefreshAndLoadMoreStatesCombinedFlows(
+        refreshStateFlow = refreshStateFlow.asStateFlow(),
+        loadMoreStateFlow = loadMoreStateFlow.asStateFlow(),
+        dataFlow = dataFlow.asStateFlow(),
+        pageFlow = pageFlow.asStateFlow(),
+    )
 
     fun refresh(
-        getPosters: suspend () -> List<T>
+        refresh: suspend () -> List<T>
     ) {
-        _refreshStateFlow.value = RefreshState.Loading
+        refreshStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                page = 0
-                val posters = getPosters()
-                _dataFlow.value = posters.toMutableList()
-                _refreshStateFlow.value = RefreshState.Success
+                pageFlow.value = 0
+                val posters = refresh()
+                dataFlow.value = posters.toMutableList()
+                refreshStateFlow.value = SimpleState.Success
             } catch (e: Exception) {
                 e.printStackTrace()
-                _refreshStateFlow.value = RefreshState.Fail
+                refreshStateFlow.value = SimpleState.Fail
             }
-            _pageFlow.value = page
         }
     }
 
     fun loadMore(
-        loadPosters: suspend (Long) -> List<T>
+        loadMore: suspend (Long) -> List<T>
     ) {
-        _loadMoreStateFlow.value = LoadMoreState.Loading
+        loadMoreStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                if(page >= 0) {
-                    ++page
-                    val posters = loadPosters(page.toLong())
+                if(pageFlow.value >= 0) {
+                    ++pageFlow.value
+                    val posters = loadMore(pageFlow.value.toLong())
                     if (posters.isEmpty()) {
                         // 停止继续加载
-                        page = -1
+                        pageFlow.value = -1
                     }
                     val allPosters = dataFlow.value.plus(posters)
-                    _dataFlow.value = allPosters
+                    dataFlow.value = allPosters
                 }
-                _loadMoreStateFlow.value = LoadMoreState.Success
+                loadMoreStateFlow.value = SimpleState.Success
             } catch (e: Exception) {
                 e.printStackTrace()
-                _loadMoreStateFlow.value = LoadMoreState.Fail
+                loadMoreStateFlow.value = SimpleState.Fail
             }
-            _pageFlow.value = page
         }
-    }
-
-    fun setData(data: List<T>) {
-        _dataFlow.value = data
     }
 }

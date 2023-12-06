@@ -24,12 +24,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.gallery.common.LoadMoreState
-import cn.bit101.android.ui.gallery.common.RefreshState
-import cn.bit101.android.ui.gallery.common.UploadImageState
+import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.api.model.common.User
 
 @Composable
@@ -164,8 +163,8 @@ fun FollowerDialog(
     followers: List<User>,
 
     state: LoadableLazyColumnWithoutPullRequestState,
-    refreshState: RefreshState?,
-    loadMoreState: LoadMoreState?,
+    refreshState: SimpleState?,
+    loadMoreState: SimpleState?,
 
     onRefresh: () -> Unit,
 
@@ -191,7 +190,7 @@ fun FollowerDialog(
             LoadableLazyColumnWithoutPullRequest(
                 modifier = Modifier.fillMaxWidth(0.9f),
                 state = state,
-                loading = loadMoreState is LoadMoreState.Loading,
+                loading = loadMoreState is SimpleState.Loading,
             ) {
                 items(followers) {
                     UserCard(
@@ -215,8 +214,8 @@ fun FollowingDialog(
 
     followings: List<User>,
     state: LoadableLazyColumnWithoutPullRequestState,
-    refreshState: RefreshState?,
-    loadMoreState: LoadMoreState?,
+    refreshState: SimpleState?,
+    loadMoreState: SimpleState?,
 
     onRefresh: () -> Unit,
 
@@ -242,7 +241,7 @@ fun FollowingDialog(
             LoadableLazyColumnWithoutPullRequest(
                 modifier = Modifier.fillMaxWidth(0.9f),
                 state = state,
-                loading = loadMoreState is LoadMoreState.Loading,
+                loading = loadMoreState is SimpleState.Loading,
             ) {
                 items(followings) {
                     UserCard(

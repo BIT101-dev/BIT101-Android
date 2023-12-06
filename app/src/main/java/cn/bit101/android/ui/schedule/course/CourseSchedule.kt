@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.database.entity.CourseScheduleEntity
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.ui.gallery.common.SimpleState
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.utils.TimeTableUtils
 
 /**

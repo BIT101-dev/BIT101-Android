@@ -63,8 +63,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.gallery.common.UploadImageData
+import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.UploadImageData
 import cn.bit101.android.ui.component.gallery.DeleteImageDialog
 import cn.bit101.android.ui.component.gallery.UploadImageRow
 import cn.bit101.api.model.common.Claim

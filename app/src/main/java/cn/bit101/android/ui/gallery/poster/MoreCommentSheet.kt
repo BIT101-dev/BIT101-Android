@@ -19,6 +19,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
 import androidx.compose.material.icons.rounded.ArrowBackIos
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -143,13 +145,34 @@ fun MoreCommentsSheetContent(
                     onMoreAction = onOpenMoreActionOfCommentBottomSheet
                 )
 
-                Spacer(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 6.dp)
-                        .height(6.dp)
                         .background(MaterialTheme.colorScheme.surfaceVariant),
-                )
+                ) {
+                    val cornerRadius = 8.dp
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(20.dp),
+                        shape = RoundedCornerShape(bottomStart = cornerRadius, bottomEnd = cornerRadius),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            disabledContainerColor = MaterialTheme.colorScheme.surface,
+                        ),
+                    ) {}
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(20.dp),
+                        shape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            disabledContainerColor = MaterialTheme.colorScheme.surface,
+                        ),
+                    ) {}
+                }
             }
 
             item("reply header") {
@@ -194,6 +217,16 @@ fun MoreCommentsSheetContent(
                     Text(
                         modifier = Modifier.fillMaxWidth(),
                         text = "没有更多评论了",
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                    )
+                }
+            } else if(!loading) {
+                item("footer2") {
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = "上滑查看更多哦",
                         style = MaterialTheme.typography.bodyMedium,
                         textAlign = TextAlign.Center,
                     )

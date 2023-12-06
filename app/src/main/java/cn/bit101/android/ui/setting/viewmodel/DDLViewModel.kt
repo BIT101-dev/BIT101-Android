@@ -6,7 +6,7 @@ import androidx.lifecycle.viewModelScope
 import cn.bit101.android.database.entity.DDLScheduleEntity
 import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.repo.base.DDLScheduleRepo
-import cn.bit101.android.ui.gallery.common.SimpleState
+import cn.bit101.android.ui.common.SimpleState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

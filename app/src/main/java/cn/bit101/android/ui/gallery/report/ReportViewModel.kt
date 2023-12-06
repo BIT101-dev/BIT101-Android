@@ -4,8 +4,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.ManageRepo
-import cn.bit101.android.ui.gallery.common.SimpleDataState
-import cn.bit101.android.ui.gallery.common.SimpleState
+import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.api.model.common.ReportType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

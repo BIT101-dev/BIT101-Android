@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import cn.bit101.android.BuildConfig
 import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.repo.base.VersionRepo
-import cn.bit101.android.ui.gallery.common.SimpleDataState
 import cn.bit101.api.model.http.app.GetVersionDataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

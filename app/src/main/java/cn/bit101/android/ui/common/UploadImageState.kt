@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.common
+package cn.bit101.android.ui.common
 
 import android.net.Uri
 import cn.bit101.api.model.common.Image
@@ -24,13 +24,23 @@ sealed interface ImageData {
     data class Remote(val image: Image) : ImageData
 }
 
+/**
+ * 带上传状态的图片数据
+ * @param imageData 图片数据，[ImageData]
+ * @param uploadImageState 上传图片的状态，[UploadImageState]
+ */
+data class ImageDataWithUploadState(
+    val imageData: ImageData,
+    val uploadImageState: UploadImageState
+)
+
 
 /**
  * 上传图片的数据
- * @param ifUpdate 是否上传图片
- * @param images 图片数据，是一个Pair列表，Pair的第一个数据表示图片数据，第二个数据表示图片的上传状态
+ * @param ifUpload 是否上传图片
+ * @param images 带上传状态的图片数据，[ImageDataWithUploadState]
  */
 data class UploadImageData(
-    val ifUpdate: Boolean,
-    val images: List<Pair<ImageData, UploadImageState>>
+    val ifUpload: Boolean,
+    val images: List<ImageDataWithUploadState>
 )

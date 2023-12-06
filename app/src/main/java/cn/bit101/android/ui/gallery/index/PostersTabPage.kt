@@ -13,12 +13,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SmallFloatingActionButton
 import androidx.compose.runtime.Composable
@@ -29,16 +29,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.LoadableLazyColumn
 import cn.bit101.android.ui.component.LoadableLazyColumnState
-import cn.bit101.android.ui.gallery.common.LoadMoreState
-import cn.bit101.android.ui.gallery.common.RefreshState
 import cn.bit101.android.ui.component.gallery.PosterCard
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
@@ -70,12 +68,12 @@ fun PostersTabPage(
     /**
      * 下拉刷新的状态
      */
-    refreshState: RefreshState?,
+    refreshState: SimpleState?,
 
     /**
      * 加载更多的状态
      */
-    loadState: LoadMoreState?,
+    loadState: SimpleState?,
 
     /**
      * 打开图片组
@@ -113,9 +111,9 @@ fun PostersTabPage(
                     .align(Alignment.CenterHorizontally),
                 nestedScrollConnection = nestedScrollConnection,
                 state = state,
-                loading = loadState == LoadMoreState.Loading,
-                refreshing = refreshState == RefreshState.Loading,
-                contentPadding = PaddingValues(4.dp, 4.dp, 4.dp, 8.dp + navBarHeight)
+                loading = loadState == SimpleState.Loading,
+                refreshing = refreshState == SimpleState.Loading,
+                contentPadding = PaddingValues(0.dp, 4.dp, 0.dp, 8.dp + navBarHeight)
             ) {
                 item("header") {
                     header()

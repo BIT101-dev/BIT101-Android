@@ -1,7 +1,5 @@
 package cn.bit101.android.ui.gallery.index
 
-import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,7 +13,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.SearchBar
-import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -25,17 +22,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.LoadableLazyColumnState
-import cn.bit101.android.ui.gallery.common.LoadMoreState
-import cn.bit101.android.ui.gallery.common.RefreshState
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersOrder
@@ -77,12 +68,12 @@ fun SearchTabPage(
     /**
      * 搜索的状态（也是下拉刷新的状态）
      */
-    searchState: RefreshState?,
+    searchState: SimpleState?,
 
     /**
      * 加载更多的状态
      */
-    loadState: LoadMoreState?,
+    loadState: SimpleState?,
 
     /**
      * 查询文本改变的回调

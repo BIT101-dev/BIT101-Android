@@ -9,11 +9,13 @@ import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.PosterRepo
 import cn.bit101.android.repo.base.ReactionRepo
 import cn.bit101.android.repo.base.UploadRepo
-import cn.bit101.android.ui.gallery.common.ImageData
-import cn.bit101.android.ui.gallery.common.SimpleState
-import cn.bit101.android.ui.gallery.common.RefreshAndLoadMoreStatesCombined
-import cn.bit101.android.ui.gallery.common.UploadImageData
-import cn.bit101.android.ui.gallery.common.UploadImageState
+import cn.bit101.android.ui.common.ImageData
+import cn.bit101.android.ui.common.ImageDataWithUploadState
+import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombined
+import cn.bit101.android.ui.common.UploadImageData
+import cn.bit101.android.ui.common.UploadImageState
+import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,18 +25,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.util.ArrayList
 import javax.inject.Inject
-
-/**
- * 获取帖子的状态，成功后返回帖子数据
- */
-sealed interface GetPosterState {
-    object Loading : GetPosterState
-    object Fail : GetPosterState
-    data class Success(
-        val poster: GetPosterDataModel.Response
-    ) : GetPosterState
-}
-
 /**
  * 编辑的评论数据
  */
@@ -44,10 +34,14 @@ data class CommentEditData(
     val anonymous: Boolean,
 )
 
-sealed interface SendCommentState {
-    object Sending : SendCommentState
-    object Fail : SendCommentState
-    object Success : SendCommentState
+sealed interface CommentType {
+    data class ToPoster(
+        val posterId: Long,
+    ) : CommentType
+    data class ToComment(
+        val mainComment: Comment,
+        val subComment: Comment,
+    ) : CommentType
 }
 
 @HiltViewModel
@@ -56,12 +50,14 @@ class PosterViewModel @Inject constructor(
     private val reactionRepo: ReactionRepo,
     private val uploadRepo: UploadRepo,
 ) : ViewModel() {
-    private val _getPosterStateFlow = MutableStateFlow<GetPosterState?>(null)
+    private val _getPosterStateFlow = MutableStateFlow<SimpleDataState<GetPosterDataModel.Response>?>(null)
     val getPosterStateFlow = _getPosterStateFlow.asStateFlow()
 
-    val commentState = RefreshAndLoadMoreStatesCombined<Comment>(viewModelScope)
+    private val _commentState = RefreshAndLoadMoreStatesCombined<Comment>(viewModelScope)
+    val commentStateFlows = _commentState.flows()
 
-    val subCommentState = RefreshAndLoadMoreStatesCombined<Comment>(viewModelScope)
+    private val _subCommentState = RefreshAndLoadMoreStatesCombined<Comment>(viewModelScope)
+    val subCommentStateFlows = _subCommentState.flows()
 
     private val _commentEditDataFlow = MutableStateFlow<CommentEditData?>(null)
     val commentEditDataFlow = _commentEditDataFlow.asStateFlow()
@@ -78,10 +74,10 @@ class PosterViewModel @Inject constructor(
     private val _posterLikeStatesFlow = MutableStateFlow<Set<Long>>(emptySet())
     val posterLikeStatesFlow = _posterLikeStatesFlow.asStateFlow()
 
-    private val _sendCommentToPosterStateFlow = MutableStateFlow<SendCommentState?>(null)
+    private val _sendCommentToPosterStateFlow = MutableStateFlow<SimpleState?>(null)
     val sendCommentToPosterStateFlow = _sendCommentToPosterStateFlow.asStateFlow()
 
-    private val _sendCommentToCommentStateFlow = MutableStateFlow<SendCommentState?>(null)
+    private val _sendCommentToCommentStateFlow = MutableStateFlow<SimpleState?>(null)
     val sendCommentToCommentStateFlow = _sendCommentToPosterStateFlow.asStateFlow()
 
     val showCommentDialogStateLiveData = MutableLiveData<Pair<Comment, Comment>>(null)
@@ -109,19 +105,15 @@ class PosterViewModel @Inject constructor(
     /**
      * 加载子评论
      */
-    fun getSubComments(id: Long) {
-        subCommentState.refresh {
-            posterRepo.getCommentsOfCommentById(id)
-        }
+    fun getSubComments(id: Long) = _subCommentState.refresh {
+        posterRepo.getCommentsOfCommentById(id)
     }
 
     /**
      * 加载更多子评论
      */
-    fun loadMoreSubComments(id: Long) {
-        subCommentState.loadMore { page ->
-            posterRepo.getCommentsOfCommentById(id, page.toInt())
-        }
+    fun loadMoreSubComments(id: Long) = _subCommentState.loadMore { page ->
+        posterRepo.getCommentsOfCommentById(id, page.toInt())
     }
 
 
@@ -140,7 +132,7 @@ class PosterViewModel @Inject constructor(
     /**
      * 从评论列表中找到对应的评论
      */
-    fun findCommentById(id: Long) = findCommentById(id, commentState.dataFlow.value)
+    fun findCommentById(id: Long) = findCommentById(id, _commentState.data)
 
     /**
      * 设置显示更多评论的状态
@@ -155,13 +147,13 @@ class PosterViewModel @Inject constructor(
      * 获取帖子
      */
     fun getPosterById(id: Long) {
-        _getPosterStateFlow.value = GetPosterState.Loading
+        _getPosterStateFlow.value = SimpleDataState.Loading()
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val poster = posterRepo.getPosterById(id)
-                _getPosterStateFlow.value = GetPosterState.Success(poster)
+                _getPosterStateFlow.value = SimpleDataState.Success(poster)
             } catch (e: Exception) {
-                _getPosterStateFlow.value = GetPosterState.Fail
+                _getPosterStateFlow.value = SimpleDataState.Fail()
             }
         }
     }
@@ -169,7 +161,7 @@ class PosterViewModel @Inject constructor(
     /**
      * 刷新评论
      */
-    fun refreshComments(id: Long) = commentState.refresh {
+    fun refreshComments(id: Long) = _commentState.refresh {
         Log.i("refreshComments", "refreshComments")
         posterRepo.getCommentsById(id)
     }
@@ -177,7 +169,7 @@ class PosterViewModel @Inject constructor(
     /**
      * 加载更多评论
      */
-    fun loadMoreComments(id: Long) = commentState.loadMore {  page ->
+    fun loadMoreComments(id: Long) = _commentState.loadMore { page ->
         posterRepo.getCommentsById(id, page.toInt())
     }
 
@@ -209,8 +201,8 @@ class PosterViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val res = reactionRepo.likePoster(id)
-                _getPosterStateFlow.value = (_getPosterStateFlow.value as GetPosterState.Success).copy(
-                    poster = (_getPosterStateFlow.value as GetPosterState.Success).poster.copy(
+                _getPosterStateFlow.value = (_getPosterStateFlow.value as SimpleDataState.Success).copy(
+                    data = (_getPosterStateFlow.value as SimpleDataState.Success).data.copy(
                         like = res.like,
                         likeNum = res.likeNum
                     )
@@ -224,16 +216,15 @@ class PosterViewModel @Inject constructor(
      * 从评论列表中找到对应的评论，修改其点赞状态
      */
     private fun changeLike(
-        _comments: List<Comment>,
+        comments: List<Comment>,
         id: Long,
         like: Boolean,
         likeNum: Int,
     ): List<Comment> {
-        val comments = _comments.toMutableList()
+        val comments = comments.toMutableList()
         val size = comments.size
         for(i in 0 until size) {
             if(comments[i].id.toLong() == id) {
-                Log.i("comments[i]", comments[i].toString())
                 comments[i] = comments[i].copy(
                     like = like,
                     likeNum = likeNum
@@ -261,19 +252,19 @@ class PosterViewModel @Inject constructor(
                 val res = reactionRepo.likeComment(id)
 
                 // 点赞成功后，更新评论列表
-                commentState.setData(
-                    changeLike(
-                        commentState.dataFlow.value,
-                        id, res.like, res.likeNum
-                    )
+                _commentState.data = changeLike(
+                    comments = _commentState.data,
+                    id = id,
+                    like = res.like,
+                    likeNum = res.likeNum,
                 )
 
                 // 子评论列表也要更新
-                subCommentState.setData(
-                    changeLike(
-                        subCommentState.dataFlow.value,
-                        id, res.like, res.likeNum,
-                    )
+                _subCommentState.data = changeLike(
+                    comments = _subCommentState.data,
+                    id = id,
+                    like = res.like,
+                    likeNum = res.likeNum,
                 )
 
 
@@ -293,7 +284,12 @@ class PosterViewModel @Inject constructor(
         val commentEditData = commentEditDataFlow.value
         _commentEditDataFlow.value = commentEditData?.copy(
             uploadImageData = commentEditData.uploadImageData.copy(
-                images = commentEditData.uploadImageData.images.plus(Pair(ImageData.Local(uri), UploadImageState.Loading))
+                images = commentEditData.uploadImageData.images.plus(
+                    ImageDataWithUploadState(
+                        imageData = ImageData.Local(uri),
+                        uploadImageState = UploadImageState.Loading
+                    )
+                )
             )
         )
         viewModelScope.launch(Dispatchers.IO) {
@@ -305,8 +301,9 @@ class PosterViewModel @Inject constructor(
                 _commentEditDataFlow.value = commentEditData2?.copy(
                     uploadImageData = commentEditData2.uploadImageData.copy(
                         images = commentEditData2.uploadImageData.images.map {
-                            if(it.first is ImageData.Local && (it.first as ImageData.Local).uri == uri) Pair(it.first, UploadImageState.Success(res))
-                            else it
+                            if(it.imageData is ImageData.Local && it.imageData.uri == uri) it.copy(
+                                uploadImageState = UploadImageState.Success(res)
+                            ) else it
                         }
                     )
                 )
@@ -318,8 +315,9 @@ class PosterViewModel @Inject constructor(
                 _commentEditDataFlow.value = commentEditData2?.copy(
                     uploadImageData = commentEditData2.uploadImageData.copy(
                         images = commentEditData2.uploadImageData.images.map {
-                            if(it.first is ImageData.Local && (it.first as ImageData.Local).uri == uri) Pair(it.first, UploadImageState.Fail)
-                            else it
+                            if(it.imageData is ImageData.Local && it.imageData.uri == uri) it.copy(
+                                uploadImageState = UploadImageState.Fail
+                            ) else it
                         }
                     )
                 )
@@ -342,7 +340,7 @@ class PosterViewModel @Inject constructor(
         val commentEditData = commentEditDataMap[Pair(comment.id, subComment.id)] ?: CommentEditData(
             text = "",
             uploadImageData = UploadImageData(
-                ifUpdate = false,
+                ifUpload = false,
                 images = emptyList()
             ),
             anonymous = false,
@@ -350,7 +348,12 @@ class PosterViewModel @Inject constructor(
         _commentForCommentEditDataMapFlow.value = commentEditDataMap.plus(Pair(
             Pair(comment.id, subComment.id), commentEditData.copy(
             uploadImageData = commentEditData.uploadImageData.copy(
-                images = commentEditData.uploadImageData.images.plus(Pair(ImageData.Local(uri), UploadImageState.Loading))
+                images = commentEditData.uploadImageData.images.plus(
+                    ImageDataWithUploadState(
+                        imageData = ImageData.Local(uri),
+                        uploadImageState = UploadImageState.Loading
+                    )
+                )
             )
         )))
 
@@ -363,7 +366,7 @@ class PosterViewModel @Inject constructor(
                 val commentEditData2 = commentEditDataMap2[Pair(comment.id, subComment.id)] ?: CommentEditData(
                     text = "",
                     uploadImageData = UploadImageData(
-                        ifUpdate = false,
+                        ifUpload = false,
                         images = emptyList()
                     ),
                     anonymous = false,
@@ -373,8 +376,9 @@ class PosterViewModel @Inject constructor(
                     Pair(comment.id, subComment.id), commentEditData2.copy(
                     uploadImageData = commentEditData2.uploadImageData.copy(
                         images = commentEditData2.uploadImageData.images.map {
-                            if(it.first is ImageData.Local && (it.first as ImageData.Local).uri == uri) Pair(it.first, UploadImageState.Success(res))
-                            else it
+                            if(it.imageData is ImageData.Local && it.imageData.uri == uri) it.copy(
+                                uploadImageState = UploadImageState.Success(res)
+                            ) else it
                         }
                     )
                 )))
@@ -387,7 +391,7 @@ class PosterViewModel @Inject constructor(
                 val commentEditData2 = commentEditDataMap2[Pair(comment.id, subComment.id)] ?: CommentEditData(
                     text = "",
                     uploadImageData = UploadImageData(
-                        ifUpdate = false,
+                        ifUpload = false,
                         images = emptyList()
                     ),
                     anonymous = false,
@@ -397,8 +401,9 @@ class PosterViewModel @Inject constructor(
                     Pair(comment.id, subComment.id), commentEditData2.copy(
                     uploadImageData = commentEditData2.uploadImageData.copy(
                         images = commentEditData2.uploadImageData.images.map {
-                            if(it.first is ImageData.Local && (it.first as ImageData.Local).uri == uri) Pair(it.first, UploadImageState.Fail)
-                            else it
+                            if(it.imageData is ImageData.Local && it.imageData.uri == uri) it.copy(
+                                uploadImageState = UploadImageState.Fail
+                            ) else it
                         }
                     )
                 )))
@@ -414,7 +419,7 @@ class PosterViewModel @Inject constructor(
         id: Long,
         editData: CommentEditData
     ) {
-        _sendCommentToPosterStateFlow.value = SendCommentState.Sending
+        _sendCommentToPosterStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val comment = reactionRepo.sendCommentToPoster(
@@ -422,33 +427,32 @@ class PosterViewModel @Inject constructor(
                     text = editData.text,
                     replyUid = 0,
                     anonymous = editData.anonymous,
-                    images = if(editData.uploadImageData.ifUpdate) editData.uploadImageData.images.mapNotNull {
-                        if(it.second is UploadImageState.Success) {
-                            (it.second as UploadImageState.Success).image.mid
-                        } else null
+                    images = if(editData.uploadImageData.ifUpload) editData.uploadImageData.images.mapNotNull {
+                        if(it.uploadImageState is UploadImageState.Success) it.uploadImageState.image.mid
+                        else null
                     } else emptyList()
                 )
-                _sendCommentToPosterStateFlow.value = SendCommentState.Success
+                _sendCommentToPosterStateFlow.value = SimpleState.Success
 
                 // 发送成功后，清空编辑框
                 _commentEditDataFlow.value = CommentEditData(
                     text = "",
                     uploadImageData = UploadImageData(
-                        ifUpdate = false,
+                        ifUpload = false,
                         images = emptyList()
                     ),
                     anonymous = false,
                 )
 
                 // 发送成功后，添加到评论列表的第一个
-                val comments = commentState.dataFlow.value
-                commentState.setData(comments.toMutableList().apply {
+                val comments = _commentState.data
+                _commentState.data = comments.toMutableList().apply {
                     add(0, comment)
-                })
+                }
 
             } catch (e: Exception) {
                 e.printStackTrace()
-                _sendCommentToPosterStateFlow.value = SendCommentState.Fail
+                _sendCommentToPosterStateFlow.value = SimpleState.Fail
 
             }
         }
@@ -499,7 +503,7 @@ class PosterViewModel @Inject constructor(
         subComment: Comment,
         editData: CommentEditData,
     ) {
-        _sendCommentToCommentStateFlow.value = SendCommentState.Sending
+        _sendCommentToCommentStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val resComment = reactionRepo.sendCommentToComment(
@@ -507,13 +511,12 @@ class PosterViewModel @Inject constructor(
                     text = editData.text,
                     replyComment = subComment,
                     anonymous = editData.anonymous,
-                    images = if (editData.uploadImageData.ifUpdate) editData.uploadImageData.images.mapNotNull {
-                        if (it.second is UploadImageState.Success) {
-                            (it.second as UploadImageState.Success).image.mid
-                        } else null
+                    images = if (editData.uploadImageData.ifUpload) editData.uploadImageData.images.mapNotNull {
+                        if (it.uploadImageState is UploadImageState.Success) it.uploadImageState.image.mid
+                        else null
                     } else emptyList()
                 )
-                _sendCommentToCommentStateFlow.value = SendCommentState.Success
+                _sendCommentToCommentStateFlow.value = SimpleState.Success
 
                 // 发送成功后，清空编辑框
                 val commentEditDataMap = commentForCommentEditDataMapFlow.value
@@ -521,23 +524,23 @@ class PosterViewModel @Inject constructor(
 
                 // 发送成功后，将评论添加到对应的评论列表中
                 // 子评论的评论列表
-                val subComments = subCommentState.dataFlow.value.toMutableList()
-                subCommentState.setData(subComments.apply {
+                val subComments = _subCommentState.data.toMutableList()
+                _subCommentState.data = subComments.apply {
                     add(0, resComment)
-                })
+                }
 
                 // 帖子评论的评论列表
-                val allComments = commentState.dataFlow.value
-                commentState.setData(addCommentToComment(
+                val allComments = _commentState.data
+                _commentState.data = addCommentToComment(
                     allComments, comment.id, resComment
-                ))
+                )
 
                 // 关闭评论对话框
                 setShowCommentDialogState(null, null)
             } catch (e: Exception) {
                 e.printStackTrace()
 
-                _sendCommentToCommentStateFlow.value = SendCommentState.Fail
+                _sendCommentToCommentStateFlow.value = SimpleState.Fail
             }
         }
     }
