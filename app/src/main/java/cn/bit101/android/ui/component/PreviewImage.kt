@@ -2,9 +2,13 @@ package cn.bit101.android.ui.component
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -21,6 +25,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.api.model.common.Image
 import coil.compose.AsyncImage
+import coil.compose.AsyncImagePainter
+import org.jetbrains.annotations.Range
 
 @Composable
 fun PreviewImage(
@@ -31,9 +37,26 @@ fun PreviewImage(
     AsyncImage(
         modifier = Modifier
             .size(size)
-            .clip(RoundedCornerShape(10.dp))
+            .clip(RoundedCornerShape(4.dp))
             .clickable { onClick() },
 
+        contentScale = ContentScale.Crop,
+        model = image.lowUrl,
+        contentDescription = "image",
+    )
+}
+
+@Composable
+fun PreviewImage(
+    modifier: Modifier = Modifier,
+    image: Image,
+    onClick: () -> Unit = {},
+) {
+    AsyncImage(
+        modifier = modifier
+            .fillMaxHeight()
+            .clip(RoundedCornerShape(4.dp))
+            .clickable { onClick() },
         contentScale = ContentScale.Crop,
         model = image.lowUrl,
         contentDescription = "image",
@@ -93,26 +116,32 @@ fun PreviewImagesWithGridLayout(
     }
 
     val newMaxCountInEachRow = if(images.size < maxCountInEachRow) images.size
-    else maxCountInEachRow
+    else maxOf(maxCountInEachRow, 2)
 
-    FlowRow(
-        modifier = modifier,
-        maxItemsInEachRow = maxCountInEachRow,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        images.forEachIndexed { index, image ->
-            PreviewImage(
-                image = image,
-                onClick = { onClick(index) },
-                size = LocalDensity.current.run {
-                    val padding = if(newMaxCountInEachRow == 1) 0
-                    else if(index % newMaxCountInEachRow == 0 || index % newMaxCountInEachRow == 1) 3
-                    else 4
+    if(images.size == 1) {
+        PreviewImage(
+            modifier = modifier.fillMaxWidth(),
+            image = images[0],
+            onClick = { onClick(0) },
+        )
+    } else {
+        val padding = 4.dp
 
-                    (width / newMaxCountInEachRow).toDp() - padding.dp
-                }
-            )
+        FlowRow(
+            modifier = modifier,
+            maxItemsInEachRow = maxCountInEachRow,
+            horizontalArrangement = Arrangement.spacedBy(padding),
+            verticalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            images.forEachIndexed { index, image ->
+                PreviewImage(
+                    image = image,
+                    onClick = { onClick(index) },
+                    size = LocalDensity.current.run {
+                        (width.toDp() - padding * (newMaxCountInEachRow - 1)) / newMaxCountInEachRow
+                    }
+                )
+            }
         }
     }
 }
