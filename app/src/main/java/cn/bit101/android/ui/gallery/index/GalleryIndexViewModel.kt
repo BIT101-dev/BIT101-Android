@@ -4,12 +4,21 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.PosterRepo
-import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombined
+import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedOne
+import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedZero
 import cn.bit101.api.model.common.PostersOrder
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.toGetPostersDataModelResponseItem
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
+
+data class SearchData(
+    val search: String,
+    val order: String,
+    val filter: Int,
+)
 
 
 @HiltViewModel
@@ -17,105 +26,91 @@ class GalleryIndexViewModel @Inject constructor(
     private val posterRepo: PosterRepo
 ) : ViewModel() {
 
-    private val _recommendState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val recommendStateFlows = _recommendState.flows()
+    private val _recommendState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh() = refresh {
+            posterRepo.getRecommendPosters()
+        }
 
-    private val _hotState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val hotStateFlows = _hotState.flows()
+        override fun loadMore() = loadMore { page ->
+            posterRepo.getRecommendPosters(page)
+        }
+    }
+    val recommendStateExport = _recommendState.export()
 
-    private val _followState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val followStateFlows = _followState.flows()
+    private val _hotState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh() = refresh {
+            posterRepo.getHotPosters()
+        }
 
-    private val _newestStata = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val newestStataFlows = _newestStata.flows()
+        override fun loadMore() = loadMore { page ->
+            posterRepo.getHotPosters(page)
+        }
+    }
+    val hotStateExport = _hotState.export()
 
-    private val _searchState = RefreshAndLoadMoreStatesCombined<GetPostersDataModel.ResponseItem>(viewModelScope)
-    val searchStateFlows = _searchState.flows()
+    private val _followState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh() = refresh {
+            posterRepo.getFollowPosters()
+        }
 
-    val queryLiveData = MutableLiveData("")
-    val selectOrderLiveData = MutableLiveData(PostersOrder.NEW)
+        override fun loadMore() = loadMore { page ->
+            posterRepo.getFollowPosters(page)
+        }
+    }
+    val followStateExport = _followState.export()
+
+    private val _newestStata = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh() = refresh {
+            posterRepo.getNewestPosters()
+        }
+
+        override fun loadMore() = loadMore { page ->
+            posterRepo.getNewestPosters(page)
+        }
+    }
+    val newestStataExport = _newestStata.export()
+
+    private val _searchState = object : RefreshAndLoadMoreStatesCombinedOne<SearchData, GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh(data: SearchData) = refresh {
+            val posters = posterRepo.getSearchPosters(
+                search = data.search,
+                order = data.order,
+                uid = data.filter,
+                page = 0,
+            ).toMutableList()
+
+            /**
+             * 根据id搜索
+             */
+            try {
+                val id = data.search.toLong()
+                val poster = posterRepo.getPosterById(id).toGetPostersDataModelResponseItem()
+                posters.add(0, poster)
+            } catch (_: Exception) { }
+
+            lastSearchQueryLiveData.postValue(data.search)
+
+            posters
+        }
+
+        override fun loadMore(data: SearchData) = loadMore { page ->
+            posterRepo.getSearchPosters(
+                search = data.search,
+                page = page,
+                order = data.order,
+                uid = data.filter,
+            )
+        }
+    }
+    val searchStateFlows = _searchState.export()
+
+    private val _searchDataFlow = MutableStateFlow(SearchData("", PostersOrder.NEW, 0))
+    val searchDataFlow = _searchDataFlow.asStateFlow()
 
     val lastSearchQueryLiveData = MutableLiveData("")
 
-    fun setQuery(query: String) {
-        queryLiveData.value = query
-    }
-
-    fun setSelectOrder(order: String) {
-        selectOrderLiveData.value = order
-    }
-
-    fun refreshRecommend() = _recommendState.refresh {
-        posterRepo.getRecommendPosters()
-    }
-
-    fun loadMoreRecommend() = _recommendState.loadMore { page ->
-        posterRepo.getRecommendPosters(page)
-    }
-
-
-    fun refreshHot() = _hotState.refresh {
-        posterRepo.getHotPosters()
-    }
-
-    fun loadMoreHot() = _hotState.loadMore { page ->
-        posterRepo.getHotPosters(page)
-    }
-
-
-    fun refreshFollow() = _followState.refresh {
-        posterRepo.getFollowPosters()
-    }
-
-    fun loadMoreFollow() = _followState.loadMore { page ->
-        posterRepo.getFollowPosters(page)
-    }
-
-    fun refreshSearch(
-        search: String,
-        order: String,
-        filter: Int,
-    ) = _searchState.refresh {
-        val posters = posterRepo.getSearchPosters(
-            search = search,
-            order = order,
-            uid = filter,
-            page = 0,
-        ).toMutableList()
-
-        /**
-         * 根据id搜索
-         */
-        try {
-            val id = search.toLong()
-            val poster = posterRepo.getPosterById(id).toGetPostersDataModelResponseItem()
-            posters.add(0, poster)
-        } catch (_: Exception) { }
-
-        lastSearchQueryLiveData.postValue(search)
-
-        posters
-    }
-
-    fun loadMoreSearch(
-        search: String,
-        order: String,
-        filter: Int,
-    ) = _searchState.loadMore { page ->
-        posterRepo.getSearchPosters(
-            search = search,
-            page = page,
-            order = order,
-            uid = filter,
-        )
-    }
-
-    fun refreshNewest() = _newestStata.refresh {
-        posterRepo.getNewestPosters()
-    }
-
-    fun loadMoreNewest() = _newestStata.loadMore { page ->
-        posterRepo.getNewestPosters(page)
+    fun setSearchData(searchData: SearchData) {
+        _searchDataFlow.value = searchData
     }
 
 }

@@ -209,7 +209,7 @@ fun CommentCard(
     /**
      * 点赞评论
      */
-    onLikeComment: (Long) -> Unit,
+    onLikeComment: (Comment) -> Unit,
 
     /**
      * 打开图片
@@ -254,7 +254,7 @@ fun CommentCard(
                 iconSize = mainAvatarSize,
                 leftSize = calculateLeftSize(mainAvatarSize),
                 onClick = onClick,
-                onLike = { onLikeComment(comment.id.toLong()) },
+                onLike = { onLikeComment(comment) },
                 onOpenUserDetail = { mainController.navController.navigate("user/${comment.user.id}") },
                 onOpenImage = { onOpenImage(it, comment.images) },
                 paddingValues = PaddingValues(horizontal = 8.dp),
@@ -273,7 +273,7 @@ fun CommentCard(
                             iconSize = subAvatarSize,
                             leftSize = calculateLeftSize(subAvatarSize),
                             onClick = onClick,
-                            onLike = { onLikeComment(sub.id.toLong()) },
+                            onLike = { onLikeComment(sub) },
                             onOpenUserDetail = { mainController.navController.navigate("user/${comment.sub[0].user.id}") },
                             onOpenImage = { onOpenImage(it, sub.images) },
                             paddingValues = PaddingValues(end = 8.dp),

@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.poster
+package cn.bit101.android.ui.gallery.poster.component
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -13,26 +13,19 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
-import androidx.compose.material.icons.rounded.ArrowBackIos
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -42,15 +35,9 @@ import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.component.gallery.CommentCard
-import cn.bit101.android.utils.ColorUtils
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
-import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
-import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
-import cn.bit101.android.ui.component.bottomsheet.BottomSheet
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetDefaults
-import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
-import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -96,7 +83,7 @@ fun MoreCommentsSheetContent(
     /**
      * 点赞评论
      */
-    onLikeComment: (Long) -> Unit,
+    onLikeComment: (Comment) -> Unit,
 
     /**
      * 打开图片组
@@ -242,7 +229,7 @@ fun MoreCommentsSheetContent(
 
 
 @Composable
-fun MoreCommentsSheet(
+fun MoreCommentsBottomSheet(
     mainController: MainController,
     comment: Comment,
     subComments: List<Comment>,
@@ -253,12 +240,12 @@ fun MoreCommentsSheet(
     state: LoadableLazyColumnWithoutPullRequestState,
 
     onCancel: () -> Unit,
-    onLikeComment: (Long) -> Unit,
+    onLikeComment: (Comment) -> Unit,
 
     /**
      * 第一个是主评论，第二个是回复的评论
      */
-    onOpenCommentDialog: (Comment, Comment) -> Unit,
+    onOpenCommentToComment: (Comment, Comment) -> Unit,
     onOpenImages: (Int, List<Image>) -> Unit,
     onReport: (Comment) -> Unit,
     onOpenDeleteCommentDialog: (Comment) -> Unit,
@@ -320,7 +307,7 @@ fun MoreCommentsSheet(
 
                 onLikeComment = onLikeComment,
                 onOpenImages = onOpenImages,
-                onOpenCommentDialog = onOpenCommentDialog,
+                onOpenCommentDialog = onOpenCommentToComment,
                 onReport = onReport,
                 onOpenDeleteCommentDialog = onOpenDeleteCommentDialog,
                 onOpenMoreActionOfCommentBottomSheet = onOpenMoreActionOfCommentBottomSheet,

@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.poster
+package cn.bit101.android.ui.gallery.poster.component
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.gallery.CommentEditContent
+import cn.bit101.android.ui.gallery.poster.CommentEditData
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
 

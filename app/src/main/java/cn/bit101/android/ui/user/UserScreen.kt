@@ -382,11 +382,11 @@ fun UserScreen(
 
     val getUserInfoState by vm.getUserInfoStateFlow.collectAsState()
 
-    val posters by vm.posterStateFlows.dataFlow.collectAsState()
+    val posters by vm.posterStateExport.dataFlow.collectAsState()
 
-    val postersLoadMoreState by vm.posterStateFlows.loadMoreStateFlow.collectAsState()
+    val postersLoadMoreState by vm.posterStateExport.loadMoreStateFlow.collectAsState()
 
-    val postersRefreshState by vm.posterStateFlows.refreshStateFlow.collectAsState()
+    val postersRefreshState by vm.posterStateExport.refreshStateFlow.collectAsState()
 
     val followState by vm.followStateMutableLiveData.observeAsState()
 
@@ -408,13 +408,13 @@ fun UserScreen(
     var showFollowingDialog by remember { mutableStateOf(false) }
 
 
-    val followers by vm.followersStateFlows.dataFlow.collectAsState()
-    val refreshFollowersState by vm.followersStateFlows.refreshStateFlow.collectAsState()
-    val loadMoreFollowersState by vm.followersStateFlows.loadMoreStateFlow.collectAsState()
+    val followers by vm.followersStateExport.dataFlow.collectAsState()
+    val refreshFollowersState by vm.followersStateExport.refreshStateFlow.collectAsState()
+    val loadMoreFollowersState by vm.followersStateExport.loadMoreStateFlow.collectAsState()
 
-    val followings by vm.followingsStateFlows.dataFlow.collectAsState()
-    val refreshFollowingsState by vm.followingsStateFlows.refreshStateFlow.collectAsState()
-    val loadMoreFollowingsState by vm.followingsStateFlows.loadMoreStateFlow.collectAsState()
+    val followings by vm.followingsStateExport.dataFlow.collectAsState()
+    val refreshFollowingsState by vm.followingsStateExport.refreshStateFlow.collectAsState()
+    val loadMoreFollowingsState by vm.followingsStateExport.loadMoreStateFlow.collectAsState()
 
 
     val uploadAvatarState by vm.uploadAvatarState.observeAsState()
@@ -462,7 +462,7 @@ fun UserScreen(
 
     LaunchedEffect(postersRefreshState) {
         if(postersRefreshState == null) {
-            vm.refreshPoster(id)
+            vm.posterStateExport.refresh(id)
         }
     }
 
@@ -490,7 +490,7 @@ fun UserScreen(
                 posters = posters,
 
                 state = rememberLoadableLazyColumnWithoutPullRequestState(
-                    onLoadMore = { vm.loadMorePosters(id) }
+                    onLoadMore = { vm.posterStateExport.loadMore(id) }
                 ),
                 loadState = postersLoadMoreState,
                 followState = followState,
@@ -533,10 +533,10 @@ fun UserScreen(
                         refreshState = refreshFollowersState,
                         loadMoreState = loadMoreFollowersState,
                         state = rememberLoadableLazyColumnWithoutPullRequestState(
-                            onLoadMore = { vm.loadMoreFollowers() }
+                            onLoadMore = vm.followersStateExport.loadMore
                         ),
                         onDismiss = { showFollowerDialog = false },
-                        onRefresh = vm::refreshFollowers
+                        onRefresh = vm.followersStateExport.refresh
                     )
                 } else showFollowerDialog = false
             }
@@ -549,10 +549,10 @@ fun UserScreen(
                         refreshState = refreshFollowingsState,
                         loadMoreState = loadMoreFollowingsState,
                         state = rememberLoadableLazyColumnWithoutPullRequestState(
-                            onLoadMore = { vm.loadMoreFollowings() }
+                            onLoadMore = vm.followingsStateExport.loadMore
                         ),
                         onDismiss = { showFollowingDialog = false },
-                        onRefresh = vm::refreshFollowings
+                        onRefresh = vm.followingsStateExport.refresh
                     )
                 } else showFollowingDialog = false
             }

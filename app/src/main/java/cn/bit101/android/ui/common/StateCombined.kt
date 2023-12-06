@@ -7,42 +7,54 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+
 /**
  * 暴露出来的状态
  */
-data class RefreshAndLoadMoreStatesCombinedFlows <T>(
-    val refreshStateFlow: StateFlow<SimpleState?>,
-    val loadMoreStateFlow: StateFlow<SimpleState?>,
-    val dataFlow: StateFlow<List<T>>,
-    val pageFlow: StateFlow<Int>,
-)
+interface BasicRefreshAndLoadMoreStatesCombinedExportData <T>{
+    val refreshStateFlow: StateFlow<SimpleState?>
+    val loadMoreStateFlow: StateFlow<SimpleState?>
+    val dataFlow: StateFlow<List<T>>
+    val pageFlow: StateFlow<Int>
+}
+
+data class RefreshAndLoadMoreStatesCombinedExportDataOne <A, T>(
+    override val refreshStateFlow: StateFlow<SimpleState?>,
+    override val loadMoreStateFlow: StateFlow<SimpleState?>,
+    override val dataFlow: StateFlow<List<T>>,
+    override val pageFlow: StateFlow<Int>,
+
+    val refresh: (A) -> Unit,
+    val loadMore: (A) -> Unit,
+) : BasicRefreshAndLoadMoreStatesCombinedExportData<T>
+
+data class RefreshAndLoadMoreStatesCombinedExportDataZero <T>(
+    override val refreshStateFlow: StateFlow<SimpleState?>,
+    override val loadMoreStateFlow: StateFlow<SimpleState?>,
+    override val dataFlow: StateFlow<List<T>>,
+    override val pageFlow: StateFlow<Int>,
+
+    val refresh: () -> Unit,
+    val loadMore: () -> Unit,
+) : BasicRefreshAndLoadMoreStatesCombinedExportData<T>
+
 
 /**
  * 将*刷新*和*加载更多*的状态组合在一起
  */
-class RefreshAndLoadMoreStatesCombined <T>(
+abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
     private val viewModelScope: CoroutineScope,
 ) {
-    private val refreshStateFlow = MutableStateFlow<SimpleState?>(null)
-    private val loadMoreStateFlow = MutableStateFlow<SimpleState?>(null)
-    private val dataFlow = MutableStateFlow<List<T>>(emptyList())
-    private val pageFlow = MutableStateFlow(0)
+    protected val refreshStateFlow = MutableStateFlow<SimpleState?>(null)
+    protected val loadMoreStateFlow = MutableStateFlow<SimpleState?>(null)
+    protected val dataFlow = MutableStateFlow<List<T>>(emptyList())
+    protected val pageFlow = MutableStateFlow(0)
 
     var data: List<T>
         get() = dataFlow.value
         set(value) { dataFlow.value = value }
 
-    /**
-     * 将所有的状态暴露出来给组合函数
-     */
-    fun flows() = RefreshAndLoadMoreStatesCombinedFlows(
-        refreshStateFlow = refreshStateFlow.asStateFlow(),
-        loadMoreStateFlow = loadMoreStateFlow.asStateFlow(),
-        dataFlow = dataFlow.asStateFlow(),
-        pageFlow = pageFlow.asStateFlow(),
-    )
-
-    fun refresh(
+    protected fun refresh(
         refresh: suspend () -> List<T>
     ) {
         refreshStateFlow.value = SimpleState.Loading
@@ -59,7 +71,7 @@ class RefreshAndLoadMoreStatesCombined <T>(
         }
     }
 
-    fun loadMore(
+    protected fun loadMore(
         loadMore: suspend (Long) -> List<T>
     ) {
         loadMoreStateFlow.value = SimpleState.Loading
@@ -82,4 +94,52 @@ class RefreshAndLoadMoreStatesCombined <T>(
             }
         }
     }
+}
+
+/**
+ * 将*刷新*和*加载更多*的状态组合在一起，增加了一个参数
+ */
+abstract class RefreshAndLoadMoreStatesCombinedOne <A, T>(
+    viewModelScope: CoroutineScope,
+) : BasicRefreshAndLoadMoreStatesCombined<T>(viewModelScope) {
+
+    /**
+     * 将所有的状态暴露出来给组合函数
+     */
+    fun export() = RefreshAndLoadMoreStatesCombinedExportDataOne <A, T>(
+        refreshStateFlow = refreshStateFlow.asStateFlow(),
+        loadMoreStateFlow = loadMoreStateFlow.asStateFlow(),
+        dataFlow = dataFlow.asStateFlow(),
+        pageFlow = pageFlow.asStateFlow(),
+
+        refresh = { refresh(it) },
+        loadMore = { loadMore(it) },
+    )
+
+    abstract fun refresh(data: A)
+    abstract fun loadMore(data: A)
+}
+
+/**
+ * 将*刷新*和*加载更多*的状态组合在一起
+ */
+abstract class RefreshAndLoadMoreStatesCombinedZero <T>(
+    viewModelScope: CoroutineScope,
+) : BasicRefreshAndLoadMoreStatesCombined<T>(viewModelScope) {
+
+    /**
+     * 将所有的状态暴露出来给组合函数
+     */
+    fun export() = RefreshAndLoadMoreStatesCombinedExportDataZero <T>(
+        refreshStateFlow = refreshStateFlow.asStateFlow(),
+        loadMoreStateFlow = loadMoreStateFlow.asStateFlow(),
+        dataFlow = dataFlow.asStateFlow(),
+        pageFlow = pageFlow.asStateFlow(),
+
+        refresh = { refresh() },
+        loadMore = { loadMore() },
+    )
+
+    abstract fun refresh()
+    abstract fun loadMore()
 }
