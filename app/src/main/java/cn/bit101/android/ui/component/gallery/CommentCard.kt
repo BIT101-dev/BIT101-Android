@@ -286,7 +286,7 @@ fun CommentCard(
                             modifier = Modifier
                                 .align(Alignment.CenterVertically)
                                 .clickable { onShowMoreComments() },
-                            text = "查看共${comment.commentNum}条评论",
+                            text = "查看共${comment.commentNum}条回复",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface,
                                 fontWeight = FontWeight.Bold

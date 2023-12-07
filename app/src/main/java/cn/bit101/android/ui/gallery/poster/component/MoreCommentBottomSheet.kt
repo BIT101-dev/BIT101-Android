@@ -191,7 +191,9 @@ fun MoreCommentsSheetContent(
                             showSubComments = false,
                             commentLikings = commentLikings,
                             onLikeComment = onLikeComment,
-                            onOpenCommentToComment = onOpenCommentDialog,
+                            onOpenCommentToComment = { subComment, _ ->
+                                onOpenCommentDialog(comment, subComment)
+                            },
                             onMoreAction = onOpenMoreActionOfCommentBottomSheet
                         )
                     }
@@ -274,7 +276,7 @@ fun MoreCommentsBottomSheet(
             ) {
                 Text(
                     modifier = Modifier.align(Alignment.Center),
-                    text = "更多评论",
+                    text = "更多回复",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
                     )
