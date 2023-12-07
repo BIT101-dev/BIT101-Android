@@ -18,9 +18,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -37,7 +34,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
@@ -50,17 +46,19 @@ import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.ui.component.image.ImageHost
 import cn.bit101.android.ui.component.image.rememberImageHostState
 import cn.bit101.android.ui.component.navigationbar.NavigationBar
+import cn.bit101.android.ui.component.snackbar.SnackbarHost
+import cn.bit101.android.ui.component.snackbar.rememberSnackbarState
 import cn.bit101.android.ui.gallery.index.GalleryScreen
 import cn.bit101.android.ui.gallery.message.MessageScreen
 import cn.bit101.android.ui.gallery.postedit.PostEditScreen
 import cn.bit101.android.ui.gallery.poster.PosterScreen
 import cn.bit101.android.ui.gallery.report.ReportScreen
-import cn.bit101.android.ui.user.UserScreen
 import cn.bit101.android.ui.login.LoginOrLogoutScreen
 import cn.bit101.android.ui.map.MapScreen
-import cn.bit101.android.ui.schedule.ScheduleScreen
 import cn.bit101.android.ui.mine.MineScreen
+import cn.bit101.android.ui.schedule.ScheduleScreen
 import cn.bit101.android.ui.setting.SettingScreen
+import cn.bit101.android.ui.user.UserScreen
 import cn.bit101.android.ui.web.WebScreen
 import cn.bit101.android.utils.ColorUtils
 import cn.bit101.android.utils.PageUtils
@@ -77,7 +75,7 @@ fun MainApp(
     val mainController = MainController(
         scope = rememberCoroutineScope(),
         navController = rememberNavController(),
-        snackbarHostState = remember { SnackbarHostState() },
+        snackbarHostState = rememberSnackbarState(scope = rememberCoroutineScope()),
         imageHostState = rememberImageHostState()
     )
 
@@ -147,17 +145,6 @@ fun MainApp(
 
     val navBarHeight = 80f
     Scaffold(
-        snackbarHost = {
-            SnackbarHost(
-                hostState = mainController.snackbarHostState,
-                snackbar = {
-                    Snackbar(
-                        modifier = Modifier.zIndex(Float.MAX_VALUE - 100),
-                        snackbarData = it
-                    )
-                }
-            )
-        },
         bottomBar = {
             AnimatedVisibility(
                 visibleState = bottomBarTransitionState,
@@ -359,6 +346,10 @@ fun MainApp(
             modifier = Modifier.fillMaxSize(),
             state = mainController.imageHostState,
             onOpenUrl = { mainController.openUrl(ctx, it) },
+        )
+
+        SnackbarHost(
+            state = mainController.snackbarHostState
         )
     }
 

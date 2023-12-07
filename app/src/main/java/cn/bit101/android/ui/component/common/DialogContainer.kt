@@ -1,8 +1,9 @@
 // Based on androidx.compose.ui.window.AndroidDialog.android.kt
 
-package cn.bit101.android.ui.component.dialog
+package cn.bit101.android.ui.component.common
 
 import android.content.Context
+import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -64,7 +65,7 @@ internal class SheetLayout(
 }
 
 @Suppress("deprecation")
-internal class DialogWrapper(
+internal open class DialogWrapper(
     private var onDismissRequest: () -> Unit,
     private var behaviors: DialogSheetBehaviors,
     private val composeView: View,
@@ -222,6 +223,33 @@ internal class DialogWrapper(
     override fun cancel() {
         // Prevents the dialog from dismissing itself
         return
+    }
+}
+@Suppress("deprecation")
+internal class SnackbarWrapper(
+    onDismissRequest: () -> Unit,
+    behaviors: DialogSheetBehaviors,
+    composeView: View,
+    layoutDirection: LayoutDirection,
+    dialogId: UUID,
+    width: Int,
+    height: Int,
+    offsetY: Int,
+) : DialogWrapper(
+    onDismissRequest,
+    behaviors,
+    composeView,
+    layoutDirection,
+    dialogId
+) {
+    init {
+        window?.run {
+            setLayout(width, height)
+            addFlags(WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE)
+
+            attributes.y = offsetY
+            setGravity(Gravity.TOP or Gravity.CENTER_HORIZONTAL)
+        }
     }
 }
 

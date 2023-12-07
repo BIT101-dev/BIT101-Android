@@ -11,6 +11,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.navigation.NavHostController
 import cn.bit101.android.ui.common.ImageData
 import cn.bit101.android.ui.component.image.ImageHostState
+import cn.bit101.android.ui.component.snackbar.SnackbarState
 import cn.bit101.api.model.common.Image
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -18,7 +19,7 @@ import kotlinx.coroutines.launch
 class MainController(
     val scope: CoroutineScope,
     val navController: NavHostController,
-    val snackbarHostState: SnackbarHostState,
+    val snackbarHostState: SnackbarState,
     val imageHostState: ImageHostState,
 ) {
 
@@ -28,10 +29,7 @@ class MainController(
 
     fun snackbar(message: String) {
         scope.launch {
-            snackbarHostState.showSnackbar(
-                message,
-                withDismissAction = true,
-            )
+            snackbarHostState.show(message)
         }
     }
 

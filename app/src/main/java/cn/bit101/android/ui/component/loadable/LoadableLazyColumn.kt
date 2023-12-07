@@ -33,8 +33,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.component1
+import androidx.core.graphics.component2
 import cn.bit101.android.ui.component.pullrefresh.PullRefreshDefaults
 import cn.bit101.android.ui.component.pullrefresh.PullRefreshIndicator
 import cn.bit101.android.ui.component.pullrefresh.PullRefreshState
@@ -59,24 +62,13 @@ internal fun BasicLoadableLazyColumn(
     userScrollEnabled: Boolean = true,
     loadingContent: @Composable () -> Unit = {
         if (loading) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.align(Alignment.Center),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(30.dp)
-                    )
-                    Spacer(modifier = Modifier.padding(2.dp))
-                    Text(
-                        text = "加载中...",
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                        )
-                    )
-                }
-            }
+            Spacer(modifier = Modifier.padding(4.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "正在加载中",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+            )
         }
     },
     pullRefreshIndicator: @Composable BoxScope.() -> Unit = {
@@ -116,34 +108,46 @@ internal fun BasicLoadableLazyColumn(
     }
     if(loadMoreState != null) {
         // 获取 lazyList 布局信息
-        val listLayoutInfo by remember { derivedStateOf { lazyListState.layoutInfo } }
+        val listLayoutInfo by derivedStateOf { lazyListState.layoutInfo }
 
-        // 上次是否正在滑动
-        var lastTimeIsScrollInProgress by remember {
-            mutableStateOf(lazyListState.isScrollInProgress)
-        }
-        // 上次滑动结束后最后一个可见的index
+        // 上次最后一个可见的 index
         var lastTimeLastVisibleIndex by remember {
             mutableIntStateOf(listLayoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0)
         }
+
+        // 上次最后一个可见的 offset
+        var lastTimeLastVisibleOffset by remember {
+            mutableIntStateOf(listLayoutInfo.visibleItemsInfo.lastOrNull()?.offset ?: 0)
+        }
+
         // 当前是否正在滑动
         val currentIsScrollInProgress = lazyListState.isScrollInProgress
+
         // 当前最后一个可见的 index
         val currentLastVisibleIndex = listLayoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-        if (!currentIsScrollInProgress && lastTimeIsScrollInProgress) {
-            if (currentLastVisibleIndex != lastTimeLastVisibleIndex) {
-                val isScrollDown = currentLastVisibleIndex > lastTimeLastVisibleIndex
-                val remainCount = listLayoutInfo.totalItemsCount - currentLastVisibleIndex - 1
-                if (isScrollDown && remainCount <= loadMoreState.loadMoreRemainCountThreshold && pullRefreshState?.refreshing != true) {
-                    LaunchedEffect(Unit) {
-                        loadMoreState.onLoadMore()
-                    }
+
+        // 当前最后一个可见的 offset
+        val currentLastVisibleOffset = listLayoutInfo.visibleItemsInfo.lastOrNull()?.offset ?: 0
+
+
+        if (currentIsScrollInProgress) {
+            val onBottom = listLayoutInfo.visibleItemsInfo.lastOrNull()?.let {
+                listLayoutInfo.totalItemsCount - 1 - it.index <= loadMoreState.loadMoreRemainCountThreshold
+            } ?: true
+
+            val isScrollDown = currentLastVisibleIndex > lastTimeLastVisibleIndex ||
+                    (currentLastVisibleIndex == lastTimeLastVisibleIndex && currentLastVisibleOffset > lastTimeLastVisibleOffset)
+
+            if(onBottom && isScrollDown && pullRefreshState?.refreshing != true) {
+                LaunchedEffect(Unit) {
+                    loadMoreState.onLoadMore()
                 }
             }
+
             // 滑动结束后再更新值
             lastTimeLastVisibleIndex = currentLastVisibleIndex
+            lastTimeLastVisibleOffset = currentLastVisibleOffset
         }
-        lastTimeIsScrollInProgress = currentIsScrollInProgress
     }
 }
 

@@ -57,8 +57,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
-import cn.bit101.android.ui.component.dialog.DialogLayout
-import cn.bit101.android.ui.component.dialog.DialogWrapper
+import cn.bit101.android.ui.component.common.DialogLayout
+import cn.bit101.android.ui.component.common.DialogWrapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter

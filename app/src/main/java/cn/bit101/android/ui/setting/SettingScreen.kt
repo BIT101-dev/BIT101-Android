@@ -76,7 +76,6 @@ fun SettingScreen(
                 },
             )
         },
-        snackbarHost = { SnackbarHost(settingController.snackbarHostState) },
     ) { paddingValues ->
         NavHost(
             navController = navController,

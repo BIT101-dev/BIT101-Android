@@ -18,7 +18,7 @@ fun rememberLoadableLazyColumnState(
     onLoadMore: () -> Unit,
     refreshThreshold: Dp = PullRefreshDefaults.RefreshThreshold,
     refreshingOffset: Dp = PullRefreshDefaults.RefreshingOffset,
-    loadMoreRemainCountThreshold: Int = 5,
+    loadMoreRemainCountThreshold: Int = 0,
     initialFirstVisibleItemIndex: Int = 0,
     initialFirstVisibleItemScrollOffset: Int = 0
 ): LoadableLazyColumnState {
