@@ -57,6 +57,7 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
     protected fun refresh(
         refresh: suspend () -> List<T>
     ) {
+        if(refreshStateFlow.value == SimpleState.Loading) return
         refreshStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -74,15 +75,17 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
     protected fun loadMore(
         loadMore: suspend (Long) -> List<T>
     ) {
+        if(loadMoreStateFlow.value == SimpleState.Loading) return
         loadMoreStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
+            var page = pageFlow.value
             try {
-                if(pageFlow.value >= 0) {
-                    ++pageFlow.value
-                    val posters = loadMore(pageFlow.value.toLong())
+                if(page >= 0) {
+                    ++page
+                    val posters = loadMore(page.toLong())
                     if (posters.isEmpty()) {
                         // 停止继续加载
-                        pageFlow.value = -1
+                        page = -1
                     }
                     val allPosters = dataFlow.value.plus(posters)
                     dataFlow.value = allPosters
@@ -92,6 +95,7 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
                 e.printStackTrace()
                 loadMoreStateFlow.value = SimpleState.Fail
             }
+            pageFlow.value = page
         }
     }
 }
