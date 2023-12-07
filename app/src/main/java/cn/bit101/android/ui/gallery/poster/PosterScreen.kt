@@ -1,7 +1,5 @@
 package cn.bit101.android.ui.gallery.poster
 
-import android.content.Intent
-import android.provider.MediaStore
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
@@ -29,21 +27,19 @@ import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.gallery.DeleteCommentDialog
 import cn.bit101.android.ui.component.gallery.DeletePosterDialog
-import cn.bit101.android.ui.component.rememberLoadableLazyColumnWithoutPullRequestState
+import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.gallery.poster.component.CommentBottomSheet
 import cn.bit101.android.ui.gallery.poster.component.MoreActionBottomSheet
 import cn.bit101.android.ui.gallery.poster.component.MoreCommentsBottomSheet
 import cn.bit101.android.ui.common.rememberImagePicker
+import cn.bit101.android.ui.component.gallery.DeleteImageDialog
 import cn.bit101.api.model.common.Comment
-import cn.bit101.api.model.common.Image
 
 
 @Composable
 fun PosterScreen(
     mainController: MainController,
     id: Long,
-    onOpenImage: (Image) -> Unit,
-    onOpenImages: (Int, List<Image>) -> Unit,
     vm: PosterViewModel = hiltViewModel()
 ) {
     /**
@@ -117,14 +113,6 @@ fun PosterScreen(
         }
     }
 
-    /**
-     * 上传图片时发送的intent
-     */
-    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-        type = "image/*"
-        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
-    }
-
 
     // 打开时获取帖子内容
     LaunchedEffect(getPosterState) {
@@ -143,7 +131,7 @@ fun PosterScreen(
     /**
      * 确认删除poster的对话框
      */
-    var deletePosterDialogState by rememberSaveable { mutableIntStateOf(-1) }
+    var showDeletePosterDialogState by rememberSaveable { mutableIntStateOf(-1) }
 
     /**
      * 删除帖子这个动作的状态
@@ -157,7 +145,7 @@ fun PosterScreen(
         if(deletePosterState is SimpleState.Success) {
             mainController.snackbar("帖子删除成功了！")
             mainController.navController.popBackStack()
-            deletePosterDialogState = -1
+            showDeletePosterDialogState = -1
             vm.setDeletePosterState(null)
         } else if(deletePosterState is SimpleState.Fail) {
             mainController.snackbar("帖子删除失败Orz")
@@ -168,7 +156,7 @@ fun PosterScreen(
     /**
      * 确认删除Comment的对话框
      */
-    var deleteCommentDialogState by rememberSaveable { mutableIntStateOf(-1) }
+    var showDeleteCommentDialogState by rememberSaveable { mutableIntStateOf(-1) }
 
     /**
      * 删除评论这个动作的状态
@@ -181,7 +169,7 @@ fun PosterScreen(
     LaunchedEffect(deleteCommentState) {
         if (deleteCommentState is SimpleState.Success) {
             mainController.snackbar("评论删除成功了！")
-            deleteCommentDialogState = -1
+            showDeleteCommentDialogState = -1
             vm.setShowMoreState(false, null)
             vm.commentStateExports.refresh(id)
             vm.setDeleteCommentState(null)
@@ -202,14 +190,9 @@ fun PosterScreen(
     }
 
     /**
-     * 确认删除对评论的评论中的图片的对话框
-     */
-    var deleteImageOfCommentDialogState by rememberSaveable { mutableStateOf<Pair<Pair<Comment, Comment>, Int>?>(null) }
-
-    /**
      * 确认删除对帖子的评论中的图片的对话框
      */
-    var deleteImageOfPosterDialogState by rememberSaveable { mutableIntStateOf(-1) }
+    var showCommentImageDialogState by rememberSaveable { mutableIntStateOf(-1) }
 
     /**
      * 发送评论的状态
@@ -224,6 +207,7 @@ fun PosterScreen(
         if(sendCommentState is SimpleState.Success && needShowSnackbarForCommentToComment) {
             mainController.snackbar("评论成功被发出去了！")
             needShowSnackbarForCommentToComment = false
+            showCommentBottomSheetState = null
         } else if(sendCommentState is SimpleState.Fail && needShowSnackbarForCommentToComment) {
             mainController.snackbar("评论失败Orz")
             needShowSnackbarForCommentToComment = false
@@ -278,7 +262,8 @@ fun PosterScreen(
             onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
             onShowMoreComments = { vm.setShowMoreState(true, it.id.toLong()) },
 
-            onOpenImages = onOpenImages,
+            onOpenImages = mainController::showImages,
+            onOPenCommentToPoster = { showCommentBottomSheetState = CommentType.ToPoster(id) },
             onOpenCommentToComment = onOpenCommentToComment,
             onOpenEdit = { mainController.navController.navigate("edit/$id") },
             onOpenMoreActionOfCommentBottomSheet = { showMoreActionOfCommentState = it },
@@ -300,10 +285,10 @@ fun PosterScreen(
                 ),
 
                 onCancel = { vm.setShowMoreState(false) },
-                onOpenImages = onOpenImages,
+                onOpenImages = mainController::showImages,
                 onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
                 onOpenCommentToComment = onOpenCommentToComment,
-                onOpenDeleteCommentDialog = { deleteCommentDialogState = it.id },
+                onOpenDeleteCommentDialog = { showDeleteCommentDialogState = it.id },
                 onReport = { mainController.navigate("report/comment/${it.id}") },
                 onOpenMoreActionOfCommentBottomSheet = { showMoreActionOfCommentState = it },
             )
@@ -322,33 +307,47 @@ fun PosterScreen(
 
         if(showCommentBottomSheetState != null) {
             val commentType = showCommentBottomSheetState!!
+            val commentEditData = commentEditDataMap[commentType] ?: CommentEditData.empty()
 
             CommentBottomSheet(
                 commentType = commentType,
-                commentEditData = commentEditDataMap[commentType] ?: CommentEditData.empty(),
+                commentEditData = commentEditData,
                 sending = sendCommentState is SimpleState.Loading,
                 onEditComment = vm::setCommentEditData,
-                onOpenImage = onOpenImage,
+                onOpenImage = mainController::showImage,
                 onUploadImage = { imagePicker.pickImage() },
-                onSendComment = vm::sendComment,
-                onOpenDeleteImageDialog = {},
+                onSendComment = {
+                    needShowSnackbarForCommentToComment = true
+                    vm.sendComment(commentType, commentEditData)
+                },
+                onOpenDeleteImageDialog = { showCommentImageDialogState = it },
                 onDismiss = { showCommentBottomSheetState = null }
             )
         }
 
-        if(deletePosterDialogState != -1) {
+        if(showDeletePosterDialogState != -1) {
             DeletePosterDialog(
                 onConfirm = { vm.deletePosterById(id) },
-                onDismiss = { deletePosterDialogState = -1 }
+                onDismiss = { showDeletePosterDialogState = -1 }
             )
         }
 
-        if(deleteCommentDialogState != -1) {
+        if(showDeleteCommentDialogState != -1) {
             DeleteCommentDialog(
-                onConfirm = { vm.deleteCommentById(deleteCommentDialogState.toLong()) },
-                onDismiss = { deleteCommentDialogState = -1 }
+                onConfirm = { vm.deleteCommentById(showDeleteCommentDialogState.toLong()) },
+                onDismiss = { showDeleteCommentDialogState = -1 }
             )
         }
+
+        if(showCommentImageDialogState != -1) {
+            val commentType = showCommentBottomSheetState!!
+            val index = showCommentImageDialogState
+            DeleteImageDialog(
+                onConfirm = { vm.deleteImageOfComment(commentType, index) },
+                onDismiss = { showCommentImageDialogState = -1 }
+            )
+        }
+
     } else {
 
     }

@@ -1,18 +1,15 @@
 package cn.bit101.android.ui.gallery.poster.component
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -26,18 +23,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
-import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
+import cn.bit101.android.ui.component.bottomsheet.BottomSheet
+import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
+import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
+import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
 import cn.bit101.android.ui.component.gallery.CommentCard
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
+import cn.bit101.android.utils.ColorUtils
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
-import cn.bit101.android.ui.component.bottomsheet.BottomSheetDefaults
+import kotlinx.coroutines.launch
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -125,10 +128,7 @@ fun MoreCommentsSheetContent(
                     showSubComments = false,
                     commentLikings = commentLikings,
                     onLikeComment = onLikeComment,
-                    onClick = {
-                        // 第一个是主评论，第二个是回复的评论
-                        onOpenCommentDialog(comment, comment)
-                    },
+                    onOpenCommentToComment = onOpenCommentDialog,
                     onMoreAction = onOpenMoreActionOfCommentBottomSheet
                 )
 
@@ -191,7 +191,7 @@ fun MoreCommentsSheetContent(
                             showSubComments = false,
                             commentLikings = commentLikings,
                             onLikeComment = onLikeComment,
-                            onClick = { onOpenCommentDialog(comment, sub) },
+                            onOpenCommentToComment = onOpenCommentDialog,
                             onMoreAction = onOpenMoreActionOfCommentBottomSheet
                         )
                     }
@@ -251,26 +251,22 @@ fun MoreCommentsBottomSheet(
     onOpenDeleteCommentDialog: (Comment) -> Unit,
     onOpenMoreActionOfCommentBottomSheet: (Comment) -> Unit,
 ) {
-    BackHandler {
-        onCancel()
-    }
+    val scope = rememberCoroutineScope()
+    val bottomSheet = rememberBottomSheetState(
+        initialValue = BottomSheetValue.Expanded,
+        confirmValueChange = {
+            if(it == BottomSheetValue.Collapsed) {
+                onCancel()
+                false
+            } else true
+        },
+    )
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding(),
-        color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.5f),
-    ) {}
-
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .navigationBarsPadding()
-            .systemBarsPadding()
-            .padding(top = 32.dp),
-        shape = BottomSheetDefaults.shape,
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    BottomSheet(
+        state = bottomSheet,
+        skipPeeked = true,
+        allowNestedScroll = false,
+        dragHandle = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -278,7 +274,7 @@ fun MoreCommentsBottomSheet(
             ) {
                 Text(
                     modifier = Modifier.align(Alignment.Center),
-                    text = "评论回复",
+                    text = "更多评论",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
                     )
@@ -287,7 +283,7 @@ fun MoreCommentsBottomSheet(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .size(20.dp),
-                    onClick = onCancel
+                    onClick = { scope.launch { bottomSheet.collapse() } }
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
@@ -295,6 +291,20 @@ fun MoreCommentsBottomSheet(
                     )
                 }
             }
+        },
+        behaviors = DialogSheetBehaviors(
+            extendsIntoStatusBar = false,
+            extendsIntoNavigationBar = false,
+            lightNavigationBar = ColorUtils.isLightColor(MaterialTheme.colorScheme.background),
+            navigationBarColor = MaterialTheme.colorScheme.surfaceContainer,
+        ),
+        backgroundColor = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.95f)
+        ) {
             MoreCommentsSheetContent(
                 mainController = mainController,
                 comment = comment,
@@ -314,74 +324,5 @@ fun MoreCommentsBottomSheet(
             )
         }
     }
-
-//    val scope = rememberCoroutineScope()
-//    val bottomSheet = rememberBottomSheetState(
-//        initialValue = BottomSheetValue.Expanded,
-//        confirmValueChange = {
-//            if(it == BottomSheetValue.Collapsed) {
-//                onCancel()
-//                false
-//            } else true
-//        },
-//    )
-//
-//    BottomSheet(
-//        state = bottomSheet,
-//        skipPeeked = true,
-//        allowNestedScroll = false,
-//        dragHandle = {
-//            Box(
-//                modifier = Modifier
-//                    .fillMaxWidth()
-//                    .padding(horizontal = 16.dp, vertical = 16.dp),
-//            ) {
-//                Text(
-//                    modifier = Modifier.align(Alignment.Center),
-//                    text = "评论回复",
-//                    style = MaterialTheme.typography.titleMedium.copy(
-//                        fontWeight = FontWeight.Bold
-//                    )
-//                )
-//                IconButton(
-//                    modifier = Modifier
-//                        .align(Alignment.CenterStart)
-//                        .size(20.dp),
-//                    onClick = { scope.launch { bottomSheet.collapse() } }
-//                ) {
-//                    Icon(
-//                        imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
-//                        contentDescription = "关闭",
-//                    )
-//                }
-//            }
-//        },
-//        behaviors = DialogSheetBehaviors(
-//            extendsIntoStatusBar = false,
-//            extendsIntoNavigationBar = false,
-//            lightNavigationBar = ColorUtils.isLightColor(MaterialTheme.colorScheme.background),
-//            navigationBarColor = MaterialTheme.colorScheme.surfaceContainer,
-//        ),
-//        backgroundColor = MaterialTheme.colorScheme.surface,
-//    ) {
-//        Column(modifier = Modifier.fillMaxWidth()) {
-//            MoreCommentsSheetContent(
-//                mainController = mainController,
-//                comment = comment,
-//                subComments = subComments,
-//                commentLikings = commentLikings,
-//                loading = loading,
-//                refreshing = refreshing,
-//                state = state,
-//
-//                onLikeComment = onLikeComment,
-//                onOpenImages = onOpenImages,
-//                onOpenCommentDialog = onOpenCommentDialog,
-//                onReport = onReport,
-//                onOpenDeleteCommentDialog = onOpenDeleteCommentDialog,
-//                onOpenMoreActionOfCommentBottomSheet = onOpenMoreActionOfCommentBottomSheet,
-//            )
-//        }
-//    }
 
 }

@@ -51,7 +51,6 @@ fun getUser(
 ): String? {
     return layoutResult.value?.let {
         val offset = it.getOffsetForPosition(pos)
-        var user: String? = null
         annotatedText.getStringAnnotations(
             tag = "USER",
             start = offset,

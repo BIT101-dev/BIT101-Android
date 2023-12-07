@@ -1,5 +1,6 @@
-package cn.bit101.android.ui.component.gallery
+package cn.bit101.android.ui.component.image
 
+import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -18,14 +19,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.common.ImageData
 import cn.bit101.android.ui.common.ImageDataWithUploadState
 import cn.bit101.android.ui.common.UploadImageState
+import cn.bit101.android.ui.common.lowModel
 import cn.bit101.api.model.common.Image
 import coil.compose.AsyncImage
 
@@ -39,6 +43,8 @@ fun UploadImageRow(
      * 最大图片数量
      */
     maxImages: Int = 100,
+
+    showUploadButton: Boolean = true,
 
     /**
      * 图片列表
@@ -60,6 +66,7 @@ fun UploadImageRow(
      */
     onOpenDeleteDialog: (Int) -> Unit,
 ) {
+    val view = LocalView.current
     LazyRow(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -72,14 +79,13 @@ fun UploadImageRow(
                         .clip(RoundedCornerShape(10.dp))
                         .combinedClickable(
                             onClick = { onOpenImage((it.uploadImageState as UploadImageState.Success).image) },
-                            onLongClick = { onOpenDeleteDialog(index) }
+                            onLongClick = {
+                                view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+                                onOpenDeleteDialog(index)
+                            }
                         ),
                     contentScale = ContentScale.Crop,
-                    model = if (it.uploadImageState is UploadImageState.Success) it.uploadImageState.image.lowUrl
-                    else when (it.imageData) {
-                        is ImageData.Local -> it.imageData.uri
-                        is ImageData.Remote -> it.imageData.image.lowUrl
-                    },
+                    model = it.lowModel(),
                     contentDescription = "image",
                 )
 
@@ -106,7 +112,7 @@ fun UploadImageRow(
                 }
             }
         }
-        item("upload") {
+        if(showUploadButton) item("upload") {
             if(images.size < maxImages) {
                 OutlinedCard(
                     modifier = Modifier

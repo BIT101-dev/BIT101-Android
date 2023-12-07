@@ -26,8 +26,8 @@ import androidx.compose.ui.window.DialogProperties
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.Avatar
-import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
-import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.api.model.common.User
 

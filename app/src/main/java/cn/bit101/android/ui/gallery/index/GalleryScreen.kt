@@ -40,7 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
-import cn.bit101.android.ui.component.rememberLoadableLazyColumnState
+import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnState
 import cn.bit101.api.model.common.Image
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -57,7 +57,6 @@ data class TabPagerItemWithNestedScroll(
 @Composable
 fun GalleryScreen(
     mainController: MainController,
-    onOpenImages: (Int, List<Image>) -> Unit,
     navBarHeight: Dp = 0.dp,
     vm: GalleryIndexViewModel = hiltViewModel(),
 ) {
@@ -131,7 +130,7 @@ fun GalleryScreen(
                     onRefresh = vm.followStateExport.refresh,
                 ),
 
-                onOpenImages = onOpenImages,
+                onOpenImages = mainController::showImages,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -149,7 +148,7 @@ fun GalleryScreen(
                     onRefresh = vm.recommendStateExport.refresh,
                 ),
 
-                onOpenImages = onOpenImages,
+                onOpenImages = mainController::showImages,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -175,7 +174,7 @@ fun GalleryScreen(
                     onRefresh = vm.hotStateExport.refresh,
                 ),
 
-                onOpenImages = onOpenImages,
+                onOpenImages = mainController::showImages,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )

@@ -1,11 +1,9 @@
-package cn.bit101.android.ui.component
+package cn.bit101.android.ui.component.image
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,8 +23,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.api.model.common.Image
 import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter
-import org.jetbrains.annotations.Range
 
 @Composable
 fun PreviewImage(

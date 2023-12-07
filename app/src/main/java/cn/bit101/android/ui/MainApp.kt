@@ -8,6 +8,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -33,6 +34,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -45,8 +47,9 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import cn.bit101.android.datastore.SettingDataStore
-import cn.bit101.android.ui.component.NavigationBar
-import cn.bit101.android.ui.image.ImageScreen
+import cn.bit101.android.ui.component.image.ImageHost
+import cn.bit101.android.ui.component.image.rememberImageHostState
+import cn.bit101.android.ui.component.navigationbar.NavigationBar
 import cn.bit101.android.ui.gallery.index.GalleryScreen
 import cn.bit101.android.ui.gallery.message.MessageScreen
 import cn.bit101.android.ui.gallery.postedit.PostEditScreen
@@ -61,21 +64,21 @@ import cn.bit101.android.ui.setting.SettingScreen
 import cn.bit101.android.ui.web.WebScreen
 import cn.bit101.android.utils.ColorUtils
 import cn.bit101.android.utils.PageUtils
-import cn.bit101.api.model.common.Image
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import java.net.URLDecoder
-import java.net.URLEncoder
 
 @Composable
 fun MainApp(
     vm: MainViewModel = hiltViewModel()
 ) {
+    val ctx = LocalContext.current
+
     val systemUiController = rememberSystemUiController()
 
     val mainController = MainController(
         scope = rememberCoroutineScope(),
         navController = rememberNavController(),
-        snackbarHostState = remember { SnackbarHostState() }
+        snackbarHostState = remember { SnackbarHostState() },
+        imageHostState = rememberImageHostState()
     )
 
     val currentBackStackEntry by mainController.navController.currentBackStackEntryFlow.collectAsState(initial = null)
@@ -142,26 +145,14 @@ fun MainApp(
         remember { MutableTransitionState(false) }
     bottomBarTransitionState.apply { targetState = showBottomBar }
 
-    val onOpenImage: (Image) -> Unit = { image ->
-        val encodedUrl = URLEncoder.encode(image.url, "UTF-8")
-        mainController.navController.navigate("image/$encodedUrl")
-    }
-
-    val onOpenImages: (Int, List<Image>) -> Unit = { index, images ->
-        val encodedUrls = images.map { URLEncoder.encode(it.url, "UTF-8") }.joinToString(",")
-        mainController.navController.navigate("images/$encodedUrls/$index")
-    }
-
-
     val navBarHeight = 80f
-
     Scaffold(
         snackbarHost = {
             SnackbarHost(
                 hostState = mainController.snackbarHostState,
                 snackbar = {
                     Snackbar(
-                        modifier = Modifier.zIndex(Float.MAX_VALUE),
+                        modifier = Modifier.zIndex(Float.MAX_VALUE - 100),
                         snackbarData = it
                     )
                 }
@@ -230,6 +221,7 @@ fun MainApp(
             composable("login") {
                 LoginOrLogoutScreen(mainController)
             }
+
             composable("map") {
                 Box(
                     modifier = Modifier
@@ -249,7 +241,6 @@ fun MainApp(
                 Box {
                     GalleryScreen(
                         mainController = mainController,
-                        onOpenImages = onOpenImages,
                         navBarHeight = navBarHeight.dp,
                     )
                 }
@@ -282,46 +273,6 @@ fun MainApp(
             }
 
             composable(
-                route = "images/{urls}/{index}",
-                arguments = listOf(
-                    navArgument("urls") { type = NavType.StringType },
-                    navArgument("index") { type = NavType.IntType },
-                ),
-            ) {
-                val urls = (it.arguments?.getString("urls")?.split(",") ?: emptyList()).map { encodedUrl ->
-                    URLDecoder.decode(encodedUrl, "UTF-8")
-                }
-                val index = it.arguments?.getInt("index") ?: 0
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
-                    ImageScreen(
-                        urls = urls,
-                        index = index
-                    )
-                }
-            }
-
-            composable(
-                route = "image/{url}",
-                arguments = listOf(
-                    navArgument("url") { type = NavType.StringType },
-                ),
-            ) {
-                val encodedUrl = it.arguments?.getString("url") ?: ""
-                val url = URLDecoder.decode(encodedUrl, "UTF-8")
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
-                    ImageScreen(url)
-                }
-            }
-
-            composable(
                 route = "user/{id}",
                 arguments = listOf(
                     navArgument("id") { type = NavType.LongType },
@@ -332,8 +283,6 @@ fun MainApp(
                     UserScreen(
                         mainController = mainController,
                         id = id,
-                        onOpenImage = onOpenImage,
-                        onOpenImages = onOpenImages,
                     )
                 }
             }
@@ -348,8 +297,6 @@ fun MainApp(
                     PosterScreen(
                         mainController = mainController,
                         id = it.arguments?.getLong("id") ?: 0L,
-                        onOpenImage = onOpenImage,
-                        onOpenImages = onOpenImages,
                     )
                 }
             }
@@ -358,7 +305,6 @@ fun MainApp(
                 Box(modifier = Modifier.navigationBarsPadding()) {
                     PostEditScreen(
                         mainController = mainController,
-                        onOpenImage = onOpenImage,
                     )
                 }
             }
@@ -374,7 +320,6 @@ fun MainApp(
                     PostEditScreen(
                         mainController = mainController,
                         id = id,
-                        onOpenImage = onOpenImage,
                     )
                 }
             }
@@ -409,6 +354,12 @@ fun MainApp(
                 }
             }
         }
+
+        ImageHost(
+            modifier = Modifier.fillMaxSize(),
+            state = mainController.imageHostState,
+            onOpenUrl = { mainController.openUrl(ctx, it) },
+        )
     }
 
     val checkDetectUpgradeState by vm.checkUpdateStateLiveData.observeAsState()

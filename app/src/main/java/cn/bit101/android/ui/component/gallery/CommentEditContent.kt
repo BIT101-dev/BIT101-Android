@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import cn.bit101.android.ui.component.image.UploadImageRow
 import cn.bit101.android.ui.gallery.poster.CommentEditData
 import cn.bit101.api.model.common.Image
 

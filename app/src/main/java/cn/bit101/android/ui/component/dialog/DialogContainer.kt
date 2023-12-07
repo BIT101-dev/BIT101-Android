@@ -1,9 +1,8 @@
 // Based on androidx.compose.ui.window.AndroidDialog.android.kt
 
-package cn.bit101.android.ui.component.bottomsheet
+package cn.bit101.android.ui.component.dialog
 
 import android.content.Context
-import android.os.Build
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
@@ -35,6 +34,7 @@ import androidx.lifecycle.setViewTreeViewModelStoreOwner
 import androidx.savedstate.findViewTreeSavedStateRegistryOwner
 import androidx.savedstate.setViewTreeSavedStateRegistryOwner
 import cn.bit101.android.R
+import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import java.util.UUID
 
 @Suppress("ViewConstructor")

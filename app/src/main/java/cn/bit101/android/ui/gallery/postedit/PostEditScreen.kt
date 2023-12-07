@@ -66,7 +66,7 @@ import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.common.UploadImageData
 import cn.bit101.android.ui.component.gallery.DeleteImageDialog
-import cn.bit101.android.ui.component.gallery.UploadImageRow
+import cn.bit101.android.ui.component.image.UploadImageRow
 import cn.bit101.api.model.common.Claim
 import cn.bit101.api.model.common.Image
 
@@ -488,8 +488,6 @@ fun PostEditScreen(
     mainController: MainController,
     id: Long? = null,
     vm: PostEditViewModel = hiltViewModel(),
-
-    onOpenImage: (Image) -> Unit,
 ) {
     LaunchedEffect(id) {
         vm.loadPoster(id)
@@ -578,7 +576,7 @@ fun PostEditScreen(
             claimsState = ensureClaimsState,
             postState = postState,
 
-            onOpenImage = onOpenImage,
+            onOpenImage = mainController::showImage,
             onSetTitle = { vm.setTitle(it) },
             onSetText = { vm.setText(it) },
             onChangeAnonymous = { vm.setAnonymous(!anonymous) },

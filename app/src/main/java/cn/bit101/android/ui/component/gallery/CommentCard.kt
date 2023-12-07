@@ -21,29 +21,21 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
-import cn.bit101.android.ui.component.PreviewImages
+import cn.bit101.android.ui.component.image.PreviewImages
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.android.utils.NumberUtils
 import cn.bit101.api.model.common.Comment
@@ -219,7 +211,7 @@ fun CommentCard(
     /**
      * 点击卡片的操作
      */
-    onClick: () -> Unit,
+    onOpenCommentToComment: (Comment, Comment) -> Unit,
 
     /**
      * 显示更多评论
@@ -253,7 +245,7 @@ fun CommentCard(
                 liking = comment.id.toLong() in commentLikings,
                 iconSize = mainAvatarSize,
                 leftSize = calculateLeftSize(mainAvatarSize),
-                onClick = onClick,
+                onClick = { onOpenCommentToComment(comment, comment) },
                 onLike = { onLikeComment(comment) },
                 onOpenUserDetail = { mainController.navController.navigate("user/${comment.user.id}") },
                 onOpenImage = { onOpenImage(it, comment.images) },
@@ -272,7 +264,7 @@ fun CommentCard(
                             isSub = true,
                             iconSize = subAvatarSize,
                             leftSize = calculateLeftSize(subAvatarSize),
-                            onClick = onClick,
+                            onClick = { onOpenCommentToComment(comment, sub) },
                             onLike = { onLikeComment(sub) },
                             onOpenUserDetail = { mainController.navController.navigate("user/${comment.sub[0].user.id}") },
                             onOpenImage = { onOpenImage(it, sub.images) },

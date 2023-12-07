@@ -38,7 +38,8 @@ fun SettingScreen(
     val settingController = MainController(
         scope = mainController.scope,
         navController = navController,
-        snackbarHostState = mainController.snackbarHostState
+        snackbarHostState = mainController.snackbarHostState,
+        imageHostState = mainController.imageHostState,
     )
 
     val currentEntry = navController.currentBackStackEntryFlow.collectAsState(initial = null)

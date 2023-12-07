@@ -9,13 +9,17 @@ import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.navigation.NavHostController
+import cn.bit101.android.ui.common.ImageData
+import cn.bit101.android.ui.component.image.ImageHostState
+import cn.bit101.api.model.common.Image
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class MainController(
     val scope: CoroutineScope,
     val navController: NavHostController,
-    val snackbarHostState: SnackbarHostState
+    val snackbarHostState: SnackbarHostState,
+    val imageHostState: ImageHostState,
 ) {
 
     fun navigate(route: String) {
@@ -46,4 +50,10 @@ class MainController(
         val intent = Intent(Intent.ACTION_VIEW, uri)
         ctx.startActivity(intent)
     }
+    fun showImage(image: Image) = imageHostState.showSingleImage(ImageData.Remote(image))
+
+    fun showImages(
+        index: Int = 0,
+        images: List<Image>,
+    ) = imageHostState.showSeriesImages(images.map { ImageData.Remote(it) }, index)
 }

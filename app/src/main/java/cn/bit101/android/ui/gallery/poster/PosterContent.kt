@@ -28,6 +28,7 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Share
+import androidx.compose.material3.BottomAppBarDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,6 +38,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -54,9 +56,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
-import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
-import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.component.PreviewImagesWithGridLayout
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
+import cn.bit101.android.ui.component.image.PreviewImagesWithGridLayout
 import cn.bit101.android.ui.component.gallery.AnnotatedText
 import cn.bit101.android.ui.component.gallery.CommentCard
 import cn.bit101.android.utils.DateTimeUtils
@@ -206,6 +208,11 @@ fun PosterContent(
      * 打开*对评论的评论*的编辑对话框，第一个参数是主评论，第二个参数是子评论
      */
     onOpenCommentToComment: (Comment, Comment) -> Unit,
+
+    /**
+     * 打开*对帖子的评论*的编辑对话框
+     */
+    onOPenCommentToPoster: () -> Unit,
 
     /**
      * 打开评论的更多操作的bottom sheet，需要传入评论的数据
@@ -388,7 +395,7 @@ fun PosterContent(
                             onShowMoreComments = { onShowMoreComments(comment) },
                             commentLikings = commentLikings,
                             onLikeComment = onLikeComment,
-                            onClick = { onOpenCommentToComment(comment, comment) },
+                            onOpenCommentToComment = onOpenCommentToComment,
                             onMoreAction = onOpenMoreActionOfCommentBottomSheet
                         )
                     }
@@ -450,7 +457,7 @@ fun PosterContent(
                     .fillMaxWidth()
                     .height(bottomContentHeight)
                     .align(Alignment.BottomCenter),
-                color = MaterialTheme.colorScheme.surface,
+                color = BottomAppBarDefaults.containerColor,
             ) {
                 Row(
                     modifier = Modifier
@@ -464,7 +471,7 @@ fun PosterContent(
                             .padding(end = 4.dp, start = 8.dp, top = 4.dp, bottom = 4.dp)
                             .weight(1f)
                             .pointerInput(Unit) {
-                                detectTapGestures(onTap = { onOpenEdit() })
+                                detectTapGestures(onTap = { onOPenCommentToPoster() })
                             },
                     ) {
                         Row(

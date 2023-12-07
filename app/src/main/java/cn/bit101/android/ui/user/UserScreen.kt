@@ -61,9 +61,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.topbar.BasicTwoRowsTopAppBar
-import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequest
-import cn.bit101.android.ui.component.LoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.component.rememberLoadableLazyColumnWithoutPullRequestState
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
+import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.gallery.AnnotatedText
@@ -372,8 +372,6 @@ fun UserScreenContent(
 @Composable
 fun UserScreen(
     mainController: MainController,
-    onOpenImage: (Image) -> Unit,
-    onOpenImages: (Int, List<Image>) -> Unit,
     vm: UserViewModel = hiltViewModel(),
     id: Long = 0,
 ) {
@@ -495,8 +493,8 @@ fun UserScreen(
                 loadState = postersLoadMoreState,
                 followState = followState,
 
-                onOpenImage = onOpenImage,
-                onOpenImages = onOpenImages,
+                onOpenImage = mainController::showImage,
+                onOpenImages = mainController::showImages,
 
                 onOpenPoster = { mainController.navController.navigate("poster/$it") },
                 onFollow = { vm.follow(id) },

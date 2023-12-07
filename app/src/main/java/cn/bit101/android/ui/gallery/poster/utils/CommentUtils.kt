@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.gallery.poster.utils
 
+import android.util.Log
 import cn.bit101.api.model.common.Comment
 import java.util.ArrayList
 
@@ -12,8 +13,9 @@ private fun List<Comment>.visit(
 ): List<Comment> {
     return this.toMutableList().apply {
         for(i in 0 until size) {
-            this[i] = visitor(get(i)).copy(
-                sub = ArrayList(get(i).sub.visit(visitor))
+            val visitedComment = visitor(get(i))
+            this[i] = visitedComment.copy(
+                sub = ArrayList(visitedComment.sub.visit(visitor))
             )
         }
     }
@@ -46,6 +48,8 @@ internal fun addCommentToComment(
     subComment: Comment,
 ) = comments.visit {
     // 找到对应的评论，然后插入到子评论的第一个
+
+    Log.i("CommentUtils", "addCommentToComment: ${comment.id} ${it.id}, ${comment}, $it")
     if(comment.id == it.id) it.copy(
         sub = ArrayList(it.sub.toMutableList().apply {
             add(0, subComment)

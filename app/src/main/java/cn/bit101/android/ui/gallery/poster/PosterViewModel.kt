@@ -43,6 +43,8 @@ data class CommentEditData(
             anonymous = false,
         )
     }
+
+    fun isEmpty() = text.isEmpty() && (!uploadImageData.ifUpload || uploadImageData.images.isEmpty())
 }
 
 sealed interface CommentType {
@@ -182,7 +184,12 @@ class PosterViewModel @Inject constructor(
         commentType: CommentType,
         commentEditData: CommentEditData
     ) {
-        _commentEditDataMapFlow.value = _commentEditDataMapFlow.value.plus(Pair(commentType, commentEditData))
+        val ifUpload = commentEditData.uploadImageData.images.isNotEmpty()
+        _commentEditDataMapFlow.value = _commentEditDataMapFlow.value.plus(Pair(commentType, commentEditData.copy(
+            uploadImageData = commentEditData.uploadImageData.copy(
+                ifUpload = ifUpload
+            )
+        )))
     }
 
     fun like(objectType: ObjectType) {

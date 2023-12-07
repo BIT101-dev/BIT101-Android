@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.component
+package cn.bit101.android.ui.component.navigationbar
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row

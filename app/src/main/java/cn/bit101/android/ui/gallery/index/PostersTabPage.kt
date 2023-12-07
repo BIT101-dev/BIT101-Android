@@ -3,7 +3,6 @@ package cn.bit101.android.ui.gallery.index
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -32,14 +31,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
-import cn.bit101.android.ui.component.LoadableLazyColumn
-import cn.bit101.android.ui.component.LoadableLazyColumnState
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumn
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnState
 import cn.bit101.android.ui.component.gallery.PosterCard
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
@@ -130,12 +128,6 @@ fun PostersTabPage(
                     if(it.id == highlightId) {
                         PosterCard(
                             data = it,
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                contentColor = MaterialTheme.colorScheme.secondary,
-                                disabledContentColor = MaterialTheme.colorScheme.secondaryContainer,
-                                disabledContainerColor = MaterialTheme.colorScheme.secondary,
-                            ),
                             onOpenPoster = { onOpenPoster(it.id) },
                             onOpenImages = onOpenImages,
                             onOpenUserDetail = { user ->
