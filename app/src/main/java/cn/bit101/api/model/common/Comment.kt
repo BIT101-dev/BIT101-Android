@@ -1,5 +1,7 @@
 package cn.bit101.api.model.common
 
+import java.io.Serializable
+
 data class Comment (
     val id: Int,
     val obj: String,
@@ -34,4 +36,4 @@ data class Comment (
     val text: String,
 
     val sub: ArrayList<Comment>,
-)
+) : Serializable

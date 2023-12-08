@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.gallery.poster.component
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,42 +11,42 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.ui.component.bottomsheet.BottomSheet
-import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
-import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.ui.component.gallery.CommentCard
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.utils.ColorUtils
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
-import kotlinx.coroutines.launch
 
 
-@OptIn(ExperimentalMaterial3Api::class)
+
 @Composable
-fun MoreCommentsSheetContent(
+fun MoreCommentsContent(
     mainController: MainController,
 
     /**
@@ -99,16 +100,6 @@ fun MoreCommentsSheetContent(
     onOpenCommentDialog: (Comment, Comment) -> Unit,
 
     /**
-     * 举报评论
-     */
-    onReport: (Comment) -> Unit,
-
-    /**
-     * 打开删除评论的对话框
-     */
-    onOpenDeleteCommentDialog: (Comment) -> Unit,
-
-    /**
      * 打开评论的更多操作
      */
     onOpenMoreActionOfCommentBottomSheet: (Comment) -> Unit,
@@ -141,7 +132,7 @@ fun MoreCommentsSheetContent(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(20.dp),
+                            .height(16.dp),
                         shape = RoundedCornerShape(bottomStart = cornerRadius, bottomEnd = cornerRadius),
                         colors = CardDefaults.cardColors(
                             containerColor = MaterialTheme.colorScheme.surface,
@@ -164,7 +155,7 @@ fun MoreCommentsSheetContent(
 
             item("reply header") {
                 Text(
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                    modifier = Modifier.padding(horizontal = 8.dp),
                     text = "回复 ${comment.commentNum}",
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold
@@ -230,10 +221,10 @@ fun MoreCommentsSheetContent(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MoreCommentsBottomSheet(
+fun MoreCommentsPage(
     mainController: MainController,
-    bottomSheetState: BottomSheetState,
     comment: Comment?,
     subComments: List<Comment>,
     commentLikings: Set<Long>,
@@ -250,15 +241,17 @@ fun MoreCommentsBottomSheet(
      */
     onOpenCommentToComment: (Comment, Comment) -> Unit,
     onOpenImages: (Int, List<Image>) -> Unit,
-    onReport: (Comment) -> Unit,
-    onOpenDeleteCommentDialog: (Comment) -> Unit,
     onOpenMoreActionOfCommentBottomSheet: (Comment) -> Unit,
 ) {
-    BottomSheet(
-        state = bottomSheetState,
-        skipPeeked = true,
-        allowNestedScroll = false,
-        dragHandle = {
+    if(comment == null) return
+
+    BackHandler {
+        onDismiss()
+    }
+
+    Scaffold(
+        modifier = Modifier.systemBarsPadding(),
+        topBar = {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -278,27 +271,19 @@ fun MoreCommentsBottomSheet(
                     onClick = onDismiss
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.Close,
+                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
                         contentDescription = "关闭",
                     )
                 }
             }
         },
-        behaviors = DialogSheetBehaviors(
-            extendsIntoStatusBar = false,
-            extendsIntoNavigationBar = false,
-            lightNavigationBar = ColorUtils.isLightColor(MaterialTheme.colorScheme.background),
-            navigationBarColor = MaterialTheme.colorScheme.surfaceContainer,
-        ),
-        backgroundColor = MaterialTheme.colorScheme.surface,
-    ) {
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.97f)
+                .padding(paddingValues),
         ) {
-            if(comment == null) return@Column
-            MoreCommentsSheetContent(
+            MoreCommentsContent(
                 mainController = mainController,
                 comment = comment,
                 subComments = subComments,
@@ -311,11 +296,8 @@ fun MoreCommentsBottomSheet(
                 onLikeComment = onLikeComment,
                 onOpenImages = onOpenImages,
                 onOpenCommentDialog = onOpenCommentToComment,
-                onReport = onReport,
-                onOpenDeleteCommentDialog = onOpenDeleteCommentDialog,
                 onOpenMoreActionOfCommentBottomSheet = onOpenMoreActionOfCommentBottomSheet,
             )
         }
     }
-
 }

@@ -16,12 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CopyAll
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,9 +29,7 @@ import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.component.bottomsheet.BottomSheet
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetDefaults
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
-import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
-import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
 import cn.bit101.android.utils.ColorUtils
 
 @Composable
@@ -74,7 +70,7 @@ internal data class Action(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MoreActionBottomSheet(
+fun MoreActionOfCommentBottomSheet(
     state: BottomSheetState,
 
     onDelete: () -> Unit,

@@ -1,19 +1,27 @@
 package cn.bit101.android.ui.gallery.poster
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -27,13 +35,14 @@ import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.gallery.poster.component.CommentBottomSheet
-import cn.bit101.android.ui.gallery.poster.component.MoreActionBottomSheet
-import cn.bit101.android.ui.gallery.poster.component.MoreCommentsBottomSheet
+import cn.bit101.android.ui.gallery.poster.component.MoreActionOfCommentBottomSheet
 import cn.bit101.android.ui.common.rememberImagePicker
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
 import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
 import cn.bit101.android.ui.component.gallery.DeleteImageDialog
+import cn.bit101.android.ui.gallery.poster.component.MoreCommentsPage
 import cn.bit101.api.model.common.Comment
+import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 
@@ -147,26 +156,17 @@ fun PosterScreen(
     /**
      * 需要显示更多评论的评论
      */
-    var commentNeedShowMoreComments by remember { mutableStateOf<Comment?>(null) }
+    var commentForShowMoreComments by rememberSaveable { mutableStateOf<Comment?>(null) }
 
     /**
      * 更多评论的bottom sheet的状态
      */
-    val moreCommentsBottomSheetState = rememberBottomSheetState(
-        initialValue = BottomSheetValue.Collapsed,
-        confirmValueChange = {
-            if(it == BottomSheetValue.Expanded) {
-                val commentForShowMoreComments = commentNeedShowMoreComments
-                if(commentForShowMoreComments != null) vm.subCommentStateExports.refresh(commentForShowMoreComments.id.toLong())
-            }
-            true
-        }
-    )
+    var showMoreCommentsPage by rememberSaveable { mutableStateOf(false) }
 
     /**
      * 更多操作的bottom sheet的状态
      */
-    var commentNeedShowMoreAction by remember { mutableStateOf<Comment?>(null) }
+    var commentNeedShowMoreAction by rememberSaveable { mutableStateOf<Comment?>(null) }
 
     /**
      * 更多操作的bottom sheet的状态
@@ -223,6 +223,11 @@ fun PosterScreen(
         }
     }
 
+    // 清空状态
+    DisposableEffect(Unit) {
+        onDispose { vm.clearStates() }
+    }
+
     if(getPosterState is SimpleDataState.Loading || refreshState is SimpleState.Loading) {
         Box(modifier = Modifier.fillMaxSize()) {
             CircularProgressIndicator(
@@ -234,62 +239,93 @@ fun PosterScreen(
         }
     } else if(getPosterState is SimpleDataState.Success && refreshState is SimpleState.Success) {
 
-        PosterContent(
-            mainController = mainController,
-
-            data = (getPosterState as SimpleDataState.Success).data,
-            comments = comments,
-            posterLiking = posterLiking,
-            commentLikings = commentLikings,
-            loading = loadMoreState is SimpleState.Loading,
-            loaded = commentLoaded,
-            state = rememberLoadableLazyColumnWithoutPullRequestState(
-                onLoadMore = { vm.commentStateExports.loadMore(id) }
-            ),
-
-            onLikePoster = { vm.like(ObjectType.PosterObject(id)) },
-            onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
-            onShowMoreComments = {
-                commentNeedShowMoreComments = it
-                scope.launch { moreCommentsBottomSheetState.expand() }
+        AnimatedContent(
+            targetState = showMoreCommentsPage,
+            transitionSpec = {
+                // 推入的效果
+                if(!targetState) {
+                    ContentTransform(
+                        targetContentEnter = slideInHorizontally(
+                            initialOffsetX = { -it },
+                            animationSpec = tween(200)
+                        ),
+                        initialContentExit = slideOutHorizontally(
+                            targetOffsetX = { it },
+                            animationSpec = tween(200)
+                        ),
+                    )
+                } else {
+                    ContentTransform(
+                        targetContentEnter = slideInHorizontally(
+                            initialOffsetX = { it },
+                            animationSpec = tween(200)
+                        ),
+                        initialContentExit = slideOutHorizontally(
+                            targetOffsetX = { -it },
+                            animationSpec = tween(200)
+                        ),
+                    )
+                }
             },
+            label = "poster screen content",
+        ) { showMoreComment ->
+            if(showMoreComment) {
+                MoreCommentsPage(
+                    mainController = mainController,
+                    comment = commentForShowMoreComments,
+                    subComments = subComments,
+                    commentLikings = commentLikings,
+                    loading = subCommentsLoadMoreState is SimpleState.Loading,
+                    loaded = subCommentLoaded,
+                    refreshing = subCommentsRefreshState is SimpleState.Loading,
+                    state = rememberLoadableLazyColumnWithoutPullRequestState(
+                        onLoadMore = { vm.subCommentStateExports.loadMore(commentForShowMoreComments!!.id.toLong()) }
+                    ),
 
-            onOpenImages = mainController::showImages,
-            onOPenCommentToPoster = { commentTypeNeedShowCommentBottomSheet = CommentType.ToPoster(id) },
-            onOpenCommentToComment = { c, sc -> commentTypeNeedShowCommentBottomSheet = CommentType.ToComment(c, sc) },
-            onOpenEdit = { mainController.navController.navigate("edit/$id") },
-            onOpenMoreActionOfCommentBottomSheet = {
-                commentNeedShowMoreAction = it
-                scope.launch { moreActionBottomSheetState.expand() }
-            },
-        )
+                    onDismiss = { showMoreCommentsPage = false },
+                    onOpenImages = mainController::showImages,
+                    onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
+                    onOpenCommentToComment = { c, sc -> commentTypeNeedShowCommentBottomSheet = CommentType.ToComment(c, sc) },
+                    onOpenMoreActionOfCommentBottomSheet = {
+                        commentNeedShowMoreAction = it
+                        scope.launch { moreActionBottomSheetState.expand() }
+                    },
+                )
+            } else {
+                PosterContent(
+                    mainController = mainController,
 
-        MoreCommentsBottomSheet(
-            mainController = mainController,
-            bottomSheetState = moreCommentsBottomSheetState,
-            comment = commentNeedShowMoreComments,
-            subComments = subComments,
-            commentLikings = commentLikings,
-            loading = subCommentsLoadMoreState is SimpleState.Loading,
-            loaded = subCommentLoaded,
-            refreshing = subCommentsRefreshState is SimpleState.Loading,
-            state = rememberLoadableLazyColumnWithoutPullRequestState(
-                onLoadMore = { vm.subCommentStateExports.loadMore(commentNeedShowMoreComments!!.id.toLong()) }
-            ),
+                    data = (getPosterState as SimpleDataState.Success).data,
+                    comments = comments,
+                    posterLiking = posterLiking,
+                    commentLikings = commentLikings,
+                    loading = loadMoreState is SimpleState.Loading,
+                    loaded = commentLoaded,
+                    state = rememberLoadableLazyColumnWithoutPullRequestState(
+                        onLoadMore = { vm.commentStateExports.loadMore(id) }
+                    ),
 
-            onDismiss = { scope.launch { moreCommentsBottomSheetState.collapse() } },
-            onOpenImages = mainController::showImages,
-            onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
-            onOpenCommentToComment = { c, sc -> commentTypeNeedShowCommentBottomSheet = CommentType.ToComment(c, sc) },
-            onOpenDeleteCommentDialog = { vm.deleteCommentById(it.id.toLong()) },
-            onReport = { mainController.navigate("report/comment/${it.id}") },
-            onOpenMoreActionOfCommentBottomSheet = {
-                commentNeedShowMoreAction = it
-                scope.launch { moreActionBottomSheetState.expand() }
-            },
-        )
+                    onLikePoster = { vm.like(ObjectType.PosterObject(id)) },
+                    onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
+                    onShowMoreComments = {
+                        commentForShowMoreComments = it
+                        vm.subCommentStateExports.refresh(it.id.toLong())
+                        showMoreCommentsPage = true
+                    },
 
-        MoreActionBottomSheet(
+                    onOpenImages = mainController::showImages,
+                    onOPenCommentToPoster = { commentTypeNeedShowCommentBottomSheet = CommentType.ToPoster(id) },
+                    onOpenCommentToComment = { c, sc -> commentTypeNeedShowCommentBottomSheet = CommentType.ToComment(c, sc) },
+                    onOpenEdit = { mainController.navController.navigate("edit/$id") },
+                    onOpenMoreActionOfCommentBottomSheet = {
+                        commentNeedShowMoreAction = it
+                        scope.launch { moreActionBottomSheetState.expand() }
+                    },
+                )
+            }
+        }
+
+        MoreActionOfCommentBottomSheet(
             state = moreActionBottomSheetState,
             onDelete = { vm.deleteCommentById(commentNeedShowMoreAction!!.id.toLong()) },
             onReport = { mainController.navigate("report/comment/${commentNeedShowMoreAction!!.id}") },

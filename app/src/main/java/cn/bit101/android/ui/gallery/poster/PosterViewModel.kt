@@ -14,6 +14,7 @@ import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedOne
 import cn.bit101.android.ui.common.UploadImageData
 import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.android.ui.common.cleared
 import cn.bit101.android.ui.gallery.poster.utils.addCommentToComment
 import cn.bit101.android.ui.gallery.poster.utils.changeLike
 import cn.bit101.android.ui.gallery.poster.utils.deleteComment
@@ -112,6 +113,15 @@ class PosterViewModel @Inject constructor(
     val deleteCommentStateFlow = _deleteCommentStateFlow.asStateFlow()
 
     /**
+     * 清空状态
+     */
+    fun clearStates() {
+        _sendCommentStateFlow.value = _sendCommentStateFlow.value.cleared()
+        _deleteCommentStateFlow.value = _deleteCommentStateFlow.value.cleared()
+        _deletePosterStateFlow.value = _deletePosterStateFlow.value.cleared()
+    }
+
+    /**
      * 获取帖子
      */
     fun getPosterById(id: Long) {
@@ -125,7 +135,6 @@ class PosterViewModel @Inject constructor(
             }
         }
     }
-
 
     /**
      * 编辑评论
@@ -312,7 +321,7 @@ class PosterViewModel @Inject constructor(
      */
     fun sendComment(
         commentType: CommentType,
-        editData: CommentEditData
+        editData: CommentEditData,
     ) {
         _sendCommentStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {

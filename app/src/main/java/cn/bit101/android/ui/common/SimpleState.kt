@@ -32,3 +32,19 @@ sealed interface SimpleErrorDataState<T> {
         val msg: String
     ) : SimpleErrorDataState<T>
 }
+
+
+fun SimpleState?.cleared() = when (this) {
+    is SimpleState.Success, is SimpleState.Fail -> null
+    else -> this
+}
+
+fun <T> SimpleDataState<T>?.cleared() = when (this) {
+    is SimpleDataState.Success, is SimpleDataState.Fail -> null
+    else -> this
+}
+
+fun <T> SimpleErrorDataState<T>?.cleared() = when (this) {
+    is SimpleErrorDataState.Success, is SimpleErrorDataState.Fail -> null
+    else -> this
+}

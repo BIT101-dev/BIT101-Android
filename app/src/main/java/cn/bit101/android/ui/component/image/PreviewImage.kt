@@ -1,6 +1,7 @@
 package cn.bit101.android.ui.component.image
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -13,6 +14,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -46,6 +48,7 @@ fun PreviewImage(
 fun PreviewImage(
     modifier: Modifier = Modifier,
     image: Image,
+    contentScale: ContentScale = ContentScale.Crop,
     onClick: () -> Unit = {},
 ) {
     AsyncImage(
@@ -53,7 +56,7 @@ fun PreviewImage(
             .fillMaxHeight()
             .clip(RoundedCornerShape(4.dp))
             .clickable { onClick() },
-        contentScale = ContentScale.Crop,
+        contentScale = contentScale,
         model = image.lowUrl,
         contentDescription = "image",
     )
@@ -118,6 +121,7 @@ fun PreviewImagesWithGridLayout(
         PreviewImage(
             modifier = modifier.fillMaxWidth(),
             image = images[0],
+            contentScale = ContentScale.FillWidth,
             onClick = { onClick(0) },
         )
     } else {

@@ -1,5 +1,7 @@
 package cn.bit101.api.model.common
 
+import java.io.Serializable
+
 // 身份
 data class Identity(
     // 身份唯一编码
@@ -10,4 +12,4 @@ data class Identity(
 
     // 身份称号
     val text: String,
-)
+) : Serializable

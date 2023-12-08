@@ -1,5 +1,7 @@
 package cn.bit101.api.model.common
 
+import java.io.Serializable
+
 data class Image (
     // 图片唯一编码
     val mid: String,
@@ -9,7 +11,7 @@ data class Image (
 
     // 低分辨率图片链接
     val lowUrl: String,
-)
+) : Serializable
 
 // 头像
 typealias Avatar = Image

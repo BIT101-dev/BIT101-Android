@@ -1,6 +1,7 @@
 package cn.bit101.api.model.common
 
 import com.google.gson.annotations.SerializedName
+import java.io.Serializable
 
 data class CourseForSchedule(
     @SerializedName("XNXQDM") var XNXQDM: String?, // 学年学期
@@ -19,4 +20,4 @@ data class CourseForSchedule(
     @SerializedName("KCXZDM_DISPLAY") var KCXZDM_DISPLAY: String?, // 课程性质 必修选修什么的
     @SerializedName("KCLBDM_DISPLAY") var KCLBDM_DISPLAY: String?, // 课程类别 文化课实践课什么的
     @SerializedName("KKDWDM_DISPLAY") var KKDWDM_DISPLAY: String?, // 开课单位
-)
+) : Serializable

@@ -379,7 +379,7 @@ fun PosterContent(
                     item(8) {
                         Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                             Text(
-                                text = "共${data.commentNum}条评论",
+                                text = "评论 ${data.commentNum}",
                                 style = MaterialTheme.typography.titleMedium
                             )
                         }

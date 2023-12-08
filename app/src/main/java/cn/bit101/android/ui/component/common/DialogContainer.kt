@@ -269,6 +269,9 @@ internal class ImageWrapper(
     layoutDirection,
     dialogId
 ) {
+    init {
+        window?.setWindowAnimations(R.style.ImageAnim)
+    }
 }
 
 internal class SnackbarWrapper(
