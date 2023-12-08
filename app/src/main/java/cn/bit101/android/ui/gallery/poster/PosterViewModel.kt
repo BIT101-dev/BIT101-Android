@@ -17,6 +17,7 @@ import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.gallery.poster.utils.addCommentToComment
 import cn.bit101.android.ui.gallery.poster.utils.changeLike
+import cn.bit101.android.ui.gallery.poster.utils.deleteComment
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -327,9 +328,17 @@ class PosterViewModel @Inject constructor(
             // 对帖子的评论
             is CommentType.ToPoster -> {
                 // 插入新的评论到评论区的第一个
-                val comments = _commentState.data
-                _commentState.data = comments.toMutableList().apply {
+                _commentState.data = _commentState.data.toMutableList().apply {
                     add(0, comment)
+                }
+
+                // 更新帖子的评论数
+                (getPosterStateFlow.value as? SimpleDataState.Success<GetPosterDataModel.Response>)?.let {
+                    _getPosterStateFlow.value = it.copy(
+                        data = it.data.copy(
+                            commentNum = it.data.commentNum + 1
+                        )
+                    )
                 }
             }
             // 对评论的评论
@@ -362,14 +371,14 @@ class PosterViewModel @Inject constructor(
                 // 发送请求
                 val comment = sendCommentMethod(commentType, editData)
 
-                // 发送成功后，更新状态
-                _sendCommentStateFlow.value = SimpleState.Success
-
                 // 发送成功后，清空编辑框
                 setCommentEditData(commentType, CommentEditData.empty())
 
                 // 插入新的评论
                 insertNewComment(commentType, comment)
+
+                // 发送成功后，更新状态
+                _sendCommentStateFlow.value = SimpleState.Success
 
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -399,11 +408,12 @@ class PosterViewModel @Inject constructor(
     /**
      * 删除评论
      */
-    fun deleteCommentById(toLong: Long) {
+    fun deleteCommentById(id: Long) {
         deleteCommentStateLiveData.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                reactionRepo.deleteComment(toLong)
+                reactionRepo.deleteComment(id)
+                _commentState.data = deleteComment(_commentState.data, id)
                 deleteCommentStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()

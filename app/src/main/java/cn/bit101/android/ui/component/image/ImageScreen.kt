@@ -10,9 +10,7 @@ import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
@@ -50,7 +48,8 @@ import cn.bit101.android.ui.common.highModel
 import cn.bit101.android.ui.component.bottomsheet.CoreBottomSheetDefaults
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.ui.component.common.DialogLayout
-import cn.bit101.android.ui.component.common.DialogWrapper
+import cn.bit101.android.ui.component.common.BottomSheetWrapper
+import cn.bit101.android.ui.component.common.ImageWrapper
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.SubcomposeAsyncImageScope
@@ -236,7 +235,7 @@ private fun BasicImageScreen(
     }
 
     val dialog = remember(view, state) {
-        DialogWrapper(
+        ImageWrapper(
             onDismissRequest = onDismiss,
             behaviors = finalBehaviors,
             composeView = view,

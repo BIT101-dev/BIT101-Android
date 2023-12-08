@@ -9,16 +9,16 @@ import java.util.ArrayList
  * 一个访问者，用于遍历评论列表
  */
 private fun List<Comment>.visit(
-    visitor: (Comment) -> Comment
+    visitor: (Comment) -> Comment?,
 ): List<Comment> {
-    return this.toMutableList().apply {
-        for(i in 0 until size) {
-            val visitedComment = visitor(get(i))
-            this[i] = visitedComment.copy(
-                sub = ArrayList(visitedComment.sub.visit(visitor))
-            )
-        }
+    val newComments = ArrayList<Comment>()
+    this.forEach {
+        val visitedComment = visitor(it) ?: return@forEach
+        newComments.add(visitedComment.copy(
+            sub = ArrayList(visitedComment.sub.visit(visitor))
+        ))
     }
+    return newComments
 }
 
 
@@ -56,4 +56,16 @@ internal fun addCommentToComment(
         }),
         commentNum = it.commentNum + 1,
     ) else it
+}
+
+
+/**
+ * 删除评论
+ */
+internal fun deleteComment(
+    comments: List<Comment>,
+    id: Long,
+) = comments.visit {
+    if(it.id.toLong() == id) null
+    else it
 }

@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.gallery.poster
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
@@ -14,6 +15,7 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -32,8 +34,11 @@ import cn.bit101.android.ui.gallery.poster.component.CommentBottomSheet
 import cn.bit101.android.ui.gallery.poster.component.MoreActionBottomSheet
 import cn.bit101.android.ui.gallery.poster.component.MoreCommentsBottomSheet
 import cn.bit101.android.ui.common.rememberImagePicker
+import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
+import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
 import cn.bit101.android.ui.component.gallery.DeleteImageDialog
 import cn.bit101.api.model.common.Comment
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -46,6 +51,11 @@ fun PosterScreen(
      * 上下文
      */
     val ctx = LocalContext.current
+
+    /**
+     * 协程作用域
+     */
+    val scope = rememberCoroutineScope()
 
     /**
      * 剪贴板
@@ -103,13 +113,14 @@ fun PosterScreen(
     val likings by vm.likingsFlow.collectAsState()
 
     /**
-     * 评论底部栏的状态，如果为null，则不打开
+     * 需要评论的类型
      */
-    var showCommentBottomSheetState by remember { mutableStateOf<CommentType?>(null) }
+    var commentTypeNeedShowCommentBottomSheet by remember { mutableStateOf<CommentType?>(null) }
+
 
     val imagePicker = rememberImagePicker {
-        if(showCommentBottomSheetState != null) {
-            vm.uploadImage(ctx, showCommentBottomSheetState!!, it)
+        if(commentTypeNeedShowCommentBottomSheet != null) {
+            vm.uploadImage(ctx, commentTypeNeedShowCommentBottomSheet!!, it)
         }
     }
 
@@ -171,7 +182,6 @@ fun PosterScreen(
             mainController.snackbar("评论删除成功了！")
             showDeleteCommentDialogState = -1
             vm.setShowMoreState(false, null)
-            vm.commentStateExports.refresh(id)
             vm.setDeleteCommentState(null)
         } else if (deleteCommentState is SimpleState.Fail) {
             mainController.snackbar("评论删除失败Orz")
@@ -207,14 +217,12 @@ fun PosterScreen(
         if(sendCommentState is SimpleState.Success && needShowSnackbarForCommentToComment) {
             mainController.snackbar("评论成功被发出去了！")
             needShowSnackbarForCommentToComment = false
-            showCommentBottomSheetState = null
+            commentTypeNeedShowCommentBottomSheet = null
         } else if(sendCommentState is SimpleState.Fail && needShowSnackbarForCommentToComment) {
             mainController.snackbar("评论失败Orz")
             needShowSnackbarForCommentToComment = false
         }
     }
-
-    var showMoreActionOfCommentState by remember { mutableStateOf<Comment?>(null) }
 
 
     /**
@@ -226,6 +234,12 @@ fun PosterScreen(
      * 子评论是否加载完毕
      */
     val subCommentLoaded = vm.subCommentStateExports.pageFlow.collectAsState().value == -1
+
+
+    var commentNeedShowMoreAction by remember { mutableStateOf<Comment?>(null) }
+    val moreActionBottomSheetState = rememberBottomSheetState(
+        initialValue = BottomSheetValue.Collapsed,
+    )
 
     if(getPosterState is SimpleDataState.Loading || refreshState is SimpleState.Loading) {
         Box(modifier = Modifier.fillMaxSize()) {
@@ -242,7 +256,7 @@ fun PosterScreen(
         val commentLikings = likings.filterIsInstance(ObjectType.CommentObject::class.java).map { it.comment.id.toLong() }.toSet()
 
         val onOpenCommentToComment: (Comment, Comment) -> Unit = { comment, subComment ->
-            showCommentBottomSheetState = CommentType.ToComment(comment, subComment)
+            commentTypeNeedShowCommentBottomSheet = CommentType.ToComment(comment, subComment)
         }
 
         PosterContent(
@@ -263,10 +277,13 @@ fun PosterScreen(
             onShowMoreComments = { vm.setShowMoreState(true, it.id.toLong()) },
 
             onOpenImages = mainController::showImages,
-            onOPenCommentToPoster = { showCommentBottomSheetState = CommentType.ToPoster(id) },
+            onOPenCommentToPoster = { commentTypeNeedShowCommentBottomSheet = CommentType.ToPoster(id) },
             onOpenCommentToComment = onOpenCommentToComment,
             onOpenEdit = { mainController.navController.navigate("edit/$id") },
-            onOpenMoreActionOfCommentBottomSheet = { showMoreActionOfCommentState = it },
+            onOpenMoreActionOfCommentBottomSheet = {
+                commentNeedShowMoreAction = it
+                scope.launch { moreActionBottomSheetState.expand() }
+            },
         )
 
         if(showComment.first) {
@@ -290,30 +307,41 @@ fun PosterScreen(
                 onOpenCommentToComment = onOpenCommentToComment,
                 onOpenDeleteCommentDialog = { showDeleteCommentDialogState = it.id },
                 onReport = { mainController.navigate("report/comment/${it.id}") },
-                onOpenMoreActionOfCommentBottomSheet = { showMoreActionOfCommentState = it },
+                onOpenMoreActionOfCommentBottomSheet = {
+                    commentNeedShowMoreAction = it
+                    scope.launch { moreActionBottomSheetState.expand() }
+                },
             )
         }
 
-        if(showMoreActionOfCommentState != null) {
-            val commentForActions = showMoreActionOfCommentState!!
+        val commentForMoreAction = commentNeedShowMoreAction
 
-            MoreActionBottomSheet(
-                onDelete = { vm.deleteCommentById(commentForActions.id.toLong()) },
-                onReport = { mainController.navigate("report/comment/${commentForActions.id}") },
-                onCopy = { mainController.copyText(cm, commentForActions.text) },
-                onDismiss = { showMoreActionOfCommentState = null }
-            )
-        }
+        MoreActionBottomSheet(
+            state = moreActionBottomSheetState,
+            onDelete = {
+                if(commentForMoreAction != null) vm.deleteCommentById(commentForMoreAction.id.toLong())
+            },
+            onReport = {
+                if(commentForMoreAction != null) mainController.navigate("report/comment/${commentForMoreAction.id}")
+            },
+            onCopy = {
+                if(commentForMoreAction != null) mainController.copyText(cm, commentForMoreAction.text)
+            },
+            onDismiss = {
+                commentNeedShowMoreAction = null
+                scope.launch { moreActionBottomSheetState.collapse() }
+            }
+        )
 
-        if(showCommentBottomSheetState != null) {
-            val commentType = showCommentBottomSheetState!!
+        if(commentTypeNeedShowCommentBottomSheet != null) {
+            val commentType = commentTypeNeedShowCommentBottomSheet!!
             val commentEditData = commentEditDataMap[commentType] ?: CommentEditData.empty()
 
             CommentBottomSheet(
                 commentType = commentType,
                 commentEditData = commentEditData,
                 sending = sendCommentState is SimpleState.Loading,
-                onEditComment = vm::setCommentEditData,
+                onEditComment = { vm.setCommentEditData(commentType, it) },
                 onOpenImage = mainController::showImage,
                 onUploadImage = { imagePicker.pickImage() },
                 onSendComment = {
@@ -321,7 +349,7 @@ fun PosterScreen(
                     vm.sendComment(commentType, commentEditData)
                 },
                 onOpenDeleteImageDialog = { showCommentImageDialogState = it },
-                onDismiss = { showCommentBottomSheetState = null }
+                onDismiss = { commentTypeNeedShowCommentBottomSheet = null }
             )
         }
 
@@ -340,7 +368,7 @@ fun PosterScreen(
         }
 
         if(showCommentImageDialogState != -1) {
-            val commentType = showCommentBottomSheetState!!
+            val commentType = commentTypeNeedShowCommentBottomSheet!!
             val index = showCommentImageDialogState
             DeleteImageDialog(
                 onConfirm = { vm.deleteImageOfComment(commentType, index) },

@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.common.clearFocusOnKeyboardDismiss
 import cn.bit101.android.ui.component.bottomsheet.BottomSheet
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetDefaults
+import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
@@ -68,7 +70,7 @@ fun CommentBottomSheet(
     /**
      * 编辑评论
      */
-    onEditComment: (CommentType, CommentEditData) -> Unit,
+    onEditComment: (CommentEditData) -> Unit,
 
     /**
      * 打开图片
@@ -98,16 +100,19 @@ fun CommentBottomSheet(
 
     val scope = rememberCoroutineScope()
 
+    val state = rememberBottomSheetState(
+        initialValue = BottomSheetValue.Expanded,
+        confirmValueChange = {
+            if (it == BottomSheetValue.Collapsed) {
+                onDismiss()
+            }
+            true
+        },
+    )
+
+
     BottomSheet(
-        state = rememberBottomSheetState(
-            initialValue = BottomSheetValue.Expanded,
-            confirmValueChange = {
-                if (it == BottomSheetValue.Collapsed) {
-                    onDismiss()
-                    false
-                } else true
-            },
-        ),
+        state = state,
         skipPeeked = true,
         showAboveKeyboard = true,
         allowNestedScroll = false,
@@ -158,13 +163,14 @@ fun CommentBottomSheet(
                     }
                     .clearFocusOnKeyboardDismiss(),
                 value = commentEditData.text,
-                onValueChange = { onEditComment(commentType, commentEditData.copy(text = it)) },
+                onValueChange = { onEditComment(commentEditData.copy(text = it)) },
                 minLines = 3,
                 maxLines = 10,
                 placeholder = {
                     val text = when(commentType) {
                         is CommentType.ToComment -> "回复@${commentType.subComment.user.nickname}:"
                         is CommentType.ToPoster -> "评论帖子"
+                        else -> ""
                     }
                     Text(text = text)
                 },
@@ -209,12 +215,7 @@ fun CommentBottomSheet(
                             .clickable(
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() },
-                                onClick = {
-                                    onEditComment(
-                                        commentType,
-                                        commentEditData.copy(anonymous = !commentEditData.anonymous)
-                                    )
-                                }
+                                onClick = { onEditComment(commentEditData.copy(anonymous = !commentEditData.anonymous)) }
                             )
                     ) {
                         Icon(

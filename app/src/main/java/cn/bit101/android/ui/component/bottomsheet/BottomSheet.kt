@@ -1,8 +1,11 @@
 package cn.bit101.android.ui.component.bottomsheet
 
+import android.animation.ValueAnimator
+import android.util.Log
 import android.view.WindowManager
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.AnimationVector1D
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
@@ -23,6 +26,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -58,7 +62,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import cn.bit101.android.ui.component.common.DialogLayout
-import cn.bit101.android.ui.component.common.DialogWrapper
+import cn.bit101.android.ui.component.common.BottomSheetWrapper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
@@ -159,7 +163,7 @@ fun CoreBottomSheet(
     }
 
     val dialog = remember(view, state) {
-        DialogWrapper(
+        BottomSheetWrapper(
             onDismissRequest = onDismissRequest,
             behaviors = finalBehaviors,
             composeView = view,
@@ -276,7 +280,9 @@ fun CoreBottomSheetLayout(
             snapshotFlow { state.value }
                 .distinctUntilChanged()
                 .filter { it == BottomSheetValue.Collapsed }
-                .collect { contentAlpha.snapTo(0f) }
+                .collect {
+                    contentAlpha.snapTo(0f)
+                }
         }
     }
 
@@ -311,7 +317,7 @@ fun CoreBottomSheetLayout(
                 },
             )
             .then(
-                if(!allowNestedScroll) Modifier
+                if (!allowNestedScroll) Modifier
                 else Modifier
                     .nestedScroll(nestedScrollConnection)
                     .detectPointerPositionChanges(
@@ -383,7 +389,7 @@ fun CoreBottomSheetLayout(
                             onClick = {},
                         )
                         .then(
-                            if(!allowNestedScroll) Modifier
+                            if (!allowNestedScroll) Modifier
                             else Modifier
                                 .nestedScroll(nestedScrollConnection)
                                 .draggable(

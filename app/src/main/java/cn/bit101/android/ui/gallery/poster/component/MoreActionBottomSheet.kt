@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -29,6 +30,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.component.bottomsheet.BottomSheet
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetDefaults
+import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
@@ -73,6 +75,8 @@ internal data class Action(
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MoreActionBottomSheet(
+    state: BottomSheetState,
+
     onDelete: () -> Unit,
     onCopy: () -> Unit,
     onReport: () -> Unit,
@@ -81,8 +85,10 @@ fun MoreActionBottomSheet(
 ) {
     val view = LocalView.current
 
-    LaunchedEffect(Unit) {
-        view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+    LaunchedEffect(state.visible) {
+        if(state.visible) {
+            view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
+        }
     }
     val actions = listOf(
         Action(
@@ -103,15 +109,7 @@ fun MoreActionBottomSheet(
     )
 
     BottomSheet(
-        state = rememberBottomSheetState(
-            initialValue = BottomSheetValue.Expanded,
-            confirmValueChange = {
-                if (it == BottomSheetValue.Collapsed) {
-                    onDismiss()
-                    false
-                } else true
-            },
-        ),
+        state = state,
         skipPeeked = true,
         allowNestedScroll = false,
         behaviors = DialogSheetBehaviors(

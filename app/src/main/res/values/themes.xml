@@ -3,4 +3,10 @@
 
     <style name="Theme.BIT101" parent="android:Theme.Material.Light.NoActionBar" />
 
+    <style name="SnackbarAnim">
+        <item name="android:windowEnterAnimation">@anim/scale_in</item>
+        <item name="android:windowExitAnimation">@anim/scale_out</item>
+    </style>
+
 </resources>
+

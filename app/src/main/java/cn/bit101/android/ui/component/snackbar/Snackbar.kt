@@ -27,6 +27,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalDensity
@@ -39,6 +40,7 @@ import cn.bit101.android.ui.component.bottomsheet.CoreBottomSheetDefaults
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.ui.component.common.DialogLayout
 import cn.bit101.android.ui.component.common.SnackbarWrapper
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -81,11 +83,7 @@ fun SnackbarContent(
     )
 
     // 大小的动画
-    val scale by animateFloatAsState(
-        targetValue = if(showed) 1f else 0f,
-        label = "",
-        animationSpec = tween(100),
-    )
+    val scale = 1f
 
     val paddingHorizontal = 24.dp
     val paddingVertical = 12.dp
@@ -107,12 +105,11 @@ fun SnackbarContent(
     }.apply {
         setContent(composition) {
             DialogLayout {
-                Log.i("SnackbarContent", "scale: $scale")
                 Box(
                     modifier = finalModifier
                         .scale(scale)
-                        .shadow(2.dp, CircleShape)
-                        .background(MaterialTheme.colorScheme.secondaryContainer),
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.surfaceContainer),
                 ) {
                     Text(
                         modifier = Modifier.align(Alignment.Center),
@@ -133,12 +130,8 @@ fun SnackbarContent(
 
     DisposableEffect(message) {
         onDispose {
-            runBlocking {
-                showed = false
-                delay(300)
-                dialog.dismiss()
-                dialog.disposeComposition()
-            }
+            dialog.dismiss()
+            dialog.disposeComposition()
         }
     }
 
