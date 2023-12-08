@@ -101,7 +101,9 @@ internal fun BasicLoadableLazyColumn(
             userScrollEnabled = userScrollEnabled,
             content = {
                 content()
-                item { loadingContent() }
+                if(!refreshing) {
+                    item { loadingContent() }
+                }
             },
         )
         pullRefreshIndicator()

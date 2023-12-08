@@ -252,6 +252,10 @@ fun PosterScreen(
         }
     } else if(getPosterState is SimpleDataState.Success && refreshState is SimpleState.Success) {
 
+        val mainListState = rememberLoadableLazyColumnWithoutPullRequestState(
+            onLoadMore = { vm.commentStateExports.loadMore(id) }
+        )
+
         AnimatedContent(
             targetState = showMoreCommentsPage,
             transitionSpec = {
@@ -314,9 +318,7 @@ fun PosterScreen(
                     commentLikings = commentLikings,
                     loading = loadMoreState is SimpleState.Loading,
                     loaded = commentLoaded,
-                    state = rememberLoadableLazyColumnWithoutPullRequestState(
-                        onLoadMore = { vm.commentStateExports.loadMore(id) }
-                    ),
+                    state = mainListState,
 
                     onLikePoster = { vm.like(ObjectType.PosterObject(id)) },
                     onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
