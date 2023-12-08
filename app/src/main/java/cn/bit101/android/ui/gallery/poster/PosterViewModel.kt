@@ -2,7 +2,6 @@ package cn.bit101.android.ui.gallery.poster
 
 import android.content.Context
 import android.net.Uri
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.PosterRepo
@@ -77,17 +76,9 @@ class PosterViewModel @Inject constructor(
     val getPosterStateFlow = _getPosterStateFlow.asStateFlow()
 
     private val _commentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-
-        /**
-         * 刷新评论
-         */
         override fun refresh(data: Long) = refresh {
             posterRepo.getCommentsById(data)
         }
-
-        /**
-         * 加载更多评论
-         */
         override fun loadMore(data: Long) = loadMore {
             posterRepo.getCommentsById(data, it.toInt())
         }
@@ -96,17 +87,9 @@ class PosterViewModel @Inject constructor(
     val commentStateExports = _commentState.export()
 
     private val _subCommentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-
-        /**
-         * 刷新子评论
-         */
         override fun refresh(data: Long) = refresh {
             posterRepo.getCommentsOfCommentById(data)
         }
-
-        /**
-         * 加载更多子评论
-         */
         override fun loadMore(data: Long) = loadMore {
             posterRepo.getCommentsOfCommentById(data, it.toInt())
         }
@@ -116,51 +99,17 @@ class PosterViewModel @Inject constructor(
     private val _commentEditDataMapFlow = MutableStateFlow<Map<CommentType, CommentEditData?>>(emptyMap())
     val commentEditDataMapFlow = _commentEditDataMapFlow.asStateFlow()
 
-    private val _showMoreStateFlow = MutableStateFlow<Pair<Boolean, Long?>>(Pair(false, null))
-    val showMoreStateFlow = _showMoreStateFlow.asStateFlow()
-
     private val _likingsFlow = MutableStateFlow<Set<ObjectType>>(emptySet())
     val likingsFlow = _likingsFlow.asStateFlow()
 
     private val _sendCommentStateFlow = MutableStateFlow<SimpleState?>(null)
     val sendCommentStateFlow = _sendCommentStateFlow.asStateFlow()
 
-    val deletePosterStateLiveData = MutableLiveData<SimpleState>(null)
-    val deleteCommentStateLiveData = MutableLiveData<SimpleState>(null)
+    private val _deletePosterStateFlow = MutableStateFlow<SimpleState?>(null)
+    val deletePosterStateFlow = _deletePosterStateFlow.asStateFlow()
 
-    fun setDeletePosterState(state: SimpleState?) {
-        deletePosterStateLiveData.value = state
-    }
-
-    fun setDeleteCommentState(state: SimpleState?) {
-        deleteCommentStateLiveData.value = state
-    }
-
-    /**
-     * 从评论列表中找到对应的评论
-     */
-    private fun findCommentById(id: Long, comments: List<Comment>): Comment? {
-        comments.forEach {
-            if(it.id.toLong() == id) return it
-            val comment = findCommentById(id, it.sub)
-            if(comment != null) return comment
-        }
-        return null
-    }
-
-    /**
-     * 从评论列表中找到对应的评论
-     */
-    fun findCommentById(id: Long) = findCommentById(id, _commentState.data)
-
-    /**
-     * 设置显示更多评论的状态
-     */
-    fun setShowMoreState(show: Boolean, id: Long? = null) {
-        val lastValue = showMoreStateFlow.value
-        _showMoreStateFlow.value = if(id == null) lastValue.copy(first = show)
-        else lastValue.copy(first = show, second = id)
-    }
+    private val _deleteCommentStateFlow = MutableStateFlow<SimpleState?>(null)
+    val deleteCommentStateFlow = _deleteCommentStateFlow.asStateFlow()
 
     /**
      * 获取帖子
@@ -393,14 +342,14 @@ class PosterViewModel @Inject constructor(
      * 删除帖子
      */
     fun deletePosterById(id: Long) {
-        deletePosterStateLiveData.value = SimpleState.Loading
+        _deleteCommentStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 posterRepo.deletePosterById(id)
-                deletePosterStateLiveData.postValue(SimpleState.Success)
+                _deleteCommentStateFlow.value = SimpleState.Success
             } catch (e: Exception) {
                 e.printStackTrace()
-                deletePosterStateLiveData.postValue(SimpleState.Fail)
+                _deleteCommentStateFlow.value = SimpleState.Fail
             }
         }
     }
@@ -409,15 +358,15 @@ class PosterViewModel @Inject constructor(
      * 删除评论
      */
     fun deleteCommentById(id: Long) {
-        deleteCommentStateLiveData.value = SimpleState.Loading
+        _deleteCommentStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 reactionRepo.deleteComment(id)
                 _commentState.data = deleteComment(_commentState.data, id)
-                deleteCommentStateLiveData.postValue(SimpleState.Success)
+                _deleteCommentStateFlow.value = SimpleState.Success
             } catch (e: Exception) {
                 e.printStackTrace()
-                deleteCommentStateLiveData.postValue(SimpleState.Fail)
+                _deleteCommentStateFlow.value = SimpleState.Fail
             }
         }
     }

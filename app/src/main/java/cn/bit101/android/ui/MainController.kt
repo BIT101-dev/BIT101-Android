@@ -39,7 +39,8 @@ class MainController(
         snackbar(message = "已复制")
     }
 
-    fun copyText(cm: ClipboardManager, text: String) {
+    fun copyText(cm: ClipboardManager, text: String?) {
+        if (text == null) return
         copyText(cm, AnnotatedString(text))
     }
 

@@ -23,6 +23,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,9 +32,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.bottomsheet.BottomSheet
-import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
+import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
-import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
 import cn.bit101.android.ui.component.gallery.CommentCard
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
@@ -233,7 +233,8 @@ fun MoreCommentsSheetContent(
 @Composable
 fun MoreCommentsBottomSheet(
     mainController: MainController,
-    comment: Comment,
+    bottomSheetState: BottomSheetState,
+    comment: Comment?,
     subComments: List<Comment>,
     commentLikings: Set<Long>,
     loading: Boolean,
@@ -241,7 +242,7 @@ fun MoreCommentsBottomSheet(
     refreshing: Boolean,
     state: LoadableLazyColumnWithoutPullRequestState,
 
-    onCancel: () -> Unit,
+    onDismiss: () -> Unit,
     onLikeComment: (Comment) -> Unit,
 
     /**
@@ -253,19 +254,8 @@ fun MoreCommentsBottomSheet(
     onOpenDeleteCommentDialog: (Comment) -> Unit,
     onOpenMoreActionOfCommentBottomSheet: (Comment) -> Unit,
 ) {
-    val scope = rememberCoroutineScope()
-    val bottomSheet = rememberBottomSheetState(
-        initialValue = BottomSheetValue.Expanded,
-        confirmValueChange = {
-            if(it == BottomSheetValue.Collapsed) {
-                onCancel()
-                false
-            } else true
-        },
-    )
-
     BottomSheet(
-        state = bottomSheet,
+        state = bottomSheetState,
         skipPeeked = true,
         allowNestedScroll = false,
         dragHandle = {
@@ -285,7 +275,7 @@ fun MoreCommentsBottomSheet(
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .size(20.dp),
-                    onClick = { scope.launch { bottomSheet.collapse() } }
+                    onClick = onDismiss
                 ) {
                     Icon(
                         imageVector = Icons.Rounded.Close,
@@ -305,8 +295,9 @@ fun MoreCommentsBottomSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.95f)
+                .fillMaxHeight(0.97f)
         ) {
+            if(comment == null) return@Column
             MoreCommentsSheetContent(
                 mainController = mainController,
                 comment = comment,

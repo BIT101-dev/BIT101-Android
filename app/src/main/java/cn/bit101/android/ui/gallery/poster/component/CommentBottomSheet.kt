@@ -92,7 +92,9 @@ fun CommentBottomSheet(
      */
     onOpenDeleteImageDialog: (Int) -> Unit,
 
-
+    /**
+     * 关闭评论框
+     */
     onDismiss: () -> Unit,
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -254,7 +256,7 @@ fun CommentBottomSheet(
                         enabled = !sending && !commentEditData.isEmpty(),
                     ) {
                         if(sending) {
-                            CircularProgressIndicator()
+                            Text(text = "发送中")
                         } else {
                             Text(text = "发送")
                         }
