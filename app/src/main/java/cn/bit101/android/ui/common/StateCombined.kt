@@ -16,6 +16,21 @@ interface BasicRefreshAndLoadMoreStatesCombinedExportData <T>{
     val loadMoreStateFlow: StateFlow<SimpleState?>
     val dataFlow: StateFlow<List<T>>
     val pageFlow: StateFlow<Int>
+
+    val refresh: Function<Unit>
+    val loadMore: Function<Unit>
+}
+
+interface BasicRefreshAndLoadMoreStatesCombinedExportDataOne <A, T>
+    : BasicRefreshAndLoadMoreStatesCombinedExportData<T> {
+    override val refresh: (A) -> Unit
+    override val loadMore: (A) -> Unit
+}
+
+interface BasicRefreshAndLoadMoreStatesCombinedExportDataZero <T>
+    : BasicRefreshAndLoadMoreStatesCombinedExportData<T> {
+    override val refresh: () -> Unit
+    override val loadMore: () -> Unit
 }
 
 data class RefreshAndLoadMoreStatesCombinedExportDataOne <A, T>(
@@ -24,9 +39,9 @@ data class RefreshAndLoadMoreStatesCombinedExportDataOne <A, T>(
     override val dataFlow: StateFlow<List<T>>,
     override val pageFlow: StateFlow<Int>,
 
-    val refresh: (A) -> Unit,
-    val loadMore: (A) -> Unit,
-) : BasicRefreshAndLoadMoreStatesCombinedExportData<T>
+    override val refresh: (A) -> Unit,
+    override val loadMore: (A) -> Unit,
+) : BasicRefreshAndLoadMoreStatesCombinedExportDataOne<A, T>
 
 data class RefreshAndLoadMoreStatesCombinedExportDataZero <T>(
     override val refreshStateFlow: StateFlow<SimpleState?>,
@@ -34,9 +49,9 @@ data class RefreshAndLoadMoreStatesCombinedExportDataZero <T>(
     override val dataFlow: StateFlow<List<T>>,
     override val pageFlow: StateFlow<Int>,
 
-    val refresh: () -> Unit,
-    val loadMore: () -> Unit,
-) : BasicRefreshAndLoadMoreStatesCombinedExportData<T>
+    override val refresh: () -> Unit,
+    override val loadMore: () -> Unit,
+) : BasicRefreshAndLoadMoreStatesCombinedExportDataZero<T>
 
 
 /**
@@ -54,6 +69,8 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
         get() = dataFlow.value
         set(value) { dataFlow.value = value }
 
+    abstract fun export(): BasicRefreshAndLoadMoreStatesCombinedExportData<T>
+
     protected fun refresh(
         refresh: suspend () -> List<T>
     ) {
@@ -64,6 +81,9 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
                 pageFlow.value = 0
                 val posters = refresh()
                 dataFlow.value = posters.toMutableList()
+                if(posters.isEmpty()) {
+                    pageFlow.value = -1
+                }
                 refreshStateFlow.value = SimpleState.Success
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -110,14 +130,14 @@ abstract class RefreshAndLoadMoreStatesCombinedOne <A, T>(
     /**
      * 将所有的状态暴露出来给组合函数
      */
-    fun export() = RefreshAndLoadMoreStatesCombinedExportDataOne <A, T>(
+    override fun export() = RefreshAndLoadMoreStatesCombinedExportDataOne <A, T>(
         refreshStateFlow = refreshStateFlow.asStateFlow(),
         loadMoreStateFlow = loadMoreStateFlow.asStateFlow(),
         dataFlow = dataFlow.asStateFlow(),
         pageFlow = pageFlow.asStateFlow(),
 
-        refresh = { refresh(it) },
-        loadMore = { loadMore(it) },
+        refresh = this::refresh,
+        loadMore = this::loadMore,
     )
 
     abstract fun refresh(data: A)
@@ -134,14 +154,14 @@ abstract class RefreshAndLoadMoreStatesCombinedZero <T>(
     /**
      * 将所有的状态暴露出来给组合函数
      */
-    fun export() = RefreshAndLoadMoreStatesCombinedExportDataZero <T>(
+    override fun export() = RefreshAndLoadMoreStatesCombinedExportDataZero(
         refreshStateFlow = refreshStateFlow.asStateFlow(),
         loadMoreStateFlow = loadMoreStateFlow.asStateFlow(),
         dataFlow = dataFlow.asStateFlow(),
         pageFlow = pageFlow.asStateFlow(),
 
-        refresh = { refresh() },
-        loadMore = { loadMore() },
+        refresh = this::refresh,
+        loadMore = this::loadMore,
     )
 
     abstract fun refresh()
