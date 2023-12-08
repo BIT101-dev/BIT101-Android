@@ -2,16 +2,22 @@ package cn.bit101.android.ui.gallery.poster
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -21,13 +27,13 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
@@ -40,9 +46,9 @@ import cn.bit101.android.ui.common.rememberImagePicker
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
 import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
 import cn.bit101.android.ui.component.gallery.DeleteImageDialog
+import cn.bit101.android.ui.gallery.poster.component.MoreActionOfPosterBottomSheet
 import cn.bit101.android.ui.gallery.poster.component.MoreCommentsPage
 import cn.bit101.api.model.common.Comment
-import com.google.gson.Gson
 import kotlinx.coroutines.launch
 
 
@@ -169,9 +175,16 @@ fun PosterScreen(
     var commentNeedShowMoreAction by rememberSaveable { mutableStateOf<Comment?>(null) }
 
     /**
-     * 更多操作的bottom sheet的状态
+     * 评论的更多操作的bottom sheet的状态
      */
-    val moreActionBottomSheetState = rememberBottomSheetState(
+    val moreActionOfCommentBottomSheetState = rememberBottomSheetState(
+        initialValue = BottomSheetValue.Collapsed,
+    )
+
+    /**
+     * 帖子更多操作的bottom sheet的状态
+     */
+    val moreActionOfPosterBottomSheetState = rememberBottomSheetState(
         initialValue = BottomSheetValue.Collapsed,
     )
 
@@ -288,7 +301,7 @@ fun PosterScreen(
                     onOpenCommentToComment = { c, sc -> commentTypeNeedShowCommentBottomSheet = CommentType.ToComment(c, sc) },
                     onOpenMoreActionOfCommentBottomSheet = {
                         commentNeedShowMoreAction = it
-                        scope.launch { moreActionBottomSheetState.expand() }
+                        scope.launch { moreActionOfCommentBottomSheetState.expand() }
                     },
                 )
             } else {
@@ -316,21 +329,33 @@ fun PosterScreen(
                     onOpenImages = mainController::showImages,
                     onOPenCommentToPoster = { commentTypeNeedShowCommentBottomSheet = CommentType.ToPoster(id) },
                     onOpenCommentToComment = { c, sc -> commentTypeNeedShowCommentBottomSheet = CommentType.ToComment(c, sc) },
-                    onOpenEdit = { mainController.navController.navigate("edit/$id") },
                     onOpenMoreActionOfCommentBottomSheet = {
                         commentNeedShowMoreAction = it
-                        scope.launch { moreActionBottomSheetState.expand() }
+                        scope.launch { moreActionOfCommentBottomSheetState.expand() }
+                    },
+                    onOpenMoreActionOfPosterBottomSheet = {
+                        scope.launch { moreActionOfPosterBottomSheetState.expand() }
                     },
                 )
             }
         }
 
         MoreActionOfCommentBottomSheet(
-            state = moreActionBottomSheetState,
+            state = moreActionOfCommentBottomSheetState,
             onDelete = { vm.deleteCommentById(commentNeedShowMoreAction!!.id.toLong()) },
             onReport = { mainController.navigate("report/comment/${commentNeedShowMoreAction!!.id}") },
             onCopy = { mainController.copyText(cm, commentNeedShowMoreAction?.text) },
-            onDismiss = { scope.launch { moreActionBottomSheetState.collapse() } }
+            onDismiss = { scope.launch { moreActionOfCommentBottomSheetState.collapse() } }
+        )
+
+        MoreActionOfPosterBottomSheet(
+            state = moreActionOfPosterBottomSheetState,
+            onEdit = { mainController.navigate("edit/$id") },
+            onDelete = { vm.deletePosterById(id) },
+            onReport = { mainController.navigate("report/poster/$id") },
+            onOpenInBrowser = { mainController.openPoster(id, ctx) },
+
+            onDismiss = { scope.launch { moreActionOfPosterBottomSheetState.collapse() } }
         )
 
         if(commentTypeNeedShowCommentBottomSheet != null) {
@@ -359,8 +384,25 @@ fun PosterScreen(
                 onDismiss = { showCommentImageDialogState = -1 }
             )
         }
-
-    } else {
-
+    } else if(getPosterState is SimpleDataState.Fail || refreshState is SimpleState.Fail) {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    modifier = Modifier.size(64.dp),
+                    imageVector = Icons.Rounded.ErrorOutline,
+                    contentDescription = "错误"
+                )
+                Spacer(modifier = Modifier.padding(4.dp))
+                Text(
+                    text = "加载失败了Orz",
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                )
+            }
+        }
     }
 }

@@ -351,14 +351,14 @@ class PosterViewModel @Inject constructor(
      * 删除帖子
      */
     fun deletePosterById(id: Long) {
-        _deleteCommentStateFlow.value = SimpleState.Loading
+        _deletePosterStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 posterRepo.deletePosterById(id)
-                _deleteCommentStateFlow.value = SimpleState.Success
+                _deletePosterStateFlow.value = SimpleState.Success
             } catch (e: Exception) {
                 e.printStackTrace()
-                _deleteCommentStateFlow.value = SimpleState.Fail
+                _deletePosterStateFlow.value = SimpleState.Fail
             }
         }
     }

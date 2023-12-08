@@ -73,6 +73,8 @@ fun PosterScreenTopBar(
     mainController: MainController,
     state: LoadableLazyColumnWithoutPullRequestState,
     data: GetPosterDataModel.Response,
+
+    onMoreAction: () -> Unit,
 ) {
     TopAppBar(
         title = {
@@ -129,9 +131,7 @@ fun PosterScreenTopBar(
             }
         },
         actions = {
-            IconButton(
-                onClick = {}
-            ) {
+            IconButton(onClick = onMoreAction) {
                 Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = "更多")
             }
         },
@@ -200,11 +200,6 @@ fun PosterContent(
     onOpenImages: (Int, List<Image>) -> Unit,
 
     /**
-     * 打开编辑帖子的对话框
-     */
-    onOpenEdit: () -> Unit,
-
-    /**
      * 打开*对评论的评论*的编辑对话框，第一个参数是主评论，第二个参数是子评论
      */
     onOpenCommentToComment: (Comment, Comment) -> Unit,
@@ -218,6 +213,11 @@ fun PosterContent(
      * 打开评论的更多操作的bottom sheet，需要传入评论的数据
      */
     onOpenMoreActionOfCommentBottomSheet: (Comment) -> Unit,
+
+    /**
+     * 打开更多操作的bottom sheet
+     */
+    onOpenMoreActionOfPosterBottomSheet: () -> Unit
 ) {
     val cm = LocalClipboardManager.current
 
@@ -230,6 +230,7 @@ fun PosterContent(
                 mainController = mainController,
                 state = state,
                 data = data,
+                onMoreAction = onOpenMoreActionOfPosterBottomSheet,
             )
         },
     ) { paddingValues ->
@@ -321,7 +322,10 @@ fun PosterContent(
                             FlowRow {
                                 data.tags.forEach { tag ->
                                     Text(
-                                        modifier = Modifier.clickable { mainController.copyText(cm, buildAnnotatedString { append(tag) }) },
+                                        modifier = Modifier
+                                            .pointerInput(Unit) {
+                                                detectTapGestures(onTap = { mainController.copyText(cm, tag) })
+                                            },
                                         text = "#$tag",
                                         style = MaterialTheme.typography.bodyLarge.copy(
                                             color = MaterialTheme.colorScheme.primary,

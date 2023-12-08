@@ -287,7 +287,9 @@ fun CommentCard(
                         Text(
                             modifier = Modifier
                                 .align(Alignment.CenterVertically)
-                                .clickable { onShowMoreComments() },
+                                .pointerInput(Unit) {
+                                    detectTapGestures(onTap = { onShowMoreComments() })
+                                },
                             text = "查看共${comment.commentNum}条回复",
                             style = MaterialTheme.typography.labelMedium.copy(
                                 color = MaterialTheme.colorScheme.onSurface,

@@ -32,42 +32,6 @@ import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.utils.ColorUtils
 
-@Composable
-internal fun MoreActionBottomSheetAction(
-    icon: ImageVector,
-    text: String,
-
-    onClick: () -> Unit,
-) {
-    Column(
-        modifier = Modifier
-            .clickable { onClick() }
-            .padding(8.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier.size(28.dp),
-        )
-        Spacer(modifier = Modifier.padding(2.dp))
-        Text(
-            text = text,
-            style = MaterialTheme.typography.labelMedium.copy(
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            ),
-        )
-    }
-}
-
-internal data class Action(
-    val icon: ImageVector,
-    val text: String,
-    val onClick: () -> Unit,
-)
-
-
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MoreActionOfCommentBottomSheet(
@@ -104,40 +68,9 @@ fun MoreActionOfCommentBottomSheet(
         ),
     )
 
-    BottomSheet(
+    MoreActionBottomSheet(
         state = state,
-        skipPeeked = true,
-        allowNestedScroll = false,
-        behaviors = DialogSheetBehaviors(
-            navigationBarColor = BottomSheetDefaults.backgroundColor,
-            lightNavigationBar = ColorUtils.isLightColor(BottomSheetDefaults.backgroundColor),
-        ),
-        dragHandle = {},
-    ) {
-        Box(
-            modifier = Modifier
-                .padding(horizontal = 16.dp, vertical = 32.dp)
-                .fillMaxWidth()
-        ) {
-            FlowRow(
-                modifier = Modifier
-                    .width(260.dp)
-                    .align(Alignment.Center),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalArrangement = Arrangement.spacedBy(16.dp),
-                maxItemsInEachRow = 8,
-            ) {
-                actions.forEach { action ->
-                    MoreActionBottomSheetAction(
-                        icon = action.icon,
-                        text = action.text,
-                        onClick = {
-                            onDismiss()
-                            action.onClick()
-                        },
-                    )
-                }
-            }
-        }
-    }
+        actions = actions,
+        onDismiss = onDismiss,
+    )
 }

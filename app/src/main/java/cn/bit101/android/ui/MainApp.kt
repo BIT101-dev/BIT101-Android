@@ -345,7 +345,7 @@ fun MainApp(
         ImageHost(
             modifier = Modifier.fillMaxSize(),
             state = mainController.imageHostState,
-            onOpenUrl = { mainController.openUrl(ctx, it) },
+            onOpenUrl = { mainController.openUrl(it, ctx) },
         )
 
         SnackbarHost(

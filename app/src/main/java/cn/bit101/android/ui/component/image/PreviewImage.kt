@@ -1,6 +1,7 @@
 package cn.bit101.android.ui.component.image
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -18,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
@@ -36,8 +38,9 @@ fun PreviewImage(
         modifier = Modifier
             .size(size)
             .clip(RoundedCornerShape(4.dp))
-            .clickable { onClick() },
-
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { onClick() })
+            },
         contentScale = ContentScale.Crop,
         model = image.lowUrl,
         contentDescription = "image",
@@ -55,7 +58,9 @@ fun PreviewImage(
         modifier = modifier
             .fillMaxHeight()
             .clip(RoundedCornerShape(4.dp))
-            .clickable { onClick() },
+            .pointerInput(Unit) {
+                detectTapGestures(onTap = { onClick() })
+            },
         contentScale = contentScale,
         model = image.lowUrl,
         contentDescription = "image",

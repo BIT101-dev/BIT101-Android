@@ -3,6 +3,7 @@ package cn.bit101.android.ui.component
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -15,9 +16,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import cn.bit101.android.App
+import cn.bit101.android.R
 import cn.bit101.api.model.common.User
 import coil.compose.AsyncImage
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -32,8 +36,7 @@ fun Avatar(
 ) {
     // 头像
     // 默认头像为APP图标
-//    val icon = App.context.applicationInfo.loadIcon(App.context.packageManager)
-    val icon: Drawable? = null
+    val icon = App.context.applicationInfo.loadIcon(App.context.packageManager)
     val painter = rememberDrawablePainter(icon)
     Box {
 
@@ -43,12 +46,11 @@ fun Avatar(
             var modifier = Modifier
                 .size(size)
                 .clip(CircleShape)
-                .background(Color.Black)
-//                .background(Color(App.context.getColor(R.color.ic_launcher_background)))
+                .background(Color(App.context.getColor(R.color.ic_launcher_background)))
 
             if(onClick != null) {
-                modifier = modifier.clickable {
-                    onClick(user)
+                modifier = modifier.pointerInput(Unit) {
+                    detectTapGestures(onTap = { onClick(user) })
                 }
             }
 

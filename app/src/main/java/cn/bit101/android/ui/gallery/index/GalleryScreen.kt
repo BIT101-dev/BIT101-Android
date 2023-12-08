@@ -187,13 +187,9 @@ fun GalleryScreen(
     )
     val scope = rememberCoroutineScope()
 
-    val topAppBarHeight = 48.dp
-
     Column {
         CenterAlignedTopAppBar(
-            modifier = Modifier
-                .statusBarsPadding()
-                .height(topAppBarHeight),
+            modifier = Modifier.statusBarsPadding(),
             title = {
                 PrimaryTabRow(
                     modifier = Modifier

@@ -9,6 +9,7 @@ import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.navigation.NavHostController
+import cn.bit101.android.App
 import cn.bit101.android.ui.common.ImageData
 import cn.bit101.android.ui.component.image.ImageHostState
 import cn.bit101.android.ui.component.snackbar.SnackbarState
@@ -44,11 +45,16 @@ class MainController(
         copyText(cm, AnnotatedString(text))
     }
 
-    fun openUrl(ctx: Context, url: String) {
+    fun openUrl(url: String, ctx: Context) {
         val uri = Uri.parse(url)
         val intent = Intent(Intent.ACTION_VIEW, uri)
         ctx.startActivity(intent)
     }
+
+    fun openPoster(id: Long, ctx: Context) {
+        openUrl("https://bit101.cn/gallery/$id", ctx)
+    }
+
     fun showImage(image: Image) = imageHostState.showSingleImage(ImageData.Remote(image))
 
     fun showImages(

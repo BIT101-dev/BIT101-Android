@@ -4,6 +4,7 @@ import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
@@ -70,7 +72,7 @@ fun UploadImageRow(
     LazyRow(
         modifier = Modifier.fillMaxWidth()
     ) {
-        itemsIndexed(images) { index, it ->
+        itemsIndexed(images) { index, image ->
             Box(modifier = Modifier.padding(end = 4.dp).size(100.dp)) {
                 AsyncImage(
                     modifier = Modifier
@@ -78,18 +80,20 @@ fun UploadImageRow(
                         .padding(end = 5.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .combinedClickable(
-                            onClick = { onOpenImage((it.uploadImageState as UploadImageState.Success).image) },
+                            onClickLabel = "open image",
+                            onClick = { onOpenImage((image.uploadImageState as UploadImageState.Success).image) },
+                            onLongClickLabel = "delete",
                             onLongClick = {
                                 view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
                                 onOpenDeleteDialog(index)
                             }
                         ),
                     contentScale = ContentScale.Crop,
-                    model = it.lowModel(),
+                    model = image.lowModel(),
                     contentDescription = "image",
                 )
 
-                when (it.uploadImageState) {
+                when (image.uploadImageState) {
                     is UploadImageState.Success -> {}
                     is UploadImageState.Loading -> {
                         CircularProgressIndicator(

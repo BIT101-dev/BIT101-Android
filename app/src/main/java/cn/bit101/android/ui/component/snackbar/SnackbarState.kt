@@ -28,13 +28,14 @@ class SnackbarState(
     private var job: Job? = null
 
     private fun show(message: String, id: UUID) {
-        job?.cancel()
-        job = scope.launch {
-            dismiss()
-            messageState.value = MessageData(message, id)
-            delay(delayMillis)
-            if (messageState.value?.id == id) {
-                dismiss()
+        synchronized(this) {
+            job?.cancel()
+            job = scope.launch {
+                messageState.value = MessageData(message, id)
+                delay(delayMillis)
+                if (messageState.value?.id == id) {
+                    messageState.value = null
+                }
             }
         }
     }
