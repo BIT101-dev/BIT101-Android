@@ -5,10 +5,10 @@ import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import android.webkit.ValueCallback
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -19,7 +19,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,8 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewModelScope
-import cn.bit101.android.App
 import cn.bit101.android.datastore.UserDataStore
 import cn.bit101.android.ui.MainController
 import com.google.accompanist.web.AccompanistWebChromeClient
@@ -39,7 +36,6 @@ import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberSaveableWebViewState
 import com.google.accompanist.web.rememberWebViewNavigator
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -84,9 +80,12 @@ fun WebScreen(
             override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                 super.onPageStarted(view, url, favicon)
 
+                Log.i("WebScreen", "onPageStarted: $url")
+
                 // 注入fake-cookie
                 scope.launch {
                     val fakeCookie = UserDataStore.fakeCookie.get()
+                    Log.d("WebScreen", fakeCookie)
                     if (fakeCookie.isNotEmpty()) {
                         view.evaluateJavascript(
                             """
@@ -125,11 +124,11 @@ fun WebScreen(
                 }
 
                 val password = runBlocking {
-                    UserDataStore.loginSid.get()
+                    UserDataStore.loginPassword.get()
                 }
 
                 // 自动填充成绩查询学号密码
-                if ((url == "${vm.BASE_URL}/#/score/" || url == "${vm.BASE_URL}/#/score") && sid.isNotEmpty() && password.isNotEmpty()) {
+                if ((url == "${vm.BASE_URL}/score/" || url == "${vm.BASE_URL}/score") && sid.isNotEmpty() && password.isNotEmpty()) {
                     val script = """
                     document.getElementById("sid").value = "$sid";
                     document.getElementById("sid").dispatchEvent(new Event('input'));

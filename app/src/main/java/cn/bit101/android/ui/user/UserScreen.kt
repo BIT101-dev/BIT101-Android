@@ -59,15 +59,15 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.Avatar
-import cn.bit101.android.ui.component.topbar.BasicTwoRowsTopAppBar
+import cn.bit101.android.ui.component.gallery.AnnotatedText
+import cn.bit101.android.ui.component.gallery.PosterCard
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.common.SimpleDataState
-import cn.bit101.android.ui.common.SimpleState
-import cn.bit101.android.ui.component.gallery.AnnotatedText
-import cn.bit101.android.ui.component.gallery.PosterCard
+import cn.bit101.android.ui.component.topbar.BasicTwoRowsTopAppBar
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
@@ -91,22 +91,24 @@ fun UserInfoContent(
 ) {
     val cm = LocalClipboardManager.current
     Column {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Box(modifier = Modifier.align(Alignment.CenterStart)) {
-                Avatar(
-                    user = data.user,
-                    low = true,
-                    size = 80.dp,
-                    onClick = { onOpenImage(data.user.avatar) }
-                )
-            }
-            Row(
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Avatar(
+                user = data.user,
+                low = true,
+                size = 80.dp,
+                onClick = { onOpenImage(data.user.avatar) }
+            )
+            Column(
                 modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .padding(end = 8.dp)
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalAlignment = Alignment.End
             ) {
-                if(data.own) {
-                    if(id == 0L) {
+                if (data.own) {
+                    if (id == 0L) {
                         FilledTonalButton(onClick = onOpenEditDialog) {
                             Icon(
                                 modifier = Modifier.align(Alignment.CenterVertically),
@@ -116,10 +118,9 @@ fun UserInfoContent(
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 modifier = Modifier.align(Alignment.CenterVertically),
-                                text = "编辑"
+                                text = "编辑信息"
                             )
                         }
-                        Spacer(modifier = Modifier.padding(8.dp))
                     }
 
                     FilledTonalButton(onClick = onSwitchViewPoint) {
@@ -131,16 +132,16 @@ fun UserInfoContent(
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             modifier = Modifier.align(Alignment.CenterVertically),
-                            text = if(id == null || id == 0L) "去访客视角" else "去个人主页"
+                            text = if (id == null || id == 0L) "去访客视角" else "去个人主页"
                         )
                     }
 
-                } else if(data.user.id != -1) {
+                } else if (data.user.id != -1) {
                     FilledTonalButton(
                         onClick = onFollow,
                         enabled = followState !is SimpleState.Loading
                     ) {
-                        if(followState is SimpleState.Loading) {
+                        if (followState is SimpleState.Loading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp
@@ -148,23 +149,17 @@ fun UserInfoContent(
                         } else {
                             Icon(
                                 modifier = Modifier.align(Alignment.CenterVertically),
-                                imageVector = if(data.following) Icons.Rounded.Close else Icons.Rounded.Add,
+                                imageVector = if (data.following) Icons.Rounded.Close else Icons.Rounded.Add,
                                 contentDescription = "add"
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
                                 modifier = Modifier.align(Alignment.CenterVertically),
-                                text = if(data.following) "取消关注" else "关注"
+                                text = if (data.following) {
+                                    if (data.follower) "已互粉" else "已关注"
+                                } else "关注"
                             )
                         }
-                    }
-                    if(data.follower && data.following) {
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        Text(
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                            text = "已互粉",
-                            style = MaterialTheme.typography.labelSmall
-                        )
                     }
                 }
             }
@@ -181,8 +176,11 @@ fun UserInfoContent(
                     append(data.user.nickname)
                 }
 
-                val color = if(data.user.identity.id == 0) MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                else Color(android.graphics.Color.parseColor(data.user.identity.color))
+                val color =
+                    if (data.user.identity.id == 0) MaterialTheme.colorScheme.onBackground.copy(
+                        alpha = 0.5f
+                    )
+                    else Color(android.graphics.Color.parseColor(data.user.identity.color))
 
                 withStyle(
                     style = MaterialTheme.typography.bodySmall.copy(
@@ -194,7 +192,7 @@ fun UserInfoContent(
                 }
             },
             onClick = {
-                mainController.copyText(cm, buildAnnotatedString{ append(data.user.nickname) })
+                mainController.copyText(cm, buildAnnotatedString { append(data.user.nickname) })
             }
         )
         Spacer(modifier = Modifier.padding(4.dp))
@@ -202,9 +200,9 @@ fun UserInfoContent(
         val timeStr = DateTimeUtils.format(time)
         FlowRow {
             ClickableText(
-                text = buildAnnotatedString { append("UID: ${data.user.id} | 创建于${timeStr}") },
+                text = buildAnnotatedString { append("UID: ${data.user.id} | 于${timeStr}来到BIT101") },
                 onClick = {
-                    mainController.copyText(cm, buildAnnotatedString{ append("${data.user.id}") })
+                    mainController.copyText(cm, buildAnnotatedString { append("${data.user.id}") })
                 },
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = MaterialTheme.colorScheme.onBackground
@@ -359,7 +357,9 @@ fun UserScreenContent(
                         onOpenImages = onOpenImages,
                     )
                     HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth().padding(0.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(0.dp),
                         thickness = 0.5.dp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                     )
@@ -389,10 +389,10 @@ fun UserScreen(
     val followState by vm.followStateMutableLiveData.observeAsState()
 
     DisposableEffect(followState) {
-        if(followState is SimpleState.Success) {
+        if (followState is SimpleState.Success) {
             vm.followStateMutableLiveData.value = null
             mainController.snackbar("关注/取消关注成功")
-        } else if(followState is SimpleState.Fail) {
+        } else if (followState is SimpleState.Fail) {
             vm.followStateMutableLiveData.value = null
             mainController.snackbar("关注/取消关注失败")
         }
@@ -441,30 +441,30 @@ fun UserScreen(
     val uploadUserInfoState by vm.uploadUserInfoStateLiveData.observeAsState()
 
     DisposableEffect(uploadUserInfoState) {
-        if(uploadUserInfoState is SimpleState.Success) {
+        if (uploadUserInfoState is SimpleState.Success) {
             vm.uploadUserInfoStateLiveData.value = null
             mainController.snackbar("保存成功OvO")
-        } else if(uploadUserInfoState is SimpleState.Fail) {
+        } else if (uploadUserInfoState is SimpleState.Fail) {
             vm.uploadUserInfoStateLiveData.value = null
             mainController.snackbar("保存失败Orz")
         }
-        onDispose {  }
+        onDispose { }
     }
 
 
     LaunchedEffect(getUserInfoState) {
-        if(getUserInfoState == null) {
+        if (getUserInfoState == null) {
             vm.getUserInfo(id)
         }
     }
 
     LaunchedEffect(postersRefreshState) {
-        if(postersRefreshState == null) {
+        if (postersRefreshState == null) {
             vm.posterStateExport.refresh(id)
         }
     }
 
-    when(getUserInfoState) {
+    when (getUserInfoState) {
         null, is SimpleDataState.Loading -> {
             Column(
                 modifier = Modifier
@@ -478,6 +478,7 @@ fun UserScreen(
                 )
             }
         }
+
         is SimpleDataState.Success -> {
             val data = (getUserInfoState as SimpleDataState.Success).data
 
@@ -503,12 +504,12 @@ fun UserScreen(
                 onOpenFollowingDialog = { showFollowingDialog = true },
                 onSwitchViewPoint = {
                     mainController.navController.popBackStack()
-                    mainController.navController.navigate("user/${if(id == 0L) data.user.id else 0L}")
+                    mainController.navController.navigate("user/${if (id == 0L) data.user.id else 0L}")
                 }
             )
 
-            if(showEditDialog) {
-                if(id == 0L) {
+            if (showEditDialog) {
+                if (id == 0L) {
                     EditUserDialog(
                         user = userEditData ?: data.user,
 
@@ -523,8 +524,8 @@ fun UserScreen(
                 } else showEditDialog = false
             }
 
-            if(showFollowerDialog) {
-                if(id == 0L) {
+            if (showFollowerDialog) {
+                if (id == 0L) {
                     FollowerDialog(
                         mainController = mainController,
                         followers = followers,
@@ -539,8 +540,8 @@ fun UserScreen(
                 } else showFollowerDialog = false
             }
 
-            if(showFollowingDialog) {
-                if(id == 0L) {
+            if (showFollowingDialog) {
+                if (id == 0L) {
                     FollowingDialog(
                         mainController = mainController,
                         followings = followings,
@@ -556,6 +557,7 @@ fun UserScreen(
             }
 
         }
+
         is SimpleDataState.Fail -> {
             Box(modifier = Modifier.fillMaxSize()) {
                 Text(

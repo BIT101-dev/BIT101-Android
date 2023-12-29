@@ -1,16 +1,8 @@
 package cn.bit101.android.ui.component.snackbar
 
-import android.util.Log
-import android.view.ViewGroup
 import android.view.WindowManager
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.animateIntAsState
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
@@ -40,10 +31,6 @@ import cn.bit101.android.ui.component.bottomsheet.CoreBottomSheetDefaults
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.ui.component.common.DialogLayout
 import cn.bit101.android.ui.component.common.SnackbarWrapper
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.util.UUID
 import kotlin.math.roundToInt
 
@@ -109,7 +96,7 @@ fun SnackbarContent(
                     modifier = finalModifier
                         .scale(scale)
                         .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.surfaceContainer),
+                        .background(MaterialTheme.colorScheme.primaryContainer),
                 ) {
                     Text(
                         modifier = Modifier.align(Alignment.Center),

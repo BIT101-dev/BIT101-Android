@@ -76,8 +76,8 @@ fun SettingItem(
             onClick = onClick,
             enabled = enable,
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onSurface,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
         ) {
             SettingItemCardContent(
@@ -91,8 +91,8 @@ fun SettingItem(
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                contentColor = MaterialTheme.colorScheme.onSurface,
+                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             ),
         ) {
             SettingItemCardContent(

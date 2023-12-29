@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.DragIndicator
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
@@ -33,8 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.datastore.SettingDataStore
@@ -207,7 +204,6 @@ fun PagesSettingPage(
                 }
 
                 mainController.snackbar("保存成功")
-                mainController.navController.popBackStack()
             }
         },
 
@@ -224,7 +220,6 @@ fun PagesSettingPage(
             }
 
             mainController.snackbar("重置成功")
-            mainController.navController.popBackStack()
         }
     )
 }

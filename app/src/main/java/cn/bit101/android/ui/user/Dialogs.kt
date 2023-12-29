@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -25,10 +26,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.api.model.common.User
 
 @Composable
@@ -124,7 +125,11 @@ fun UserCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onClick() }
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+        ),
     ) {
         Row(
             modifier = Modifier

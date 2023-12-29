@@ -73,15 +73,16 @@ fun AboutPageContent(
 
     val logo = App.context.applicationInfo.loadIcon(App.context.packageManager)
 
-    val gitHubUrl = "https://github.com/flwfdd/BIT101-Android"
+    val gitHubUrl = "https://github.com/BIT101-dev/BIT101-Android"
     val qqUrl = "https://jq.qq.com/?_wv=1027&k=OTttwrzb"
-    val emailUrl = "mailto:bit101@qq.com"
+    val emailUrl = "mailto:admin@bit101.cn"
 
     val painter = rememberDrawablePainter(logo)
 
     val versionItems = listOf(
         SettingItemData(
             title = "当前版本",
+            subTitle = "点击检查更新",
             onClick = onDetectUpgrade,
             enable = !isDetectingUpgrade,
             suffix = {
@@ -106,29 +107,15 @@ fun AboutPageContent(
     val contactItems = listOf(
         SettingItemData(
             title = "GitHub",
-            suffix = {
-                Text(
-                    text = "BIT101-Android",
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-            },
+            subTitle = "BIT101-Android",
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(gitHubUrl))
                 context.startActivity(intent)
             }
         ),
         SettingItemData(
-            title = "QQ群",
-            suffix = {
-                Text(
-                    text = "726965926",
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-            },
+            title = "QQ交流群",
+            subTitle = "726965926",
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(qqUrl))
                 context.startActivity(intent)
@@ -136,14 +123,7 @@ fun AboutPageContent(
         ),
         SettingItemData(
             title = "邮箱",
-            suffix = {
-                Text(
-                    text = "bit101@qq.com",
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-            },
+            subTitle = "admin@bit101.cn",
             onClick = {
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse(emailUrl))
                 context.startActivity(intent)
@@ -213,7 +193,7 @@ fun AboutPageContent(
                     .fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                val githubUrl = "https://github.com/flwfdd/BIT101-Android"
+                val githubUrl = "https://github.com/BIT101-dev/BIT101-Android"
                 val annotatedString = buildAnnotatedString {
                     withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
                         append("欢迎到 ")
@@ -231,7 +211,11 @@ fun AboutPageContent(
                 }
 
                 ClickableText(text = annotatedString, onClick = { offset ->
-                    annotatedString.getStringAnnotations(tag = "github", start = offset, end = offset)
+                    annotatedString.getStringAnnotations(
+                        tag = "github",
+                        start = offset,
+                        end = offset
+                    )
                         .firstOrNull()?.let {
                             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl))
                             context.startActivity(intent)
@@ -243,7 +227,6 @@ fun AboutPageContent(
         }
     }
 }
-
 
 
 @Composable
@@ -289,8 +272,8 @@ fun AboutDialog(onClose: () -> Unit) {
         text = {
             val linkMap = mapOf(
                 "726965926" to "https://jq.qq.com/?_wv=1027&k=OTttwrzb",
-                "GitHub" to "https://github.com/flwfdd/BIT101-Android",
-                "bit101@qq.com" to "mailto:bit101@qq.com",
+                "GitHub" to "https://github.com/BIT101-dev/BIT101-Android",
+                "admin@bit101.cn" to "mailto:admin@bit101.cn",
             )
             val annotatedString = buildAnnotatedString {
                 withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onSurface)) {
@@ -322,9 +305,12 @@ fun AboutDialog(onClose: () -> Unit) {
                     append(" 提交 issue 或邮件联系 ")
                 }
 
-                pushStringAnnotation(tag = "bit101@qq.com", annotation = linkMap["bit101@qq.com"]!!)
+                pushStringAnnotation(
+                    tag = "admin@bit101.cn",
+                    annotation = linkMap["admin@bit101.cn"]!!
+                )
                 withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                    append("bit101@qq.com")
+                    append("admin@bit101.cn")
                 }
                 pop()
 
@@ -361,7 +347,7 @@ fun AboutDialog(onClose: () -> Unit) {
             ClickableText(
                 modifier = Modifier.verticalScroll(scrollState),
                 text = annotatedString,
-                style=MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.bodyLarge,
                 onClick = { offset ->
                     linkMap.forEach { (k, v) ->
                         annotatedString.getStringAnnotations(
@@ -410,6 +396,10 @@ fun UpdateDialog(
                     text = "最新版本：${version.versionName}",
                     style = MaterialTheme.typography.labelMedium
                 )
+                Text(
+                    text = "最低版本：${version.minVersionName}",
+                    style = MaterialTheme.typography.labelMedium
+                )
             }
 
         },
@@ -434,11 +424,22 @@ fun UpdateDialog(
         dismissButton = {
             TextButton(
                 onClick = {
-                    onClose()
-                    onIgnore()
+                    if (BuildConfig.VERSION_CODE < version.minVersionCode) {
+                        onClose()
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(version.url))
+                        context.startActivity(intent)
+                    } else {
+                        onClose()
+                        onIgnore()
+                    }
+
                 }
             ) {
-                Text("忽略该版本")
+                if (BuildConfig.VERSION_CODE < version.minVersionCode) {
+                    Text("强制更新")
+                } else {
+                    Text("忽略该版本")
+                }
             }
         },
     )
@@ -464,6 +465,9 @@ fun AboutPage(
     val checkUpdateState by vm.checkUpdateStateLiveData.observeAsState()
 
     LaunchedEffect(Unit) {
+        //检测更新
+        vm.checkUpdate()
+        //读入开源声明
         MainScope().launch(Dispatchers.IO) {
             val input = App.context.assets.open("open_source_licenses.txt")
             val buffer = ByteArray(input.available())
@@ -474,11 +478,11 @@ fun AboutPage(
     }
 
     LaunchedEffect(checkUpdateState) {
-        if(checkUpdateState is SimpleDataState.Fail) {
+        if (checkUpdateState is SimpleDataState.Fail) {
             mainController.snackbar("检查更新失败")
-        } else if(checkUpdateState is SimpleDataState.Success) {
+        } else if (checkUpdateState is SimpleDataState.Success) {
             val need = (checkUpdateState as SimpleDataState.Success).data.first
-            if(need) {
+            if (need) {
                 showUpgradeDialog = true
                 mainController.snackbar("检测到新版本")
             } else {
@@ -493,30 +497,36 @@ fun AboutPage(
         autoDetectUpgrade = autoDetectUpgrade,
         isDetectingUpgrade = checkUpdateState is SimpleDataState.Loading,
 
-        onChangeAutoDetectUpgrade = { MainScope().launch { SettingDataStore.settingAutoDetectUpgrade.set(it) } },
+        onChangeAutoDetectUpgrade = {
+            MainScope().launch {
+                SettingDataStore.settingAutoDetectUpgrade.set(
+                    it
+                )
+            }
+        },
         onDetectUpgrade = vm::checkUpdate,
         onOpenAboutDialog = { showAboutDialog = true },
         onOpenLicenseDialog = { showLicensesDialog = true },
     )
 
-    if(showAboutDialog) {
+    if (showAboutDialog) {
         AboutDialog(
             onClose = { showAboutDialog = false }
         )
     }
 
-    if(showLicensesDialog) {
+    if (showLicensesDialog) {
         LicenseDialog(
             licenses = licenses,
             onClose = { showLicensesDialog = false }
         )
     }
 
-    if(showUpgradeDialog) {
-        if(checkUpdateState is SimpleDataState.Success) {
+    if (showUpgradeDialog) {
+        if (checkUpdateState is SimpleDataState.Success) {
             val need = (checkUpdateState as SimpleDataState.Success).data.first
             val version = (checkUpdateState as SimpleDataState.Success).data.second
-            if(need) {
+            if (need) {
                 UpdateDialog(
                     version = version,
                     onClose = { showUpgradeDialog = false },

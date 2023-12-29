@@ -1,111 +1,97 @@
 package cn.bit101.android.ui.mine
 
-import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.text.ClickableText
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.BuildConfig
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.ConfigColumn
 import cn.bit101.android.ui.component.ConfigItem
-import cn.bit101.api.model.common.NameAndValue
 
 @Composable
 fun UserInfoShow(
+    mainController: MainController,
     state: UpdateUserInfoState?
 ) {
-    Row(
-        Modifier
-            .padding(10.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
+    Surface(
+        modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
-        verticalAlignment = Alignment.CenterVertically
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+        shape = MaterialTheme.shapes.medium,
+        onClick = {
+            if (state is UpdateUserInfoState.Success) {
+                mainController.navController.navigate("user/0")
+            }
+        },
     ) {
-        Avatar(
-            user = if (state is UpdateUserInfoState.Success) state.user.user else null,
-            low = false,
-            size = 50.dp,
-        )
-
-        // 昵称和ID
-        Column(
-            modifier = Modifier
-                .padding(start = 10.dp)
+        Row(
+            Modifier
+                .fillMaxWidth()
+                .padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            when (state) {
-                null -> {
-                    Text(
-                        text = "请先登录awa",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+            Avatar(
+                user = if (state is UpdateUserInfoState.Success) state.user.user else null,
+                low = false,
+                size = 50.dp,
+            )
 
-                is UpdateUserInfoState.Fail -> {
-                    Text(
-                        text = "获取失败awa",
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
+            // 昵称和ID
+            Column(
+                modifier = Modifier
+                    .padding(start = 10.dp)
+            ) {
+                when (state) {
+                    null -> {
+                        Text(
+                            text = "请先登录awa",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
 
-                is UpdateUserInfoState.Success -> {
-                    Text(
-                        text = state.user.user.nickname,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                    Text(
-                        text = "BIT101 UID: ${state.user.user.id}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.5f)
-                    )
-                }
+                    is UpdateUserInfoState.Fail -> {
+                        Text(
+                            text = "获取失败awa",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
 
-                is UpdateUserInfoState.Loading -> {
-                    Text(
-                        text = "加载中awa...",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    is UpdateUserInfoState.Success -> {
+                        Text(
+                            text = state.user.user.nickname,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            text = "BIT101 UID: ${state.user.user.id}",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.5f)
+                        )
+                    }
+
+                    is UpdateUserInfoState.Loading -> {
+                        Text(
+                            text = "加载中awa...",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
                 }
             }
         }
@@ -134,7 +120,7 @@ fun MineScreen(
         ) {
 
             // 用户基本信息展示
-            UserInfoShow(userInfoState)
+            UserInfoShow(mainController, userInfoState)
 
             // 设置选项
             ConfigColumn(

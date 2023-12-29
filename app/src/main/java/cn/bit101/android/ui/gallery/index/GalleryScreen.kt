@@ -6,10 +6,9 @@ import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -35,13 +34,11 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnState
-import cn.bit101.api.model.common.Image
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -57,7 +54,6 @@ data class TabPagerItemWithNestedScroll(
 @Composable
 fun GalleryScreen(
     mainController: MainController,
-    navBarHeight: Dp = 0.dp,
     vm: GalleryIndexViewModel = hiltViewModel(),
 ) {
     val followRefreshState by vm.followStateExport.refreshStateFlow.collectAsState()
@@ -121,7 +117,6 @@ fun GalleryScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
-                navBarHeight = navBarHeight,
                 postersState = PostersState(
                     posters = followPosters,
                     state = followState,
@@ -139,7 +134,6 @@ fun GalleryScreen(
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
-                navBarHeight = navBarHeight,
                 postersState = PostersState(
                     posters = recommendPosters,
                     state = recommendState,
@@ -157,7 +151,6 @@ fun GalleryScreen(
             AllTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
-                navBarHeight = navBarHeight,
 
                 newestPostersState = PostersState(
                     posters = newestPosters,
@@ -189,7 +182,7 @@ fun GalleryScreen(
 
     Column {
         CenterAlignedTopAppBar(
-            modifier = Modifier.statusBarsPadding(),
+            windowInsets = WindowInsets(0.dp),
             title = {
                 PrimaryTabRow(
                     modifier = Modifier

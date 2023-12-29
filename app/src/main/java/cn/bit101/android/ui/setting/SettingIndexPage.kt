@@ -24,8 +24,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
@@ -43,8 +41,8 @@ fun IndexSettingItem(
         modifier = modifier,
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
     ) {
         Row(
@@ -96,25 +94,25 @@ fun SettingIndexPage(
     val subSettings = listOf(
         SubSettingItem(
             title = "页面设置",
-            subTitle = "主页，页面顺序",
+            subTitle = "主页及页面顺序",
             icon = Icons.Outlined.Dashboard,
             onClick = onOpenPagesSettingPage
         ),
         SubSettingItem(
             title = "外观设置",
-            subTitle = "暗黑模式，动态主题",
+            subTitle = "主题及暗黑模式",
             icon = Icons.Outlined.ColorLens,
             onClick = onOpenThemeSettingPage
         ),
         SubSettingItem(
             title = "课程表设置",
-            subTitle = "显示周六/日，高亮今日，时间表",
+            subTitle = "课程表数据及显示方式",
             icon = Icons.Outlined.EditCalendar,
             onClick = onOpenCalendarSettingPage
         ),
         SubSettingItem(
             title = "DDL设置",
-            subTitle = "变色天数，滞留天数",
+            subTitle = "日程数据及显示方式",
             icon = Icons.AutoMirrored.Outlined.EventNote,
             onClick = onOpenDDLSettingPage
         ),

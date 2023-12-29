@@ -10,6 +10,8 @@ package cn.bit101.api.model.http.app
 class GetVersionDataModel private constructor() {
 
     data class Response(
+        val minVersionCode: Int,
+        val minVersionName: String,
         val versionCode: Int,
         val versionName: String,
         val url: String,

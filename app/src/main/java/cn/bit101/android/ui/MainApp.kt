@@ -1,18 +1,12 @@
 package cn.bit101.android.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideIn
-import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOut
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -85,11 +79,13 @@ fun MainApp(
         imageHostState = rememberImageHostState()
     )
 
-    val currentBackStackEntry by mainController.navController.currentBackStackEntryFlow.collectAsState(initial = null)
+    val currentBackStackEntry by mainController.navController.currentBackStackEntryFlow.collectAsState(
+        initial = null
+    )
 
     val isDarkMode = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
-    val statusColor = when(currentBackStackEntry?.destination?.route) {
+    val statusColor = when (currentBackStackEntry?.destination?.route) {
         "bit101-web" -> Color(0xFFFF9A57)
         "setting?route={route}" -> Color.Transparent
         "user/{id}" -> Color.Transparent
@@ -101,7 +97,7 @@ fun MainApp(
     }
 
     LaunchedEffect(statusColor) {
-        val darkIcons = when(statusColor) {
+        val darkIcons = when (statusColor) {
             Color.Transparent -> isDarkMode
             else -> ColorUtils.isLightColor(statusColor)
         }
@@ -112,7 +108,8 @@ fun MainApp(
         )
     }
 
-    val navBarColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+    val navBarColor =
+        MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
 
     LaunchedEffect(navBarColor) {
         systemUiController.setNavigationBarColor(navBarColor)
@@ -125,7 +122,7 @@ fun MainApp(
     val homePageStr by SettingDataStore.settingHomePage.flow.collectAsState(initial = null)
     val hiddenPagesStr by SettingDataStore.settingPageVisible.flow.collectAsState(initial = null)
 
-    if(pagesStr == null || homePageStr == null || hiddenPagesStr == null) {
+    if (pagesStr == null || homePageStr == null || hiddenPagesStr == null) {
         return
     }
 
@@ -184,7 +181,7 @@ fun MainApp(
                             label = { Text(text = screen.label) },
                             selected = selected,
                             onClick = {
-                                if(!selected) {
+                                if (!selected) {
                                     // 路由跳转 保证一次返回就能回到主页
                                     mainController.navController.navigate(screen.route) {
                                         popUpTo(mainController.navController.graph.startDestinationId) {
@@ -231,10 +228,9 @@ fun MainApp(
             }
 
             composable("gallery") {
-                Box {
+                Box(modifier = Modifier.padding(paddingValues)) {
                     GalleryScreen(
                         mainController = mainController,
-                        navBarHeight = navBarHeight.dp,
                     )
                 }
             }
@@ -362,8 +358,8 @@ fun MainApp(
     val checkDetectUpgradeState by vm.checkUpdateStateLiveData.observeAsState()
 
     LaunchedEffect(checkDetectUpgradeState) {
-        if(checkDetectUpgradeState != null) {
-            mainController.snackbar("检查到新版本，可以前往设置界面更新哦")
+        if (checkDetectUpgradeState != null) {
+            mainController.navController.navigate("setting?route=about")
             vm.checkUpdateStateLiveData.value = null
         }
     }

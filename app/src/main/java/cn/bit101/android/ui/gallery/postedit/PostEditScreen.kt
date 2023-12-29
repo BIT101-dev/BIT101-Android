@@ -525,12 +525,12 @@ fun PostEditScreen(
             if(id == null) {
                 mainController.navController.popBackStack()
                 mainController.navController.navigate("poster/${(postState as PutOrPostPosterState.Success).id}")
-                mainController.snackbar("帖子成功发布出去了")
+                mainController.snackbar("发布成功OvO")
             } else {
                 mainController.navController.popBackStack()
                 mainController.navController.popBackStack()
                 mainController.navController.navigate("poster/$id")
-                mainController.snackbar("帖子修改成功了")
+                mainController.snackbar("修改成功OvO")
             }
         } else if(postState is PutOrPostPosterState.Error) {
             mainController.snackbar("帖子发布或修改失败Orz")
