@@ -39,7 +39,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AllTabPage(
     mainController: MainController,
@@ -58,11 +58,6 @@ fun AllTabPage(
      * 最新的帖子状态
      */
     newestPostersState: PostersState,
-
-    /**
-     * 打开图片组
-     */
-    onOpenImages: (Int, List<Image>) -> Unit,
 
     /**
      * 打开帖子
@@ -156,7 +151,6 @@ fun AllTabPage(
             PostersTabPage(
                 mainController = mainController,
                 postersState = nameAndValues[it].value,
-                onOpenImages = onOpenImages,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onOpenPostOrEdit,
             )

@@ -79,16 +79,6 @@ fun PostersTabPage(
     postersState: PostersState,
 
     /**
-     * 高亮的帖子id
-     */
-    highlightId: Long? = null,
-
-    /**
-     * 打开图片组
-     */
-    onOpenImages: (Int, List<Image>) -> Unit,
-
-    /**
      * 打开帖子
      */
     onOpenPoster: (Long) -> Unit,
@@ -118,31 +108,17 @@ fun PostersTabPage(
                 item("header") {
                     header()
                 }
-                itemsIndexed(postersState.posters, { idx, _ -> idx }) { _, it ->
-                    if(it.id == highlightId) {
-                        PosterCard(
-                            data = it,
-                            onOpenPoster = { onOpenPoster(it.id) },
-                            onOpenImages = onOpenImages,
-                            onOpenUserDetail = { user ->
-                                user?.let {
-                                    mainController.navController.navigate("user/${it.id}")
-                                }
+                itemsIndexed(postersState.posters, { _, poster -> poster.id }) { _, it ->
+                    PosterCard(
+                        data = it,
+                        onOpenPoster = { onOpenPoster(it.id) },
+                        onOpenImages = mainController::showImages,
+                        onOpenUserDetail = { user ->
+                            user?.let {
+                                mainController.navigate("user/${it.id}")
                             }
-                        )
-                    } else {
-                        PosterCard(
-                            data = it,
-                            onOpenPoster = { onOpenPoster(it.id) },
-                            onOpenImages = onOpenImages,
-                            onOpenUserDetail = { user ->
-                                user?.let {
-                                    mainController.navController.navigate("user/${it.id}")
-                                }
-                            }
-                        )
-                    }
-
+                        }
+                    )
                     HorizontalDivider(
                         modifier = Modifier.fillMaxWidth().padding(0.dp),
                         thickness = 0.5.dp,
@@ -185,8 +161,7 @@ fun PostersTabPage(
             Spacer(modifier = Modifier.height(10.dp))
 
             SmallFloatingActionButton(
-                modifier = Modifier
-                    .size(fabSize),
+                modifier = Modifier.size(fabSize),
                 onClick = onOpenPostOrEdit,
                 containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                 contentColor = MaterialTheme.colorScheme.primary,

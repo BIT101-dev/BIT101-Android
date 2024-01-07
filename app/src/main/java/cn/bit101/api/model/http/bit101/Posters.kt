@@ -1,5 +1,6 @@
 package cn.bit101.api.model.http.bit101
 
+import cn.bit101.api.model.UniqueData
 import cn.bit101.api.model.common.Claim
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
@@ -11,7 +12,7 @@ class GetPostersDataModel private constructor() {
         val commentNum: Long,
         val createTime: String,
         val editTime: String,
-        val id: Long,
+        override val id: Long,
         val images: List<Image>,
         val likeNum: Long,
         val public: Boolean,
@@ -20,7 +21,7 @@ class GetPostersDataModel private constructor() {
         val title: String,
         val updateTime: String,
         val user: User
-    )
+    ) : UniqueData
 
     class Response : ArrayList<ResponseItem>()
 }
@@ -32,7 +33,7 @@ class GetPosterDataModel private constructor() {
         val commentNum: Int,
         val createTime: String,
         val editTime: String,
-        val id: Int,
+        override val id: Int,
         val images: List<Image>,
         val like: Boolean,
         val likeNum: Int,
@@ -44,7 +45,7 @@ class GetPosterDataModel private constructor() {
         val title: String,
         val updateTime: String,
         val user: User
-    )
+    ) : UniqueData
 }
 
 

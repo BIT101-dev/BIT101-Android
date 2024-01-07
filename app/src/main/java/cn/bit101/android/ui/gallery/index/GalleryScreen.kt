@@ -126,7 +126,6 @@ fun GalleryScreen(
                     onRefresh = vm.followStateExport.refresh,
                 ),
 
-                onOpenImages = mainController::showImages,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -143,7 +142,6 @@ fun GalleryScreen(
                     onRefresh = vm.recommendStateExport.refresh,
                 ),
 
-                onOpenImages = mainController::showImages,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -168,7 +166,6 @@ fun GalleryScreen(
                     onRefresh = vm.hotStateExport.refresh,
                 ),
 
-                onOpenImages = mainController::showImages,
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -227,16 +224,9 @@ fun GalleryScreen(
                 IconButton(
                     onClick = { /*TODO*/ }
                 ) {
-                    Icon(imageVector = Icons.Rounded.NotificationsNone, contentDescription = "通知")
-                }
-            },
-            navigationIcon = {
-                IconButton(
-                    onClick = { /*TODO*/ }
-                ) {
                     Icon(imageVector = Icons.Rounded.Search, contentDescription = "搜索")
                 }
-            }
+            },
         )
         Box(
             modifier = Modifier.fillMaxSize()

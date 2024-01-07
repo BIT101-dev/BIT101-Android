@@ -1,9 +1,10 @@
 package cn.bit101.api.model.common
 
+import cn.bit101.api.model.UniqueData
 import java.io.Serializable
 
 data class Comment (
-    val id: Int,
+    override val id: Int,
     val obj: String,
 
     // 配图
@@ -36,4 +37,4 @@ data class Comment (
     val text: String,
 
     val sub: ArrayList<Comment>,
-) : Serializable
+) : Serializable, UniqueData

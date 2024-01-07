@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.component.common.CustomDivider
 import cn.bit101.android.ui.component.gallery.CommentCard
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
@@ -122,35 +123,7 @@ fun MoreCommentsContent(
                     onOpenCommentToComment = onOpenCommentDialog,
                     onMoreAction = onOpenMoreActionOfCommentBottomSheet
                 )
-
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surfaceContainer),
-                ) {
-                    val cornerRadius = 8.dp
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(16.dp),
-                        shape = RoundedCornerShape(bottomStart = cornerRadius, bottomEnd = cornerRadius),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            disabledContainerColor = MaterialTheme.colorScheme.surface,
-                        ),
-                    ) {}
-                    Spacer(modifier = Modifier.padding(4.dp))
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(20.dp),
-                        shape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            disabledContainerColor = MaterialTheme.colorScheme.surface,
-                        ),
-                    ) {}
-                }
+                CustomDivider()
             }
 
             item("reply header") {

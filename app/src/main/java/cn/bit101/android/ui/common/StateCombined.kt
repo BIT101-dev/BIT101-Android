@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.common
 
+import cn.bit101.api.model.UniqueData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -7,11 +8,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
+private fun <T : UniqueData> List<T>.unique(): List<T> {
+    val set = mutableSetOf<Comparable<*>>()
+    val list = mutableListOf<T>()
+    for (item in this) {
+        if (set.add(item.id)) {
+            list.add(item)
+        }
+    }
+    return list
+}
+
 
 /**
  * 暴露出来的状态
  */
-interface BasicRefreshAndLoadMoreStatesCombinedExportData <T>{
+interface BasicRefreshAndLoadMoreStatesCombinedExportData <T : UniqueData>{
     val refreshStateFlow: StateFlow<SimpleState?>
     val loadMoreStateFlow: StateFlow<SimpleState?>
     val dataFlow: StateFlow<List<T>>
@@ -21,19 +33,19 @@ interface BasicRefreshAndLoadMoreStatesCombinedExportData <T>{
     val loadMore: Function<Unit>
 }
 
-interface BasicRefreshAndLoadMoreStatesCombinedExportDataOne <A, T>
+interface BasicRefreshAndLoadMoreStatesCombinedExportDataOne <A, T : UniqueData>
     : BasicRefreshAndLoadMoreStatesCombinedExportData<T> {
     override val refresh: (A) -> Unit
     override val loadMore: (A) -> Unit
 }
 
-interface BasicRefreshAndLoadMoreStatesCombinedExportDataZero <T>
+interface BasicRefreshAndLoadMoreStatesCombinedExportDataZero <T : UniqueData>
     : BasicRefreshAndLoadMoreStatesCombinedExportData<T> {
     override val refresh: () -> Unit
     override val loadMore: () -> Unit
 }
 
-data class RefreshAndLoadMoreStatesCombinedExportDataOne <A, T>(
+data class RefreshAndLoadMoreStatesCombinedExportDataOne <A, T : UniqueData>(
     override val refreshStateFlow: StateFlow<SimpleState?>,
     override val loadMoreStateFlow: StateFlow<SimpleState?>,
     override val dataFlow: StateFlow<List<T>>,
@@ -43,7 +55,7 @@ data class RefreshAndLoadMoreStatesCombinedExportDataOne <A, T>(
     override val loadMore: (A) -> Unit,
 ) : BasicRefreshAndLoadMoreStatesCombinedExportDataOne<A, T>
 
-data class RefreshAndLoadMoreStatesCombinedExportDataZero <T>(
+data class RefreshAndLoadMoreStatesCombinedExportDataZero <T : UniqueData>(
     override val refreshStateFlow: StateFlow<SimpleState?>,
     override val loadMoreStateFlow: StateFlow<SimpleState?>,
     override val dataFlow: StateFlow<List<T>>,
@@ -57,7 +69,7 @@ data class RefreshAndLoadMoreStatesCombinedExportDataZero <T>(
 /**
  * 将*刷新*和*加载更多*的状态组合在一起
  */
-abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
+abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
     private val viewModelScope: CoroutineScope,
 ) {
     protected val refreshStateFlow = MutableStateFlow<SimpleState?>(null)
@@ -80,7 +92,7 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
             try {
                 pageFlow.value = 0
                 val posters = refresh()
-                dataFlow.value = posters.toMutableList()
+                dataFlow.value = posters.toMutableList().unique()
                 if(posters.isEmpty()) {
                     pageFlow.value = -1
                 }
@@ -107,7 +119,7 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
                         // 停止继续加载
                         page = -1
                     }
-                    val allPosters = dataFlow.value.plus(posters)
+                    val allPosters = dataFlow.value.plus(posters).unique()
                     dataFlow.value = allPosters
                 }
                 loadMoreStateFlow.value = SimpleState.Success
@@ -123,7 +135,7 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T>(
 /**
  * 将*刷新*和*加载更多*的状态组合在一起，增加了一个参数
  */
-abstract class RefreshAndLoadMoreStatesCombinedOne <A, T>(
+abstract class RefreshAndLoadMoreStatesCombinedOne <A, T : UniqueData>(
     viewModelScope: CoroutineScope,
 ) : BasicRefreshAndLoadMoreStatesCombined<T>(viewModelScope) {
 
@@ -147,7 +159,7 @@ abstract class RefreshAndLoadMoreStatesCombinedOne <A, T>(
 /**
  * 将*刷新*和*加载更多*的状态组合在一起
  */
-abstract class RefreshAndLoadMoreStatesCombinedZero <T>(
+abstract class RefreshAndLoadMoreStatesCombinedZero <T : UniqueData>(
     viewModelScope: CoroutineScope,
 ) : BasicRefreshAndLoadMoreStatesCombined<T>(viewModelScope) {
 

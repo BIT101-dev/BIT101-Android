@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.gallery.index
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,6 +13,7 @@ import cn.bit101.api.model.http.bit101.toGetPostersDataModelResponseItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SearchData(
@@ -27,48 +29,38 @@ class GalleryIndexViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _recommendState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
-        override fun refresh() = refresh {
-            posterRepo.getRecommendPosters()
-        }
-
-        override fun loadMore() = loadMore { page ->
-            posterRepo.getRecommendPosters(page)
-        }
+        override fun refresh() = refresh { posterRepo.getRecommendPosters() }
+        override fun loadMore() = loadMore { page -> posterRepo.getRecommendPosters(page) }
     }
     val recommendStateExport = _recommendState.export()
 
     private val _hotState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
-        override fun refresh() = refresh {
-            posterRepo.getHotPosters()
-        }
-
-        override fun loadMore() = loadMore { page ->
-            posterRepo.getHotPosters(page)
-        }
+        override fun refresh() = refresh { posterRepo.getHotPosters() }
+        override fun loadMore() = loadMore { page -> posterRepo.getHotPosters(page) }
     }
     val hotStateExport = _hotState.export()
 
     private val _followState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
-        override fun refresh() = refresh {
-            posterRepo.getFollowPosters()
-        }
-
-        override fun loadMore() = loadMore { page ->
-            posterRepo.getFollowPosters(page)
-        }
+        override fun refresh() = refresh { posterRepo.getFollowPosters() }
+        override fun loadMore() = loadMore { page -> posterRepo.getFollowPosters(page) }
     }
     val followStateExport = _followState.export()
 
     private val _newestStata = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
-        override fun refresh() = refresh {
-            posterRepo.getNewestPosters()
-        }
-
-        override fun loadMore() = loadMore { page ->
-            posterRepo.getNewestPosters(page)
-        }
+        override fun refresh() = refresh { posterRepo.getNewestPosters() }
+        override fun loadMore() = loadMore { page -> posterRepo.getNewestPosters(page) }
     }
     val newestStataExport = _newestStata.export()
+
+    init {
+        viewModelScope.launch {
+            recommendStateExport.dataFlow.collect {
+                Log.i("GalleryIndexViewModel", "recommendStateExport.dataFlow.collect: ${it.map { it.id }}")
+                Log.i("GalleryIndexViewModel", "recommendStateExport.dataFlow.collect: $it")
+            }
+        }
+
+    }
 
     private val _searchState = object : RefreshAndLoadMoreStatesCombinedOne<SearchData, GetPostersDataModel.ResponseItem>(viewModelScope) {
         override fun refresh(data: SearchData) = refresh {

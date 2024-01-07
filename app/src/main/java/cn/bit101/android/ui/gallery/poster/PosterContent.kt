@@ -60,6 +60,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
+import cn.bit101.android.ui.component.common.CustomDivider
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.component.image.PreviewImagesWithGridLayout
@@ -357,34 +358,7 @@ fun PosterContent(
                 }
 
                 item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceContainer),
-                    ) {
-                        val cornerRadius = 8.dp
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(20.dp),
-                            shape = RoundedCornerShape(bottomStart = cornerRadius, bottomEnd = cornerRadius),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                            ),
-                        ) {}
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(20.dp),
-                            shape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                disabledContainerColor = MaterialTheme.colorScheme.surface,
-                            ),
-                        ) {}
-                    }
+                    CustomDivider()
                 }
 
                 if(data.commentNum > 0) {

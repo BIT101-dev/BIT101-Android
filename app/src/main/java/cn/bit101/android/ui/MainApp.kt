@@ -248,11 +248,7 @@ fun MainApp(
                 }
             }
             composable("mine") {
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
+                Box(modifier = Modifier.navigationBarsPadding()) {
                     MineScreen(mainController)
                 }
             }
