@@ -132,15 +132,19 @@ fun MineScreen(
                     ConfigItem.Button(
                         title = "登陆管理",
                         onClick = {
-                            mainController.navController.navigate("login") {
+                            mainController.navigate("login") {
                                 launchSingleTop = true
                             }
                         }
                     ),
                     ConfigItem.Button(
                         title = "设置",
-                        onClick = { mainController.navController.navigate("setting?route=") }
+                        onClick = { mainController.navigate("setting?route=") }
                     ),
+                    ConfigItem.Button(
+                        title = "成绩查询",
+                        onClick = { mainController.openWebPage("https://bit101.cn/score") }
+                    )
                 )
             )
         }

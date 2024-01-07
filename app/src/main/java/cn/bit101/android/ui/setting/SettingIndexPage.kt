@@ -129,7 +129,7 @@ fun SettingIndexPage(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(12.dp),
     ) {
         items(subSettings) {
             IndexSettingItem(

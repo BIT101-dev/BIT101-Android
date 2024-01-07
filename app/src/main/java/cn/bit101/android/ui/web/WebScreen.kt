@@ -42,6 +42,7 @@ import kotlinx.coroutines.runBlocking
 @Composable
 fun WebScreen(
     mainController: MainController,
+    url: String? = null,
     vm: WebViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -55,7 +56,11 @@ fun WebScreen(
     LaunchedEffect(navigator) {
         val bundle = state.viewState
         if (bundle == null) {
-            navigator.loadUrl(vm.BASE_URL)
+            if(url != null) {
+                navigator.loadUrl(url)
+            } else {
+                navigator.loadUrl(vm.BASE_URL)
+            }
         }
     }
 

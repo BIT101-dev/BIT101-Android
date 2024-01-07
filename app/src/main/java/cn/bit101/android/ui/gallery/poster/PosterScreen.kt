@@ -162,7 +162,7 @@ fun PosterScreen(
     /**
      * 需要显示更多评论的评论
      */
-    var commentForShowMoreComments by rememberSaveable { mutableStateOf<Comment?>(null) }
+    var commentIdForShowMoreComments by rememberSaveable { mutableStateOf<Long?>(null) }
 
     /**
      * 更多评论的bottom sheet的状态
@@ -289,14 +289,14 @@ fun PosterScreen(
             if(showMoreComment) {
                 MoreCommentsPage(
                     mainController = mainController,
-                    comment = commentForShowMoreComments,
+                    comment = vm.findCommentById(commentIdForShowMoreComments!!),
                     subComments = subComments,
                     commentLikings = commentLikings,
                     loading = subCommentsLoadMoreState is SimpleState.Loading,
                     loaded = subCommentLoaded,
                     refreshing = subCommentsRefreshState is SimpleState.Loading,
                     state = rememberLoadableLazyColumnWithoutPullRequestState(
-                        onLoadMore = { vm.subCommentStateExports.loadMore(commentForShowMoreComments!!.id.toLong()) }
+                        onLoadMore = { vm.subCommentStateExports.loadMore(commentIdForShowMoreComments!!) }
                     ),
 
                     onDismiss = { showMoreCommentsPage = false },
@@ -323,7 +323,7 @@ fun PosterScreen(
                     onLikePoster = { vm.like(ObjectType.PosterObject(id)) },
                     onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
                     onShowMoreComments = {
-                        commentForShowMoreComments = it
+                        commentIdForShowMoreComments = it.id.toLong()
                         vm.subCommentStateExports.refresh(it.id.toLong())
                         showMoreCommentsPage = true
                     },

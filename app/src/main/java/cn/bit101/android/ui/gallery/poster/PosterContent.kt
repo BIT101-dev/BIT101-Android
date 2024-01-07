@@ -1,6 +1,10 @@
 package cn.bit101.android.ui.gallery.poster
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -85,6 +89,10 @@ fun PosterScreenTopBar(
             AnimatedContent(
                 targetState = showTitle,
                 label = "top bar",
+                transitionSpec = {
+                    fadeIn(animationSpec = tween(220, delayMillis = 90))
+                        .togetherWith(fadeOut(animationSpec = tween(90)))
+                }
             ) {
                 if(it) {
                     Text(

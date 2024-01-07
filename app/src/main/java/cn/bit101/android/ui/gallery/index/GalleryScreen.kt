@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
@@ -185,9 +186,7 @@ fun GalleryScreen(
             windowInsets = WindowInsets(0.dp),
             title = {
                 PrimaryTabRow(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(200.dp),
+                    modifier = Modifier.width(200.dp),
                     selectedTabIndex = horizontalPagerState.currentPage,
                     divider = {},
                 ) {

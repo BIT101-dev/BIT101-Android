@@ -40,9 +40,14 @@ fun Avatar(
     val painter = rememberDrawablePainter(icon)
     Box {
 
-        val offset = size / 10
+        val offset = size / 20
 
-        Box(modifier = Modifier.padding(offset)) {
+        Box(
+            modifier = Modifier.padding(
+                end = offset,
+                bottom = offset,
+            )
+        ) {
             var modifier = Modifier
                 .size(size)
                 .clip(CircleShape)

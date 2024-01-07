@@ -1,5 +1,6 @@
 package cn.bit101.android.ui
 
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
@@ -63,6 +64,7 @@ import cn.bit101.android.ui.web.WebScreen
 import cn.bit101.android.utils.ColorUtils
 import cn.bit101.android.utils.PageUtils
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import java.util.Base64.Decoder
 
 @Composable
 fun MainApp(
@@ -86,11 +88,10 @@ fun MainApp(
     val isDarkMode = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
     val statusColor = when (currentBackStackEntry?.destination?.route) {
-        "bit101-web" -> Color(0xFFFF9A57)
+        "bit101-web", "web/{url}" -> Color(0xFFFF9A57)
         "setting?route={route}" -> Color.Transparent
         "user/{id}" -> Color.Transparent
-        "edit/{id}" -> Color.Transparent
-        "post" -> Color.Transparent
+        "post", "edit/{id}" -> Color.Transparent
         "report/{type}/{id}" -> Color.Transparent
         "poster/{id}" -> Color.Transparent
         else -> MaterialTheme.colorScheme.background
@@ -224,6 +225,18 @@ fun MainApp(
             composable("bit101-web") {
                 Box(modifier = Modifier.padding(paddingValues)) {
                     WebScreen(mainController)
+                }
+            }
+
+            composable(
+                route = "web/{url}",
+                arguments = listOf(
+                    navArgument("url") { type = NavType.StringType },
+                ),
+            ) {
+                val url = Uri.decode(it.arguments?.getString("url") ?: "")
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    WebScreen(mainController, url = url)
                 }
             }
 

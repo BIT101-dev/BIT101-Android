@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.component.topbar
 
+import android.util.Log
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.CubicBezierEasing
@@ -67,13 +68,12 @@ import kotlin.math.roundToInt
 /*@VisibleForTesting*/
 internal val TopTitleAlphaEasing = CubicBezierEasing(.8f, 0f, .8f, .15f)
 
-private val MediumTitleBottomPadding = 24.dp
-private val LargeTitleBottomPadding = 28.dp
+private val LargeTitleBottomPadding = 16.dp
 private val TopAppBarHorizontalPadding = 4.dp
 
 // A title inset when the App-Bar is a Medium or Large one. Also used to size a spacer when the
 // navigation icon is missing.
-private val TopAppBarTitleInset = 16.dp - TopAppBarHorizontalPadding
+private val TopAppBarTitleInset = 8.dp
 
 @Composable
 internal fun ProvideContentColorTextStyle(

@@ -51,13 +51,13 @@ fun DDLSettingPageContent(
     onOpenBeforeDayDialog: () -> Unit,
 ) {
     val dataItems = listOf(
-        SettingItemData(
+        SettingItemData.Button(
             title = "重新获取订阅链接",
             subTitle = "重新获取订阅链接",
             onClick = onUpdateLexueCalendarUrl,
             enable = !isUpdatingLexueCalendarUrl,
         ),
-        SettingItemData(
+        SettingItemData.Button(
             title = "重新拉取乐学日程",
             subTitle = "请先获取订阅链接哦",
             onClick = onUpdateLexueCalendar,
@@ -66,31 +66,17 @@ fun DDLSettingPageContent(
     )
 
     val displayItems = listOf(
-        SettingItemData(
+        SettingItemData.ButtonWithSuffixText(
             title = "变色天数",
             subTitle = "临近日程会改变颜色",
             onClick = onOpenBeforeDayDialog,
-            suffix = {
-                Text(
-                    text = beforeDay,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-            }
+            text = beforeDay,
         ),
-        SettingItemData(
+        SettingItemData.ButtonWithSuffixText(
             title = "滞留天数",
             subTitle = "过期日程会继续显示",
             onClick = onOpenAfterDayDialog,
-            suffix = {
-                Text(
-                    text = afterDay,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-            }
+            text = afterDay,
         ),
     )
 
@@ -98,7 +84,7 @@ fun DDLSettingPageContent(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(12.dp),
     ) {
         itemsGroup(
             title = "数据设置",

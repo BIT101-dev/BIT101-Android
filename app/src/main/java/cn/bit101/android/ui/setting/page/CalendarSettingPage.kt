@@ -67,42 +67,28 @@ fun CalendarSettingPageContent(
     onSettingChange: (SettingData) -> Unit,
 ) {
     val dataSettings = listOf(
-        SettingItemData(
+        SettingItemData.ButtonWithSuffixText(
             title = "当前学期",
             subTitle = "设置当前学期",
             onClick = onOpenTermListDialog,
-            suffix = {
-                Text(
-                    text = currentTerm,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-            }
+            text = currentTerm
         ),
-        SettingItemData(
+        SettingItemData.ButtonWithSuffixText(
             enable = !isGettingFirstDay,
             title = "学期起始日期",
             subTitle = "点击重新获取当前学期的起始日期",
             onClick = onGetFirstDay,
-            suffix = {
-                Text(
-                    text = firstDay,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-            }
+            text = firstDay,
         ),
 
-        SettingItemData(
+        SettingItemData.Button(
             enable = !isGettingCourses,
             title = "课表数据",
             subTitle = "点击重新获取当前学期的课表",
             onClick = onGetCourses,
         ),
 
-        SettingItemData(
+        SettingItemData.Button(
             title = "时间表",
             subTitle = "每节课的上课和下课时间",
             onClick = onOpenTimeTable,
@@ -111,71 +97,41 @@ fun CalendarSettingPageContent(
     )
 
     val displaySettings = listOf(
-        SettingItemData(
+        SettingItemData.Switch(
             title = "显示周六",
             subTitle = "设置是否显示周六",
-            onClick = { onSettingChange(settingData.copy(showSaturday = !settingData.showSaturday)) },
-            suffix = {
-                Switch(
-                    checked = settingData.showSaturday,
-                    onCheckedChange = { onSettingChange(settingData.copy(showSaturday = it)) }
-                )
-            }
+            onClick = { onSettingChange(settingData.copy(showSaturday = it)) },
+            checked = settingData.showSaturday,
         ),
-        SettingItemData(
+        SettingItemData.Switch(
             title = "显示周日",
             subTitle = "设置是否显示周日",
-            onClick = { onSettingChange(settingData.copy(showSunday = !settingData.showSunday)) },
-            suffix = {
-                Switch(
-                    checked = settingData.showSunday,
-                    onCheckedChange = { onSettingChange(settingData.copy(showSunday = it)) }
-                )
-            }
+            onClick = { onSettingChange(settingData.copy(showSunday = it)) },
+            checked = settingData.showSunday,
         ),
-        SettingItemData(
+        SettingItemData.Switch(
             title = "显示边框",
             subTitle = "在课程卡片上加上边框",
-            onClick = { onSettingChange(settingData.copy(showBorder = !settingData.showBorder)) },
-            suffix = {
-                Switch(
-                    checked = settingData.showBorder,
-                    onCheckedChange = { onSettingChange(settingData.copy(showBorder = it)) }
-                )
-            }
+            onClick = { onSettingChange(settingData.copy(showBorder = it)) },
+            checked = settingData.showBorder,
         ),
-        SettingItemData(
+        SettingItemData.Switch(
             title = "高亮今日",
             subTitle = "设置今日对应的列是否高亮",
-            onClick = { onSettingChange(settingData.copy(showHighlightToday = !settingData.showHighlightToday)) },
-            suffix = {
-                Switch(
-                    checked = settingData.showHighlightToday,
-                    onCheckedChange = { onSettingChange(settingData.copy(showHighlightToday = it)) }
-                )
-            }
+            onClick = { onSettingChange(settingData.copy(showHighlightToday = it)) },
+            checked = settingData.showHighlightToday,
         ),
-        SettingItemData(
+        SettingItemData.Switch(
             title = "显示节次分割线",
             subTitle = "用分割线将每节课分开",
-            onClick = { onSettingChange(settingData.copy(showDivider = !settingData.showDivider)) },
-            suffix = {
-                Switch(
-                    checked = settingData.showDivider,
-                    onCheckedChange = { onSettingChange(settingData.copy(showDivider = it)) }
-                )
-            }
+            onClick = { onSettingChange(settingData.copy(showDivider = !it)) },
+            checked = settingData.showDivider,
         ),
-        SettingItemData(
+        SettingItemData.Switch(
             title = "显示当前时间线",
             subTitle = "在当前时间显示一条线",
-            onClick = { onSettingChange(settingData.copy(showCurrentTime = !settingData.showCurrentTime)) },
-            suffix = {
-                Switch(
-                    checked = settingData.showCurrentTime,
-                    onCheckedChange = { onSettingChange(settingData.copy(showCurrentTime = it)) }
-                )
-            }
+            onClick = { onSettingChange(settingData.copy(showCurrentTime = !it)) },
+            checked = settingData.showCurrentTime,
         ),
     )
 
@@ -183,7 +139,7 @@ fun CalendarSettingPageContent(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(12.dp),
     ) {
         itemsGroup(
             title = "数据设置",

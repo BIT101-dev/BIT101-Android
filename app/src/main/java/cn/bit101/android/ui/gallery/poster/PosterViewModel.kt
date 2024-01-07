@@ -395,4 +395,9 @@ class PosterViewModel @Inject constructor(
             )
         ))
     }
+
+    /**
+     * 根据ID获取评论
+     */
+    fun findCommentById(id: Long) = _commentState.data.find { it.id.toLong() == id }
 }

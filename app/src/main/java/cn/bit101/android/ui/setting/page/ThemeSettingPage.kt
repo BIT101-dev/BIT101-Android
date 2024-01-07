@@ -55,34 +55,23 @@ fun ThemeSettingPageContent(
     onOpenDarkModeDialog: () -> Unit,
 ) {
     val settings = listOf(
-        SettingItemData(
+        SettingItemData.Switch(
             title = "动态适配系统主题",
             subTitle = "需要Android 12及以上",
-            onClick = { onChangeDynamic(!dynamic) },
-            suffix = {
-                Switch(checked = dynamic, onCheckedChange = onChangeDynamic)
-            }
+            onClick = onChangeDynamic,
+            checked = dynamic
         ),
-        SettingItemData(
+        SettingItemData.ButtonWithSuffixText(
             title = "暗黑模式",
             subTitle = "跟随系统，亮色，暗色",
             onClick = onOpenDarkModeDialog,
-            suffix = {
-                Text(
-                    text = darkMode,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-            }
+            text = darkMode,
         ),
-        SettingItemData(
+        SettingItemData.Switch(
             title = "自动旋转",
             subTitle = "设置是否自动旋转",
-            onClick = { onChangeRotate(!rotate) },
-            suffix = {
-                Switch(checked = rotate, onCheckedChange = onChangeRotate)
-            }
+            onClick = onChangeRotate,
+            checked = rotate
         )
     )
 
@@ -90,15 +79,10 @@ fun ThemeSettingPageContent(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(12.dp),
     ) {
         items(settings) {
-            SettingItem(
-                title = it.title,
-                subTitle = it.subTitle,
-                onClick = it.onClick,
-                suffix = it.suffix,
-            )
+            SettingItem(data = it)
             Spacer(modifier = Modifier.padding(4.dp))
         }
     }

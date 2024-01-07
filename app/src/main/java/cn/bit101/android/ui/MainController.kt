@@ -9,6 +9,8 @@ import androidx.compose.material3.SnackbarVisuals
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.navigation.NavHostController
+import androidx.navigation.NavOptionsBuilder
+import androidx.navigation.navOptions
 import cn.bit101.android.App
 import cn.bit101.android.ui.common.ImageData
 import cn.bit101.android.ui.component.image.ImageHostState
@@ -26,6 +28,10 @@ class MainController(
 
     fun navigate(route: String) {
         navController.navigate(route)
+    }
+
+    fun navigate(route: String, builder: NavOptionsBuilder.() -> Unit) {
+        navController.navigate(route, navOptions(builder))
     }
 
     fun snackbar(message: String) {
@@ -49,6 +55,11 @@ class MainController(
         val uri = Uri.parse(url)
         val intent = Intent(Intent.ACTION_VIEW, uri)
         ctx.startActivity(intent)
+    }
+
+    fun openWebPage(url: String) {
+        val encodedUrl = Uri.encode(url)
+        navigate("web/$encodedUrl")
     }
 
     fun openPoster(id: Long, ctx: Context) {

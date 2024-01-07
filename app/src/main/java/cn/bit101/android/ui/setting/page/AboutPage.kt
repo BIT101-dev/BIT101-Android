@@ -80,32 +80,23 @@ fun AboutPageContent(
     val painter = rememberDrawablePainter(logo)
 
     val versionItems = listOf(
-        SettingItemData(
+        SettingItemData.ButtonWithSuffixText(
             title = "当前版本",
             subTitle = "点击检查更新",
             onClick = onDetectUpgrade,
             enable = !isDetectingUpgrade,
-            suffix = {
-                Text(
-                    text = BuildConfig.VERSION_NAME,
-                    style = MaterialTheme.typography.titleSmall.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                )
-            }
+            text = BuildConfig.VERSION_NAME,
         ),
-        SettingItemData(
+        SettingItemData.Switch(
             title = "自动检查更新",
             subTitle = "在启动时自动检查更新",
-            onClick = { onChangeAutoDetectUpgrade(!autoDetectUpgrade) },
-            suffix = {
-                Switch(checked = autoDetectUpgrade, onCheckedChange = onChangeAutoDetectUpgrade)
-            }
+            onClick = onChangeAutoDetectUpgrade,
+            checked = autoDetectUpgrade
         )
     )
 
     val contactItems = listOf(
-        SettingItemData(
+        SettingItemData.Button(
             title = "GitHub",
             subTitle = "BIT101-Android",
             onClick = {
@@ -113,7 +104,7 @@ fun AboutPageContent(
                 context.startActivity(intent)
             }
         ),
-        SettingItemData(
+        SettingItemData.Button(
             title = "QQ交流群",
             subTitle = "726965926",
             onClick = {
@@ -121,7 +112,7 @@ fun AboutPageContent(
                 context.startActivity(intent)
             }
         ),
-        SettingItemData(
+        SettingItemData.Button(
             title = "邮箱",
             subTitle = "admin@bit101.cn",
             onClick = {
@@ -132,11 +123,11 @@ fun AboutPageContent(
     )
 
     val aboutAppItems = listOf(
-        SettingItemData(
+        SettingItemData.Button(
             title = "开源声明",
             onClick = onOpenLicenseDialog,
         ),
-        SettingItemData(
+        SettingItemData.Button(
             title = "关于BIT101-Android",
             onClick = onOpenAboutDialog,
         ),
@@ -146,7 +137,7 @@ fun AboutPageContent(
         modifier = Modifier
             .padding(paddingValues)
             .fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
+        contentPadding = PaddingValues(12.dp),
     ) {
         item("logo") {
             Column(modifier = Modifier.fillMaxWidth()) {

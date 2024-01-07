@@ -34,7 +34,10 @@ fun SettingScreen(
     mainController: MainController,
     initialRoute: String = "",
 ) {
-    val topAppBarBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val topAppBarBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        snapAnimationSpec = null,
+        flingAnimationSpec = null,
+    )
 
     val navController = rememberNavController()
 

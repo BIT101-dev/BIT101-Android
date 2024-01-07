@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
@@ -26,6 +28,9 @@ import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.EditNote
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Star
+import androidx.compose.material.icons.rounded.StarOutline
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
@@ -34,8 +39,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -59,6 +66,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.common.ImagePicker
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.Avatar
@@ -98,128 +106,97 @@ fun UserInfoContent(
             Avatar(
                 user = data.user,
                 low = true,
-                size = 80.dp,
+                size = 56.dp,
                 onClick = { onOpenImage(data.user.avatar) }
             )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalAlignment = Alignment.End
-            ) {
-                if (data.own) {
-                    if (id == 0L) {
-                        FilledTonalButton(onClick = onOpenEditDialog) {
-                            Icon(
-                                modifier = Modifier.align(Alignment.CenterVertically),
-                                imageVector = Icons.Rounded.EditNote,
-                                contentDescription = "edit"
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                modifier = Modifier.align(Alignment.CenterVertically),
-                                text = "编辑信息"
-                            )
+//            Column(
+//                modifier = Modifier
+//                    .fillMaxWidth()
+//                    .padding(8.dp),
+//                horizontalAlignment = Alignment.End
+//            ) {
+//                if (data.user.id != -1) {
+//                    FilledTonalButton(
+//                        onClick = onFollow,
+//                        enabled = followState !is SimpleState.Loading
+//                    ) {
+//                        if (followState is SimpleState.Loading) {
+//                            CircularProgressIndicator(
+//                                modifier = Modifier.size(20.dp),
+//                                strokeWidth = 2.dp
+//                            )
+//                        } else {
+//                            Icon(
+//                                modifier = Modifier.align(Alignment.CenterVertically),
+//                                imageVector = if (data.following) Icons.Rounded.Close else Icons.Rounded.Add,
+//                                contentDescription = "add"
+//                            )
+//                            Spacer(modifier = Modifier.width(4.dp))
+//                            Text(
+//                                modifier = Modifier.align(Alignment.CenterVertically),
+//                                text = if (data.following) {
+//                                    if (data.follower) "已互粉" else "已关注"
+//                                } else "关注"
+//                            )
+//                        }
+//                    }
+//                }
+//            }
+            Spacer(modifier = Modifier.padding(8.dp))
+            Column {
+                ClickableText(
+                    text = buildAnnotatedString {
+                        withStyle(
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onBackground
+                            ).toSpanStyle()
+                        ) {
+                            append(data.user.nickname)
                         }
-                    }
 
-                    FilledTonalButton(onClick = onSwitchViewPoint) {
-                        Icon(
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                            imageVector = Icons.Rounded.Autorenew,
-                            contentDescription = "edit"
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            modifier = Modifier.align(Alignment.CenterVertically),
-                            text = if (id == null || id == 0L) "去访客视角" else "去个人主页"
-                        )
-                    }
+                        val color =
+                            if (data.user.identity.id == 0) MaterialTheme.colorScheme.onBackground.copy(
+                                alpha = 0.5f
+                            )
+                            else Color(android.graphics.Color.parseColor(data.user.identity.color))
 
-                } else if (data.user.id != -1) {
-                    FilledTonalButton(
-                        onClick = onFollow,
-                        enabled = followState !is SimpleState.Loading
-                    ) {
-                        if (followState is SimpleState.Loading) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp
-                            )
-                        } else {
-                            Icon(
-                                modifier = Modifier.align(Alignment.CenterVertically),
-                                imageVector = if (data.following) Icons.Rounded.Close else Icons.Rounded.Add,
-                                contentDescription = "add"
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text(
-                                modifier = Modifier.align(Alignment.CenterVertically),
-                                text = if (data.following) {
-                                    if (data.follower) "已互粉" else "已关注"
-                                } else "关注"
-                            )
+                        withStyle(
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = color,
+                                fontWeight = FontWeight.Bold
+                            ).toSpanStyle()
+                        ) {
+                            append(" ${data.user.identity.text}")
                         }
+                    },
+                    onClick = {
+                        mainController.copyText(cm, buildAnnotatedString { append(data.user.nickname) })
                     }
-                }
-            }
-        }
-        Spacer(modifier = Modifier.padding(8.dp))
-        ClickableText(
-            text = buildAnnotatedString {
-                withStyle(
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    ).toSpanStyle()
-                ) {
-                    append(data.user.nickname)
-                }
-
-                val color =
-                    if (data.user.identity.id == 0) MaterialTheme.colorScheme.onBackground.copy(
-                        alpha = 0.5f
-                    )
-                    else Color(android.graphics.Color.parseColor(data.user.identity.color))
-
-                withStyle(
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = color,
-                        fontWeight = FontWeight.Bold
-                    ).toSpanStyle()
-                ) {
-                    append(" ${data.user.identity.text}")
-                }
-            },
-            onClick = {
-                mainController.copyText(cm, buildAnnotatedString { append(data.user.nickname) })
-            }
-        )
-        Spacer(modifier = Modifier.padding(4.dp))
-        val time = DateTimeUtils.formatTime(data.user.createTime)
-        val timeStr = DateTimeUtils.format(time)
-        FlowRow {
-            ClickableText(
-                text = buildAnnotatedString { append("UID: ${data.user.id} | 于${timeStr}来到BIT101") },
-                onClick = {
-                    mainController.copyText(cm, buildAnnotatedString { append("${data.user.id}") })
-                },
-                style = MaterialTheme.typography.labelSmall.copy(
-                    color = MaterialTheme.colorScheme.onBackground
                 )
-            )
+                Spacer(modifier = Modifier.padding(2.dp))
+                ClickableText(
+                    text = buildAnnotatedString { append("UID: ${data.user.id}") },
+                    onClick = {
+                        mainController.copyText(cm, buildAnnotatedString { append("${data.user.id}") })
+                    },
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                )
+            }
         }
-        Spacer(modifier = Modifier.padding(8.dp))
+        Spacer(modifier = Modifier.padding(4.dp))
         SelectionContainer {
             AnnotatedText(
                 mainController = mainController,
                 text = data.user.motto,
-                style = MaterialTheme.typography.bodyMedium.copy(
+                style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onBackground
                 )
             )
         }
-        Spacer(modifier = Modifier.padding(8.dp))
+        Spacer(modifier = Modifier.padding(4.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.Bottom,
@@ -227,7 +204,7 @@ fun UserInfoContent(
             ClickableText(
                 text = buildAnnotatedString {
                     withStyle(
-                        style = MaterialTheme.typography.titleLarge.copy(
+                        style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         ).toSpanStyle()
@@ -235,7 +212,8 @@ fun UserInfoContent(
                         append("${data.followerNum}")
                     }
                     withStyle(
-                        style = MaterialTheme.typography.titleSmall.copy(
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground.copy(
                                 alpha = 0.5f
                             )
@@ -246,11 +224,11 @@ fun UserInfoContent(
                 },
                 onClick = { onOpenFollowerDialog() }
             )
-            Spacer(modifier = Modifier.padding(12.dp))
+            Spacer(modifier = Modifier.padding(6.dp))
             ClickableText(
                 text = buildAnnotatedString {
                     withStyle(
-                        style = MaterialTheme.typography.titleLarge.copy(
+                        style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground
                         ).toSpanStyle()
@@ -258,7 +236,8 @@ fun UserInfoContent(
                         append("${data.followingNum}")
                     }
                     withStyle(
-                        style = MaterialTheme.typography.titleSmall.copy(
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onBackground.copy(
                                 alpha = 0.5f
                             )
@@ -294,9 +273,10 @@ fun UserScreenContent(
     onOpenFollowerDialog: () -> Unit,
     onOpenFollowingDialog: () -> Unit,
 ) {
-    val topAppBarBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    val scope = rememberCoroutineScope()
+    val topAppBarBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
+        snapAnimationSpec = null,
+        flingAnimationSpec = null,
+    )
 
     Scaffold(
         modifier = Modifier.nestedScroll(topAppBarBehavior.nestedScrollConnection),
@@ -337,6 +317,18 @@ fun UserScreenContent(
                             contentDescription = "back"
                         )
                     }
+                },
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+                ),
+                actions = {
+                    IconButton(onClick = {}) {
+                        Icon(
+                            imageVector = Icons.Rounded.MoreVert,
+                            contentDescription = "more action"
+                        )
+                    }
                 }
             )
         }
@@ -345,7 +337,7 @@ fun UserScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentPadding = PaddingValues(vertical = 8.dp),
+            contentPadding = PaddingValues(bottom = 16.dp),
             state = state,
             loading = loadState == SimpleState.Loading,
         ) {
@@ -388,17 +380,6 @@ fun UserScreen(
 
     val followState by vm.followStateMutableLiveData.observeAsState()
 
-    DisposableEffect(followState) {
-        if (followState is SimpleState.Success) {
-            vm.followStateMutableLiveData.value = null
-            mainController.snackbar("关注/取消关注成功")
-        } else if (followState is SimpleState.Fail) {
-            vm.followStateMutableLiveData.value = null
-            mainController.snackbar("关注/取消关注失败")
-        }
-        onDispose { }
-    }
-
     var showEditDialog by remember { mutableStateOf(false) }
 
     var showFollowerDialog by remember { mutableStateOf(false) }
@@ -419,23 +400,19 @@ fun UserScreen(
 
     val userEditData by vm.editUserDataFlow.collectAsState()
 
-    val launcher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data
-            if (data != null) {
-                val uri = data.data
-                if (uri != null) {
-                    vm.uploadAvatar(ctx, uri)
+    val imagePicker = ImagePicker(
+        launcher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data = result.data
+                if (data != null) {
+                    val uri = data.data
+                    if (uri != null) {
+                        vm.uploadAvatar(ctx, uri)
+                    }
                 }
             }
         }
-    }
-    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-        type = "image/*"
-        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
-    }
+    )
 
 
     val uploadUserInfoState by vm.uploadUserInfoStateLiveData.observeAsState()
@@ -519,7 +496,7 @@ fun UserScreen(
                         onDismiss = { showEditDialog = false },
                         onChange = vm::setUserEditData,
                         onSave = vm::saveUserEditData,
-                        onUploadAvatar = { launcher.launch(intent) }
+                        onUploadAvatar = imagePicker::pickImage
                     )
                 } else showEditDialog = false
             }

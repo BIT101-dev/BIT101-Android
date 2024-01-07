@@ -221,7 +221,6 @@ fun MoreCommentsContent(
 }
 
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreCommentsPage(
     mainController: MainController,

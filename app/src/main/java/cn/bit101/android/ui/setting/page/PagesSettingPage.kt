@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.setting.SettingItem
+import cn.bit101.android.ui.component.setting.SettingItemData
 import cn.bit101.android.utils.PageUtils
 import cn.bit101.api.model.common.NameAndValue
 import kotlinx.coroutines.Dispatchers
@@ -86,10 +87,12 @@ fun PagesSettingPageContent(
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.padding(8.dp))
-            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+            Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                 SettingItem(
-                    title = "页面编辑",
-                    subTitle = "按下左侧按钮或长按条目可拖动，右侧按钮可设置主页和隐藏，打对勾的会显示在底部的导航栏，单选框选中的在启动App时会作为主页显示。\n\nTips: 我的页面不能隐藏",
+                    data = SettingItemData.Card(
+                        title = "页面编辑",
+                        subTitle = "按下左侧按钮或长按条目可拖动，右侧按钮可设置主页和隐藏，打对勾的会显示在底部的导航栏，单选框选中的在启动App时会作为主页显示。\n\nTips: 我的页面不能隐藏",
+                    ),
                 )
             }
             Spacer(modifier = Modifier.padding(4.dp))
@@ -98,7 +101,7 @@ fun PagesSettingPageContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .reorderable(state),
-                contentPadding = PaddingValues(16.dp),
+                contentPadding = PaddingValues(12.dp),
             ) {
                 itemsIndexed(changeablePages, { i, s -> s.value }) { index, item ->
                     ReorderableItem(state = state, key = item.value) { isDragging ->
