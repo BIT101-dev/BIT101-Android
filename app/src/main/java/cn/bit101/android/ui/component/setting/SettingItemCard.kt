@@ -1,6 +1,8 @@
 package cn.bit101.android.ui.component.setting
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -27,71 +29,97 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-private fun SettingItemCard(
+private fun BasicSettingItemCard(
     modifier: Modifier = Modifier,
-    title: String,
-    subTitle: String? = null,
-    onClick: (() -> Unit)? = null,
-    suffix: @Composable (RowScope.() -> Unit)? = null,
     enabled: Boolean = true,
+    onClick: (() -> Unit)? = null,
+    colors: CardColors = CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    ),
+    content: @Composable (ColumnScope.() -> Unit)
 ) {
-    val content: @Composable ColumnScope.() -> Unit = {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 18.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-
-            Column(modifier = Modifier.fillMaxWidth(if(suffix == null) 1.0f else 0.7f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.6f),
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-
-                if (subTitle != null) {
-                    Spacer(modifier = Modifier.padding(2.dp))
-                    Text(
-                        text = subTitle,
-                        style = MaterialTheme.typography.titleSmall.copy(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 0.6f else 0.4f)
-                        )
-                    )
-                }
-            }
-            Row {
-                if (suffix != null) {
-                    suffix()
-                }
-            }
-        }
-    }
     if (onClick != null) {
         Card(
             modifier = modifier,
             onClick = onClick,
             enabled = enabled,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
+            colors = colors,
             content = content
         )
     } else {
         Card(
             modifier = modifier,
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
+            colors = colors,
             content = content
         )
     }
+}
+
+@Composable
+private fun SettingItemCard(
+    modifier: Modifier = Modifier,
+    title: String,
+    subTitle: String? = null,
+    onClick: (() -> Unit)? = null,
+    component: @Composable (ColumnScope.() -> Unit)? = null,
+    suffix: @Composable (RowScope.() -> Unit)? = null,
+    enabled: Boolean = true,
+    colors: CardColors = CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+    )
+) {
+    val content: @Composable ColumnScope.() -> Unit = {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 18.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Column(modifier = Modifier.fillMaxWidth(if(suffix == null) 1.0f else 0.7f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 1f else 0.6f),
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+
+                    if (subTitle != null) {
+                        Spacer(modifier = Modifier.padding(2.dp))
+                        Text(
+                            text = subTitle,
+                            style = MaterialTheme.typography.titleSmall.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 0.6f else 0.4f)
+                            )
+                        )
+                    }
+                }
+                Row {
+                    if (suffix != null) {
+                        suffix()
+                    }
+                }
+            }
+            if(component != null) {
+                Spacer(modifier = Modifier.padding(4.dp))
+                component()
+            }
+        }
+    }
+
+    BasicSettingItemCard(
+        modifier = modifier,
+        onClick = onClick,
+        enabled = enabled,
+        colors = colors,
+        content = content,
+    )
 }
 
 @Composable

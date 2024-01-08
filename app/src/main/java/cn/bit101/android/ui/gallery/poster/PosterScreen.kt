@@ -1,23 +1,5 @@
 package cn.bit101.android.ui.gallery.poster
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ContentTransform
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ErrorOutline
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -29,12 +11,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
@@ -45,6 +23,9 @@ import cn.bit101.android.ui.gallery.poster.component.MoreActionOfCommentBottomSh
 import cn.bit101.android.ui.common.rememberImagePicker
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
 import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
+import cn.bit101.android.ui.component.common.AnimatedPage
+import cn.bit101.android.ui.component.common.CircularProgressIndicatorForPage
+import cn.bit101.android.ui.component.common.ErrorMessageForPage
 import cn.bit101.android.ui.component.gallery.DeleteImageDialog
 import cn.bit101.android.ui.gallery.poster.component.MoreActionOfPosterBottomSheet
 import cn.bit101.android.ui.gallery.poster.component.MoreCommentsPage
@@ -242,48 +223,16 @@ fun PosterScreen(
     }
 
     if(getPosterState is SimpleDataState.Loading || refreshState is SimpleState.Loading) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            CircularProgressIndicator(
-                modifier = Modifier
-                    .width(64.dp)
-                    .align(Alignment.Center),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+        CircularProgressIndicatorForPage()
     } else if(getPosterState is SimpleDataState.Success && refreshState is SimpleState.Success) {
 
         val mainListState = rememberLoadableLazyColumnWithoutPullRequestState(
             onLoadMore = { vm.commentStateExports.loadMore(id) }
         )
 
-        AnimatedContent(
-            targetState = showMoreCommentsPage,
-            transitionSpec = {
-                // 推入的效果
-                if(!targetState) {
-                    ContentTransform(
-                        targetContentEnter = slideInHorizontally(
-                            initialOffsetX = { -it },
-                            animationSpec = tween(200)
-                        ),
-                        initialContentExit = slideOutHorizontally(
-                            targetOffsetX = { it },
-                            animationSpec = tween(200)
-                        ),
-                    )
-                } else {
-                    ContentTransform(
-                        targetContentEnter = slideInHorizontally(
-                            initialOffsetX = { it },
-                            animationSpec = tween(200)
-                        ),
-                        initialContentExit = slideOutHorizontally(
-                            targetOffsetX = { -it },
-                            animationSpec = tween(200)
-                        ),
-                    )
-                }
-            },
+        AnimatedPage(
+            page = showMoreCommentsPage,
+            isMainPage = !showMoreCommentsPage,
             label = "poster screen content",
         ) { showMoreComment ->
             if(showMoreComment) {
@@ -387,24 +336,6 @@ fun PosterScreen(
             )
         }
     } else if(getPosterState is SimpleDataState.Fail || refreshState is SimpleState.Fail) {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Column(
-                modifier = Modifier.align(Alignment.Center),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    modifier = Modifier.size(64.dp),
-                    imageVector = Icons.Rounded.ErrorOutline,
-                    contentDescription = "错误"
-                )
-                Spacer(modifier = Modifier.padding(4.dp))
-                Text(
-                    text = "加载失败了Orz",
-                    style = MaterialTheme.typography.titleLarge.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                )
-            }
-        }
+        ErrorMessageForPage()
     }
 }

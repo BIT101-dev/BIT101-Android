@@ -77,23 +77,14 @@ class PosterViewModel @Inject constructor(
     val getPosterStateFlow = _getPosterStateFlow.asStateFlow()
 
     private val _commentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-        override fun refresh(data: Long) = refresh {
-            posterRepo.getCommentsById(data)
-        }
-        override fun loadMore(data: Long) = loadMore {
-            posterRepo.getCommentsById(data, it.toInt())
-        }
-
+        override fun refresh(data: Long) = refresh { posterRepo.getCommentsById(data) }
+        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsById(data, it.toInt()) }
     }
     val commentStateExports = _commentState.export()
 
     private val _subCommentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-        override fun refresh(data: Long) = refresh {
-            posterRepo.getCommentsOfCommentById(data)
-        }
-        override fun loadMore(data: Long) = loadMore {
-            posterRepo.getCommentsOfCommentById(data, it.toInt())
-        }
+        override fun refresh(data: Long) = refresh { posterRepo.getCommentsOfCommentById(data) }
+        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsOfCommentById(data, it.toInt()) }
     }
     val subCommentStateExports = _subCommentState.export()
 

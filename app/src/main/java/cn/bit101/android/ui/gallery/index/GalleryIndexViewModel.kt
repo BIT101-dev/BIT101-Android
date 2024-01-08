@@ -52,16 +52,6 @@ class GalleryIndexViewModel @Inject constructor(
     }
     val newestStataExport = _newestStata.export()
 
-    init {
-        viewModelScope.launch {
-            recommendStateExport.dataFlow.collect {
-                Log.i("GalleryIndexViewModel", "recommendStateExport.dataFlow.collect: ${it.map { it.id }}")
-                Log.i("GalleryIndexViewModel", "recommendStateExport.dataFlow.collect: $it")
-            }
-        }
-
-    }
-
     private val _searchState = object : RefreshAndLoadMoreStatesCombinedOne<SearchData, GetPostersDataModel.ResponseItem>(viewModelScope) {
         override fun refresh(data: SearchData) = refresh {
             val posters = posterRepo.getSearchPosters(

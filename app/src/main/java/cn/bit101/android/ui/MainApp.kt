@@ -90,7 +90,7 @@ fun MainApp(
     val statusColor = when (currentBackStackEntry?.destination?.route) {
         "bit101-web", "web/{url}" -> Color(0xFFFF9A57)
         "setting?route={route}" -> Color.Transparent
-        "user/{id}" -> Color.Transparent
+        "user/{id}", "mine" -> Color.Transparent
         "post", "edit/{id}" -> Color.Transparent
         "report/{type}/{id}" -> Color.Transparent
         "poster/{id}" -> Color.Transparent

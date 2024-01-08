@@ -1,6 +1,7 @@
 package cn.bit101.api.service.school
 
 import cn.bit101.api.model.http.school.*
+import cn.bit101.api.service.ApiService
 import retrofit2.Response
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
@@ -8,7 +9,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Url
 
-interface SchoolLexueApiService {
+interface SchoolLexueApiService : ApiService {
 
     @GET("/")
     suspend fun get(): Response<GetLexueIndexDataModel.Response>

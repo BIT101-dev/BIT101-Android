@@ -134,6 +134,7 @@ fun MoreCommentsContent(
                         fontWeight = FontWeight.Bold
                     )
                 )
+                Spacer(modifier = Modifier.padding(4.dp))
             }
 
             if(refreshing) {

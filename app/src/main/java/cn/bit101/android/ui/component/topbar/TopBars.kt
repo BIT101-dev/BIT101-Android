@@ -69,11 +69,11 @@ import kotlin.math.roundToInt
 internal val TopTitleAlphaEasing = CubicBezierEasing(.8f, 0f, .8f, .15f)
 
 private val LargeTitleBottomPadding = 16.dp
-private val TopAppBarHorizontalPadding = 4.dp
+private val TopAppBarHorizontalPadding = 6.dp
 
 // A title inset when the App-Bar is a Medium or Large one. Also used to size a spacer when the
 // navigation icon is missing.
-private val TopAppBarTitleInset = 8.dp
+private val TopAppBarTitleInset = 12.dp - TopAppBarHorizontalPadding
 
 @Composable
 internal fun ProvideContentColorTextStyle(
@@ -323,7 +323,7 @@ fun BasicTwoRowsTopAppBar(
 
     LocalDensity.current.run {
         pinnedHeightPx = pinnedHeight.toPx()
-        maxHeightPx = bottomLayoutViewSize.height.toFloat() + pinnedHeightPx + windowInsets.getTop(LocalDensity.current)
+        maxHeightPx = bottomLayoutViewSize.height.toFloat() + pinnedHeightPx
         titleBottomPaddingPx = titleBottomPadding.roundToPx()
     }
 
@@ -412,8 +412,7 @@ fun BasicTwoRowsTopAppBar(
                     // padding will always be applied by the layout above
                     .windowInsetsPadding(windowInsets.only(WindowInsetsSides.Horizontal))
                     .clipToBounds(),
-                deltaHeightPx = (scrollBehavior?.state?.heightOffset
-                    ?: 0f) + windowInsets.getTop(LocalDensity.current),
+                deltaHeightPx = scrollBehavior?.state?.heightOffset ?: 0f,
                 navigationIconContentColor =
                 colors.navigationIconContentColor,
                 titleContentColor = colors.titleContentColor,

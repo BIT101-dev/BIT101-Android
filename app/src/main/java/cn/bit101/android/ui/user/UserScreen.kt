@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,14 +14,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTonalElevationEnabled
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,9 +36,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
@@ -47,6 +53,7 @@ import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequ
 import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.component.topbar.BasicTwoRowsTopAppBar
 import cn.bit101.android.ui.component.user.UserInfoContent
+import cn.bit101.android.ui.component.user.UserInfoTopAppBar
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
@@ -64,8 +71,6 @@ fun UserScreenContent(
     onFollow: () -> Unit,
     onOpenPoster: (Long) -> Unit,
     onOpenImages: (Int, List<Image>) -> Unit,
-    onOpenFollowerDialog: () -> Unit,
-    onOpenFollowingDialog: () -> Unit,
 ) {
     val topAppBarBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         snapAnimationSpec = null,
@@ -75,14 +80,18 @@ fun UserScreenContent(
     Scaffold(
         modifier = Modifier.nestedScroll(topAppBarBehavior.nestedScrollConnection),
         topBar = {
-            BasicTwoRowsTopAppBar(
+            UserInfoTopAppBar(
                 title = {
-                    UserInfoContent(
-                        mainController = mainController,
-                        data = data,
-                        following = followState is SimpleState.Loading,
-                        onFollow = onFollow,
-                    )
+                    Column {
+                        Spacer(modifier = Modifier.padding(4.dp))
+                        UserInfoContent(
+                            mainController = mainController,
+                            data = data,
+                            following = followState is SimpleState.Loading,
+                            onFollow = onFollow,
+                        )
+                        Spacer(modifier = Modifier.padding(8.dp))
+                    }
                 },
                 scrollBehavior = topAppBarBehavior,
                 smallTitle = {
@@ -104,10 +113,6 @@ fun UserScreenContent(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
                 actions = {
                     IconButton(onClick = {}) {
                         Icon(
@@ -164,30 +169,6 @@ fun UserScreen(
 
     val followState by vm.followStateMutableLiveData.observeAsState()
 
-    var showEditDialog by remember { mutableStateOf(false) }
-
-    var showFollowerDialog by remember { mutableStateOf(false) }
-
-    var showFollowingDialog by remember { mutableStateOf(false) }
-
-
-    val followers by vm.followersStateExport.dataFlow.collectAsState()
-    val refreshFollowersState by vm.followersStateExport.refreshStateFlow.collectAsState()
-    val loadMoreFollowersState by vm.followersStateExport.loadMoreStateFlow.collectAsState()
-
-    val followings by vm.followingsStateExport.dataFlow.collectAsState()
-    val refreshFollowingsState by vm.followingsStateExport.refreshStateFlow.collectAsState()
-    val loadMoreFollowingsState by vm.followingsStateExport.loadMoreStateFlow.collectAsState()
-
-    val uploadAvatarState by vm.uploadAvatarState.observeAsState()
-
-    val userEditData by vm.editUserDataFlow.collectAsState()
-
-    val imagePicker = rememberImagePicker {
-        vm.uploadAvatar(ctx, it)
-    }
-
-
     val uploadUserInfoState by vm.uploadUserInfoStateLiveData.observeAsState()
 
     DisposableEffect(uploadUserInfoState) {
@@ -229,11 +210,9 @@ fun UserScreen(
             )
         }
     } else if(getUserInfoState is SimpleDataState.Success && postersRefreshState is SimpleState.Success) {
-        val data = (getUserInfoState as SimpleDataState.Success).data
-
         UserScreenContent(
             mainController = mainController,
-            data = data,
+            data = (getUserInfoState as SimpleDataState.Success).data,
             posters = posters,
 
             state = rememberLoadableLazyColumnWithoutPullRequestState(
@@ -245,57 +224,7 @@ fun UserScreen(
             onOpenImages = mainController::showImages,
             onOpenPoster = { mainController.navController.navigate("poster/$it") },
             onFollow = { vm.follow(id) },
-            onOpenFollowerDialog = { showFollowerDialog = true },
-            onOpenFollowingDialog = { showFollowingDialog = true },
         )
-
-        if (showEditDialog) {
-            if (id == 0L) {
-                EditUserDialog(
-                    user = userEditData ?: data.user,
-
-                    uploadAvatarState = uploadAvatarState,
-                    saving = uploadUserInfoState is SimpleState.Loading,
-
-                    onDismiss = { showEditDialog = false },
-                    onChange = vm::setUserEditData,
-                    onSave = vm::saveUserEditData,
-                    onUploadAvatar = imagePicker::pickImage
-                )
-            } else showEditDialog = false
-        }
-
-        if (showFollowerDialog) {
-            if (id == 0L) {
-                FollowerDialog(
-                    mainController = mainController,
-                    followers = followers,
-                    refreshState = refreshFollowersState,
-                    loadMoreState = loadMoreFollowersState,
-                    state = rememberLoadableLazyColumnWithoutPullRequestState(
-                        onLoadMore = vm.followersStateExport.loadMore
-                    ),
-                    onDismiss = { showFollowerDialog = false },
-                    onRefresh = vm.followersStateExport.refresh
-                )
-            } else showFollowerDialog = false
-        }
-
-        if (showFollowingDialog) {
-            if (id == 0L) {
-                FollowingDialog(
-                    mainController = mainController,
-                    followings = followings,
-                    refreshState = refreshFollowingsState,
-                    loadMoreState = loadMoreFollowingsState,
-                    state = rememberLoadableLazyColumnWithoutPullRequestState(
-                        onLoadMore = vm.followingsStateExport.loadMore
-                    ),
-                    onDismiss = { showFollowingDialog = false },
-                    onRefresh = vm.followingsStateExport.refresh
-                )
-            } else showFollowingDialog = false
-        }
     } else {
         Box(modifier = Modifier.fillMaxSize()) {
             Text(

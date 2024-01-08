@@ -3,43 +3,47 @@ package cn.bit101.android.ui.mine
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.App
-import cn.bit101.android.BuildConfig
-import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.net.BIT101API
+import cn.bit101.android.repo.base.UserRepo
 import cn.bit101.android.repo.base.VersionRepo
-import cn.bit101.api.model.http.app.GetVersionDataModel
+import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedOne
+import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedZero
+import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.api.model.common.Comment
+import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
-
-sealed interface UpdateUserInfoState {
-    object Loading : UpdateUserInfoState
-    object Fail : UpdateUserInfoState
-
-    data class Success(
-        val user: GetUserInfoDataModel.Response
-    ) : UpdateUserInfoState
-}
-
 
 @HiltViewModel
 class MineViewModel @Inject constructor(
     private val versionRepo: VersionRepo,
+    private val userRepo: UserRepo,
 ) : ViewModel() {
-    val updateUserInfoStateLiveData = MutableLiveData<UpdateUserInfoState>(null)
+    val userInfoStateLiveData = MutableLiveData<SimpleDataState<GetUserInfoDataModel.Response>>(null)
+
+    private val _followingState = object : RefreshAndLoadMoreStatesCombinedZero<User>(viewModelScope) {
+        override fun refresh() = refresh { userRepo.getFollowings() }
+        override fun loadMore() = loadMore { userRepo.getFollowings(it.toInt()) }
+    }
+    val followingStateExports = _followingState.export()
+
+    private val _followerState = object : RefreshAndLoadMoreStatesCombinedZero<User>(viewModelScope) {
+        override fun refresh() = refresh { userRepo.getFollowers() }
+        override fun loadMore() = loadMore { userRepo.getFollowers(it.toInt()) }
+    }
+    val followerStateExports = _followerState.export()
 
     // 更新用户信息
     fun updateUserInfo() {
-        updateUserInfoStateLiveData.value = UpdateUserInfoState.Loading
+        userInfoStateLiveData.value = SimpleDataState.Loading()
         viewModelScope.launch {
             try {
                 val res = BIT101API.user.getUserInfo("0").body() ?: throw Exception("getUserInfo error")
-                updateUserInfoStateLiveData.postValue(UpdateUserInfoState.Success(res))
+                userInfoStateLiveData.postValue(SimpleDataState.Success(res))
             } catch (e: Exception) {
-                updateUserInfoStateLiveData.postValue(UpdateUserInfoState.Fail)
+                userInfoStateLiveData.postValue(SimpleDataState.Fail())
                 e.printStackTrace()
             }
         }
