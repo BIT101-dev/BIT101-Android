@@ -56,9 +56,7 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun AboutPageContent(
-    paddingValues: PaddingValues,
-
+private fun AboutPageContent(
     autoDetectUpgrade: Boolean,
 
     isDetectingUpgrade: Boolean,
@@ -134,9 +132,7 @@ fun AboutPageContent(
     )
 
     LazyColumn(
-        modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(12.dp),
     ) {
         item("logo") {
@@ -221,7 +217,7 @@ fun AboutPageContent(
 
 
 @Composable
-fun LicenseDialog(
+private fun LicenseDialog(
     licenses: String,
     onClose: () -> Unit,
 ) {
@@ -253,7 +249,7 @@ fun LicenseDialog(
 
 // 关于
 @Composable
-fun AboutDialog(onClose: () -> Unit) {
+private fun AboutDialog(onClose: () -> Unit) {
     AlertDialog(
         modifier = Modifier.fillMaxHeight(0.9f),
         onDismissRequest = onClose,
@@ -367,7 +363,7 @@ fun AboutDialog(onClose: () -> Unit) {
 
 // 更新提醒
 @Composable
-fun UpdateDialog(
+private fun UpdateDialog(
     version: GetVersionDataModel.Response,
     onClose: () -> Unit,
     onIgnore: () -> Unit,
@@ -440,8 +436,6 @@ fun UpdateDialog(
 @Composable
 fun AboutPage(
     mainController: MainController,
-    paddingValues: PaddingValues,
-
     vm: AboutViewModel = hiltViewModel(),
 ) {
 
@@ -483,8 +477,6 @@ fun AboutPage(
     }
 
     AboutPageContent(
-        paddingValues = paddingValues,
-
         autoDetectUpgrade = autoDetectUpgrade,
         isDetectingUpgrade = checkUpdateState is SimpleDataState.Loading,
 

@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DragIndicator
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
@@ -50,9 +51,7 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
 @Composable
-fun PagesSettingPageContent(
-    paddingValues: PaddingValues,
-
+private fun PagesSettingPageContent(
     pages: List<NameAndValue<String>>,
     homePage: String,
     hiddenPages: List<String>,
@@ -69,9 +68,6 @@ fun PagesSettingPageContent(
     val view = LocalView.current
     val state = rememberReorderableLazyListState(
         onMove = { from, to ->
-
-            Log.i("onMove", "from: $from, to: $to")
-
             // 触觉反馈
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
             changeablePages = changeablePages.toMutableList().apply {
@@ -80,18 +76,16 @@ fun PagesSettingPageContent(
         },
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
             Spacer(modifier = Modifier.padding(8.dp))
             Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                 SettingItem(
                     data = SettingItemData.Card(
                         title = "页面编辑",
-                        subTitle = "按下左侧按钮或长按条目可拖动，右侧按钮可设置主页和隐藏，打对勾的会显示在底部的导航栏，单选框选中的在启动App时会作为主页显示。\n\nTips: 我的页面不能隐藏",
+                        subTitle = "按下左侧按钮或长按条目可拖动，右侧按钮可设置主页和隐藏，打对勾的会显示在底部的导航栏，" +
+                                "单选框选中的在启动App时会作为主页显示。\n\n" +
+                                "Tips: 我的页面不能隐藏",
                     ),
                 )
             }
@@ -157,7 +151,7 @@ fun PagesSettingPageContent(
                 Text(text = "重置")
             }
             Spacer(modifier = Modifier.padding(4.dp))
-            FilledTonalButton(
+            Button(
                 onClick = { onChangePages(changeablePages, changeableHomePage, changeableHiddenPages) }
             ) {
                 Text(text = "保存")
@@ -169,7 +163,6 @@ fun PagesSettingPageContent(
 @Composable
 fun PagesSettingPage(
     mainController: MainController,
-    paddingValues: PaddingValues,
 ) {
     val pagesStr by SettingDataStore.settingPageOrder.flow.collectAsState(initial = null)
     val homePageStr by SettingDataStore.settingHomePage.flow.collectAsState(initial = null)
@@ -184,8 +177,6 @@ fun PagesSettingPage(
     val hiddenPages = PageUtils.getPages(hiddenPagesStr!!).map { it.value }
 
     PagesSettingPageContent(
-        paddingValues = paddingValues,
-
         pages = pages,
         homePage = homePage,
         hiddenPages = hiddenPages,

@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.mine.page
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,7 +10,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -36,8 +35,8 @@ import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.common.ErrorMessageForPage
-import cn.bit101.android.ui.component.loadable.LoadableLazyColumn
-import cn.bit101.android.ui.component.loadable.LoadableLazyColumnState
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.api.model.common.User
 
 
@@ -120,7 +119,7 @@ private fun FollowPage(
 
     title: String,
     users: List<User>,
-    state: LoadableLazyColumnState,
+    state: LoadableLazyColumnWithoutPullRequestState,
     refreshState: SimpleState?,
     loadMoreState: SimpleState?,
 
@@ -154,9 +153,14 @@ private fun FollowPage(
                         style = MaterialTheme.typography.titleMedium
                     )
                 },
+                actions = {
+                    IconButton(onClick = onRefresh) {
+                        Icon(imageVector = Icons.Outlined.Refresh, contentDescription = "刷新")
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
-                        Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                        Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
                 scrollBehavior = topBarScrollBehavior,
@@ -166,10 +170,9 @@ private fun FollowPage(
         Box(modifier = Modifier.padding(paddingValues)) {
             if(refreshState is SimpleState.Fail) ErrorMessageForPage()
             else if(refreshState is SimpleState.Success) {
-                LoadableLazyColumn(
+                LoadableLazyColumnWithoutPullRequest(
                     state = state,
                     loading = loadMoreState is SimpleState.Loading,
-                    refreshing = refreshState is SimpleState.Loading,
                 ) {
                     items(users) {
                         UserItem(
@@ -190,7 +193,7 @@ fun FollowerPage(
     mainController: MainController,
 
     followers: List<User>,
-    state: LoadableLazyColumnState,
+    state: LoadableLazyColumnWithoutPullRequestState,
     refreshState: SimpleState?,
     loadMoreState: SimpleState?,
 
@@ -216,7 +219,7 @@ fun FollowingPage(
     mainController: MainController,
 
     followings: List<User>,
-    state: LoadableLazyColumnState,
+    state: LoadableLazyColumnWithoutPullRequestState,
     refreshState: SimpleState?,
     loadMoreState: SimpleState?,
 

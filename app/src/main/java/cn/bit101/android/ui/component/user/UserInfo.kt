@@ -111,8 +111,10 @@ private fun AvatarWithName(
                     text = nicknameText,
                     onClick = { onCopyText(user.nickname) }
                 )
-                Spacer(modifier = Modifier.padding(4.dp))
-                button()
+                if(button != {}) {
+                    Spacer(modifier = Modifier.padding(4.dp))
+                    button()
+                }
             }
         }
         Spacer(modifier = Modifier.padding(4.dp))
@@ -122,7 +124,7 @@ private fun AvatarWithName(
 
             Icon(
                 modifier = Modifier.size(14.dp),
-                imageVector = Icons.Rounded.AccountCircle,
+                imageVector = Icons.Rounded.Numbers,
                 tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                 contentDescription = "UID"
             )
@@ -152,6 +154,57 @@ private fun AvatarWithName(
                     )
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun EmptyAvatarWithNickname() {
+
+    val nicknameText = buildAnnotatedString {
+        withStyle(
+            style = MaterialTheme.typography.titleMedium.copy(
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            ).toSpanStyle()
+        ) {
+            append("空用户名")
+        }
+    }
+
+    Column(modifier = Modifier.fillMaxWidth()) {
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Avatar(
+                low = true,
+                size = 72.dp,
+            )
+            Spacer(modifier = Modifier.padding(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = nicknameText)
+            }
+        }
+        Spacer(modifier = Modifier.padding(4.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Icon(
+                modifier = Modifier.size(14.dp),
+                imageVector = Icons.Rounded.Numbers,
+                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                contentDescription = "UID"
+            )
+            Spacer(modifier = Modifier.padding(3.dp))
+            Text(
+                text = "UID：-",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                )
+            )
         }
     }
 }
@@ -189,7 +242,8 @@ private fun FollowInfoItem(
 
 @Composable
 private fun FollowInfo(
-    data: GetUserInfoDataModel.Response,
+    followerNum: String,
+    followingNum: String,
     onOpenFollowerDialog: () -> Unit,
     onOpenFollowingDialog: () -> Unit,
 ) {
@@ -199,11 +253,11 @@ private fun FollowInfo(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             AnimatedContent(
-                targetState = data.followerNum,
+                targetState = followerNum,
                 label = "follower num",
             ) {
                 FollowInfoItem(
-                    numberStr = it.toString(),
+                    numberStr = it,
                     description = "粉丝",
                     onClick = onOpenFollowerDialog
                 )
@@ -211,11 +265,11 @@ private fun FollowInfo(
             Spacer(modifier = Modifier.padding(8.dp))
 
             AnimatedContent(
-                targetState = data.followingNum,
+                targetState = followingNum,
                 label = "following num",
             ) {
                 FollowInfoItem(
-                    numberStr = it.toString(),
+                    numberStr = it,
                     description = "关注",
                     onClick = onOpenFollowingDialog
                 )
@@ -309,7 +363,8 @@ fun UserInfoContent(
         }
         Spacer(modifier = Modifier.padding(4.dp))
         FollowInfo(
-            data = data,
+            followerNum = data.followerNum.toString(),
+            followingNum = data.followerNum.toString(),
             onOpenFollowerDialog = {},
             onOpenFollowingDialog = {}
         )
@@ -318,7 +373,7 @@ fun UserInfoContent(
 
 @Composable
 fun UserInfoContentForMe(
-    data: GetUserInfoDataModel.Response,
+    data: GetUserInfoDataModel.Response?,
     onOpenMineIndex: () -> Unit,
     onOpenFollowerDialog: () -> Unit,
     onOpenFollowingDialog: () -> Unit,
@@ -328,79 +383,47 @@ fun UserInfoContentForMe(
     onOpenUser: (Long) -> Unit,
 ) {
     Column {
-        AvatarWithName(
-            user = data.user,
-            onShowImage = onShowImage,
-            onCopyText = onCopyText,
-        )
-        Spacer(modifier = Modifier.padding(4.dp))
-        SelectionContainer {
+        if(data != null) {
+            AvatarWithName(
+                user = data.user,
+                onShowImage = onShowImage,
+                onCopyText = onCopyText,
+            )
+            Spacer(modifier = Modifier.padding(4.dp))
+            SelectionContainer {
+                AnnotatedText(
+                    text = data.user.motto,
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onBackground
+                    ),
+                    onOpenPoster = onOpenPoster,
+                    onOpenUser = onOpenUser
+                )
+            }
+            Spacer(modifier = Modifier.padding(4.dp))
+            FollowInfo(
+                followerNum = data.followerNum.toString(),
+                followingNum = data.followerNum.toString(),
+                onOpenFollowerDialog = onOpenFollowerDialog,
+                onOpenFollowingDialog = onOpenFollowingDialog
+            )
+        } else {
+            EmptyAvatarWithNickname()
+            Spacer(modifier = Modifier.padding(4.dp))
             AnnotatedText(
-                text = data.user.motto,
+                text = "空简介",
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground
                 ),
                 onOpenPoster = onOpenPoster,
                 onOpenUser = onOpenUser
             )
-        }
-        Spacer(modifier = Modifier.padding(4.dp))
-        FollowInfo(
-            data = data,
-            onOpenFollowerDialog = onOpenFollowerDialog,
-            onOpenFollowingDialog = onOpenFollowingDialog
-        )
-    }
-}
-
-
-@Preview
-@Composable
-private fun PreviewUserInfo() {
-    val userJson = """
-        {
-            "user": {
-                "id": 4146,
-                "create_time": "2023-11-02T01:34:06.991293+08:00",
-                "nickname": "教务",
-                "avatar": {
-                    "mid": "",
-                    "url": "https://bit101-1255944436.cos.ap-beijing.myqcloud.com/img/e2e4437695e019484769bc807948dad8.jpeg",
-                    "low_url": "https://bit101-1255944436.cos.ap-beijing.myqcloud.com/img/e2e4437695e019484769bc807948dad8.jpeg!low"
-                },
-                "motto": "教务部、教务处",
-                "identity": {
-                    "id": 6,
-                    "create_time": "2023-10-31T01:08:07.611437+08:00",
-                    "update_time": "2023-10-31T01:08:07.611437+08:00",
-                    "delete_time": null,
-                    "text": "机器人",
-                    "color": "#8350EB"
-                }
-            },
-            "following_num": 0,
-            "follower_num": 15,
-            "following": false,
-            "follower": false,
-            "own": false
-        }
-    """.trimIndent()
-    val res = Gson().fromJson(userJson, GetUserInfoDataModel.Response::class.java)
-    Surface {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(12.dp)
-        ) {
-            UserInfoContent(
-                data = res,
-                following = false,
-                onFollow = {},
-                onCopyText = {},
-                onShowImage = {},
-                onOpenPoster = {},
-                onOpenUser = {},
+            Spacer(modifier = Modifier.padding(4.dp))
+            FollowInfo(
+                followerNum = "-",
+                followingNum = "-",
+                onOpenFollowerDialog = {},
+                onOpenFollowingDialog = {}
             )
         }
     }

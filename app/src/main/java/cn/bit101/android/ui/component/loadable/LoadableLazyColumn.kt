@@ -16,6 +16,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -33,11 +35,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.toSize
 import androidx.core.graphics.component1
 import androidx.core.graphics.component2
+import cn.bit101.android.ui.component.common.ErrorMessageForPage
 import cn.bit101.android.ui.component.pullrefresh.PullRefreshDefaults
 import cn.bit101.android.ui.component.pullrefresh.PullRefreshIndicator
 import cn.bit101.android.ui.component.pullrefresh.PullRefreshState
@@ -50,6 +59,7 @@ internal fun BasicLoadableLazyColumn(
     lazyListState: LazyListState,
     loading: Boolean = false,
     refreshing: Boolean = false,
+    error: Boolean = false,
     loadMoreState: LoadMoreState?,
     pullRefreshState: PullRefreshState?,
     nestedScrollConnection: NestedScrollConnection? = null,
@@ -90,8 +100,10 @@ internal fun BasicLoadableLazyColumn(
 
         if (pullRefreshState != null) lazyColumnModifier = lazyColumnModifier.pullRefresh(state = pullRefreshState)
 
+        var size: IntSize by remember { mutableStateOf(IntSize.Zero) }
+
         LazyColumn(
-            modifier = lazyColumnModifier,
+            modifier = lazyColumnModifier.onSizeChanged { size = it },
             contentPadding = contentPadding,
             state = lazyListState,
             reverseLayout = reverseLayout,
@@ -100,9 +112,26 @@ internal fun BasicLoadableLazyColumn(
             flingBehavior = flingBehavior,
             userScrollEnabled = userScrollEnabled,
             content = {
-                content()
-                if(!refreshing) {
-                    item { loadingContent() }
+                if(error) {
+                    item {
+                        var dpSize: DpSize
+                        LocalDensity.current.run {
+                            dpSize = DpSize(size.width.toDp(), size.height.toDp())
+                        }
+                        Box(
+                            modifier = Modifier.size(
+                                height = dpSize.height - contentPadding.calculateTopPadding() - contentPadding.calculateBottomPadding(),
+                                width = dpSize.width
+                            )
+                        ) {
+                            ErrorMessageForPage()
+                        }
+                    }
+                } else {
+                    content()
+                    if(!refreshing) {
+                        item { loadingContent() }
+                    }
                 }
             },
         )
@@ -158,6 +187,7 @@ fun LoadableLazyColumnWithoutPullRequest(
     modifier: Modifier = Modifier,
     state: LoadableLazyColumnWithoutPullRequestState,
     loading: Boolean,
+    error: Boolean = false,
     nestedScrollConnection: NestedScrollConnection? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     reverseLayout: Boolean = false,
@@ -172,6 +202,7 @@ fun LoadableLazyColumnWithoutPullRequest(
         modifier = modifier,
         lazyListState = state.lazyListState,
         loading = loading,
+        error = error,
         loadMoreState = state.loadMoreState,
         pullRefreshState = null,
         nestedScrollConnection = nestedScrollConnection,
@@ -191,6 +222,7 @@ fun LoadableLazyColumn(
     state: LoadableLazyColumnState,
     refreshing: Boolean,
     loading: Boolean,
+    error: Boolean = false,
     nestedScrollConnection: NestedScrollConnection? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     reverseLayout: Boolean = false,
@@ -205,6 +237,7 @@ fun LoadableLazyColumn(
         modifier = modifier,
         lazyListState = state.lazyListState,
         loading = loading,
+        error = error,
         loadMoreState = state.loadMoreState,
         refreshing = refreshing,
         pullRefreshState = state.pullRefreshState,

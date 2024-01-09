@@ -45,11 +45,6 @@ fun AllTabPage(
     mainController: MainController,
 
     /**
-     * 嵌套滚动
-     */
-    nestedScrollConnection: NestedScrollConnection? = null,
-
-    /**
      * 最热的帖子状态
      */
     hotPostersState: PostersState,
@@ -81,10 +76,7 @@ fun AllTabPage(
 
     val scope = rememberCoroutineScope()
 
-    Column(
-        modifier = if(nestedScrollConnection != null) Modifier.nestedScroll(nestedScrollConnection)
-        else Modifier.fillMaxSize(),
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

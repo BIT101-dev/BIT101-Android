@@ -35,9 +35,7 @@ import cn.bit101.android.ui.setting.viewmodel.DDLViewModel
 
 
 @Composable
-fun DDLSettingPageContent(
-    paddingValues: PaddingValues,
-
+private fun DDLSettingPageContent(
     afterDay: String,
     beforeDay: String,
 
@@ -81,9 +79,7 @@ fun DDLSettingPageContent(
     )
 
     LazyColumn(
-        modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(12.dp),
     ) {
         itemsGroup(
@@ -101,7 +97,7 @@ fun DDLSettingPageContent(
 
 // 输入数字对话框
 @Composable
-fun InputNumberDialog(
+private fun InputNumberDialog(
     mainController: MainController,
     title: String,
     text: String,
@@ -167,8 +163,6 @@ fun InputNumberDialog(
 @Composable
 fun DDLSettingPage(
     mainController: MainController,
-    paddingValues: PaddingValues,
-
     vm: DDLViewModel = hiltViewModel(),
 ) {
 
@@ -204,8 +198,6 @@ fun DDLSettingPage(
 
 
     DDLSettingPageContent(
-        paddingValues = paddingValues,
-
         afterDay = afterDay?.toString() ?: "未设置",
         beforeDay = beforeDay?.toString() ?: "未设置",
 

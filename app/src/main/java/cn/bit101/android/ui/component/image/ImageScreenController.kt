@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBackIos
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.material3.Icon
@@ -44,7 +44,7 @@ fun ImageController(
             },
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Rounded.ArrowBackIos,
+                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                 contentDescription = "previous",
             )
         }

@@ -42,14 +42,14 @@ fun ErrorMessageForPage() {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(56.dp),
                 imageVector = Icons.Outlined.ErrorOutline,
                 contentDescription = "错误"
             )
             Spacer(modifier = Modifier.padding(4.dp))
             Text(
                 text = "加载失败了Orz",
-                style = MaterialTheme.typography.titleLarge.copy(
+                style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold
                 ),
             )

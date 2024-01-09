@@ -42,9 +42,7 @@ import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
 @Composable
-fun ThemeSettingPageContent(
-    paddingValues: PaddingValues,
-
+private fun ThemeSettingPageContent(
     dynamic: Boolean,
     darkMode: String,
     rotate: Boolean,
@@ -76,9 +74,7 @@ fun ThemeSettingPageContent(
     )
 
     LazyColumn(
-        modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(12.dp),
     ) {
         items(settings) {
@@ -89,7 +85,7 @@ fun ThemeSettingPageContent(
 }
 
 @Composable
-fun DarkModeDialog(
+private fun DarkModeDialog(
     darkMode: String,
 
     onChangeDarkMode: (String) -> Unit,
@@ -151,7 +147,6 @@ fun DarkModeDialog(
 @Composable
 fun ThemeSettingPage(
     mainController: MainController,
-    paddingValues: PaddingValues,
 ) {
 
     val dynamic by SettingDataStore.settingDynamicTheme.flow.collectAsState(initial = false)
@@ -168,8 +163,6 @@ fun ThemeSettingPage(
     }
 
     ThemeSettingPageContent(
-        paddingValues = paddingValues,
-
         dynamic = dynamic,
         darkMode = darkModeCh,
         rotate = rotate,

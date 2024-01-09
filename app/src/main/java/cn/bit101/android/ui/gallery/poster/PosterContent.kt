@@ -24,10 +24,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.Comment
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.rounded.Category
-import androidx.compose.material.icons.rounded.Comment
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MoreVert
@@ -35,8 +33,6 @@ import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -62,11 +58,11 @@ import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.common.CustomDivider
-import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
-import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.component.image.PreviewImagesWithGridLayout
 import cn.bit101.android.ui.component.gallery.AnnotatedText
 import cn.bit101.android.ui.component.gallery.CommentCard
+import cn.bit101.android.ui.component.image.PreviewImagesWithGridLayout
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
+import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.android.utils.NumberUtils
 import cn.bit101.api.model.common.Comment
@@ -138,7 +134,7 @@ private fun PosterScreenTopBar(
         },
         navigationIcon = {
             IconButton(onClick = { mainController.navController.popBackStack() }) {
-                Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
+                Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
             }
         },
         actions = {

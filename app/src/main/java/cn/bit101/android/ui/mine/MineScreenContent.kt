@@ -23,6 +23,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Article
 import androidx.compose.material.icons.outlined.Menu
 import androidx.compose.material.icons.outlined.NotificationsNone
+import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Article
 import androidx.compose.material.icons.rounded.Book
@@ -57,6 +58,10 @@ import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.CourseUrl
 import cn.bit101.android.ui.common.PaperUrl
 import cn.bit101.android.ui.common.ScoreUrl
+import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.android.ui.component.pullrefresh.PullRefreshIndicator
+import cn.bit101.android.ui.component.pullrefresh.pullRefresh
+import cn.bit101.android.ui.component.pullrefresh.rememberPullRefreshState
 import cn.bit101.android.ui.component.user.UserInfoContentForMe
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 import kotlinx.coroutines.launch
@@ -144,7 +149,8 @@ fun Functions(
 @Composable
 fun MineScreenContent(
     mainController: MainController,
-    data: GetUserInfoDataModel.Response,
+    userInfoState: SimpleDataState<GetUserInfoDataModel.Response>,
+    onRefresh: () -> Unit,
     onOpenFollowerDialog: () -> Unit,
     onOpenFollowingDialog: () -> Unit
 ) {
@@ -154,7 +160,6 @@ fun MineScreenContent(
 
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
-
 
     val functions = listOf(
         FunctionItem(
@@ -172,6 +177,11 @@ fun MineScreenContent(
             icon = Icons.Rounded.Book,
             onClick = { mainController.openWebPage(CourseUrl) }
         ),
+    )
+
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = userInfoState is SimpleDataState.Loading,
+        onRefresh = onRefresh
     )
 
     BackHandler(drawerState.isOpen) {
@@ -215,6 +225,9 @@ fun MineScreenContent(
                 TopAppBar(
                     title = {},
                     actions = {
+                        IconButton(onClick = onRefresh) {
+                            Icon(imageVector = Icons.Outlined.Refresh, contentDescription = "刷新")
+                        }
                         IconButton(
                             onClick = { /*TODO*/ }
                         ) {
@@ -237,6 +250,7 @@ fun MineScreenContent(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
+                val data = (userInfoState as? SimpleDataState.Success)?.data
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -246,7 +260,11 @@ fun MineScreenContent(
                     Spacer(modifier = Modifier.padding(4.dp))
                     UserInfoContentForMe(
                         data = data,
-                        onOpenMineIndex = { mainController.navigate("user/${data.user.id}") },
+                        onOpenMineIndex = {
+                            (userInfoState as? SimpleDataState.Success)?.data?.user?.id?.let { id ->
+                                mainController.navigate("user/$id")
+                            }
+                        },
                         onOpenFollowerDialog = onOpenFollowerDialog,
                         onOpenFollowingDialog = onOpenFollowingDialog,
                         onCopyText = { mainController.copyText(cm, it) },
@@ -255,9 +273,6 @@ fun MineScreenContent(
                         onOpenUser = { mainController.navigate("user/$it") },
                     )
                     Spacer(modifier = Modifier.padding(12.dp))
-//                Functions(
-//                    mainController = mainController,
-//                )
                 }
             }
         }

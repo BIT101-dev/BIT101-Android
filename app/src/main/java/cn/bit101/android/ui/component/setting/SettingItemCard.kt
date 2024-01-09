@@ -25,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -74,14 +75,14 @@ private fun SettingItemCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 18.dp)
+                .padding(12.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Column(modifier = Modifier.fillMaxWidth(if(suffix == null) 1.0f else 0.7f)) {
+                Column {
                     Text(
                         text = title,
                         style = MaterialTheme.typography.titleMedium.copy(
@@ -100,11 +101,13 @@ private fun SettingItemCard(
                         )
                     }
                 }
-                Row {
-                    if (suffix != null) {
+                if (suffix != null) {
+                    Spacer(modifier = Modifier.padding(8.dp))
+                    Row {
                         suffix()
                     }
                 }
+
             }
             if(component != null) {
                 Spacer(modifier = Modifier.padding(4.dp))
@@ -123,6 +126,49 @@ private fun SettingItemCard(
 }
 
 @Composable
+private fun IndexSettingItem(
+    modifier: Modifier = Modifier,
+    title: String,
+    subTitle: String,
+    icon: @Composable () -> Unit = {},
+    onClick: () -> Unit,
+) {
+    Card(
+        modifier = modifier,
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(12.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            icon()
+            Spacer(modifier = Modifier.padding(6.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Spacer(modifier = Modifier.padding(2.dp))
+                Text(
+                    text = subTitle,
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                )
+            }
+        }
+    }
+}
+
+@Composable
 fun SettingItem(
     data: SettingItemData,
 ) {
@@ -135,6 +181,19 @@ fun SettingItem(
             subTitle = data.subTitle,
             suffix = data.suffix,
         )
+
+        is SettingItemData.IndexCard -> IndexSettingItem(
+            title = data.title,
+            subTitle = data.subTitle,
+            icon = {
+                Icon(
+                    imageVector = data.icon,
+                    contentDescription = null
+                )
+            },
+            onClick = data.onClick
+        )
+
 
         is SettingItemData.Button -> SettingItemCard(
             title = data.title,
@@ -185,6 +244,13 @@ sealed interface SettingItemData {
         val suffix: @Composable (RowScope.() -> Unit)? = null,
     ) : SettingItemData
 
+    data class IndexCard(
+        override val title: String,
+        val subTitle: String,
+        val icon: ImageVector,
+        val onClick: () -> Unit,
+    ) : SettingItemData
+
     data class Button(
         override val title: String,
         val enable: Boolean = true,
@@ -218,13 +284,28 @@ fun LazyListScope.itemsGroup(
     titleKey: Any? = null,
     itemsKey: (SettingItemData) -> Any = { it.title },
     title: String? = null,
+    subTitle: String? = null,
     items: List<SettingItemData>,
 ) {
     if(title != null) {
         item(titleKey ?: title) {
             Text(text = title, style = MaterialTheme.typography.titleMedium)
+
+        }
+    }
+    if(subTitle != null) {
+        item {
+            Spacer(modifier = Modifier.padding(2.dp))
+            Text(
+                text = subTitle,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                )
+            )
             Spacer(modifier = Modifier.padding(8.dp))
         }
+    } else {
+        item { Spacer(modifier = Modifier.padding(8.dp)) }
     }
 
     items(items, { itemsKey(it) }) {

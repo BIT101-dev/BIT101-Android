@@ -34,7 +34,9 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.NavBarHeight
+import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.component.common.ErrorMessageForPage
 import cn.bit101.android.ui.component.gallery.PosterCard
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumn
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnState
@@ -75,8 +77,7 @@ data class PostersState(
 @Composable
 fun PostersTabPage(
     mainController: MainController,
-    nestedScrollConnection: NestedScrollConnection? = null,
-    header: @Composable LazyItemScope.() -> Unit = {},
+    header: @Composable () -> Unit = {},
 
     postersState: PostersState,
 
@@ -98,19 +99,17 @@ fun PostersTabPage(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column {
+            header()
             LoadableLazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
                     .align(Alignment.CenterHorizontally),
-                nestedScrollConnection = nestedScrollConnection,
+                error = postersState.refreshState is SimpleState.Fail,
                 state = postersState.state,
                 loading = postersState.loadState == SimpleState.Loading,
                 refreshing = postersState.refreshState == SimpleState.Loading,
                 contentPadding = PaddingValues(bottom = NavBarHeight)
             ) {
-                item("header") {
-                    header()
-                }
                 itemsIndexed(postersState.posters, { _, poster -> poster.id }) { _, it ->
                     PosterCard(
                         data = it,
@@ -123,57 +122,61 @@ fun PostersTabPage(
                         }
                     )
                     HorizontalDivider(
-                        modifier = Modifier.fillMaxWidth().padding(0.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(0.dp),
                         thickness = 0.5.dp,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
                     )
                 }
             }
         }
-        val fabSize = 42.dp
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(10.dp, 20.dp, 10.dp, 20.dp + NavBarHeight)
-        ) {
-            val show by remember { derivedStateOf { postersState.state.lazyListState.firstVisibleItemIndex > 1 } }
-            AnimatedVisibility(
-                visible = show,
-                enter = fadeIn(),
-                exit = fadeOut()
+        if(postersState.refreshState is SimpleState.Success) {
+            val fabSize = 42.dp
+            Column(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(10.dp, 20.dp, 10.dp, 20.dp + NavBarHeight)
             ) {
+                val show by remember { derivedStateOf { postersState.state.lazyListState.firstVisibleItemIndex > 1 } }
+                AnimatedVisibility(
+                    visible = show,
+                    enter = fadeIn(),
+                    exit = fadeOut()
+                ) {
+                    SmallFloatingActionButton(
+                        modifier = Modifier
+                            .size(fabSize),
+                        onClick = {
+                            scope.launch {
+                                postersState.state.lazyListState.animateScrollToItem(0, 0)
+                            }
+                        },
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.ArrowUpward,
+                            contentDescription = "回到顶部"
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
                 SmallFloatingActionButton(
-                    modifier = Modifier
-                        .size(fabSize),
-                    onClick = {
-                        scope.launch {
-                            postersState.state.lazyListState.animateScrollToItem(0, 0)
-                        }
-                    },
+                    modifier = Modifier.size(fabSize),
+                    onClick = onOpenPostOrEdit,
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                     contentColor = MaterialTheme.colorScheme.primary,
                     elevation = FloatingActionButtonDefaults.elevation(0.dp),
                 ) {
                     Icon(
-                        imageVector = Icons.Rounded.ArrowUpward,
-                        contentDescription = "回到顶部"
+                        imageVector = Icons.Rounded.Add,
+                        contentDescription = "张贴Poster"
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            SmallFloatingActionButton(
-                modifier = Modifier.size(fabSize),
-                onClick = onOpenPostOrEdit,
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                contentColor = MaterialTheme.colorScheme.primary,
-                elevation = FloatingActionButtonDefaults.elevation(0.dp),
-            ) {
-                Icon(
-                    imageVector = Icons.Rounded.Add,
-                    contentDescription = "张贴Poster"
-                )
             }
         }
     }

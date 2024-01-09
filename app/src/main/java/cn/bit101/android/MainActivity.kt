@@ -1,40 +1,41 @@
 package cn.bit101.android
 
-import android.content.Context
 import android.content.pm.ActivityInfo
 import android.os.Bundle
-import android.view.View
-import android.view.Window
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.ComposeView
-import androidx.compose.ui.platform.LocalView
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.ui.MainApp
 import cn.bit101.android.ui.theme.BIT101Theme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
-    companion object {
-        var window: Window? = null
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        WindowCompat.setDecorFitsSystemWindows(window, false)
+        var loading = true
 
-        MainActivity.window = window
+        lifecycleScope.launch {
+            lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                loading = false
+            }
+        }
+
+        splashScreen.setKeepOnScreenCondition { loading }
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
             BIT101Theme {

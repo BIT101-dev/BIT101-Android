@@ -3,15 +3,19 @@ package cn.bit101.android.ui.setting
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -21,7 +25,9 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.component.topbar.BasicTwoRowsTopAppBar
 import cn.bit101.android.ui.setting.page.AboutPage
+import cn.bit101.android.ui.setting.page.AccountPage
 import cn.bit101.android.ui.setting.page.CalendarSettingPage
 import cn.bit101.android.ui.setting.page.DDLSettingPage
 import cn.bit101.android.ui.setting.page.PagesSettingPage
@@ -34,10 +40,7 @@ fun SettingScreen(
     mainController: MainController,
     initialRoute: String = "",
 ) {
-    val topAppBarBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        snapAnimationSpec = null,
-        flingAnimationSpec = null,
-    )
+    val topAppBarBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     val navController = rememberNavController()
 
@@ -64,8 +67,13 @@ fun SettingScreen(
     Scaffold(
         modifier = Modifier.nestedScroll(topAppBarBehavior.nestedScrollConnection),
         topBar = {
-            LargeTopAppBar (
-                title = { Text(text = title) },
+            TopAppBar (
+                title = {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
                 scrollBehavior = topAppBarBehavior,
                 navigationIcon = {
                     IconButton(
@@ -91,46 +99,43 @@ fun SettingScreen(
                 SettingIndexPage(
                     mainController = settingController,
                     paddingValues = paddingValues,
-                    onOpenPagesSettingPage = { navController.navigate("pages") },
-                    onOpenThemeSettingPage = { navController.navigate("theme") },
-                    onOpenCalendarSettingPage = { navController.navigate("calendar") },
-                    onOpenAboutPage = { navController.navigate("about") },
-                    onOpenDDLSettingPage = { navController.navigate("ddl") },
                 )
             }
+
+            composable("account") {
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    AccountPage(mainController = settingController)
+                }
+            }
+
             composable("pages") {
-                PagesSettingPage(
-                    mainController = settingController,
-                    paddingValues = paddingValues,
-                )
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    PagesSettingPage(mainController = settingController)
+                }
             }
 
             composable("theme") {
-                ThemeSettingPage(
-                    mainController = settingController,
-                    paddingValues = paddingValues,
-                )
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    ThemeSettingPage(mainController = settingController)
+                }
             }
 
             composable("calendar") {
-                CalendarSettingPage(
-                    mainController = settingController,
-                    paddingValues = paddingValues,
-                )
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    CalendarSettingPage(mainController = settingController)
+                }
             }
 
             composable("about") {
-                AboutPage(
-                    mainController = settingController,
-                    paddingValues = paddingValues,
-                )
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    AboutPage(mainController = settingController)
+                }
             }
 
             composable("ddl") {
-                DDLSettingPage(
-                    mainController = settingController,
-                    paddingValues = paddingValues,
-                )
+                Box(modifier = Modifier.padding(paddingValues)) {
+                    DDLSettingPage(mainController = settingController)
+                }
             }
         }
     }

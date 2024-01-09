@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.user
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -8,51 +7,39 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalTonalElevationEnabled
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
-import cn.bit101.android.ui.common.rememberImagePicker
+import cn.bit101.android.ui.component.common.CircularProgressIndicatorForPage
+import cn.bit101.android.ui.component.common.ErrorMessageForPage
 import cn.bit101.android.ui.component.gallery.PosterCard
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.component.topbar.BasicTwoRowsTopAppBar
 import cn.bit101.android.ui.component.user.UserInfoContent
 import cn.bit101.android.ui.component.user.UserInfoTopAppBar
 import cn.bit101.api.model.common.Image
@@ -114,7 +101,7 @@ fun UserScreenContent(
                 navigationIcon = {
                     IconButton(onClick = { mainController.navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = "back"
                         )
                     }
@@ -204,17 +191,7 @@ fun UserScreen(
     if(getUserInfoState == null || postersRefreshState == null) {
         return
     } else if(getUserInfoState is SimpleDataState.Loading || postersRefreshState is SimpleState.Loading) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .wrapContentSize(Alignment.Center)
-                .width(64.dp)
-        ) {
-            CircularProgressIndicator(
-                modifier = Modifier.width(64.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+        CircularProgressIndicatorForPage()
     } else if(getUserInfoState is SimpleDataState.Success && postersRefreshState is SimpleState.Success) {
         UserScreenContent(
             mainController = mainController,
@@ -232,12 +209,6 @@ fun UserScreen(
             onFollow = { vm.follow(id) },
         )
     } else {
-        Box(modifier = Modifier.fillMaxSize()) {
-            Text(
-                modifier = Modifier.align(Alignment.Center),
-                text = "加载失败",
-                textAlign = TextAlign.Center
-            )
-        }
+        ErrorMessageForPage()
     }
 }

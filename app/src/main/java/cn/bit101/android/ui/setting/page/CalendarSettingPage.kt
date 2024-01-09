@@ -50,9 +50,7 @@ import java.time.format.DateTimeFormatter
 
 
 @Composable
-fun CalendarSettingPageContent(
-    paddingValues: PaddingValues,
-
+private fun CalendarSettingPageContent(
     currentTerm: String,
     firstDay: String,
     settingData: SettingData,
@@ -136,9 +134,7 @@ fun CalendarSettingPageContent(
     )
 
     LazyColumn(
-        modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(12.dp),
     ) {
         itemsGroup(
@@ -155,7 +151,7 @@ fun CalendarSettingPageContent(
 
 // 选择学期对话框
 @Composable
-fun TermListDialog(
+private fun TermListDialog(
     term: String,
     termList: List<String>,
     isGettingTermList: Boolean,
@@ -280,8 +276,6 @@ fun TimeTableDialog(
 @Composable
 fun CalendarSettingPage(
     mainController: MainController,
-    paddingValues: PaddingValues,
-
     vm: CalendarViewModel = hiltViewModel(),
 ) {
 
@@ -359,8 +353,6 @@ fun CalendarSettingPage(
     }
 
     CalendarSettingPageContent(
-        paddingValues = paddingValues,
-
         currentTerm = currentTerm ?: "未设置",
         firstDay = firstDay?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) ?: "未设置",
         settingData = settingData,
