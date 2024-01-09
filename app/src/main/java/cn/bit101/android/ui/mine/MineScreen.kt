@@ -58,6 +58,7 @@ fun MineScreen(
             page = pageState,
             isMainPage = pageState == PageIndex.MINE,
             label = "poster screen content",
+            onDismiss = { pageState = PageIndex.MINE }
         ) { page ->
             when(page) {
                 PageIndex.FOLLOWER -> {

@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.gallery.index
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -13,7 +12,6 @@ import cn.bit101.api.model.http.bit101.toGetPostersDataModelResponseItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class SearchData(
@@ -84,7 +82,7 @@ class GalleryIndexViewModel @Inject constructor(
             )
         }
     }
-    val searchStateFlows = _searchState.export()
+    val searchStateExports = _searchState.export()
 
     private val _searchDataFlow = MutableStateFlow(SearchData("", PostersOrder.NEW, 0))
     val searchDataFlow = _searchDataFlow.asStateFlow()

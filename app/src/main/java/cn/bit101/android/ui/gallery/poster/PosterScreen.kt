@@ -234,6 +234,7 @@ fun PosterScreen(
             page = showMoreCommentsPage,
             isMainPage = !showMoreCommentsPage,
             label = "poster screen content",
+            onDismiss = { showMoreCommentsPage = false }
         ) { showMoreComment ->
             if(showMoreComment) {
                 MoreCommentsPage(

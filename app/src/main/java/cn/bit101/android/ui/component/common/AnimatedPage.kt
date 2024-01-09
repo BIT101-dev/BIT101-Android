@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.component.common
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentScope
 import androidx.compose.animation.ContentTransform
@@ -13,8 +14,13 @@ fun <T> AnimatedPage(
     page: T,
     isMainPage: Boolean,
     label: String,
+    onDismiss: () -> Unit,
     content: @Composable (AnimatedContentScope.(T) -> Unit)
 ) {
+    BackHandler(!isMainPage) {
+        onDismiss()
+    }
+
     AnimatedContent(
         targetState = page,
         transitionSpec = {

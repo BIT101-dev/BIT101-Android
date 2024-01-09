@@ -140,10 +140,6 @@ private fun FollowPage(
         }
     }
 
-    BackHandler {
-        onDismiss()
-    }
-
     val topBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(

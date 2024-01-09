@@ -222,10 +222,6 @@ fun MoreCommentsPage(
 ) {
     if(comment == null) return
 
-    BackHandler {
-        onDismiss()
-    }
-
     val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
