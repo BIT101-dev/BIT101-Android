@@ -113,7 +113,7 @@ fun PosterCard(
 
             Text(
                 modifier = Modifier.fillMaxWidth(),
-                text = "${data.likeNum}赞 · ${data.commentNum}评" + (if(data.public) " · 公开" else " · 仅自己可见") + " · $diff",
+                text = "${data.likeNum}赞 · ${data.commentNum}评" + (if(data.public) "" else " · 仅自己可见") + " · $diff",
                 style = MaterialTheme.typography.labelMedium.copy(
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                 ),

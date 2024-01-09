@@ -1,30 +1,47 @@
 package cn.bit101.android.ui.component.user
 
+import android.text.format.DateUtils
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.DateRange
+import androidx.compose.material.icons.rounded.Numbers
+import androidx.compose.material.icons.rounded.Verified
+import androidx.compose.material3.Card
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -38,6 +55,7 @@ import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.common.CustomDivider
 import cn.bit101.android.ui.component.gallery.AnnotatedText
+import cn.bit101.android.utils.DateTimeUtils
 import cn.bit101.api.model.common.Identity
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
@@ -45,11 +63,9 @@ import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 import com.google.gson.Gson
 
 @Composable
-fun AvatarWithName(
+private fun AvatarWithName(
     user: User,
-    avatarSize: Dp = 54.dp,
-    clickable: Boolean = true,
-    button: (@Composable () -> Unit)? = null,
+    button: @Composable RowScope.() -> Unit = {},
     onShowImage: (Image) -> Unit,
     onCopyText: (String) -> Unit,
 ) {
@@ -64,9 +80,7 @@ fun AvatarWithName(
         }
 
         val color =
-            if (user.identity.id == 0) MaterialTheme.colorScheme.onBackground.copy(
-                alpha = 0.5f
-            )
+            if (user.identity.id == 0) MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
             else Color(android.graphics.Color.parseColor(user.identity.color))
 
         withStyle(
@@ -79,53 +93,64 @@ fun AvatarWithName(
         }
     }
 
-    val uidText = buildAnnotatedString {
-        append("UID: ${user.id}")
-    }
-
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Avatar(
-            user = user,
-            low = true,
-            size = avatarSize,
-            onClick = { onShowImage(user.avatar) }
-        )
-        Spacer(modifier = Modifier.padding(4.dp))
-        Column {
-            if(clickable) {
+    Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Avatar(
+                user = user,
+                low = true,
+                size = 72.dp,
+                onClick = { onShowImage(user.avatar) }
+            )
+            Spacer(modifier = Modifier.padding(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 ClickableText(
                     text = nicknameText,
                     onClick = { onCopyText(user.nickname) }
                 )
-                Spacer(modifier = Modifier.padding(2.dp))
-                ClickableText(
-                    text = uidText,
-                    onClick = { onCopyText("${user.id}") },
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                )
-            } else {
-                Text(text = nicknameText,)
-                Spacer(modifier = Modifier.padding(2.dp))
-                Text(
-                    text = uidText,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                )
-            }
-
-        }
-        if (button != null) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End
-            ) {
+                Spacer(modifier = Modifier.padding(4.dp))
                 button()
+            }
+        }
+        Spacer(modifier = Modifier.padding(4.dp))
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+
+            Icon(
+                modifier = Modifier.size(14.dp),
+                imageVector = Icons.Rounded.AccountCircle,
+                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                contentDescription = "UID"
+            )
+            Spacer(modifier = Modifier.padding(3.dp))
+            Text(
+                text = "UID：${user.id}",
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                )
+            )
+
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            val timeStr = DateTimeUtils.formatDate(user.createTime)
+            if (timeStr != null) {
+                Icon(
+                    modifier = Modifier.size(14.dp),
+                    imageVector = Icons.Rounded.DateRange,
+                    tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    contentDescription = "日期"
+                )
+                Spacer(modifier = Modifier.padding(3.dp))
+                Text(
+                    text = "${timeStr}加入",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    )
+                )
             }
         }
     }
@@ -135,19 +160,12 @@ fun AvatarWithName(
 private fun FollowInfoItem(
     numberStr: String,
     description: String,
-    large: Boolean,
     onClick: () -> Unit = {}
 ) {
-    val numberBaseStyle = if(large) MaterialTheme.typography.titleLarge
-    else MaterialTheme.typography.titleMedium
-
-    val descriptionBaseStyle = if(large) MaterialTheme.typography.bodyMedium
-    else MaterialTheme.typography.bodySmall
-
     ClickableText(
         text = buildAnnotatedString {
             withStyle(
-                style = numberBaseStyle.copy(
+                style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground
                 ).toSpanStyle()
@@ -155,7 +173,7 @@ private fun FollowInfoItem(
                 append(numberStr)
             }
             withStyle(
-                style = descriptionBaseStyle.copy(
+                style = MaterialTheme.typography.bodySmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground.copy(
                         alpha = 0.5f
@@ -172,27 +190,37 @@ private fun FollowInfoItem(
 @Composable
 private fun FollowInfo(
     data: GetUserInfoDataModel.Response,
-    large: Boolean = false,
     onOpenFollowerDialog: () -> Unit,
     onOpenFollowingDialog: () -> Unit,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Bottom,
-    ) {
-        FollowInfoItem(
-            numberStr = data.followerNum.toString(),
-            description = "粉丝",
-            large = large,
-            onClick = onOpenFollowerDialog
-        )
-        Spacer(modifier = Modifier.padding(6.dp))
-        FollowInfoItem(
-            numberStr = data.followingNum.toString(),
-            description = "关注",
-            large = large,
-            onClick = onOpenFollowingDialog
-        )
+    Box(modifier = Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.align(Alignment.CenterStart),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            AnimatedContent(
+                targetState = data.followerNum,
+                label = "follower num",
+            ) {
+                FollowInfoItem(
+                    numberStr = it.toString(),
+                    description = "粉丝",
+                    onClick = onOpenFollowerDialog
+                )
+            }
+            Spacer(modifier = Modifier.padding(8.dp))
+
+            AnimatedContent(
+                targetState = data.followingNum,
+                label = "following num",
+            ) {
+                FollowInfoItem(
+                    numberStr = it.toString(),
+                    description = "关注",
+                    onClick = onOpenFollowingDialog
+                )
+            }
+        }
     }
 }
 
@@ -206,33 +234,65 @@ fun UserInfoContent(
     onOpenPoster: (Long) -> Unit,
     onOpenUser: (Long) -> Unit,
 ) {
-    val button = @Composable {
-        if (data.user.id != -1 && !data.own) {
-            if(data.following) {
-                OutlinedButton(
-                    modifier = Modifier.padding(0.dp),
-                    onClick = onFollow,
-                    enabled = !following,
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 0.dp)
+    val button: @Composable RowScope.() -> Unit =  {
+        val text = if (!data.following) "关注" else if (data.follower) "已互粉" else "已关注"
+
+        val icon = if (!data.following) Icons.Rounded.Add
+        else Icons.Rounded.Close
+
+        val color = if(!data.following) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+        
+        val containerColor = if(!data.following) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+        
+        Row(
+            modifier = Modifier
+                .clip(CircleShape)
+                .clickable(
+                    onClick = { onFollow() },
+                    enabled = !following
+                )
+                .background(containerColor),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                modifier = Modifier.padding(start = 4.dp, end = 6.dp, top = 2.dp, bottom = 2.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AnimatedContent(
+                    targetState = icon,
+                    label = "follow icon",
                 ) {
-                    Text(text = if (data.follower) "已互粉" else "已关注")
+                    Icon(
+                        modifier = Modifier.size(16.dp),
+                        imageVector = it,
+                        tint = color,
+                        contentDescription = null
+                    )
                 }
-            } else {
-                FilledTonalButton(
-                    modifier = Modifier.padding(0.dp),
-                    onClick = onFollow,
-                    enabled = !following,
-                    contentPadding = PaddingValues(horizontal = 20.dp, vertical = 0.dp)
+
+                AnimatedContent(
+                    targetState = text,
+                    label = "follow",
                 ) {
-                    Text(text = "关注")
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall.copy(
+                            color = color,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
                 }
             }
         }
     }
+
+
     Column {
         AvatarWithName(
             user = data.user,
-            button = button,
+            button = if(data.user.id != -1 && !data.own) button else {{}},
             onShowImage = onShowImage,
             onCopyText = onCopyText,
         )
@@ -240,7 +300,7 @@ fun UserInfoContent(
         SelectionContainer {
             AnnotatedText(
                 text = data.user.motto,
-                style = MaterialTheme.typography.bodySmall.copy(
+                style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground
                 ),
                 onOpenPoster = onOpenPoster,
@@ -267,15 +327,9 @@ fun UserInfoContentForMe(
     onOpenPoster: (Long) -> Unit,
     onOpenUser: (Long) -> Unit,
 ) {
-    val button = @Composable {
-        FilledTonalButton(onClick = onOpenMineIndex) {
-            Text(text = "我的主页")
-        }
-    }
     Column {
         AvatarWithName(
             user = data.user,
-            button = button,
             onShowImage = onShowImage,
             onCopyText = onCopyText,
         )
@@ -283,7 +337,7 @@ fun UserInfoContentForMe(
         SelectionContainer {
             AnnotatedText(
                 text = data.user.motto,
-                style = MaterialTheme.typography.bodySmall.copy(
+                style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onBackground
                 ),
                 onOpenPoster = onOpenPoster,

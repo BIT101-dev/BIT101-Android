@@ -77,6 +77,7 @@ fun WebScreen(
         state = state,
         navigator = navigator,
         modifier = Modifier.fillMaxSize(),
+        captureBackPresses = url == null,
         onCreated = {
             it.settings.javaScriptEnabled = true
             it.settings.domStorageEnabled = true //localStorage

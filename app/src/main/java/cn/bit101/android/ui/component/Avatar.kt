@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -44,10 +45,6 @@ fun Avatar(
         val offset = size / 20
 
         Box(
-            modifier = Modifier.padding(
-                end = offset,
-                bottom = offset,
-            )
         ) {
             var modifier = Modifier
                 .size(size)
@@ -78,6 +75,7 @@ fun Avatar(
             Icon(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
+                    .offset(x = offset, y = offset)
                     .size(size * 2 / 5),
                 imageVector = Icons.Rounded.Verified,
                 contentDescription = "认证",

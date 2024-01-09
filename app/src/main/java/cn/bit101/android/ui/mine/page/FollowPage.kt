@@ -3,7 +3,10 @@ package cn.bit101.android.ui.mine.page
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
@@ -16,19 +19,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.common.ErrorMessageForPage
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumn
 import cn.bit101.android.ui.component.loadable.LoadableLazyColumnState
-import cn.bit101.android.ui.component.user.AvatarWithName
 import cn.bit101.api.model.common.User
 
 
@@ -38,8 +47,6 @@ private fun UserItem(
     user: User,
     onClick: () -> Unit,
 ) {
-    val cm = LocalClipboardManager.current
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -51,13 +58,57 @@ private fun UserItem(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            AvatarWithName(
-                user = user,
-                avatarSize = 46.dp,
-                clickable = false,
-                onShowImage = { mainController.showImage(it) },
-                onCopyText = { mainController.copyText(cm, it) }
-            )
+
+            val nicknameText = buildAnnotatedString {
+                withStyle(
+                    style = MaterialTheme.typography.titleSmall.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    ).toSpanStyle()
+                ) {
+                    append(user.nickname)
+                }
+
+                val color =
+                    if (user.identity.id == 0) MaterialTheme.colorScheme.onBackground.copy(
+                        alpha = 0.5f
+                    )
+                    else Color(android.graphics.Color.parseColor(user.identity.color))
+
+                withStyle(
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = color,
+                        fontWeight = FontWeight.Bold
+                    ).toSpanStyle()
+                ) {
+                    append(" ${user.identity.text}")
+                }
+            }
+
+            val uidText = buildAnnotatedString {
+                withStyle(
+                    style = MaterialTheme.typography.labelMedium.copy(
+                        color = MaterialTheme.colorScheme.onBackground
+                    ).toSpanStyle()
+                ) {
+                    append("UID：${user.id}")
+                }
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Avatar(
+                    user = user,
+                    low = true,
+                    size = 46.dp,
+                )
+                Spacer(modifier = Modifier.padding(6.dp))
+                Column {
+                    Text(text = nicknameText)
+                    Text(text = uidText)
+                }
+            }
         }
     }
 }
@@ -93,7 +144,12 @@ private fun FollowPage(
         onDismiss()
     }
 
+    val topBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
                 title = {
@@ -106,7 +162,8 @@ private fun FollowPage(
                     IconButton(onClick = onDismiss) {
                         Icon(imageVector = Icons.AutoMirrored.Rounded.ArrowBack, contentDescription = "返回")
                     }
-                }
+                },
+                scrollBehavior = topBarScrollBehavior,
             )
         }
     ) { paddingValues ->

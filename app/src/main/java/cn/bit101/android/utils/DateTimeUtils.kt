@@ -16,8 +16,22 @@ object DateTimeUtils {
 
     fun format(time: LocalDateTime?): String? {
         return if(LocalDateTime.now().year == time?.year) {
-            time.format(DateTimeFormatter.ofPattern("MM-dd HH:mm:ss"))
-        } else time?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
+            time.format(DateTimeFormatter.ofPattern("MM月dd日 HH:mm:ss"))
+        } else time?.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日 HH:mm:ss"))
+    }
+
+    fun formatDate(time: LocalDateTime?): String? {
+        return if(LocalDateTime.now().year == time?.year) {
+            time.format(DateTimeFormatter.ofPattern("MM月dd日"))
+        } else time?.format(DateTimeFormatter.ofPattern("yyyy年MM月dd日"))
+    }
+
+    fun format(time: String): String? {
+        return format(formatTime(time))
+    }
+
+    fun formatDate(time: String): String? {
+        return formatDate(formatTime(time))
     }
 
     fun calculateTimeDiff(time: LocalDateTime): String {
