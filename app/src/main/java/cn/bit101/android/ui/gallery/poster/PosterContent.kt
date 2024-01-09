@@ -5,8 +5,6 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -16,6 +14,7 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,27 +22,29 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Comment
 import androidx.compose.material.icons.rounded.Category
+import androidx.compose.material.icons.rounded.Comment
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Share
-import androidx.compose.material3.BottomAppBarDefaults
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -51,9 +52,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -74,10 +75,11 @@ import cn.bit101.api.model.http.bit101.GetPosterDataModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PosterScreenTopBar(
+private fun PosterScreenTopBar(
     mainController: MainController,
     state: LoadableLazyColumnWithoutPullRequestState,
     data: GetPosterDataModel.Response,
+    scrollBehavior: TopAppBarScrollBehavior,
 
     onMoreAction: () -> Unit,
 ) {
@@ -144,11 +146,85 @@ fun PosterScreenTopBar(
                 Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = "更多")
             }
         },
+        scrollBehavior = scrollBehavior
     )
 }
 
+@Composable
+private fun PosterScreenBottomBar(
+    posterLiking: Boolean,
+    data: GetPosterDataModel.Response,
+    onOpenCommentToPoster: () -> Unit,
+    onLikePoster: () -> Unit,
+) {
+    // 底部评论、点赞、举报等操作
+    BottomAppBar(
+        modifier = Modifier.height(64.dp),
+        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxHeight()
+                .weight(1f)
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { onOpenCommentToPoster() })
+                },
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Start,
+            ) {
+                Text(
+                    text = "快来评论吧",
+                    style = MaterialTheme.typography.bodyMedium.copy(
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    ),
+                )
+            }
+        }
+        Spacer(modifier = Modifier.padding(8.dp))
+        Column(
+            modifier = Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { if (!posterLiking) onLikePoster() })
+                },
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                imageVector = if(data.like) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                contentDescription = "点赞",
+                tint = if(posterLiking) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                else if(data.like) MaterialTheme.colorScheme.tertiary
+                else MaterialTheme.colorScheme.onSurface
+            )
+            Text(text = NumberUtils.format(data.likeNum), style = MaterialTheme.typography.labelSmall)
+        }
+        Spacer(modifier = Modifier.padding(8.dp))
+        Column(
+            modifier = Modifier
+                .pointerInput(Unit) {
+                    detectTapGestures(onTap = { })
+                },
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                imageVector = Icons.Rounded.Share,
+                contentDescription = "分享",
+            )
+            Text(text = "分享", style = MaterialTheme.typography.labelSmall)
+        }
+    }
+}
 
-@OptIn(ExperimentalLayoutApi::class)
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PosterContent(
     mainController: MainController,
@@ -216,7 +292,7 @@ fun PosterContent(
     /**
      * 打开*对帖子的评论*的编辑对话框
      */
-    onOPenCommentToPoster: () -> Unit,
+    onOpenCommentToPoster: () -> Unit,
 
     /**
      * 打开评论的更多操作的bottom sheet，需要传入评论的数据
@@ -232,16 +308,29 @@ fun PosterContent(
 
     val bottomContentHeight = 60.dp
 
+    val topBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(topBarScrollBehavior.nestedScrollConnection),
         topBar = {
             PosterScreenTopBar(
                 mainController = mainController,
                 state = state,
                 data = data,
+                scrollBehavior = topBarScrollBehavior,
                 onMoreAction = onOpenMoreActionOfPosterBottomSheet,
             )
         },
+        bottomBar = {
+            PosterScreenBottomBar(
+                posterLiking = posterLiking,
+                data = data,
+                onOpenCommentToPoster = onOpenCommentToPoster,
+                onLikePoster = onLikePoster,
+            )
+        }
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -250,9 +339,7 @@ fun PosterContent(
         ) {
             // poster内容卡片
             LoadableLazyColumnWithoutPullRequest(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = bottomContentHeight),
+                modifier = Modifier.fillMaxWidth(),
                 loading = loading,
                 state = state,
                 contentPadding = PaddingValues(bottom = 16.dp),
@@ -297,11 +384,12 @@ fun PosterContent(
                         Box(modifier = Modifier.padding(horizontal = 8.dp)) {
                             SelectionContainer {
                                 AnnotatedText(
-                                    mainController = mainController,
                                     text = data.text,
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = MaterialTheme.colorScheme.onSurface
-                                    )
+                                    ),
+                                    onOpenPoster = { mainController.navigate("poster/$it") },
+                                    onOpenUser = { mainController.navigate("user/$it") }
                                 )
                             }
                         }
@@ -432,85 +520,6 @@ fun PosterContent(
                             )
                         }
                         Spacer(modifier = Modifier.padding(2.dp))
-                    }
-                }
-            }
-
-            // 底部评论、点赞、举报等操作
-
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(bottomContentHeight)
-                    .align(Alignment.BottomCenter),
-                color = BottomAppBarDefaults.containerColor,
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Card(
-                        modifier = Modifier
-                            .height(bottomContentHeight - 15.dp)
-                            .padding(end = 4.dp, start = 8.dp, top = 4.dp, bottom = 4.dp)
-                            .weight(1f)
-                            .pointerInput(Unit) {
-                                detectTapGestures(onTap = { onOPenCommentToPoster() })
-                            },
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(horizontal = 8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
-                        ) {
-                            Text(
-                                text = "快来评论吧",
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                ),
-                            )
-                        }
-                    }
-
-                    Column(
-                        modifier = Modifier
-                            .size(bottomContentHeight - 10.dp)
-                            .pointerInput(Unit) {
-                                detectTapGestures(onTap = { if (!posterLiking) onLikePoster() })
-                            },
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            imageVector = if(data.like) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                            contentDescription = "点赞",
-                            tint = if(posterLiking) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            else if(data.like) MaterialTheme.colorScheme.tertiary
-                            else MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(text = NumberUtils.format(data.likeNum), style = MaterialTheme.typography.labelSmall)
-                    }
-
-                    Column(
-                        modifier = Modifier
-                            .size(bottomContentHeight - 10.dp)
-                            .pointerInput(Unit) {
-                                detectTapGestures(onTap = { })
-                            },
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(24.dp),
-                            imageVector = Icons.Rounded.Share,
-                            contentDescription = "分享",
-                        )
-                        Text(text = "分享", style = MaterialTheme.typography.labelSmall)
                     }
                 }
             }

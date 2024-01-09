@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Error
 import androidx.compose.material3.Icon
@@ -44,6 +45,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import cn.bit101.android.datastore.SettingDataStore
+import cn.bit101.android.ui.common.NavBarHeight
 import cn.bit101.android.ui.component.image.ImageHost
 import cn.bit101.android.ui.component.image.rememberImageHostState
 import cn.bit101.android.ui.component.navigationbar.NavigationBar
@@ -147,7 +149,6 @@ fun MainApp(
         remember { MutableTransitionState(false) }
     bottomBarTransitionState.apply { targetState = showBottomBar }
 
-    val navBarHeight = 80f
     Scaffold(
         bottomBar = {
             AnimatedVisibility(
@@ -167,7 +168,7 @@ fun MainApp(
                     )
                 )
             ) {
-                NavigationBar(height = navBarHeight.dp) {
+                NavigationBar(height = NavBarHeight) {
                     val currentDestination = currentBackStackEntry?.destination
                     routes.forEach { screen ->
                         val selected =
@@ -214,11 +215,7 @@ fun MainApp(
             }
 
             composable("map") {
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
+                Box(modifier = Modifier.padding(paddingValues)) {
                     MapScreen()
                 }
             }
@@ -235,13 +232,17 @@ fun MainApp(
                 ),
             ) {
                 val url = Uri.decode(it.arguments?.getString("url") ?: "")
-                Box(modifier = Modifier.padding(paddingValues)) {
+                Box(
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .statusBarsPadding()
+                ) {
                     WebScreen(mainController, url = url)
                 }
             }
 
             composable("gallery") {
-                Box(modifier = Modifier.padding(paddingValues)) {
+                Box(modifier = Modifier.navigationBarsPadding()) {
                     GalleryScreen(
                         mainController = mainController,
                     )

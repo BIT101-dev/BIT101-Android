@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -72,6 +73,8 @@ fun UserScreenContent(
     onOpenPoster: (Long) -> Unit,
     onOpenImages: (Int, List<Image>) -> Unit,
 ) {
+    val cm = LocalClipboardManager.current
+
     val topAppBarBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
         snapAnimationSpec = null,
         flingAnimationSpec = null,
@@ -85,10 +88,13 @@ fun UserScreenContent(
                     Column {
                         Spacer(modifier = Modifier.padding(4.dp))
                         UserInfoContent(
-                            mainController = mainController,
                             data = data,
                             following = followState is SimpleState.Loading,
                             onFollow = onFollow,
+                            onCopyText = { mainController.copyText(cm, it) },
+                            onShowImage = { mainController.showImage(it) },
+                            onOpenPoster = { mainController.navigate("poster/$it") },
+                            onOpenUser = { mainController.navigate("user/$it") },
                         )
                         Spacer(modifier = Modifier.padding(8.dp))
                     }

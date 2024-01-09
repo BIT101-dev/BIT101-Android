@@ -7,14 +7,12 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,8 +20,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -45,7 +46,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
 
-data class TabPagerItemWithNestedScroll(
+data class TabPagerItem(
     val title: String,
     val content: @Composable (NestedScrollConnection?) -> Unit
 )
@@ -114,7 +115,7 @@ fun GalleryScreen(
     }
 
     val pages = listOf(
-        TabPagerItemWithNestedScroll("关注") {
+        TabPagerItem("关注") {
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
@@ -130,7 +131,7 @@ fun GalleryScreen(
                 onOpenPostOrEdit = onPost,
             )
         },
-        TabPagerItemWithNestedScroll("推荐") {
+        TabPagerItem("推荐") {
             PostersTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
@@ -146,7 +147,7 @@ fun GalleryScreen(
                 onOpenPostOrEdit = onPost,
             )
         },
-        TabPagerItemWithNestedScroll("全部") {
+        TabPagerItem("全部") {
             AllTabPage(
                 mainController = mainController,
                 nestedScrollConnection = it,
@@ -178,60 +179,64 @@ fun GalleryScreen(
     )
     val scope = rememberCoroutineScope()
 
-    Column {
-        CenterAlignedTopAppBar(
-            windowInsets = WindowInsets(0.dp),
-            title = {
-                PrimaryTabRow(
-                    modifier = Modifier.width(200.dp),
-                    selectedTabIndex = horizontalPagerState.currentPage,
-                    divider = {},
-                ) {
-                    pages.forEachIndexed { index, page ->
-                        Tab(
-                            selected = horizontalPagerState.currentPage == index,
-                            onClick = {
-                                scope.launch {
-                                    horizontalPagerState.scrollToPage(index, 0f)
-                                }
-                            },
-                            text = {
-                                Text(
-                                    text = page.title,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        color = if (horizontalPagerState.currentPage == index) MaterialTheme.colorScheme.onSurface
-                                        else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                                        fontWeight = if (horizontalPagerState.currentPage == index) MaterialTheme.typography.titleMedium.fontWeight
-                                        else FontWeight.Bold,
+    Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    PrimaryTabRow(
+                        modifier = Modifier.width(200.dp),
+                        selectedTabIndex = horizontalPagerState.currentPage,
+                        divider = {},
+                    ) {
+                        pages.forEachIndexed { index, page ->
+                            Tab(
+                                selected = horizontalPagerState.currentPage == index,
+                                onClick = {
+                                    scope.launch {
+                                        horizontalPagerState.scrollToPage(index, 0f)
+                                    }
+                                },
+                                text = {
+                                    Text(
+                                        text = page.title,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        style = MaterialTheme.typography.titleMedium.copy(
+                                            color = if (horizontalPagerState.currentPage == index) MaterialTheme.colorScheme.onSurface
+                                            else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                                            fontWeight = if (horizontalPagerState.currentPage == index) MaterialTheme.typography.titleMedium.fontWeight
+                                            else FontWeight.Bold,
+                                        )
                                     )
-                                )
-                            },
-                            //禁用水波纹特效
-                            interactionSource = remember {
-                                object : MutableInteractionSource {
-                                    override val interactions: Flow<Interaction> = emptyFlow()
-                                    override suspend fun emit(interaction: Interaction) {}
-                                    override fun tryEmit(interaction: Interaction) = true
-                                }
-                            },
-                        )
+                                },
+                                //禁用水波纹特效
+                                interactionSource = remember {
+                                    object : MutableInteractionSource {
+                                        override val interactions: Flow<Interaction> = emptyFlow()
+                                        override suspend fun emit(interaction: Interaction) {}
+                                        override fun tryEmit(interaction: Interaction) = true
+                                    }
+                                },
+                            )
+                        }
                     }
-                }
-            },
-            actions = {
-                IconButton(
-                    onClick = { /*TODO*/ }
-                ) {
-                    Icon(imageVector = Icons.Rounded.Search, contentDescription = "搜索")
-                }
-            },
-        )
+                },
+                actions = {
+                    IconButton(
+                        onClick = { /*TODO*/ }
+                    ) {
+                        Icon(imageVector = Icons.Rounded.Search, contentDescription = "搜索")
+                    }
+                },
+            )
+        }
+    ) { paddingValues ->
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
         ) {
-            val nestedScrollConnection = rememberNestedScrollInteropConnection()
             CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
                 HorizontalPager(
                     state = horizontalPagerState,

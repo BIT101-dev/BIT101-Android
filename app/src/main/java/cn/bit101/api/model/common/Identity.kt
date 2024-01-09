@@ -13,4 +13,14 @@ data class Identity(
 
     // 身份称号
     val text: String,
+
+    // 创建时间
+    val createTime: String,
+
+    // 更新时间
+    val updateTime: String,
+
+    // 删除时间
+    val deleteTime: String?,
+
 ) : Serializable, UniqueData

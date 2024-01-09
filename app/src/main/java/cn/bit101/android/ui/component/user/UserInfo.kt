@@ -31,26 +31,28 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.common.CustomDivider
 import cn.bit101.android.ui.component.gallery.AnnotatedText
+import cn.bit101.api.model.common.Identity
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
+import com.google.gson.Gson
 
 @Composable
 fun AvatarWithName(
-    mainController: MainController,
     user: User,
     avatarSize: Dp = 54.dp,
     clickable: Boolean = true,
     button: (@Composable () -> Unit)? = null,
+    onShowImage: (Image) -> Unit,
+    onCopyText: (String) -> Unit,
 ) {
-    val cm = LocalClipboardManager.current
-
     val nicknameText = buildAnnotatedString {
         withStyle(
             style = MaterialTheme.typography.titleMedium.copy(
@@ -89,23 +91,19 @@ fun AvatarWithName(
             user = user,
             low = true,
             size = avatarSize,
-            onClick = { mainController.showImage(user.avatar) }
+            onClick = { onShowImage(user.avatar) }
         )
         Spacer(modifier = Modifier.padding(4.dp))
         Column {
             if(clickable) {
                 ClickableText(
                     text = nicknameText,
-                    onClick = {
-                        mainController.copyText(cm, buildAnnotatedString { append(user.nickname) })
-                    }
+                    onClick = { onCopyText(user.nickname) }
                 )
                 Spacer(modifier = Modifier.padding(2.dp))
                 ClickableText(
                     text = uidText,
-                    onClick = {
-                        mainController.copyText(cm, buildAnnotatedString { append("${user.id}") })
-                    },
+                    onClick = { onCopyText("${user.id}") },
                     style = MaterialTheme.typography.labelSmall.copy(
                         color = MaterialTheme.colorScheme.onBackground
                     )
@@ -173,7 +171,6 @@ private fun FollowInfoItem(
 
 @Composable
 private fun FollowInfo(
-    mainController: MainController,
     data: GetUserInfoDataModel.Response,
     large: Boolean = false,
     onOpenFollowerDialog: () -> Unit,
@@ -201,10 +198,13 @@ private fun FollowInfo(
 
 @Composable
 fun UserInfoContent(
-    mainController: MainController,
     data: GetUserInfoDataModel.Response,
     following: Boolean,
     onFollow: () -> Unit,
+    onShowImage: (Image) -> Unit,
+    onCopyText: (String) -> Unit,
+    onOpenPoster: (Long) -> Unit,
+    onOpenUser: (Long) -> Unit,
 ) {
     val button = @Composable {
         if (data.user.id != -1 && !data.own) {
@@ -231,23 +231,24 @@ fun UserInfoContent(
     }
     Column {
         AvatarWithName(
-            mainController = mainController,
             user = data.user,
-            button = button
+            button = button,
+            onShowImage = onShowImage,
+            onCopyText = onCopyText,
         )
         Spacer(modifier = Modifier.padding(4.dp))
         SelectionContainer {
             AnnotatedText(
-                mainController = mainController,
                 text = data.user.motto,
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onBackground
-                )
+                ),
+                onOpenPoster = onOpenPoster,
+                onOpenUser = onOpenUser,
             )
         }
         Spacer(modifier = Modifier.padding(4.dp))
         FollowInfo(
-            mainController = mainController,
             data = data,
             onOpenFollowerDialog = {},
             onOpenFollowingDialog = {}
@@ -257,11 +258,14 @@ fun UserInfoContent(
 
 @Composable
 fun UserInfoContentForMe(
-    mainController: MainController,
     data: GetUserInfoDataModel.Response,
     onOpenMineIndex: () -> Unit,
     onOpenFollowerDialog: () -> Unit,
     onOpenFollowingDialog: () -> Unit,
+    onShowImage: (Image) -> Unit,
+    onCopyText: (String) -> Unit,
+    onOpenPoster: (Long) -> Unit,
+    onOpenUser: (Long) -> Unit,
 ) {
     val button = @Composable {
         FilledTonalButton(onClick = onOpenMineIndex) {
@@ -270,26 +274,80 @@ fun UserInfoContentForMe(
     }
     Column {
         AvatarWithName(
-            mainController = mainController,
             user = data.user,
-            button = button
+            button = button,
+            onShowImage = onShowImage,
+            onCopyText = onCopyText,
         )
         Spacer(modifier = Modifier.padding(4.dp))
         SelectionContainer {
             AnnotatedText(
-                mainController = mainController,
                 text = data.user.motto,
                 style = MaterialTheme.typography.bodySmall.copy(
                     color = MaterialTheme.colorScheme.onBackground
-                )
+                ),
+                onOpenPoster = onOpenPoster,
+                onOpenUser = onOpenUser
             )
         }
         Spacer(modifier = Modifier.padding(4.dp))
         FollowInfo(
-            mainController = mainController,
             data = data,
             onOpenFollowerDialog = onOpenFollowerDialog,
             onOpenFollowingDialog = onOpenFollowingDialog
         )
+    }
+}
+
+
+@Preview
+@Composable
+private fun PreviewUserInfo() {
+    val userJson = """
+        {
+            "user": {
+                "id": 4146,
+                "create_time": "2023-11-02T01:34:06.991293+08:00",
+                "nickname": "教务",
+                "avatar": {
+                    "mid": "",
+                    "url": "https://bit101-1255944436.cos.ap-beijing.myqcloud.com/img/e2e4437695e019484769bc807948dad8.jpeg",
+                    "low_url": "https://bit101-1255944436.cos.ap-beijing.myqcloud.com/img/e2e4437695e019484769bc807948dad8.jpeg!low"
+                },
+                "motto": "教务部、教务处",
+                "identity": {
+                    "id": 6,
+                    "create_time": "2023-10-31T01:08:07.611437+08:00",
+                    "update_time": "2023-10-31T01:08:07.611437+08:00",
+                    "delete_time": null,
+                    "text": "机器人",
+                    "color": "#8350EB"
+                }
+            },
+            "following_num": 0,
+            "follower_num": 15,
+            "following": false,
+            "follower": false,
+            "own": false
+        }
+    """.trimIndent()
+    val res = Gson().fromJson(userJson, GetUserInfoDataModel.Response::class.java)
+    Surface {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(12.dp)
+        ) {
+            UserInfoContent(
+                data = res,
+                following = false,
+                onFollow = {},
+                onCopyText = {},
+                onShowImage = {},
+                onOpenPoster = {},
+                onOpenUser = {},
+            )
+        }
     }
 }

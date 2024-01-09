@@ -17,9 +17,9 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun CustomDivider(
-    height: Dp = 20.dp,
+    height: Dp = 12.dp,
     padding: Dp = 4.dp,
-    cornerRadius: Dp = 8.dp,
+    cornerRadius: Dp = 12.dp,
 ) {
     Column(
         modifier = Modifier

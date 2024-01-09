@@ -65,7 +65,6 @@ fun getUser(
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalTextApi::class)
 @Composable
 fun AnnotatedText(
-    mainController: MainController,
     modifier: Modifier = Modifier,
     text: String,
     replyUser: User? = null,
@@ -73,6 +72,8 @@ fun AnnotatedText(
     softWrap: Boolean = true,
     overflow: TextOverflow = TextOverflow.Clip,
     maxLines: Int = Int.MAX_VALUE,
+    onOpenPoster: (Long) -> Unit = {},
+    onOpenUser: (Long) -> Unit = {},
 ) {
     val ctx = LocalContext.current
 
@@ -141,9 +142,7 @@ fun AnnotatedText(
                             if(url != null) {
                                 if (url.startsWith("https://bit101.cn/gallery/")) {
                                     val id = url.substring("https://bit101.cn/gallery/".length).toLongOrNull()
-                                    if (id != null) {
-                                        mainController.navController.navigate("poster/$id")
-                                    }
+                                    if (id != null) { onOpenPoster(id) }
                                 } else {
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                                     ctx.startActivity(intent)
@@ -152,7 +151,7 @@ fun AnnotatedText(
                             } else if(user != null) {
                                 val id = user.toLongOrNull()
                                 if(id != null) {
-                                    mainController.navController.navigate("user/$id")
+                                    onOpenUser(id)
                                     true
                                 } else false
                             } else false

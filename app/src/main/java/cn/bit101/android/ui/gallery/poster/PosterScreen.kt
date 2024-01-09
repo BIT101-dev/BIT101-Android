@@ -278,7 +278,7 @@ fun PosterScreen(
                     },
 
                     onOpenImages = mainController::showImages,
-                    onOPenCommentToPoster = { commentTypeNeedShowCommentBottomSheet = CommentType.ToPoster(id) },
+                    onOpenCommentToPoster = { commentTypeNeedShowCommentBottomSheet = CommentType.ToPoster(id) },
                     onOpenCommentToComment = { c, sc -> commentTypeNeedShowCommentBottomSheet = CommentType.ToComment(c, sc) },
                     onOpenMoreActionOfCommentBottomSheet = {
                         commentNeedShowMoreAction = it

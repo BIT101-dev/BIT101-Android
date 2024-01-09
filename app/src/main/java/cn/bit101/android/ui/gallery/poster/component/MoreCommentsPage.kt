@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -29,10 +30,12 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -195,6 +198,7 @@ fun MoreCommentsContent(
 }
 
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MoreCommentsPage(
     mainController: MainController,
@@ -222,33 +226,30 @@ fun MoreCommentsPage(
         onDismiss()
     }
 
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
     Scaffold(
-        modifier = Modifier.systemBarsPadding(),
+        modifier = Modifier
+            .fillMaxSize()
+            .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
         topBar = {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 16.dp),
-            ) {
-                Text(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = "更多回复",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "更多回复",
+                        style = MaterialTheme.typography.titleMedium
                     )
-                )
-                IconButton(
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .size(20.dp),
-                    onClick = onDismiss
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                        contentDescription = "关闭",
-                    )
-                }
-            }
+                },
+                navigationIcon = {
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = "关闭",
+                        )
+                    }
+                },
+                scrollBehavior = topAppBarScrollBehavior,
+            )
         },
     ) { paddingValues ->
         Column(

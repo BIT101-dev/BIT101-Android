@@ -110,13 +110,14 @@ fun CommentCardContent(
                             )
                             Spacer(modifier = Modifier.padding(spacePadding))
                             AnnotatedText(
-                                mainController = mainController,
                                 text = comment.text,
                                 replyUser = if (comment.replyUser.id != 0) comment.replyUser else null,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                                ),
+                                onOpenPoster = { mainController.navigate("poster/$it") },
+                                onOpenUser = { mainController.navigate("user/$it") }
                             )
                             Spacer(modifier = Modifier.padding(spacePadding))
                             // 图片

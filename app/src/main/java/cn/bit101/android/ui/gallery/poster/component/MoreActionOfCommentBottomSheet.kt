@@ -32,7 +32,6 @@ import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.utils.ColorUtils
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MoreActionOfCommentBottomSheet(
     state: BottomSheetState,

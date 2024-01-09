@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
@@ -129,6 +130,7 @@ fun MineScreenContent(
     onOpenFollowerDialog: () -> Unit,
     onOpenFollowingDialog: () -> Unit
 ) {
+    val cm = LocalClipboardManager.current
 
     val scrollState = rememberScrollState()
 
@@ -163,11 +165,14 @@ fun MineScreenContent(
             ) {
                 Spacer(modifier = Modifier.padding(4.dp))
                 UserInfoContentForMe(
-                    mainController = mainController,
                     data = data,
                     onOpenMineIndex = { mainController.navigate("user/${data.user.id}") },
                     onOpenFollowerDialog = onOpenFollowerDialog,
-                    onOpenFollowingDialog = onOpenFollowingDialog
+                    onOpenFollowingDialog = onOpenFollowingDialog,
+                    onCopyText = { mainController.copyText(cm, it) },
+                    onShowImage = { mainController.showImage(it) },
+                    onOpenPoster = { mainController.navigate("poster/$it") },
+                    onOpenUser = { mainController.navigate("user/$it") },
                 )
                 Spacer(modifier = Modifier.padding(12.dp))
                 Functions(

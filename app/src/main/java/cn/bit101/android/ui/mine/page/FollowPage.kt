@@ -21,6 +21,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
@@ -37,6 +38,8 @@ private fun UserItem(
     user: User,
     onClick: () -> Unit,
 ) {
+    val cm = LocalClipboardManager.current
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -49,10 +52,11 @@ private fun UserItem(
                 .padding(12.dp)
         ) {
             AvatarWithName(
-                mainController = mainController,
                 user = user,
                 avatarSize = 46.dp,
-                clickable = false
+                clickable = false,
+                onShowImage = { mainController.showImage(it) },
+                onCopyText = { mainController.copyText(cm, it) }
             )
         }
     }
