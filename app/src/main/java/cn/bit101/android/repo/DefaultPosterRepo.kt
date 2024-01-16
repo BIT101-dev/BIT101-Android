@@ -1,6 +1,6 @@
 package cn.bit101.android.repo
 
-import cn.bit101.android.net.BIT101API
+import cn.bit101.android.net.base.APIManager
 import cn.bit101.android.repo.base.PosterRepo
 import cn.bit101.api.model.common.CommentsOrder
 import cn.bit101.api.model.common.PostersFilter
@@ -12,11 +12,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class DefaultPosterRepo @Inject constructor() : PosterRepo {
+class DefaultPosterRepo @Inject constructor(
+    private val apiManager: APIManager
+) : PosterRepo {
+
+    private val api = apiManager.api
+
     override suspend fun getRecommendPosters(
         page: Long?,
     ) = withContext(Dispatchers.IO) {
-        BIT101API.posters.getPosters(
+        api.posters.getPosters(
             page = page,
         ).body() ?: throw Exception("get posters error")
     }
@@ -24,7 +29,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
     override suspend fun getHotPosters(
         page: Long?,
     ) = withContext(Dispatchers.IO) {
-        BIT101API.posters.getPosters(
+        api.posters.getPosters(
             mode = PostersMode.hot,
             page = page,
         ).body() ?: throw Exception("get posters error")
@@ -33,7 +38,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
     override suspend fun getFollowPosters(
         page: Long?
     ) = withContext(Dispatchers.IO) {
-        BIT101API.posters.getPosters(
+        api.posters.getPosters(
             mode = PostersMode.follow,
             page = page,
         ).body() ?: throw Exception("get posters error")
@@ -45,7 +50,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         order: String?,
         uid: Int?
     ) = withContext(Dispatchers.IO) {
-        BIT101API.posters.getPosters(
+        api.posters.getPosters(
             search = search,
             mode = PostersMode.search,
             page = page,
@@ -57,7 +62,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
     override suspend fun getNewestPosters(
         page: Long?
     ) = withContext(Dispatchers.IO) {
-        BIT101API.posters.getPosters(
+        api.posters.getPosters(
             mode = PostersMode.search,
             page = page,
             order = PostersOrder.NEW,
@@ -68,7 +73,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
     override suspend fun getPosterById(
         id: Long
     ) = withContext(Dispatchers.IO) {
-        BIT101API.posters.getPosterById(
+        api.posters.getPosterById(
             id = id
         ).body() ?: throw Exception("get poster error")
     }
@@ -78,7 +83,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         page: Long?
     ) = withContext(Dispatchers.IO) {
         if(id.toInt() == -1) emptyList()
-        else BIT101API.posters.getPosters(
+        else api.posters.getPosters(
             mode = PostersMode.search,
             page = page,
             uid = id.toInt()
@@ -89,7 +94,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         id: Long,
         page: Int?,
     ) = withContext(Dispatchers.IO) {
-        BIT101API.reaction.getComments(
+        api.reaction.getComments(
             obj = "poster$id",
             page = page,
             order = CommentsOrder.NEW,
@@ -100,7 +105,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         id: Long,
         page: Int?
     ) = withContext(Dispatchers.IO) {
-        BIT101API.reaction.getComments(
+        api.reaction.getComments(
             obj = "comment$id",
             page = page,
             order = CommentsOrder.NEW,
@@ -108,12 +113,11 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
     }
 
     override suspend fun deletePosterById(id: Long) = withContext(Dispatchers.IO) {
-        BIT101API.posters.deletePoster(id.toInt()).body() ?: throw Exception("delete poster error")
-        Unit
+        api.posters.deletePoster(id.toInt()).body() ?: throw Exception("delete poster error")
     }
 
     override suspend fun getClaim() = withContext(Dispatchers.IO) {
-        BIT101API.posters.getPosterClaims().body() ?: throw Exception("get claim error")
+        api.posters.getPosterClaims().body() ?: throw Exception("get claim error")
     }
 
     override suspend fun post(
@@ -126,7 +130,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         text: String,
         title: String
     ) = withContext(Dispatchers.IO) {
-        BIT101API.posters.postPoster(PostPostersDataModel.Body(
+        api.posters.postPoster(PostPostersDataModel.Body(
             anonymous = anonymous,
             claimId = claimId,
             imageMids = imageMids,
@@ -149,7 +153,7 @@ class DefaultPosterRepo @Inject constructor() : PosterRepo {
         text: String,
         title: String
     ) = withContext(Dispatchers.IO) {
-        BIT101API.posters.putPoster(
+        api.posters.putPoster(
             id = id.toInt(),
             body = PutPosterDataModel.Body(
                 anonymous = anonymous,

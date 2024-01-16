@@ -4,6 +4,7 @@ import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.http.bit101.PostLikeDataModel
 
 interface ReactionRepo {
+
     suspend fun likePoster(id: Long): PostLikeDataModel.Response
 
     suspend fun likeComment(id: Long): PostLikeDataModel.Response

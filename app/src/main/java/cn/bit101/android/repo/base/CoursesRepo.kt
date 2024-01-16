@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
 interface CoursesRepo {
+
     /**
      * 从网络获取学期的第一天
      */

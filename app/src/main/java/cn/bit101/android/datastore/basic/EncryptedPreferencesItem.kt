@@ -1,13 +1,13 @@
-package cn.bit101.android.datastore.base
+package cn.bit101.android.datastore.basic
 
 import android.content.SharedPreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
-class PreferencesItem(
+class EncryptedPreferencesItem(
     private val sharedPreferences: SharedPreferences,
     private val key: String,
-) : SettingItem<String> {
+) : DataStoreItem<String> {
     override suspend fun get(): String {
         return sharedPreferences.getString(key, null) ?: ""
     }

@@ -3,18 +3,12 @@ package cn.bit101.android
 import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
-import android.net.Uri
-import androidx.activity.result.ActivityResultLauncher
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.room.Room
-import cn.bit101.android.database.BIT101Database
+import androidx.security.crypto.EncryptedSharedPreferences
 import com.umeng.commonsdk.UMConfigure
-import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.HiltAndroidApp
-import kotlinx.coroutines.flow.MutableStateFlow
-import javax.inject.Inject
 
 /**
  * @author flwfdd
@@ -27,7 +21,8 @@ class App : Application() {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
 
-        val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+        val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
     }
 
     override fun onCreate() {

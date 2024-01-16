@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import cn.bit101.android.database.BIT101Database
 import cn.bit101.android.database.entity.CourseScheduleEntity
 import cn.bit101.android.datastore.SettingDataStore
+import cn.bit101.android.manager.base.CourseScheduleSettingManager
 import cn.bit101.android.repo.base.CoursesRepo
 import cn.bit101.android.ui.common.SimpleState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -35,30 +36,31 @@ data class SettingData(
 class CourseScheduleViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
     private val database: BIT101Database,
+    private val scheduleSettingManager: CourseScheduleSettingManager
 ) : ViewModel() {
     private val _courses = MutableStateFlow<List<List<CourseScheduleEntity>>>(emptyList())
     val courses: StateFlow<List<List<CourseScheduleEntity>>> = _courses.asStateFlow()
 
-    val firstDayFlow = SettingDataStore.courseScheduleFirstDay.getFlow("")
+    val firstDayFlow = scheduleSettingManager.firstDay.flow
 
     private val _weekFlow = MutableStateFlow(Int.MAX_VALUE)
     val weekFlow: StateFlow<Int> = _weekFlow.asStateFlow()
 
 
     // 课表相关信息
-    val currentTermFlow = SettingDataStore.courseScheduleTerm.flow
-    val timeTableStringFlow = SettingDataStore.courseScheduleTimeTable.flow
+    val currentTermFlow = scheduleSettingManager.term.flow
+    val timeTableStringFlow = scheduleSettingManager.timeTable.flow
 
     private val coursesFlow = coursesRepo.getCoursesFromLocal()
 
 
     // 显示相关配置
-    val showSaturdayFlow = SettingDataStore.courseScheduleShowSaturday.flow
-    val showSundayFlow = SettingDataStore.courseScheduleShowSunday.flow
-    val showBorderFlow = SettingDataStore.courseScheduleShowBorder.flow
-    val showHighlightTodayFlow = SettingDataStore.courseScheduleShowHighlightToday.flow
-    val showDividerFlow = SettingDataStore.courseScheduleShowDivider.flow
-    val showCurrentTimeFlow = SettingDataStore.courseScheduleShowCurrentTime.flow
+    val showSaturdayFlow = scheduleSettingManager.showSaturday.flow
+    val showSundayFlow = scheduleSettingManager.showSunday.flow
+    val showBorderFlow = scheduleSettingManager.showBorder.flow
+    val showHighlightTodayFlow = scheduleSettingManager.highlightToday.flow
+    val showDividerFlow = scheduleSettingManager.showDivider.flow
+    val showCurrentTimeFlow = scheduleSettingManager.showCurrentTime.flow
 
     val refreshCoursesStateLiveData = MutableLiveData<SimpleState>(null)
     val forceRefreshCoursesStateLiveData = MutableLiveData<SimpleState>(null)
@@ -79,7 +81,8 @@ class CourseScheduleViewModel @Inject constructor(
         // 学期开始日期改变
         viewModelScope.launch(Dispatchers.IO) {
             firstDayFlow.collect { firstDay ->
-                _weekFlow.value = firstDay?.until(LocalDate.now(), ChronoUnit.WEEKS)?.plus(1)?.toInt() ?: Int.MAX_VALUE
+                val week = firstDay?.until(LocalDate.now(), ChronoUnit.WEEKS)?.plus(1)?.toInt() ?: Int.MAX_VALUE
+                _weekFlow.value = maxOf(week, 1)
             }
         }
     }
@@ -91,7 +94,7 @@ class CourseScheduleViewModel @Inject constructor(
      */
     fun changeWeek(week: Int) {
         // 改变周数
-        _weekFlow.value = week
+        _weekFlow.value = maxOf(week, 1)
     }
 
     /**
@@ -103,7 +106,7 @@ class CourseScheduleViewModel @Inject constructor(
             try {
                 // 获得学期
                 val term = coursesRepo.getCurrentTermFromNet()
-                SettingDataStore.courseScheduleTerm.set(term)
+                scheduleSettingManager.term.set(term)
 
                 // 获取课表
                 val courses = coursesRepo.getCoursesFromNet(term)
@@ -111,7 +114,7 @@ class CourseScheduleViewModel @Inject constructor(
 
                 // 获取学期第一天
                 val firstDay = coursesRepo.getFirstDayFromNet(term)
-                SettingDataStore.courseScheduleFirstDay.set("", firstDay)
+                scheduleSettingManager.firstDay.set(firstDay)
                 forceRefreshCoursesStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()

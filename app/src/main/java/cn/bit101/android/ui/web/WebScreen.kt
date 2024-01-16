@@ -29,7 +29,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.datastore.UserDataStore
 import cn.bit101.android.ui.MainController
 import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.AccompanistWebViewClient
@@ -90,7 +89,7 @@ fun WebScreen(
 
                 // 注入fake-cookie
                 scope.launch {
-                    val fakeCookie = UserDataStore.fakeCookie.get()
+                    val fakeCookie = vm.fakeCookie.get()
                     Log.d("WebScreen", fakeCookie)
                     if (fakeCookie.isNotEmpty()) {
                         view.evaluateJavascript(
@@ -126,11 +125,11 @@ fun WebScreen(
                 super.doUpdateVisitedHistory(view, url, isReload)
 
                 val sid = runBlocking {
-                    UserDataStore.loginSid.get()
+                    vm.sid.get()
                 }
 
                 val password = runBlocking {
-                    UserDataStore.loginPassword.get()
+                    vm.password.get()
                 }
 
                 // 自动填充成绩查询学号密码

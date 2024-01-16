@@ -1,13 +1,9 @@
 package cn.bit101.android.ui.setting.page
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -30,7 +26,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.setting.SettingItemData
-import cn.bit101.android.ui.component.setting.itemsGroup
+import cn.bit101.android.ui.component.setting.SettingsColumn
+import cn.bit101.android.ui.component.setting.SettingsGroup
 import cn.bit101.android.ui.setting.viewmodel.DDLViewModel
 
 
@@ -64,13 +61,13 @@ private fun DDLSettingPageContent(
     )
 
     val displayItems = listOf(
-        SettingItemData.ButtonWithSuffixText(
+        SettingItemData.Button(
             title = "变色天数",
             subTitle = "临近日程会改变颜色",
             onClick = onOpenBeforeDayDialog,
             text = beforeDay,
         ),
-        SettingItemData.ButtonWithSuffixText(
+        SettingItemData.Button(
             title = "滞留天数",
             subTitle = "过期日程会继续显示",
             onClick = onOpenAfterDayDialog,
@@ -78,16 +75,13 @@ private fun DDLSettingPageContent(
         ),
     )
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(12.dp),
-    ) {
-        itemsGroup(
+    SettingsColumn {
+        SettingsGroup(
             title = "数据设置",
             items = dataItems,
         )
 
-        itemsGroup(
+        SettingsGroup(
             title = "显示设置",
             items = displayItems,
         )

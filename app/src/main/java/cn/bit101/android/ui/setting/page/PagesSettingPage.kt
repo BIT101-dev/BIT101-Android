@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.setting.page
 
-import android.util.Log
 import android.view.HapticFeedbackConstants
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,15 +34,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
-import cn.bit101.android.datastore.SettingDataStore
+import androidx.hilt.navigation.compose.hiltViewModel
+import cn.bit101.android.manager.base.PageShowOnNav
+import cn.bit101.android.manager.base.toNameAndValue
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.setting.SettingItem
 import cn.bit101.android.ui.component.setting.SettingItemData
-import cn.bit101.android.utils.PageUtils
-import cn.bit101.api.model.common.NameAndValue
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
+import cn.bit101.android.ui.setting.viewmodel.PageViewModel
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
@@ -52,17 +49,15 @@ import org.burnoutcrew.reorderable.reorderable
 
 @Composable
 private fun PagesSettingPageContent(
-    pages: List<NameAndValue<String>>,
-    homePage: String,
-    hiddenPages: List<String>,
+    pages: List<PageShowOnNav>,
+    homePage: PageShowOnNav,
+    hiddenPages: List<PageShowOnNav>,
 
-    onChangePages: (List<NameAndValue<String>>, String, List<String>) -> Unit,
+    onChangePages: (List<PageShowOnNav>, PageShowOnNav, List<PageShowOnNav>) -> Unit,
     onReset: () -> Unit,
 ) {
     var changeablePages by remember { mutableStateOf(pages) }
-    var changeableHomePage by remember {
-        mutableStateOf(if(homePage in pages.map { it.value }) homePage else pages.first().value)
-    }
+    var changeableHomePage by remember { mutableStateOf(homePage) }
     var changeableHiddenPages by remember { mutableStateOf(hiddenPages) }
 
     val view = LocalView.current
@@ -97,8 +92,8 @@ private fun PagesSettingPageContent(
                     .reorderable(state),
                 contentPadding = PaddingValues(12.dp),
             ) {
-                itemsIndexed(changeablePages, { i, s -> s.value }) { index, item ->
-                    ReorderableItem(state = state, key = item.value) { isDragging ->
+                itemsIndexed(changeablePages, { i, s -> s.toNameAndValue().value }) { index, item ->
+                    ReorderableItem(state = state, key = item.toNameAndValue().value) { isDragging ->
                         val color = if (isDragging) MaterialTheme.colorScheme.surfaceContainerHigh
                         else MaterialTheme.colorScheme.surface
                         Surface(
@@ -123,16 +118,16 @@ private fun PagesSettingPageContent(
                                     Spacer(modifier = Modifier.padding(4.dp))
                                     Text(
                                         modifier = Modifier.align(Alignment.CenterVertically),
-                                        text = item.name
+                                        text = item.toNameAndValue().name
                                     )
                                 }
                                 Row(modifier = Modifier.align(Alignment.CenterEnd)) {
                                     Checkbox(
-                                        checked = item.value !in changeableHiddenPages,
-                                        onCheckedChange = { changeableHiddenPages = if(it) changeableHiddenPages - item.value else changeableHiddenPages + item.value }
+                                        checked = item !in changeableHiddenPages,
+                                        onCheckedChange = { changeableHiddenPages = if(it) changeableHiddenPages - item else changeableHiddenPages + item }
                                     )
                                     Spacer(modifier = Modifier.padding(4.dp))
-                                    RadioButton(selected = item.value == changeableHomePage, onClick = { changeableHomePage = item.value })
+                                    RadioButton(selected = item == changeableHomePage, onClick = { changeableHomePage = item })
                                 }
                             }
                         }
@@ -163,57 +158,18 @@ private fun PagesSettingPageContent(
 @Composable
 fun PagesSettingPage(
     mainController: MainController,
+    vm: PageViewModel = hiltViewModel()
 ) {
-    val pagesStr by SettingDataStore.settingPageOrder.flow.collectAsState(initial = null)
-    val homePageStr by SettingDataStore.settingHomePage.flow.collectAsState(initial = null)
-    val hiddenPagesStr by SettingDataStore.settingPageVisible.flow.collectAsState(initial = null)
 
-    if(pagesStr == null || homePageStr == null || hiddenPagesStr == null) {
-        return
-    }
-
-    val pages = PageUtils.getReorderedPages(pagesStr!!)
-    val homePage = PageUtils.getPage(homePageStr!!).value
-    val hiddenPages = PageUtils.getPages(hiddenPagesStr!!).map { it.value }
+    val pages by vm.allPagesFlow.collectAsState(initial = PageShowOnNav.allPages)
+    val homePage by vm.homePageFlow.collectAsState(initial = PageShowOnNav.allPages[0])
+    val hiddenPages by vm.hiddenPagesFlow.collectAsState(initial = emptyList())
 
     PagesSettingPageContent(
         pages = pages,
         homePage = homePage,
         hiddenPages = hiddenPages,
-
-        onChangePages = { newPages, newHomePage, newHiddenPages ->
-
-            if(newHomePage in newHiddenPages) {
-                mainController.snackbar("主页不能隐藏")
-            } else if(newHiddenPages.size == newPages.size) {
-                mainController.snackbar("至少保留一个页面")
-            } else if("mine" in newHiddenPages) {
-                mainController.snackbar("我的页面不能隐藏")
-            } else {
-                MainScope().launch(Dispatchers.IO) {
-
-                    SettingDataStore.settingPageOrder.set(newPages.joinToString(",") { it.value })
-                    SettingDataStore.settingHomePage.set(newHomePage)
-                    SettingDataStore.settingPageVisible.set(newHiddenPages.joinToString(","))
-                }
-
-                mainController.snackbar("保存成功")
-            }
-        },
-
-        onReset = {
-
-            val newPages = PageUtils.getReorderedPages("")
-            val newHomePage = newPages.first().value
-            val newHiddenPages = emptyList<String>()
-
-            MainScope().launch(Dispatchers.IO) {
-                SettingDataStore.settingPageOrder.set(newPages.joinToString(",") { it.value })
-                SettingDataStore.settingHomePage.set(newHomePage)
-                SettingDataStore.settingPageVisible.set(newHiddenPages.joinToString(","))
-            }
-
-            mainController.snackbar("重置成功")
-        }
+        onChangePages = vm::changePageSettings,
+        onReset = vm::reset
     )
 }

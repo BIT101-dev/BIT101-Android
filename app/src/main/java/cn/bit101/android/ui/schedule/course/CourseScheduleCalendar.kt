@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.schedule.course
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,7 +26,6 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.database.entity.CourseScheduleEntity
-import cn.bit101.android.utils.TimeTableItem
+import cn.bit101.android.manager.base.TimeTable
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -71,7 +71,7 @@ fun CourseScheduleCalendar(
     week: Int,
     firstDay: LocalDate,
     settingData: SettingData,
-    timeTable: List<TimeTableItem>,
+    timeTable: TimeTable,
 
     onConfig: () -> Unit,
     onShowDetailDialog: (CourseScheduleEntity) -> Unit,
@@ -274,6 +274,7 @@ fun CourseScheduleCalendar(
                                     modifier = modifier
                                         .clip(CardDefaults.shape) // 使点击波纹形状匹配
                                         .clickable { onShowDetailDialog(it) },
+                                    week = week,
                                     course = it
                                 )
                             }
@@ -319,6 +320,7 @@ fun CourseScheduleCalendar(
                                 -boxSize.height + fabPaddingVerticalPx * 2 + fabsSize.height
                     }
                 ),
+            verticalArrangement = Arrangement.spacedBy(fabSpacerSize),
         ) {
             FloatingActionButton(
                 modifier = Modifier
@@ -333,7 +335,6 @@ fun CourseScheduleCalendar(
                     contentDescription = "next week",
                 )
             }
-            Spacer(modifier = Modifier.height(fabSpacerSize))
             FloatingActionButton(
                 modifier = Modifier
                     .size(fabSize),
@@ -347,7 +348,6 @@ fun CourseScheduleCalendar(
                     contentDescription = "last week",
                 )
             }
-            Spacer(modifier = Modifier.height(fabSpacerSize))
             FloatingActionButton(
                 modifier = Modifier
                     .size(fabSize),

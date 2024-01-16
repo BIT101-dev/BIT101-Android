@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.database.entity.DDLScheduleEntity
-import cn.bit101.android.datastore.SettingDataStore
+import cn.bit101.android.manager.DefaultDDLSettingManager
 import cn.bit101.android.repo.base.DDLScheduleRepo
 import cn.bit101.android.ui.common.SimpleState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,27 +15,26 @@ import javax.inject.Inject
 @HiltViewModel
 class DDLViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
+    private val ddlSettingManager: DefaultDDLSettingManager
 ) : ViewModel() {
 
-    val beforeDayFlow = SettingDataStore.ddlScheduleBeforeDay.flow
+    val beforeDayFlow = ddlSettingManager.beforeDay.flow
 
-    val afterDayFlow = SettingDataStore.ddlScheduleAfterDay.flow
-
+    val afterDayFlow = ddlSettingManager.afterDay.flow
 
     val updateLexueCalendarUrlStateLiveData = MutableLiveData<SimpleState>()
 
     val updateLexueCalendarLiveData = MutableLiveData<SimpleState>()
 
-
     fun setBeforeDay(day: Long) {
         viewModelScope.launch {
-            SettingDataStore.ddlScheduleBeforeDay.set(day)
+            ddlSettingManager.beforeDay.set(day)
         }
     }
 
     fun setAfterDay(day: Long) {
         viewModelScope.launch {
-            SettingDataStore.ddlScheduleAfterDay.set(day)
+            ddlSettingManager.afterDay.set(day)
         }
     }
 
@@ -45,7 +44,7 @@ class DDLViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 val url = ddlScheduleRepo.getCalendarUrl() ?: throw Exception("url is null")
-                SettingDataStore.lexueCalendarUrl.set(url)
+                ddlSettingManager.url.set(url)
                 updateLexueCalendarUrlStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -59,7 +58,7 @@ class DDLViewModel @Inject constructor(
         updateLexueCalendarLiveData.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val url = SettingDataStore.lexueCalendarUrl.get()
+                val url = ddlSettingManager.url.get()
                 val events = ddlScheduleRepo.getCalendarFromNet(url)
 
                 val UIDs = events.map { it.uid }

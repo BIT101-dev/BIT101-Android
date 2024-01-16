@@ -2,8 +2,7 @@ package cn.bit101.android.repo
 
 import android.content.Context
 import android.net.Uri
-import android.util.Log
-import cn.bit101.android.net.BIT101API
+import cn.bit101.android.net.base.APIManager
 import cn.bit101.android.repo.base.UploadRepo
 import cn.bit101.android.utils.FileUtils
 import kotlinx.coroutines.Dispatchers
@@ -15,8 +14,11 @@ import javax.inject.Inject
 
 
 class DefaultUploadRepo @Inject constructor(
-
+    private val apiManager: APIManager
 ) : UploadRepo {
+
+    private val api = apiManager.api
+
     override suspend fun uploadImage(
         context: Context,
         imageUri: Uri,
@@ -28,7 +30,7 @@ class DefaultUploadRepo @Inject constructor(
         val part = MultipartBody.Part.createFormData("file", file.name, requestFile)
 
 
-       BIT101API.upload.upload(part).body() ?: throw Exception("图片上传失败")
+       api.upload.upload(part).body() ?: throw Exception("图片上传失败")
     }
 
 }

@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.App
 import cn.bit101.android.datastore.SettingDataStore
+import cn.bit101.android.manager.base.MapSettingManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import okhttp3.Cache
@@ -24,7 +25,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MapViewModel @Inject constructor(
-
+    private val mapSettingManager: MapSettingManager
 ) : ViewModel() {
     private val TAG = "MapViewModel"
 
@@ -73,10 +74,10 @@ class MapViewModel @Inject constructor(
     }
 
     // 地图缩放倍率
-    val mapScaleFlow = SettingDataStore.mapScale.flow
+    val mapScaleFlow = mapSettingManager.scale.flow
     fun setMapScale(scale: Float) {
         viewModelScope.launch {
-            SettingDataStore.mapScale.set(scale)
+            mapSettingManager.scale.set(scale)
         }
     }
 

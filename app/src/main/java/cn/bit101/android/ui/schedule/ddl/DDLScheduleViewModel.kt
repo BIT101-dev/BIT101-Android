@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.database.BIT101Database
 import cn.bit101.android.database.entity.DDLScheduleEntity
-import cn.bit101.android.datastore.SettingDataStore
+import cn.bit101.android.manager.base.DDLSettingManager
 import cn.bit101.android.repo.base.DDLScheduleRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -27,8 +27,9 @@ import javax.inject.Inject
 class DDLScheduleViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
     private val database: BIT101Database,
+    private val ddlSettingManager: DDLSettingManager
 ) : ViewModel() {
-    val lexueCalendarUrlFlow = SettingDataStore.lexueCalendarUrl.flow
+    val lexueCalendarUrlFlow = ddlSettingManager.url.flow
     var beforeDay = 7
     var afterDay = 3
 
@@ -40,11 +41,11 @@ class DDLScheduleViewModel @Inject constructor(
     init {
 
         viewModelScope.launch {
-            beforeDay = SettingDataStore.ddlScheduleBeforeDay.get().toInt()
+            beforeDay = ddlSettingManager.beforeDay.get().toInt()
         }
 
         viewModelScope.launch {
-            val afterDayLong = SettingDataStore.ddlScheduleAfterDay.get()
+            val afterDayLong = ddlSettingManager.afterDay.get()
             afterDay = afterDayLong.toInt()
             startGetEvents(afterDayLong)
         }
@@ -163,7 +164,7 @@ class DDLScheduleViewModel @Inject constructor(
                 Log.e("DDLScheduleViewModel", "get lexue calendar url error")
                 return false
             }
-            SettingDataStore.lexueCalendarUrl.set(url)
+            ddlSettingManager.url.set(url)
 
             return true
         } catch (e: Exception) {
@@ -177,7 +178,7 @@ class DDLScheduleViewModel @Inject constructor(
     suspend fun updateLexueCalendar(): Boolean {
         try {
 
-            val url = SettingDataStore.lexueCalendarUrl.get()
+            val url = ddlSettingManager.url.get()
             if (url.isEmpty()) {
                 Log.e("DDLScheduleViewModel", "no lexue calendar url")
                 return false

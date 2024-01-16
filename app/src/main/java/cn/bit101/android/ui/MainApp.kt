@@ -1,6 +1,7 @@
 package cn.bit101.android.ui
 
 import android.net.Uri
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
@@ -8,13 +9,20 @@ import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Error
+import androidx.compose.material.icons.automirrored.rounded.Chat
+import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Event
+import androidx.compose.material.icons.rounded.Explore
+import androidx.compose.material.icons.rounded.Map
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
@@ -29,13 +37,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
@@ -44,7 +52,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import cn.bit101.android.datastore.SettingDataStore
+import cn.bit101.android.manager.base.PageShowOnNav
+import cn.bit101.android.manager.base.toNameAndValue
 import cn.bit101.android.ui.common.NavBarHeight
 import cn.bit101.android.ui.component.image.ImageHost
 import cn.bit101.android.ui.component.image.rememberImageHostState
@@ -64,9 +73,38 @@ import cn.bit101.android.ui.setting.SettingScreen
 import cn.bit101.android.ui.user.UserScreen
 import cn.bit101.android.ui.web.WebScreen
 import cn.bit101.android.utils.ColorUtils
-import cn.bit101.android.utils.PageUtils
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
-import java.util.Base64.Decoder
+
+@Composable
+fun WithLoginStatus(
+    mainController: MainController,
+    status: Boolean?,
+    content: @Composable () -> Unit
+) {
+    when (status) {
+        null -> {
+            // 未知状态
+        }
+        true -> {
+            content()
+        }
+        false -> {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Button(onClick = {
+                    mainController.navigate("login") {
+                        launchSingleTop = true
+                    }
+                }) {
+                    Text("登录")
+                }
+            }
+        }
+    }
+}
 
 @Composable
 fun MainApp(
@@ -121,23 +159,29 @@ fun MainApp(
     // 底部导航栏路由
     data class Screen(val route: String, val label: String, val icon: ImageVector)
 
-    val pagesStr by SettingDataStore.settingPageOrder.flow.collectAsState(initial = null)
-    val homePageStr by SettingDataStore.settingHomePage.flow.collectAsState(initial = null)
-    val hiddenPagesStr by SettingDataStore.settingPageVisible.flow.collectAsState(initial = null)
+    val pages by vm.allPagesFlow.collectAsState(initial = null)
+    val homePage by vm.homePageFlow.collectAsState(initial = null)
+    val hiddenPages by vm.hidePagesFlow.collectAsState(initial = null)
 
-    if (pagesStr == null || homePageStr == null || hiddenPagesStr == null) {
+    if (pages == null || homePage == null || hiddenPages == null) {
         return
     }
 
-    val pages = PageUtils.getReorderedPages(pagesStr!!)
-    val homePage = PageUtils.getPage(homePageStr!!).value
-    val hiddenPages = PageUtils.getPages(hiddenPagesStr!!).map { it.value }
+    val routes = pages!!.filter { !hiddenPages!!.contains(it) }.map {
+        val page = it.toNameAndValue()
 
-    val routes = pages.filter { it.value !in hiddenPages }.map {
+        val icon = when(it) {
+            PageShowOnNav.Schedule -> Icons.Rounded.Event
+            PageShowOnNav.Map -> Icons.Rounded.Map
+            PageShowOnNav.BIT101Web -> Icons.Rounded.Explore
+            PageShowOnNav.Gallery -> Icons.AutoMirrored.Rounded.Chat
+            PageShowOnNav.Mine -> Icons.Rounded.AccountCircle
+        }
+
         Screen(
-            route = it.value,
-            label = it.name,
-            icon = PageUtils.iconsMap[it.value] ?: Icons.Rounded.Error
+            route = page.value,
+            label = page.name,
+            icon = icon
         )
     }
 
@@ -148,6 +192,8 @@ fun MainApp(
     val bottomBarTransitionState =
         remember { MutableTransitionState(false) }
     bottomBarTransitionState.apply { targetState = showBottomBar }
+
+    val loginStatus by vm.loginStatusFlow.collectAsState(initial = null)
 
     Scaffold(
         bottomBar = {
@@ -202,11 +248,13 @@ fun MainApp(
     ) { paddingValues ->
         NavHost(
             navController = mainController.navController,
-            startDestination = homePage.ifBlank { "schedule" },
+            startDestination = homePage!!.toNameAndValue().value,
         ) {
             composable("schedule") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    ScheduleScreen(mainController)
+                WithLoginStatus(mainController, loginStatus) {
+                    Box(modifier = Modifier.padding(paddingValues)) {
+                        ScheduleScreen(mainController)
+                    }
                 }
             }
 
@@ -242,10 +290,10 @@ fun MainApp(
             }
 
             composable("gallery") {
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    GalleryScreen(
-                        mainController = mainController,
-                    )
+                WithLoginStatus(mainController, loginStatus) {
+                    Box(modifier = Modifier.navigationBarsPadding()) {
+                        GalleryScreen(mainController = mainController)
+                    }
                 }
             }
             composable("mine") {

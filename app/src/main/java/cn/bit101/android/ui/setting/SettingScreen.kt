@@ -55,6 +55,7 @@ fun SettingScreen(
 
     val title = when(currentEntry.value?.destination?.route) {
         "index" -> "设置"
+        "account" -> "账号设置"
         "pages" -> "页面设置"
         "theme" -> "外观设置"
         "calendar" -> "课程表设置"
@@ -104,7 +105,10 @@ fun SettingScreen(
 
             composable("account") {
                 Box(modifier = Modifier.padding(paddingValues)) {
-                    AccountPage(mainController = settingController)
+                    AccountPage(
+                        mainController = settingController,
+                        onLogin = { mainController.navController.navigate("login") }
+                    )
                 }
             }
 

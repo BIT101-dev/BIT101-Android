@@ -3,13 +3,10 @@ package cn.bit101.android.ui.mine
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.net.BIT101API
 import cn.bit101.android.repo.base.UserRepo
 import cn.bit101.android.repo.base.VersionRepo
-import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedOne
 import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedZero
 import cn.bit101.android.ui.common.SimpleDataState
-import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -40,7 +37,7 @@ class MineViewModel @Inject constructor(
         userInfoStateLiveData.value = SimpleDataState.Loading()
         viewModelScope.launch {
             try {
-                val res = BIT101API.user.getUserInfo("0").body() ?: throw Exception("getUserInfo error")
+                val res = userRepo.getUserInfo(0)
                 userInfoStateLiveData.postValue(SimpleDataState.Success(res))
             } catch (e: Exception) {
                 userInfoStateLiveData.postValue(SimpleDataState.Fail())

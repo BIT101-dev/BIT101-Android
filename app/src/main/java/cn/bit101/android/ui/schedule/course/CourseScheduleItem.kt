@@ -10,6 +10,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
@@ -28,14 +29,15 @@ import cn.bit101.android.database.entity.CourseScheduleEntity
 @Composable
 fun CourseScheduleItem(
     modifier: Modifier,
+    week: Int,
     course: CourseScheduleEntity
 ) {
+    val alpha = remember(course, week) { Math.random().toFloat() * 0.5f + 0.5f }
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
-                alpha = Math.random().toFloat() * 0.5f + 0.5f
-            ),
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = alpha),
             contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
         ),
     ) {

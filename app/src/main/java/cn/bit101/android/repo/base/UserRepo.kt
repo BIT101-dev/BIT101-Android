@@ -1,11 +1,11 @@
 package cn.bit101.android.repo.base
 
-import cn.bit101.api.model.common.Avatar
 import cn.bit101.api.model.common.User
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 import cn.bit101.api.model.http.bit101.PostFollowDataModel
 
 interface UserRepo {
+
     suspend fun getUserInfo(id: Long): GetUserInfoDataModel.Response
 
     suspend fun follow(id: Long): PostFollowDataModel.Response

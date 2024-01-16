@@ -5,8 +5,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.datastore.UserDataStore
-import cn.bit101.android.status.DefaultLoginStatusManager
-import cn.bit101.android.status.base.LoginStatusManager
+import cn.bit101.android.manager.base.LoginStatusManager
+import cn.bit101.android.repo.base.LoginRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -14,7 +14,6 @@ import javax.inject.Inject
 sealed interface CheckLoginStateState {
     object Fail: CheckLoginStateState
     object Checking: CheckLoginStateState
-
     object Success: CheckLoginStateState
 }
 
@@ -27,21 +26,21 @@ sealed interface PostLoginState {
 @HiltViewModel
 class LoginOrLogoutViewModel @Inject constructor(
     private val loginStatusManager: LoginStatusManager,
+    private val loginRepo: LoginRepo
 ) : ViewModel() {
     // 过程的状态
     val checkLoginStateLiveData = MutableLiveData<CheckLoginStateState>(null)
     val postLoginStateLiveData = MutableLiveData<PostLoginState>(null)
 
-    val sidFlow = UserDataStore.loginSid.flow
+    val sidFlow = loginStatusManager.sid.flow
 
     // 检查登录状态
     fun checkLoginState() {
-        Log.i("UserViewModel", checkLoginStateLiveData.value.toString())
         checkLoginStateLiveData.value = CheckLoginStateState.Checking
         viewModelScope.launch {
             try {
-                val status = loginStatusManager.checkLogin()
-                if(!status) throw Exception("check login error")
+                val res = loginRepo.checkLogin()
+                if(!res) throw Exception("check login error")
                 checkLoginStateLiveData.postValue(CheckLoginStateState.Success)
             } catch (e: Exception) {
                 checkLoginStateLiveData.postValue(CheckLoginStateState.Fail)
@@ -54,8 +53,8 @@ class LoginOrLogoutViewModel @Inject constructor(
         postLoginStateLiveData.value = PostLoginState.Loading
         viewModelScope.launch {
             try {
-                val success = loginStatusManager.login(username, password)
-                if(!success) throw Exception("login failed")
+                val res = loginRepo.login(username, password)
+                if(!res) throw Exception("login failed")
                 postLoginStateLiveData.postValue(PostLoginState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -67,7 +66,7 @@ class LoginOrLogoutViewModel @Inject constructor(
     // 登出
     fun logout() {
         viewModelScope.launch {
-            loginStatusManager.logout()
+            loginRepo.logout()
             postLoginStateLiveData.value = null
         }
     }

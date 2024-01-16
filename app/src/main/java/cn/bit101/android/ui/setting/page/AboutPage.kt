@@ -4,21 +4,17 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -42,11 +38,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.App
 import cn.bit101.android.BuildConfig
-import cn.bit101.android.datastore.SettingDataStore
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.component.setting.SettingItemData
-import cn.bit101.android.ui.component.setting.itemsGroup
+import cn.bit101.android.ui.component.setting.SettingsColumn
+import cn.bit101.android.ui.component.setting.SettingsGroup
 import cn.bit101.android.ui.setting.viewmodel.AboutViewModel
 import cn.bit101.api.model.http.app.GetVersionDataModel
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -78,7 +74,7 @@ private fun AboutPageContent(
     val painter = rememberDrawablePainter(logo)
 
     val versionItems = listOf(
-        SettingItemData.ButtonWithSuffixText(
+        SettingItemData.Button(
             title = "当前版本",
             subTitle = "点击检查更新",
             onClick = onDetectUpgrade,
@@ -131,86 +127,79 @@ private fun AboutPageContent(
         ),
     )
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(12.dp),
-    ) {
-        item("logo") {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Image(
-                    modifier = Modifier
-                        .size(80.dp)
-                        .align(Alignment.CenterHorizontally),
-                    painter = painter,
-                    contentDescription = "logo",
-                )
-                Spacer(modifier = Modifier.padding(2.dp))
+    SettingsColumn {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Image(
+                modifier = Modifier
+                    .size(80.dp)
+                    .align(Alignment.CenterHorizontally),
+                painter = painter,
+                contentDescription = "logo",
+            )
+            Spacer(modifier = Modifier.padding(2.dp))
 
-                Text(
-                    modifier = Modifier.fillMaxWidth(),
-                    text = "BIT101",
-                    textAlign = TextAlign.Center,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    ),
-                )
-            }
-            Spacer(modifier = Modifier.padding(16.dp))
+            Text(
+                modifier = Modifier.fillMaxWidth(),
+                text = "BIT101",
+                textAlign = TextAlign.Center,
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+            )
         }
+        Spacer(modifier = Modifier.padding(16.dp))
 
-        itemsGroup(
+        SettingsGroup(
             title = "版本信息",
             items = versionItems,
         )
 
-        itemsGroup(
+        SettingsGroup(
             title = "联系我们",
             items = contactItems,
         )
 
-        itemsGroup(
+        SettingsGroup(
             title = "关于本APP",
             items = aboutAppItems,
         )
 
-        item("footer") {
-            Column(
-                modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                val githubUrl = "https://github.com/BIT101-dev/BIT101-Android"
-                val annotatedString = buildAnnotatedString {
-                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
-                        append("欢迎到 ")
-                    }
-
-                    pushStringAnnotation(tag = "github", annotation = githubUrl)
-                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-                        append("GitHub")
-                    }
-                    pop()
-
-                    withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
-                        append(" 给上一颗可爱的\uD83C\uDF1F")
-                    }
+        Column(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            val githubUrl = "https://github.com/BIT101-dev/BIT101-Android"
+            val annotatedString = buildAnnotatedString {
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
+                    append("欢迎到 ")
                 }
 
-                ClickableText(text = annotatedString, onClick = { offset ->
-                    annotatedString.getStringAnnotations(
-                        tag = "github",
-                        start = offset,
-                        end = offset
-                    )
-                        .firstOrNull()?.let {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl))
-                            context.startActivity(intent)
-                        }
-                })
+                pushStringAnnotation(tag = "github", annotation = githubUrl)
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
+                    append("GitHub")
+                }
+                pop()
 
-                Text(text = "Powered⚡ by fdd with 💖.")
+                withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.onBackground)) {
+                    append(" 给上一颗可爱的\uD83C\uDF1F")
+                }
             }
+
+            ClickableText(text = annotatedString, onClick = { offset ->
+                annotatedString.getStringAnnotations(
+                    tag = "github",
+                    start = offset,
+                    end = offset
+                )
+                    .firstOrNull()?.let {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(githubUrl))
+                        context.startActivity(intent)
+                    }
+            })
+
+            Text(text = "Powered⚡ by fdd with 💖.")
         }
     }
 }
@@ -251,7 +240,7 @@ private fun LicenseDialog(
 @Composable
 private fun AboutDialog(onClose: () -> Unit) {
     AlertDialog(
-        modifier = Modifier.fillMaxHeight(0.9f),
+        modifier = Modifier.fillMaxSize(0.9f),
         onDismissRequest = onClose,
         title = {
             Text("关于 BIT101-Android")
@@ -356,7 +345,8 @@ private fun AboutDialog(onClose: () -> Unit) {
             ) {
                 Text("关闭")
             }
-        }
+        },
+        properties = DialogProperties(usePlatformDefaultWidth = false)
     )
 }
 
@@ -439,7 +429,7 @@ fun AboutPage(
     vm: AboutViewModel = hiltViewModel(),
 ) {
 
-    val autoDetectUpgrade by SettingDataStore.settingAutoDetectUpgrade.flow.collectAsState(initial = true)
+    val autoDetectUpgrade by vm.autoDetectUpgrade.flow.collectAsState(initial = true)
 
     var showAboutDialog by rememberSaveable { mutableStateOf(false) }
     var showLicensesDialog by rememberSaveable { mutableStateOf(false) }
@@ -482,9 +472,7 @@ fun AboutPage(
 
         onChangeAutoDetectUpgrade = {
             MainScope().launch {
-                SettingDataStore.settingAutoDetectUpgrade.set(
-                    it
-                )
+                vm.autoDetectUpgrade.set(it)
             }
         },
         onDetectUpgrade = vm::checkUpdate,

@@ -7,6 +7,7 @@ import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.PostPostersDataModel
 
 interface PosterRepo {
+
     suspend fun getRecommendPosters(
         page: Long? = null,
     ): List<GetPostersDataModel.ResponseItem>

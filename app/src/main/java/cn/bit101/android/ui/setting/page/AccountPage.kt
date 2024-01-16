@@ -1,30 +1,31 @@
 package cn.bit101.android.ui.setting.page
 
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.Avatar
-import cn.bit101.android.ui.component.common.CircularProgressIndicatorForPage
-import cn.bit101.android.ui.component.common.ErrorMessageForPage
 import cn.bit101.android.ui.component.setting.SettingItemData
-import cn.bit101.android.ui.component.setting.itemsGroup
+import cn.bit101.android.ui.component.setting.SettingsColumn
+import cn.bit101.android.ui.component.setting.SettingsGroup
 import cn.bit101.android.ui.setting.viewmodel.AccountViewModel
 import cn.bit101.api.model.common.User
 
 
 @Composable
 private fun AccountPageContent(
-    mainController: MainController,
-    user: User,
+    ifLogin: Boolean,
+    checkingLogin: Boolean,
+    user: User?,
+    sid: String?,
+    onCheckLogin: () -> Unit,
+    onLogout: () -> Unit,
+    onLogin: () -> Unit,
 ) {
     val infoItems = listOf(
         SettingItemData.Custom(
@@ -38,44 +39,50 @@ private fun AccountPageContent(
                 )
             }
         ),
-        SettingItemData.ButtonWithSuffixText(
+        SettingItemData.Button(
             title = "昵称",
-            text = user.nickname,
+            text = user?.nickname ?: "",
         ),
-        SettingItemData.ButtonWithSuffixText(
+        SettingItemData.Button(
             title = "个性签名",
-            text = user.motto,
-        )
+            text = user?.motto ?: "",
+        ),
+        SettingItemData.Card(
+            title = "学号",
+            text = sid ?: "",
+        ),
+        SettingItemData.Card(
+            title = "UID",
+            text = user?.id?.toString() ?: "",
+        ),
     )
 
     val loginItems = listOf(
         SettingItemData.Button(
-            title = "学校统一身份认证",
-            subTitle = "点击检查学校统一身份认证状态",
-            onClick = {}
+            title = "登录状态检查",
+            subTitle = "登录分为两步，首先进行学校统一身份认证，然后登录BIT101。点击检查二者登录状态",
+            onClick = onCheckLogin,
+            enable = !checkingLogin,
+            text = if (ifLogin) "已登录" else "未登录",
         ),
-        SettingItemData.Button(
-            title = "BIT101登录状态",
-            subTitle = "点击检查BIT101登录状态",
-            onClick = {}
-        ),
-        SettingItemData.Button(
+
+        if(ifLogin) SettingItemData.Button(
             title = "退出登录",
-            onClick = {}
+            onClick = onLogout,
+        ) else SettingItemData.Button(
+            title = "登录",
+            onClick = onLogin,
         ),
     )
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(12.dp),
-    ) {
-        itemsGroup(
+    SettingsColumn{
+        SettingsGroup(
             title = "个人信息",
             items = infoItems,
+            visible = ifLogin && user != null,
         )
-        itemsGroup(
+        SettingsGroup(
             title = "登录状态",
-            subTitle = "登录分为两步，首先进行学校统一身份认证，然后登录BIT101",
             items = loginItems,
         )
     }
@@ -84,34 +91,48 @@ private fun AccountPageContent(
 @Composable
 fun AccountPage(
     mainController: MainController,
+    onLogin: () -> Unit,
     vm: AccountViewModel = hiltViewModel()
 ) {
     val getUserInfoState by vm.getUserInfoStateFlow.collectAsState()
 
-    LaunchedEffect(Unit) {
-        if (getUserInfoState == null) {
+    val ifLogin by vm.loginStatusFlow.collectAsState(initial = false)
+
+    val checkingLoginState by vm.checkLoginStateFlow.collectAsState()
+
+    val sid by vm.sidFlow.collectAsState(initial = null)
+
+    LaunchedEffect(ifLogin) {
+        if (ifLogin && (getUserInfoState == null || getUserInfoState is SimpleDataState.Fail)) {
             vm.getUserInfo()
         }
     }
 
-    when(getUserInfoState) {
-        null -> {}
-
-        is SimpleDataState.Loading -> {
-            CircularProgressIndicatorForPage()
-        }
-
-        is SimpleDataState.Success -> {
-            val user = (getUserInfoState as SimpleDataState.Success).data.user
-            AccountPageContent(
-                mainController = mainController,
-                user = user
-            )
-        }
-
-        is SimpleDataState.Fail -> {
-            ErrorMessageForPage()
+    LaunchedEffect(checkingLoginState) {
+        if (checkingLoginState is SimpleState.Fail) {
+            mainController.snackbar("登录状态检查失败")
+        } else if (checkingLoginState is SimpleState.Success) {
+            mainController.snackbar("登录状态检查成功")
         }
     }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            vm.clearStates()
+        }
+    }
+
+
+    val user = (getUserInfoState as? SimpleDataState.Success)?.data?.user
+
+    AccountPageContent(
+        user = user,
+        sid = sid,
+        ifLogin = ifLogin,
+        checkingLogin = checkingLoginState == SimpleState.Loading,
+        onCheckLogin = vm::checkLogin,
+        onLogout = vm::logout,
+        onLogin = onLogin
+    )
 
 }

@@ -1,19 +1,23 @@
 package cn.bit101.android.repo
 
 import android.util.Log
-import cn.bit101.android.net.BIT101API
+import cn.bit101.android.net.base.APIManager
 import cn.bit101.android.repo.base.ReactionRepo
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.http.bit101.PostCommentDataModel
 import cn.bit101.api.model.http.bit101.PostLikeDataModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.util.ArrayList
 import javax.inject.Inject
 
-class DefaultReactionRepo @Inject constructor() : ReactionRepo {
+class DefaultReactionRepo @Inject constructor(
+    private val apiManager: APIManager
+) : ReactionRepo {
+
+    private val api = apiManager.api
+
     suspend fun like(obj: String) = withContext(Dispatchers.IO) {
-        val res = BIT101API.reaction.postLike(PostLikeDataModel.Body(obj))
+        val res = api.reaction.postLike(PostLikeDataModel.Body(obj))
 
         Log.i("DefaultReactionRepo", res.errorBody()?.string().toString())
         res.body() ?: throw Exception("like error")
@@ -31,7 +35,7 @@ class DefaultReactionRepo @Inject constructor() : ReactionRepo {
         anonymous: Boolean,
         images: List<String>
     ) = withContext(Dispatchers.IO) {
-        val res = BIT101API.reaction.postComment(PostCommentDataModel.Body(
+        val res = api.reaction.postComment(PostCommentDataModel.Body(
             obj = obj,
             text = text,
             replyObj = replyObj,
@@ -87,6 +91,6 @@ class DefaultReactionRepo @Inject constructor() : ReactionRepo {
     )
 
     override suspend fun deleteComment(id: Long) = withContext(Dispatchers.IO) {
-        BIT101API.reaction.deleteComment(id.toString()).body() ?: throw Exception("delete comment error")
+        api.reaction.deleteComment(id.toString()).body() ?: throw Exception("delete comment error")
     }
 }

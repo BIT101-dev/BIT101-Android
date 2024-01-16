@@ -4,6 +4,7 @@ import cn.bit101.api.model.http.bit101.GetMessagesDataModel
 import cn.bit101.api.model.http.bit101.GetSeparateMessagesNumberDataModel
 
 interface MessageRepo {
+
     suspend fun getUnreadMessageCount(): Int
 
     suspend fun getSeparateUnreadMessageCount(): GetSeparateMessagesNumberDataModel.Response

@@ -25,7 +25,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.database.entity.CourseScheduleEntity
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
-import cn.bit101.android.utils.TimeTableUtils
 
 /**
  * @author flwfdd
@@ -72,17 +71,12 @@ fun CourseSchedule(
     /**
      * 时间表字符串
      */
-    val timeTableStr by vm.timeTableStringFlow.collectAsState(initial = null)
+    val timeTable by vm.timeTableStringFlow.collectAsState(initial = null)
 
     /**
      * 显示当前时间线
      */
     val currentTime by vm.showCurrentTimeFlow.collectAsState(initial = null)
-
-    /**
-     * 显示配置界面
-     */
-    var showConfigDialog by rememberSaveable { mutableStateOf(false) }
 
     /**
      * 课程详情数据，如果为null就不显示该对话框
@@ -119,7 +113,7 @@ fun CourseSchedule(
             showHighlightToday == null ||
             showBorder == null ||
             currentTime == null ||
-            timeTableStr == null
+            timeTable == null
         ) { }
         else if(
             term!!.isEmpty() ||
@@ -148,7 +142,6 @@ fun CourseSchedule(
             }
         }
         else {
-            val timeTable = TimeTableUtils.parseTimeTable(timeTableStr!!)
             val settingData = SettingData(
                 showDivider = showDivider!!,
                 showSaturday = showSaturday!!,
@@ -167,7 +160,7 @@ fun CourseSchedule(
                     courses = courses,
                     week = week,
                     firstDay = firstDay!!,
-                    timeTable = timeTable,
+                    timeTable = timeTable!!,
                     settingData = settingData,
 
                     onConfig = { mainController.navController.navigate("setting?route=calendar") },
@@ -183,9 +176,5 @@ fun CourseSchedule(
                 }
             }
         }
-    }
-    // 响应返回键 收起设置对话框
-    BackHandler(enabled = showConfigDialog && active) {
-        showConfigDialog = false
     }
 }

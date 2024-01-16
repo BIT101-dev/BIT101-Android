@@ -1,8 +1,8 @@
-package cn.bit101.android.datastore.base
+package cn.bit101.android.datastore.basic
 
 import kotlinx.coroutines.flow.Flow
 
-interface SettingItem<T> {
+interface DataStoreItem<T> {
     suspend fun get(): T
     suspend fun set(value: T)
     suspend fun remove()

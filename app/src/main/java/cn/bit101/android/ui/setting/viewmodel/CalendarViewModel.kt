@@ -3,13 +3,14 @@ package cn.bit101.android.ui.setting.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.datastore.SettingDataStore
+import cn.bit101.android.manager.base.CourseScheduleSettingManager
+import cn.bit101.android.manager.base.toTimeTable
 import cn.bit101.android.repo.base.CoursesRepo
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
-import cn.bit101.android.utils.TimeTableUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,29 +22,59 @@ data class SettingData(
     val showHighlightToday: Boolean,
     val showBorder: Boolean,
     val showCurrentTime: Boolean,
-)
+) {
+    companion object {
+        val default = SettingData(
+            showDivider = false,
+            showSaturday = false,
+            showSunday = false,
+            showHighlightToday = false,
+            showBorder = false,
+            showCurrentTime = false
+        )
+    }
+}
 
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
+    private val scheduleSettingManager: CourseScheduleSettingManager
 ) : ViewModel() {
 
     // 设置的当前学期
     val currentTermFlow = coursesRepo.getCurrentTermFromLocal()
 
     // 当前学期的第一天
-    val firstDayFlow = SettingDataStore.courseScheduleFirstDay.getFlow("")
+    val firstDayFlow = scheduleSettingManager.firstDay.flow
+
+    val settingDataFlow = combine(
+        scheduleSettingManager.showSaturday.flow,
+        scheduleSettingManager.showSunday.flow,
+        scheduleSettingManager.showBorder.flow,
+        scheduleSettingManager.highlightToday.flow,
+        scheduleSettingManager.showDivider.flow,
+        scheduleSettingManager.showCurrentTime.flow
+    ) { settings ->
+        SettingData(
+            showSaturday = settings[0],
+            showSunday = settings[1],
+            showBorder = settings[2],
+            showHighlightToday = settings[3],
+            showDivider = settings[4],
+            showCurrentTime = settings[5]
+        )
+    }
 
 
     // 显示相关配置
-    val showSaturdayFlow = SettingDataStore.courseScheduleShowSaturday.flow
-    val showSundayFlow = SettingDataStore.courseScheduleShowSunday.flow
-    val showBorderFlow = SettingDataStore.courseScheduleShowBorder.flow
-    val showHighlightTodayFlow = SettingDataStore.courseScheduleShowHighlightToday.flow
-    val showDividerFlow = SettingDataStore.courseScheduleShowDivider.flow
-    val showCurrentTimeFlow = SettingDataStore.courseScheduleShowCurrentTime.flow
+    val showSaturdayFlow = scheduleSettingManager.showSaturday.flow
+    val showSundayFlow = scheduleSettingManager.showSunday.flow
+    val showBorderFlow = scheduleSettingManager.showBorder.flow
+    val showHighlightTodayFlow = scheduleSettingManager.highlightToday.flow
+    val showDividerFlow = scheduleSettingManager.showDivider.flow
+    val showCurrentTimeFlow = scheduleSettingManager.showCurrentTime.flow
 
-    val timeTableFlow = SettingDataStore.courseScheduleTimeTable.flow
+    val timeTableFlow = scheduleSettingManager.timeTable.flow
 
     // 学期列表获取状态
     val getTermListStateLiveData = MutableLiveData<SimpleDataState<List<String>>>(null)
@@ -79,7 +110,7 @@ class CalendarViewModel @Inject constructor(
             val oldTerm = currentTermFlow.first() ?: ""
 
             try {
-                SettingDataStore.courseScheduleTerm.set(term)
+                scheduleSettingManager.term.set(term)
 
                 // 重新获取第一天
                 getFirstDayWithoutState()
@@ -90,7 +121,7 @@ class CalendarViewModel @Inject constructor(
                 setCurrentTermStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 try {
-                    SettingDataStore.courseScheduleTerm.set(oldTerm)
+                    scheduleSettingManager.term.set(oldTerm)
 
                     // 重新获取第一天
                     getFirstDayWithoutState()
@@ -109,19 +140,19 @@ class CalendarViewModel @Inject constructor(
 
     fun setSettingData(settingData: SettingData) {
         viewModelScope.launch {
-            SettingDataStore.courseScheduleShowDivider.set(settingData.showDivider)
-            SettingDataStore.courseScheduleShowSaturday.set(settingData.showSaturday)
-            SettingDataStore.courseScheduleShowSunday.set(settingData.showSunday)
-            SettingDataStore.courseScheduleShowHighlightToday.set(settingData.showHighlightToday)
-            SettingDataStore.courseScheduleShowBorder.set(settingData.showBorder)
-            SettingDataStore.courseScheduleShowCurrentTime.set(settingData.showCurrentTime)
+            scheduleSettingManager.showDivider.set(settingData.showDivider)
+            scheduleSettingManager.showSaturday.set(settingData.showSaturday)
+            scheduleSettingManager.showSunday.set(settingData.showSunday)
+            scheduleSettingManager.highlightToday.set(settingData.showHighlightToday)
+            scheduleSettingManager.showBorder.set(settingData.showBorder)
+            scheduleSettingManager.showCurrentTime.set(settingData.showCurrentTime)
         }
     }
 
     private suspend fun getFirstDayWithoutState() {
         val term = currentTermFlow.first() ?: throw Exception("no term")
         val firstDay = coursesRepo.getFirstDayFromNet(term)
-        SettingDataStore.courseScheduleFirstDay.set("", firstDay)
+        scheduleSettingManager.firstDay.set(firstDay)
     }
 
     fun getFirstDay() {
@@ -156,12 +187,11 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-    fun setTimeTable(timeTable: String) {
+    fun setTimeTable(timeTableStr: String) {
         setTimeTableStateLiveData.value = SimpleState.Loading
         viewModelScope.launch {
             try {
-                if(!TimeTableUtils.checkTimeTable(timeTable)) throw Exception("invalid time table")
-                SettingDataStore.courseScheduleTimeTable.set(timeTable)
+                scheduleSettingManager.timeTable.set(timeTableStr.toTimeTable())
                 setTimeTableStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 e.printStackTrace()

@@ -2,7 +2,6 @@ package cn.bit101.android.ui.setting.page
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
@@ -20,7 +18,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -39,11 +36,14 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import cn.bit101.android.manager.base.TimeTable
+import cn.bit101.android.manager.base.toTimeTableString
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.setting.SettingItemData
-import cn.bit101.android.ui.component.setting.itemsGroup
+import cn.bit101.android.ui.component.setting.SettingsColumn
+import cn.bit101.android.ui.component.setting.SettingsGroup
 import cn.bit101.android.ui.setting.viewmodel.CalendarViewModel
 import cn.bit101.android.ui.setting.viewmodel.SettingData
 import java.time.format.DateTimeFormatter
@@ -65,13 +65,13 @@ private fun CalendarSettingPageContent(
     onSettingChange: (SettingData) -> Unit,
 ) {
     val dataSettings = listOf(
-        SettingItemData.ButtonWithSuffixText(
+        SettingItemData.Button(
             title = "当前学期",
             subTitle = "设置当前学期",
             onClick = onOpenTermListDialog,
             text = currentTerm
         ),
-        SettingItemData.ButtonWithSuffixText(
+        SettingItemData.Button(
             enable = !isGettingFirstDay,
             title = "学期起始日期",
             subTitle = "点击重新获取当前学期的起始日期",
@@ -122,26 +122,23 @@ private fun CalendarSettingPageContent(
         SettingItemData.Switch(
             title = "显示节次分割线",
             subTitle = "用分割线将每节课分开",
-            onClick = { onSettingChange(settingData.copy(showDivider = !it)) },
+            onClick = { onSettingChange(settingData.copy(showDivider = it)) },
             checked = settingData.showDivider,
         ),
         SettingItemData.Switch(
             title = "显示当前时间线",
             subTitle = "在当前时间显示一条线",
-            onClick = { onSettingChange(settingData.copy(showCurrentTime = !it)) },
+            onClick = { onSettingChange(settingData.copy(showCurrentTime = it)) },
             checked = settingData.showCurrentTime,
         ),
     )
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(12.dp),
-    ) {
-        itemsGroup(
+    SettingsColumn {
+        SettingsGroup(
             title = "数据设置",
             items = dataSettings,
         )
-        itemsGroup(
+        SettingsGroup(
             title = "显示设置",
             items = displaySettings,
         )
@@ -221,12 +218,12 @@ private fun TermListDialog(
 // 设置时间表对话框
 @Composable
 fun TimeTableDialog(
-    timeTableStr: String,
+    timeTable: TimeTable,
     errorMessage: String,
     onSetTimeTable: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    var timeTableEdit by rememberSaveable(timeTableStr) { mutableStateOf(timeTableStr) }
+    var timeTableEdit by rememberSaveable(timeTable) { mutableStateOf(timeTable.toTimeTableString()) }
 
     AlertDialog(
         modifier = Modifier.fillMaxHeight(0.9f),
@@ -282,21 +279,7 @@ fun CalendarSettingPage(
     val currentTerm by vm.currentTermFlow.collectAsState(initial = null)
     val firstDay by vm.firstDayFlow.collectAsState(initial = null)
 
-    val showDivider by vm.showDividerFlow.collectAsState(initial = false)
-    val showSaturday by vm.showSaturdayFlow.collectAsState(initial = false)
-    val showSunday by vm.showSundayFlow.collectAsState(initial = false)
-    val showHighlightToday by vm.showHighlightTodayFlow.collectAsState(initial = false)
-    val showBorder by vm.showBorderFlow.collectAsState(initial = false)
-    val showCurrentTime by vm.showCurrentTimeFlow.collectAsState(initial = false)
-
-    val settingData = SettingData(
-        showDivider = showDivider,
-        showSaturday = showSaturday,
-        showSunday = showSunday,
-        showHighlightToday = showHighlightToday,
-        showBorder = showBorder,
-        showCurrentTime = showCurrentTime,
-    )
+    val settingData by vm.settingDataFlow.collectAsState(initial = SettingData.default)
 
     val getFirstDayState by vm.getFirstDayStateLiveData.observeAsState()
 
@@ -311,7 +294,7 @@ fun CalendarSettingPage(
 
     var showTimeTableDialog by rememberSaveable { mutableStateOf(false) }
 
-    val timeTable by vm.timeTableFlow.collectAsState(initial = "")
+    val timeTable by vm.timeTableFlow.collectAsState(initial = emptyList())
 
     val setTimeTableState by vm.setTimeTableStateLiveData.observeAsState()
 
@@ -387,7 +370,7 @@ fun CalendarSettingPage(
 
     if(showTimeTableDialog) {
         TimeTableDialog(
-            timeTableStr = timeTable,
+            timeTable = timeTable,
             errorMessage = if(setTimeTableState is SimpleState.Fail) "格式错误" else "",
             onSetTimeTable = vm::setTimeTable,
             onDismiss = { showTimeTableDialog = false }

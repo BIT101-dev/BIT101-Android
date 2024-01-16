@@ -364,7 +364,7 @@ fun UserInfoContent(
         Spacer(modifier = Modifier.padding(4.dp))
         FollowInfo(
             followerNum = data.followerNum.toString(),
-            followingNum = data.followerNum.toString(),
+            followingNum = data.followingNum.toString(),
             onOpenFollowerDialog = {},
             onOpenFollowingDialog = {}
         )
@@ -403,7 +403,7 @@ fun UserInfoContentForMe(
             Spacer(modifier = Modifier.padding(4.dp))
             FollowInfo(
                 followerNum = data.followerNum.toString(),
-                followingNum = data.followerNum.toString(),
+                followingNum = data.followingNum.toString(),
                 onOpenFollowerDialog = onOpenFollowerDialog,
                 onOpenFollowingDialog = onOpenFollowingDialog
             )

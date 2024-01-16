@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowUpward
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -144,7 +145,7 @@ fun PostersTabPage(
                     enter = fadeIn(),
                     exit = fadeOut()
                 ) {
-                    SmallFloatingActionButton(
+                    FloatingActionButton(
                         modifier = Modifier
                             .size(fabSize),
                         onClick = {
@@ -165,7 +166,7 @@ fun PostersTabPage(
 
                 Spacer(modifier = Modifier.height(10.dp))
 
-                SmallFloatingActionButton(
+                FloatingActionButton(
                     modifier = Modifier.size(fabSize),
                     onClick = onOpenPostOrEdit,
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
