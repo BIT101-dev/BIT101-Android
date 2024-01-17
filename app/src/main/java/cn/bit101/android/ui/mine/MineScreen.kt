@@ -8,25 +8,21 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
-import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.component.common.AnimatedPage
-import cn.bit101.android.ui.component.common.CircularProgressIndicatorForPage
-import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnState
 import cn.bit101.android.ui.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
-import cn.bit101.android.ui.component.pullrefresh.PullRefreshIndicator
 import cn.bit101.android.ui.mine.page.FollowerPage
 import cn.bit101.android.ui.mine.page.FollowingPage
+import cn.bit101.android.ui.mine.page.PosterPage
 
 private interface PageIndex {
     companion object {
         const val MINE = 0
         const val FOLLOWING = 1
         const val FOLLOWER = 2
+        const val POSTERS = 3
     }
 }
 
@@ -50,9 +46,19 @@ fun MineScreen(
     val followerRefreshState by vm.followerStateExports.refreshStateFlow.collectAsState()
     val followerLoadMoreState by vm.followerStateExports.loadMoreStateFlow.collectAsState()
 
+    val posters by vm.postersStateExports.dataFlow.collectAsState()
+    val posterRefreshState by vm.postersStateExports.refreshStateFlow.collectAsState()
+    val posterLoadMoreState by vm.postersStateExports.loadMoreStateFlow.collectAsState()
+
+    val messageCountState by vm.messageCountStateLiveData.observeAsState()
+
 
     LaunchedEffect(Unit) {
         vm.updateUserInfo()
+    }
+
+    LaunchedEffect(Unit) {
+        vm.updateMessageCount()
     }
 
     if(userInfoState == null) return
@@ -78,6 +84,7 @@ fun MineScreen(
                     onClearState = {}
                 )
             }
+
             PageIndex.FOLLOWING -> {
                 FollowingPage(
                     mainController = mainController,
@@ -92,13 +99,31 @@ fun MineScreen(
                     onClearState = {}
                 )
             }
+
+            PageIndex.POSTERS -> {
+                PosterPage(
+                    mainController = mainController,
+                    posters = posters,
+                    loadMoreState = posterLoadMoreState,
+                    refreshState = posterRefreshState,
+                    onRefresh = { vm.postersStateExports.refresh() },
+                    onLoadMore = { vm.postersStateExports.loadMore() },
+                    onDismiss = { pageState = PageIndex.MINE },
+                    onClearState = {}
+                )
+            }
+
             else -> {
+                val messageCount = (messageCountState as? SimpleDataState.Success)?.data
                 MineScreenContent(
                     mainController = mainController,
+                    messageCount = messageCount ?: 0,
                     userInfoState = userInfoState!!,
                     onRefresh = vm::updateUserInfo,
                     onOpenFollowerDialog = { if(pageState.isMainPage()) pageState = PageIndex.FOLLOWER },
-                    onOpenFollowingDialog = { if(pageState.isMainPage()) pageState = PageIndex.FOLLOWING }
+                    onOpenFollowingDialog = { if(pageState.isMainPage()) pageState = PageIndex.FOLLOWING },
+                    onOpenPostersDialog = { if(pageState.isMainPage()) pageState = PageIndex.POSTERS },
+                    onOpenMessagePage = { mainController.navigate("message") }
                 )
             }
         }

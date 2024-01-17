@@ -1,4 +1,4 @@
-package cn.bit101.android.ui.gallery.message
+package cn.bit101.android.ui.message
 
 import androidx.lifecycle.ViewModel
 import cn.bit101.android.repo.base.MessageRepo

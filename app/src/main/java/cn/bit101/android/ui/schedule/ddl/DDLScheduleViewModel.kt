@@ -7,6 +7,7 @@ import cn.bit101.android.database.BIT101Database
 import cn.bit101.android.database.entity.DDLScheduleEntity
 import cn.bit101.android.manager.base.DDLSettingManager
 import cn.bit101.android.repo.base.DDLScheduleRepo
+import cn.bit101.android.ui.common.withScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,18 +41,18 @@ class DDLScheduleViewModel @Inject constructor(
 
     init {
 
-        viewModelScope.launch {
+        withScope {
             beforeDay = ddlSettingManager.beforeDay.get().toInt()
         }
 
-        viewModelScope.launch {
+        withScope {
             val afterDayLong = ddlSettingManager.afterDay.get()
             afterDay = afterDayLong.toInt()
             startGetEvents(afterDayLong)
         }
 
         // 更新日程
-        viewModelScope.launch {
+        withScope {
             updateLexueCalendar()
         }
     }
@@ -177,7 +178,6 @@ class DDLScheduleViewModel @Inject constructor(
     // 从网络获取日程 返回是否成功
     suspend fun updateLexueCalendar(): Boolean {
         try {
-
             val url = ddlSettingManager.url.get()
             if (url.isEmpty()) {
                 Log.e("DDLScheduleViewModel", "no lexue calendar url")

@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.ManageRepo
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.withSimpleDataStateFlow
+import cn.bit101.android.ui.common.withSimpleStateLiveData
 import cn.bit101.api.model.common.ReportType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -37,43 +39,16 @@ class ReportViewModel @Inject constructor(
         _textFlow.value = text
     }
 
-    fun loadReportType() {
-        _loadReportTypeStateFlow.value = SimpleDataState.Loading()
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val reportTypes = manageRepo.getReportTypes()
-                _loadReportTypeStateFlow.value = SimpleDataState.Success(reportTypes)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _loadReportTypeStateFlow.value = SimpleDataState.Fail()
-            }
-        }
+    fun loadReportType() = withSimpleDataStateFlow(_loadReportTypeStateFlow) {
+        manageRepo.getReportTypes()
     }
 
 
-    fun reportPoster(id: Long, typeId: Long, text: String) {
-        stateLiveData.value = SimpleState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                manageRepo.reportPoster(id, typeId, text)
-                stateLiveData.postValue(SimpleState.Success)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                stateLiveData.postValue(SimpleState.Fail)
-            }
-        }
+    fun reportPoster(id: Long, typeId: Long, text: String) = withSimpleStateLiveData(stateLiveData) {
+        manageRepo.reportPoster(id, typeId, text)
     }
 
-    fun reportComment(id: Long, typeId: Long, text: String) {
-        stateLiveData.value = SimpleState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                manageRepo.reportComment(id, typeId, text)
-                stateLiveData.postValue(SimpleState.Success)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                stateLiveData.postValue(SimpleState.Fail)
-            }
-        }
+    fun reportComment(id: Long, typeId: Long, text: String) = withSimpleStateLiveData(stateLiveData) {
+        manageRepo.reportComment(id, typeId, text)
     }
 }

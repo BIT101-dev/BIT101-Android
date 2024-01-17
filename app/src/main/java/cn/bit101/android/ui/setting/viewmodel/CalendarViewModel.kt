@@ -8,6 +8,9 @@ import cn.bit101.android.manager.base.toTimeTable
 import cn.bit101.android.repo.base.CoursesRepo
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.withScope
+import cn.bit101.android.ui.common.withSimpleDataStateLiveData
+import cn.bit101.android.ui.common.withSimpleStateLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -65,15 +68,6 @@ class CalendarViewModel @Inject constructor(
         )
     }
 
-
-    // 显示相关配置
-    val showSaturdayFlow = scheduleSettingManager.showSaturday.flow
-    val showSundayFlow = scheduleSettingManager.showSunday.flow
-    val showBorderFlow = scheduleSettingManager.showBorder.flow
-    val showHighlightTodayFlow = scheduleSettingManager.highlightToday.flow
-    val showDividerFlow = scheduleSettingManager.showDivider.flow
-    val showCurrentTimeFlow = scheduleSettingManager.showCurrentTime.flow
-
     val timeTableFlow = scheduleSettingManager.timeTable.flow
 
     // 学期列表获取状态
@@ -91,16 +85,8 @@ class CalendarViewModel @Inject constructor(
     // 设置时间表的状态
     val setTimeTableStateLiveData = MutableLiveData<SimpleState>(null)
 
-    fun getTermList() {
-        getTermListStateLiveData.value = SimpleDataState.Loading()
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val termList = coursesRepo.getTermListFromNet()
-                getTermListStateLiveData.postValue(SimpleDataState.Success(termList))
-            } catch (e: Exception) {
-                getTermListStateLiveData.postValue(SimpleDataState.Fail())
-            }
-        }
+    fun getTermList() = withSimpleDataStateLiveData(getTermListStateLiveData) {
+        coursesRepo.getTermListFromNet()
     }
 
     fun setCurrentTerm(term: String) {
@@ -138,15 +124,13 @@ class CalendarViewModel @Inject constructor(
     }
 
 
-    fun setSettingData(settingData: SettingData) {
-        viewModelScope.launch {
-            scheduleSettingManager.showDivider.set(settingData.showDivider)
-            scheduleSettingManager.showSaturday.set(settingData.showSaturday)
-            scheduleSettingManager.showSunday.set(settingData.showSunday)
-            scheduleSettingManager.highlightToday.set(settingData.showHighlightToday)
-            scheduleSettingManager.showBorder.set(settingData.showBorder)
-            scheduleSettingManager.showCurrentTime.set(settingData.showCurrentTime)
-        }
+    fun setSettingData(settingData: SettingData) = withScope {
+        scheduleSettingManager.showDivider.set(settingData.showDivider)
+        scheduleSettingManager.showSaturday.set(settingData.showSaturday)
+        scheduleSettingManager.showSunday.set(settingData.showSunday)
+        scheduleSettingManager.highlightToday.set(settingData.showHighlightToday)
+        scheduleSettingManager.showBorder.set(settingData.showBorder)
+        scheduleSettingManager.showCurrentTime.set(settingData.showCurrentTime)
     }
 
     private suspend fun getFirstDayWithoutState() {
@@ -155,17 +139,8 @@ class CalendarViewModel @Inject constructor(
         scheduleSettingManager.firstDay.set(firstDay)
     }
 
-    fun getFirstDay() {
-        getFirstDayStateLiveData.value = SimpleState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                getFirstDayWithoutState()
-                getFirstDayStateLiveData.postValue(SimpleState.Success)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                getFirstDayStateLiveData.postValue(SimpleState.Fail)
-            }
-        }
+    fun getFirstDay() = withSimpleStateLiveData(getFirstDayStateLiveData) {
+        getFirstDayWithoutState()
     }
 
     private suspend fun getCoursesWithoutState() {
@@ -174,29 +149,11 @@ class CalendarViewModel @Inject constructor(
         coursesRepo.saveCourses(courses)
     }
 
-    fun getCourses() {
-        getCoursesStateLiveData.value = SimpleState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                getCoursesWithoutState()
-                getCoursesStateLiveData.postValue(SimpleState.Success)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                getCoursesStateLiveData.postValue(SimpleState.Fail)
-            }
-        }
+    fun getCourses() = withSimpleStateLiveData(getCoursesStateLiveData) {
+        getCoursesWithoutState()
     }
 
-    fun setTimeTable(timeTableStr: String) {
-        setTimeTableStateLiveData.value = SimpleState.Loading
-        viewModelScope.launch {
-            try {
-                scheduleSettingManager.timeTable.set(timeTableStr.toTimeTable())
-                setTimeTableStateLiveData.postValue(SimpleState.Success)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                setTimeTableStateLiveData.postValue(SimpleState.Fail)
-            }
-        }
+    fun setTimeTable(timeTableStr: String) = withSimpleStateLiveData(setTimeTableStateLiveData) {
+        scheduleSettingManager.timeTable.set(timeTableStr.toTimeTable())
     }
 }

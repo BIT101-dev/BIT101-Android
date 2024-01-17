@@ -360,7 +360,7 @@ fun PosterContent(
                         Row(modifier = Modifier.padding(horizontal = 8.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
-                                    text = data.claim.text,
+                                    text = "创作者声明：${data.claim.text}",
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = MaterialTheme.colorScheme.error,
                                         fontWeight = FontWeight.Bold

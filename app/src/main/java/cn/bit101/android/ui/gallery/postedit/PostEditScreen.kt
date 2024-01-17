@@ -45,6 +45,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -207,7 +208,6 @@ fun ClaimsDropDownBox(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostScreenContentAnonymous(
     selected: Boolean,
@@ -229,7 +229,6 @@ fun PostScreenContentAnonymous(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PostScreenContentPublic(
     selected: Boolean,
@@ -295,13 +294,18 @@ fun PostScreenContent(
     onPost: () -> Unit,
     onOpenDeleteImageDialog: (Int) -> Unit,
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            LargeTopAppBar(
-                title = { Text(text = if(id == null) "新建帖子" else "编辑帖子#$id") },
+            TopAppBar(
+                title = {
+                    Text(
+                        text = if(id == null) "新建帖子" else "编辑帖子#$id",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = { mainController.navController.popBackStack() }) {
                         Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")

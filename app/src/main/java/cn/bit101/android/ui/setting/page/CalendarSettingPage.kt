@@ -1,5 +1,6 @@
 package cn.bit101.android.ui.setting.page
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -35,6 +37,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.manager.base.TimeTable
 import cn.bit101.android.manager.base.toTimeTableString
@@ -97,37 +100,31 @@ private fun CalendarSettingPageContent(
     val displaySettings = listOf(
         SettingItemData.Switch(
             title = "显示周六",
-            subTitle = "设置是否显示周六",
             onClick = { onSettingChange(settingData.copy(showSaturday = it)) },
             checked = settingData.showSaturday,
         ),
         SettingItemData.Switch(
             title = "显示周日",
-            subTitle = "设置是否显示周日",
             onClick = { onSettingChange(settingData.copy(showSunday = it)) },
             checked = settingData.showSunday,
         ),
         SettingItemData.Switch(
-            title = "显示边框",
-            subTitle = "在课程卡片上加上边框",
+            title = "显示课程卡片边框",
             onClick = { onSettingChange(settingData.copy(showBorder = it)) },
             checked = settingData.showBorder,
         ),
         SettingItemData.Switch(
             title = "高亮今日",
-            subTitle = "设置今日对应的列是否高亮",
             onClick = { onSettingChange(settingData.copy(showHighlightToday = it)) },
             checked = settingData.showHighlightToday,
         ),
         SettingItemData.Switch(
             title = "显示节次分割线",
-            subTitle = "用分割线将每节课分开",
             onClick = { onSettingChange(settingData.copy(showDivider = it)) },
             checked = settingData.showDivider,
         ),
         SettingItemData.Switch(
             title = "显示当前时间线",
-            subTitle = "在当前时间显示一条线",
             onClick = { onSettingChange(settingData.copy(showCurrentTime = it)) },
             checked = settingData.showCurrentTime,
         ),
@@ -226,25 +223,22 @@ fun TimeTableDialog(
     var timeTableEdit by rememberSaveable(timeTable) { mutableStateOf(timeTable.toTimeTableString()) }
 
     AlertDialog(
-        modifier = Modifier.fillMaxHeight(0.9f),
+        modifier = Modifier.fillMaxSize(0.9f),
         onDismissRequest = onDismiss,
         title = { Text(text = "设置时间表") },
         text = {
             Column(modifier = Modifier.fillMaxSize()) {
-                Text(
-                    text = "可调整每天课程节数和时间，格式照猫画虎即可",
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(5.dp))
+                Text(text = "可调整每天课程节数和时间，格式照猫画虎即可")
+                Spacer(modifier = Modifier.padding(2.dp))
                 OutlinedTextField(
                     value = timeTableEdit,
                     onValueChange = { timeTableEdit = it },
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxWidth(),
-                    shape = MaterialTheme.shapes.large,
+                    shape = RoundedCornerShape(8.dp),
                     supportingText = {
-                        if(errorMessage.isNotEmpty()) {
+                        AnimatedVisibility(visible = errorMessage.isNotEmpty()) {
                             Text(
                                 text = errorMessage,
                                 style = MaterialTheme.typography.bodySmall,
@@ -255,6 +249,7 @@ fun TimeTableDialog(
                 )
             }
         },
+        properties = DialogProperties(usePlatformDefaultWidth = false),
         confirmButton = {
             TextButton(
                 onClick = { onSetTimeTable(timeTableEdit) }

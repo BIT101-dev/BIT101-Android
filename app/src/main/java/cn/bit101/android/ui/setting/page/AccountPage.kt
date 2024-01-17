@@ -1,14 +1,26 @@
 package cn.bit101.android.ui.setting.page
 
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.rememberImagePicker
 import cn.bit101.android.ui.component.Avatar
 import cn.bit101.android.ui.component.setting.SettingItemData
 import cn.bit101.android.ui.component.setting.SettingsColumn
@@ -21,8 +33,12 @@ import cn.bit101.api.model.common.User
 private fun AccountPageContent(
     ifLogin: Boolean,
     checkingLogin: Boolean,
+    updatingUserInfo: Boolean,
     user: User?,
     sid: String?,
+    onOpenEditAvatarDialog: () -> Unit,
+    onOpenEditNicknameDialog: () -> Unit,
+    onOpenEditMottoDialog: () -> Unit,
     onCheckLogin: () -> Unit,
     onLogout: () -> Unit,
     onLogin: () -> Unit,
@@ -30,7 +46,8 @@ private fun AccountPageContent(
     val infoItems = listOf(
         SettingItemData.Custom(
             title = "头像",
-            onClick = {},
+            onClick = onOpenEditAvatarDialog,
+            enable = !updatingUserInfo,
             suffix = {
                 Avatar(
                     user = user,
@@ -42,10 +59,14 @@ private fun AccountPageContent(
         SettingItemData.Button(
             title = "昵称",
             text = user?.nickname ?: "",
+            enable = !updatingUserInfo,
+            onClick = onOpenEditNicknameDialog,
         ),
         SettingItemData.Button(
             title = "个性签名",
             text = user?.motto ?: "",
+            enable = !updatingUserInfo,
+            onClick = onOpenEditMottoDialog,
         ),
         SettingItemData.Card(
             title = "学号",
@@ -89,11 +110,49 @@ private fun AccountPageContent(
 }
 
 @Composable
+private fun EditDialog(
+    title: String,
+    text: String,
+    onTextChanged: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onConfirm()
+                    onDismiss()
+                }
+            ) {
+                Text(text = "确定")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(text = "取消")
+            }
+        },
+        title = { Text(text = title) },
+        text = {
+            OutlinedTextField(
+                shape = RoundedCornerShape(8.dp),
+                value = text,
+                onValueChange = onTextChanged
+            )
+        }
+    )
+}
+
+@Composable
 fun AccountPage(
     mainController: MainController,
     onLogin: () -> Unit,
     vm: AccountViewModel = hiltViewModel()
 ) {
+    val ctx = LocalContext.current
+
     val getUserInfoState by vm.getUserInfoStateFlow.collectAsState()
 
     val ifLogin by vm.loginStatusFlow.collectAsState(initial = false)
@@ -102,8 +161,13 @@ fun AccountPage(
 
     val sid by vm.sidFlow.collectAsState(initial = null)
 
-    LaunchedEffect(ifLogin) {
-        if (ifLogin && (getUserInfoState == null || getUserInfoState is SimpleDataState.Fail)) {
+    val updateAvatarState by vm.updateAvatarStateFlow.collectAsState()
+
+    val updateUserInfoState by vm.updateUserInfoStateFlow.collectAsState()
+
+
+    LaunchedEffect(ifLogin, checkingLoginState) {
+        if (ifLogin && (getUserInfoState == null || getUserInfoState is SimpleDataState.Fail) && checkingLoginState !is SimpleState.Loading) {
             vm.getUserInfo()
         }
     }
@@ -116,12 +180,28 @@ fun AccountPage(
         }
     }
 
+    LaunchedEffect(updateAvatarState, updateUserInfoState) {
+        if (updateAvatarState is SimpleState.Fail || updateUserInfoState is SimpleState.Fail) {
+            mainController.snackbar("更新失败")
+        } else if (updateAvatarState is SimpleState.Success || updateUserInfoState is SimpleState.Success) {
+            mainController.snackbar("更新成功")
+        }
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             vm.clearStates()
         }
     }
 
+    var showNicknameEditDialog by rememberSaveable { mutableStateOf(false) }
+    var showMottoEditDialog by rememberSaveable { mutableStateOf(false) }
+
+    val imagePicker = rememberImagePicker(
+        onPickImage = {
+            vm.updateAvatar(ctx, it)
+        }
+    )
 
     val user = (getUserInfoState as? SimpleDataState.Success)?.data?.user
 
@@ -129,10 +209,35 @@ fun AccountPage(
         user = user,
         sid = sid,
         ifLogin = ifLogin,
+        updatingUserInfo = updateAvatarState == SimpleState.Loading || updateUserInfoState == SimpleState.Loading,
         checkingLogin = checkingLoginState == SimpleState.Loading,
+        onOpenEditAvatarDialog = imagePicker::pickImage,
+        onOpenEditNicknameDialog = { showNicknameEditDialog = true },
+        onOpenEditMottoDialog = { showMottoEditDialog = true },
         onCheckLogin = vm::checkLogin,
         onLogout = vm::logout,
         onLogin = onLogin
     )
 
+    if(showNicknameEditDialog && user != null) {
+        var editingNickname by rememberSaveable(user.nickname) { mutableStateOf(user.nickname) }
+        EditDialog(
+            title = "修改昵称",
+            text = editingNickname,
+            onDismiss = { showNicknameEditDialog = false },
+            onTextChanged = { editingNickname = it },
+            onConfirm = { vm.updateUserInfo(nickname = editingNickname) }
+        )
+    }
+
+    if(showMottoEditDialog && user != null) {
+        var editingMotto by rememberSaveable(user.motto) { mutableStateOf(user.motto) }
+        EditDialog(
+            title = "修改个性签名",
+            text = editingMotto,
+            onDismiss = { showMottoEditDialog = false },
+            onTextChanged = { editingMotto = it },
+            onConfirm = { vm.updateUserInfo(motto = editingMotto) }
+        )
+    }
 }

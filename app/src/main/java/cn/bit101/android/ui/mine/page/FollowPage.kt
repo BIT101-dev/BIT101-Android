@@ -154,7 +154,10 @@ private fun FollowPage(
                     )
                 },
                 actions = {
-                    IconButton(onClick = onRefresh) {
+                    IconButton(
+                        onClick = onRefresh,
+                        enabled = refreshState !is SimpleState.Loading
+                    ) {
                         Icon(imageVector = Icons.Outlined.Refresh, contentDescription = "刷新")
                     }
                 },

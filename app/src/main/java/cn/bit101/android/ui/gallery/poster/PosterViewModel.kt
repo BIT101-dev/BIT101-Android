@@ -15,6 +15,8 @@ import cn.bit101.android.ui.common.UploadImageData
 import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.cleared
+import cn.bit101.android.ui.common.withSimpleDataStateFlow
+import cn.bit101.android.ui.common.withSimpleStateFlow
 import cn.bit101.android.ui.gallery.poster.utils.addCommentToComment
 import cn.bit101.android.ui.gallery.poster.utils.changeLike
 import cn.bit101.android.ui.gallery.poster.utils.deleteComment
@@ -115,16 +117,8 @@ class PosterViewModel @Inject constructor(
     /**
      * 获取帖子
      */
-    fun getPosterById(id: Long) {
-        _getPosterStateFlow.value = SimpleDataState.Loading()
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val poster = posterRepo.getPosterById(id)
-                _getPosterStateFlow.value = SimpleDataState.Success(poster)
-            } catch (e: Exception) {
-                _getPosterStateFlow.value = SimpleDataState.Fail()
-            }
-        }
+    fun getPosterById(id: Long) = withSimpleDataStateFlow(_getPosterStateFlow) {
+        posterRepo.getPosterById(id)
     }
 
     /**
@@ -313,62 +307,32 @@ class PosterViewModel @Inject constructor(
     fun sendComment(
         commentType: CommentType,
         editData: CommentEditData,
-    ) {
-        _sendCommentStateFlow.value = SimpleState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                // 发送请求
-                val comment = sendCommentMethod(commentType, editData)
+    ) = withSimpleStateFlow(_sendCommentStateFlow) {
+        val comment = sendCommentMethod(commentType, editData)
 
-                // 发送成功后，清空编辑框
-                setCommentEditData(commentType, CommentEditData.empty())
+        // 发送成功后，清空编辑框
+        setCommentEditData(commentType, CommentEditData.empty())
 
-                // 插入新的评论
-                insertNewComment(commentType, comment)
+        // 插入新的评论
+        insertNewComment(commentType, comment)
 
-                // 发送成功后，更新状态
-                _sendCommentStateFlow.value = SimpleState.Success
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-
-                // 失败
-                _sendCommentStateFlow.value = SimpleState.Fail
-            }
-        }
+        // 发送成功后，更新状态
+        _sendCommentStateFlow.value = SimpleState.Success
     }
 
     /**
      * 删除帖子
      */
-    fun deletePosterById(id: Long) {
-        _deletePosterStateFlow.value = SimpleState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                posterRepo.deletePosterById(id)
-                _deletePosterStateFlow.value = SimpleState.Success
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _deletePosterStateFlow.value = SimpleState.Fail
-            }
-        }
+    fun deletePosterById(id: Long) = withSimpleStateFlow(_deletePosterStateFlow) {
+        posterRepo.deletePosterById(id)
     }
 
     /**
      * 删除评论
      */
-    fun deleteCommentById(id: Long) {
-        _deleteCommentStateFlow.value = SimpleState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                reactionRepo.deleteComment(id)
-                _commentState.data = deleteComment(_commentState.data, id)
-                _deleteCommentStateFlow.value = SimpleState.Success
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _deleteCommentStateFlow.value = SimpleState.Fail
-            }
-        }
+    fun deleteCommentById(id: Long) = withSimpleStateFlow(_deleteCommentStateFlow) {
+        reactionRepo.deleteComment(id)
+        _commentState.data = deleteComment(_commentState.data, id)
     }
 
     /**

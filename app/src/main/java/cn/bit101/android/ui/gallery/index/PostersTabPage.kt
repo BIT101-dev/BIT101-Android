@@ -78,9 +78,10 @@ data class PostersState(
 @Composable
 fun PostersTabPage(
     mainController: MainController,
-    header: @Composable () -> Unit = {},
 
     postersState: PostersState,
+
+    showPostButton: Boolean = true,
 
     /**
      * 打开帖子
@@ -100,7 +101,6 @@ fun PostersTabPage(
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column {
-            header()
             LoadableLazyColumn(
                 modifier = Modifier
                     .fillMaxSize()
@@ -164,19 +164,21 @@ fun PostersTabPage(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(10.dp))
+                if(showPostButton) {
+                    Spacer(modifier = Modifier.height(10.dp))
 
-                FloatingActionButton(
-                    modifier = Modifier.size(fabSize),
-                    onClick = onOpenPostOrEdit,
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                    contentColor = MaterialTheme.colorScheme.primary,
-                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Add,
-                        contentDescription = "张贴Poster"
-                    )
+                    FloatingActionButton(
+                        modifier = Modifier.size(fabSize),
+                        onClick = onOpenPostOrEdit,
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = "张贴Poster"
+                        )
+                    }
                 }
             }
         }

@@ -35,6 +35,7 @@ import cn.bit101.android.utils.ColorUtils
 @Composable
 fun MoreActionOfCommentBottomSheet(
     state: BottomSheetState,
+    own: Boolean,
 
     onDelete: () -> Unit,
     onCopy: () -> Unit,
@@ -49,7 +50,8 @@ fun MoreActionOfCommentBottomSheet(
             view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
         }
     }
-    val actions = listOf(
+
+    val actions = if(own) listOf(
         Action(
             icon = Icons.Outlined.Delete,
             text = "删除",
@@ -65,7 +67,20 @@ fun MoreActionOfCommentBottomSheet(
             text = "举报",
             onClick = onReport,
         ),
-    )
+    ) else {
+        listOf(
+            Action(
+                icon = Icons.Outlined.CopyAll,
+                text = "复制",
+                onClick = onCopy,
+            ),
+            Action(
+                icon = Icons.Outlined.Info,
+                text = "举报",
+                onClick = onReport,
+            ),
+        )
+    }
 
     MoreActionBottomSheet(
         state = state,

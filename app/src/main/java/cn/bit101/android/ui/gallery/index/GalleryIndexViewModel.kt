@@ -1,24 +1,26 @@
 package cn.bit101.android.ui.gallery.index
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.PosterRepo
 import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedOne
 import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedZero
+import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersOrder
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
-import cn.bit101.api.model.http.bit101.toGetPostersDataModelResponseItem
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import java.io.Serializable
 import javax.inject.Inject
 
 data class SearchData(
     val search: String,
     val order: String,
     val filter: Int,
-)
+) : Serializable {
+    companion object {
+        val default = SearchData("", PostersOrder.NEW, PostersFilter.PUBLIC_ANONYMOUS)
+    }
+}
 
 
 @HiltViewModel
@@ -51,46 +53,27 @@ class GalleryIndexViewModel @Inject constructor(
     val newestStataExport = _newestStata.export()
 
     private val _searchState = object : RefreshAndLoadMoreStatesCombinedOne<SearchData, GetPostersDataModel.ResponseItem>(viewModelScope) {
+        private var searchData = SearchData.default
+
         override fun refresh(data: SearchData) = refresh {
-            val posters = posterRepo.getSearchPosters(
-                search = data.search,
-                order = data.order,
-                uid = data.filter,
+            searchData = data
+            posterRepo.getSearchPosters(
+                search = searchData.search,
+                order = searchData.order,
+                uid = searchData.filter,
                 page = 0,
             ).toMutableList()
-
-            /**
-             * 根据id搜索
-             */
-            try {
-                val id = data.search.toLong()
-                val poster = posterRepo.getPosterById(id).toGetPostersDataModelResponseItem()
-                posters.add(0, poster)
-            } catch (_: Exception) { }
-
-            lastSearchQueryLiveData.postValue(data.search)
-
-            posters
         }
 
         override fun loadMore(data: SearchData) = loadMore { page ->
             posterRepo.getSearchPosters(
-                search = data.search,
+                search = searchData.search,
+                order = searchData.order,
+                uid = searchData.filter,
                 page = page,
-                order = data.order,
-                uid = data.filter,
             )
         }
     }
     val searchStateExports = _searchState.export()
-
-    private val _searchDataFlow = MutableStateFlow(SearchData("", PostersOrder.NEW, 0))
-    val searchDataFlow = _searchDataFlow.asStateFlow()
-
-    val lastSearchQueryLiveData = MutableLiveData("")
-
-    fun setSearchData(searchData: SearchData) {
-        _searchDataFlow.value = searchData
-    }
 
 }

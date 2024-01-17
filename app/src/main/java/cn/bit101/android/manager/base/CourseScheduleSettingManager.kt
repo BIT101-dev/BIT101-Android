@@ -19,8 +19,8 @@ fun String.toTimeTable(): TimeTable {
         val x = it.split(",")
         timeTable.add(
             TimeTableItem(
-                LocalTime.parse(x[0]),
-                LocalTime.parse(x[1])
+                LocalTime.parse(x[0].trim()),
+                LocalTime.parse(x[1].trim())
             )
         )
     }

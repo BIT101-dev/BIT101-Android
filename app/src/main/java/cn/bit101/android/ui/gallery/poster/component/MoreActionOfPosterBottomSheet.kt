@@ -13,6 +13,7 @@ import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
 @Composable
 fun MoreActionOfPosterBottomSheet(
     state: BottomSheetState,
+    own: Boolean,
 
     onDelete: () -> Unit,
     onReport: () -> Unit,
@@ -21,28 +22,43 @@ fun MoreActionOfPosterBottomSheet(
 
     onDismiss: () -> Unit,
 ) {
-    val actions = listOf(
-        Action(
-            icon = Icons.Outlined.Edit,
-            text = "修改",
-            onClick = onEdit,
-        ),
-        Action(
-            icon = Icons.Outlined.Delete,
-            text = "删除",
-            onClick = onDelete,
-        ),
-        Action(
-            icon = Icons.Outlined.OpenInBrowser,
-            text = "外部打开",
-            onClick = onOpenInBrowser,
-        ),
-        Action(
-            icon = Icons.Outlined.Info,
-            text = "举报",
-            onClick = onReport,
-        ),
-    )
+    val actions = if (own) {
+        listOf(
+            Action(
+                icon = Icons.Outlined.Edit,
+                text = "修改",
+                onClick = onEdit,
+            ),
+            Action(
+                icon = Icons.Outlined.Delete,
+                text = "删除",
+                onClick = onDelete,
+            ),
+            Action(
+                icon = Icons.Outlined.OpenInBrowser,
+                text = "外部打开",
+                onClick = onOpenInBrowser,
+            ),
+            Action(
+                icon = Icons.Outlined.Info,
+                text = "举报",
+                onClick = onReport,
+            ),
+        )
+    } else {
+        listOf(
+            Action(
+                icon = Icons.Outlined.OpenInBrowser,
+                text = "外部打开",
+                onClick = onOpenInBrowser,
+            ),
+            Action(
+                icon = Icons.Outlined.Info,
+                text = "举报",
+                onClick = onReport,
+            ),
+        )
+    }
 
     MoreActionBottomSheet(
         state = state,

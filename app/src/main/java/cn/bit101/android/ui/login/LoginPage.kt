@@ -35,11 +35,12 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import cn.bit101.android.ui.common.SimpleState
 
 // 登录界面
 @Composable
 fun LoginPage(
-    loginState: PostLoginState?,
+    loginState: SimpleState?,
 
     onLogin: (String, String) -> Unit,
     onLoginSuccess: () -> Unit = {},
@@ -52,19 +53,19 @@ fun LoginPage(
     LaunchedEffect(loginState) {
         when(loginState) {
             // 登录成功，显示消息，并且退回上一个页面，同时获取用户的信息
-            is PostLoginState.Success -> {
+            is SimpleState.Success -> {
                 onLoginSuccess()
                 loading = false
             }
 
             // 登录失败，显示消息
-            PostLoginState.Fail -> {
+            SimpleState.Fail -> {
                 onLoginFailed()
                 loading = false
             }
 
             // 登录中，应该让按钮转圈圈
-            PostLoginState.Loading -> {
+            SimpleState.Loading -> {
                 loading = true
             }
 

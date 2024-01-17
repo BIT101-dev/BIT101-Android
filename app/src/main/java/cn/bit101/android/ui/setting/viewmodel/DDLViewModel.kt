@@ -7,6 +7,7 @@ import cn.bit101.android.database.entity.DDLScheduleEntity
 import cn.bit101.android.manager.DefaultDDLSettingManager
 import cn.bit101.android.repo.base.DDLScheduleRepo
 import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.withSimpleStateLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,59 +40,41 @@ class DDLViewModel @Inject constructor(
     }
 
     // 从网络获取日程url 返回是否成功
-    fun updateLexueCalendarUrl() {
-        updateLexueCalendarUrlStateLiveData.value = SimpleState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val url = ddlScheduleRepo.getCalendarUrl() ?: throw Exception("url is null")
-                ddlSettingManager.url.set(url)
-                updateLexueCalendarUrlStateLiveData.postValue(SimpleState.Success)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                updateLexueCalendarUrlStateLiveData.postValue(SimpleState.Fail)
-            }
-        }
+    fun updateLexueCalendarUrl() = withSimpleStateLiveData(updateLexueCalendarUrlStateLiveData) {
+        val url = ddlScheduleRepo.getCalendarUrl() ?: throw Exception("url is null")
+        ddlSettingManager.url.set(url)
     }
 
     // 从网络获取日程
-    fun updateLexueCalendar() {
-        updateLexueCalendarLiveData.value = SimpleState.Loading
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val url = ddlSettingManager.url.get()
-                val events = ddlScheduleRepo.getCalendarFromNet(url)
+    fun updateLexueCalendar() = withSimpleStateLiveData(updateLexueCalendarLiveData) {
+        val url = ddlSettingManager.url.get()
+        val events = ddlScheduleRepo.getCalendarFromNet(url)
 
-                val UIDs = events.map { it.uid }
-                // 获取数据库中已有日程
-                val existItems = HashMap<String, DDLScheduleEntity>()
-                ddlScheduleRepo.getCalendarFromLocal(UIDs).forEach { existItems[it.uid] = it }
-                events.forEach {
-                    val item = DDLScheduleEntity(
-                        id = 0,
-                        uid = it.uid,
-                        group = "lexue",
-                        title = it.event,
-                        text = it.course + "\n\n" + it.description,
-                        time = it.time,
-                        done = false
+        val UIDs = events.map { it.uid }
+        // 获取数据库中已有日程
+        val existItems = HashMap<String, DDLScheduleEntity>()
+        ddlScheduleRepo.getCalendarFromLocal(UIDs).forEach { existItems[it.uid] = it }
+        events.forEach {
+            val item = DDLScheduleEntity(
+                id = 0,
+                uid = it.uid,
+                group = "lexue",
+                title = it.event,
+                text = it.course + "\n\n" + it.description,
+                time = it.time,
+                done = false
+            )
+            if (existItems[it.uid] == null) {
+                // 不存在则插入
+                ddlScheduleRepo.insertDDL(item)
+            } else {
+                // 存在则更新
+                ddlScheduleRepo.updateDDL(
+                    item.copy(
+                        id = existItems[it.uid]!!.id,
+                        done = existItems[it.uid]!!.done
                     )
-                    if (existItems[it.uid] == null) {
-                        // 不存在则插入
-                        ddlScheduleRepo.insertDDL(item)
-                    } else {
-                        // 存在则更新
-                        ddlScheduleRepo.updateDDL(
-                            item.copy(
-                                id = existItems[it.uid]!!.id,
-                                done = existItems[it.uid]!!.done
-                            )
-                        )
-                    }
-                }
-                updateLexueCalendarLiveData.postValue(SimpleState.Success)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                updateLexueCalendarLiveData.postValue(SimpleState.Fail)
+                )
             }
         }
     }

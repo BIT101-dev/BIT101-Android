@@ -77,6 +77,9 @@ fun GalleryScreen(
     val searchPosters by vm.searchStateExports.dataFlow.collectAsState()
 
 
+    var searchData by rememberSaveable { mutableStateOf(SearchData.default) }
+
+
     val followState = rememberLoadableLazyColumnState(
         refreshing = followRefreshState == SimpleState.Loading,
         onLoadMore = vm.followStateExport.loadMore,
@@ -97,8 +100,6 @@ fun GalleryScreen(
         onLoadMore = vm.recommendStateExport.loadMore,
         onRefresh = vm.recommendStateExport.refresh
     )
-
-    val searchData by vm.searchDataFlow.collectAsState()
 
     val searchState = rememberLoadableLazyColumnState(
         refreshing = searchRefreshPostersState == SimpleState.Loading,
@@ -185,44 +186,22 @@ fun GalleryScreen(
         onDismiss = { showSearchPageState = false }
     ) { showSearchPage ->
         if(showSearchPage) {
-            Scaffold(
-                topBar = {
-                    TopAppBar(
-                        title = {
-                            Text(
-                                text = "搜索",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        },
-                        navigationIcon = {
-                            IconButton(onClick = { showSearchPageState = false }) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                                    contentDescription = "关闭",
-                                )
-                            }
-                        }
-                    )
-                }
-            ) { paddingValues ->
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    SearchTabPage(
-                        mainController = mainController,
-                        searchData = searchData,
-                        onSearch = { vm.searchStateExports.refresh(it) },
-                        onOpenPoster = onOpenPoster,
-                        onPost = onPost,
-                        onSearchDataChanged = vm::setSearchData,
-                        state = PostersState(
-                            posters = searchPosters,
-                            state = searchState,
-                            refreshState = searchRefreshPostersState,
-                            loadState = searchLoadMorePostersState,
-                            onRefresh = { vm.searchStateExports.refresh(searchData) },
-                        ),
-                    )
-                }
-            }
+            SearchPage(
+                mainController = mainController,
+                searchData = searchData,
+                onSearch = { vm.searchStateExports.refresh(it) },
+                onSearchDataChanged = { searchData = it },
+                onOpenPoster = onOpenPoster,
+                onPost = onPost,
+                state = PostersState(
+                    posters = searchPosters,
+                    state = searchState,
+                    refreshState = searchRefreshPostersState,
+                    loadState = searchLoadMorePostersState,
+                    onRefresh = { vm.searchStateExports.refresh(searchData) },
+                ),
+                onDismiss = { showSearchPageState = false }
+            )
         } else {
             Scaffold(
                 modifier = Modifier.fillMaxSize(),

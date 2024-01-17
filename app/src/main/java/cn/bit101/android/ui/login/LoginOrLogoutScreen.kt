@@ -16,6 +16,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.common.SimpleState
 
 // 主界面 根据登陆状态显示登陆界面或者退出登陆界面
 @Composable
@@ -33,7 +34,7 @@ fun LoginOrLogoutScreen(
     // 根据检查登录的情况显示不同的内容
     when (checkLoginStatusState) {
         // 检查失败，显示登录页面
-        is CheckLoginStateState.Fail -> {
+        is SimpleState.Fail -> {
             LoginPage(
                 loginState = postLoginState,
                 onLogin = vm::login,
@@ -48,7 +49,7 @@ fun LoginOrLogoutScreen(
         }
 
         // 检查成功，显示登出页面
-        is CheckLoginStateState.Success -> {
+        is SimpleState.Success -> {
             LogoutPage(
                 sid = sid,
                 onLogout = vm::logout,
@@ -57,7 +58,7 @@ fun LoginOrLogoutScreen(
         }
 
         // 检查中，显示加载动画
-        is CheckLoginStateState.Checking -> {
+        is SimpleState.Loading -> {
             // 这里应该有一个加载动画
             Column(
                 modifier = Modifier

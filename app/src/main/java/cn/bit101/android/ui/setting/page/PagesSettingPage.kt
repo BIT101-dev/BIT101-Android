@@ -56,9 +56,9 @@ private fun PagesSettingPageContent(
     onChangePages: (List<PageShowOnNav>, PageShowOnNav, List<PageShowOnNav>) -> Unit,
     onReset: () -> Unit,
 ) {
-    var changeablePages by remember { mutableStateOf(pages) }
-    var changeableHomePage by remember { mutableStateOf(homePage) }
-    var changeableHiddenPages by remember { mutableStateOf(hiddenPages) }
+    var changeablePages by remember(pages) { mutableStateOf(pages) }
+    var changeableHomePage by remember(homePage) { mutableStateOf(homePage) }
+    var changeableHiddenPages by remember(hiddenPages) { mutableStateOf(hiddenPages) }
 
     val view = LocalView.current
     val state = rememberReorderableLazyListState(
@@ -161,14 +161,18 @@ fun PagesSettingPage(
     vm: PageViewModel = hiltViewModel()
 ) {
 
-    val pages by vm.allPagesFlow.collectAsState(initial = PageShowOnNav.allPages)
-    val homePage by vm.homePageFlow.collectAsState(initial = PageShowOnNav.allPages[0])
-    val hiddenPages by vm.hiddenPagesFlow.collectAsState(initial = emptyList())
+    val pages by vm.allPagesFlow.collectAsState(initial = null)
+    val homePage by vm.homePageFlow.collectAsState(initial = null)
+    val hiddenPages by vm.hiddenPagesFlow.collectAsState(initial = null)
+
+    if(pages == null || homePage == null || hiddenPages == null) {
+        return
+    }
 
     PagesSettingPageContent(
-        pages = pages,
-        homePage = homePage,
-        hiddenPages = hiddenPages,
+        pages = pages!!,
+        homePage = homePage!!,
+        hiddenPages = hiddenPages!!,
         onChangePages = vm::changePageSettings,
         onReset = vm::reset
     )

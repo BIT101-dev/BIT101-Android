@@ -294,6 +294,7 @@ fun PosterScreen(
 
         MoreActionOfCommentBottomSheet(
             state = moreActionOfCommentBottomSheetState,
+            own = commentNeedShowMoreAction?.own ?: false,
             onDelete = { vm.deleteCommentById(commentNeedShowMoreAction!!.id.toLong()) },
             onReport = { mainController.navigate("report/comment/${commentNeedShowMoreAction!!.id}") },
             onCopy = { mainController.copyText(cm, commentNeedShowMoreAction?.text) },
@@ -302,6 +303,7 @@ fun PosterScreen(
 
         MoreActionOfPosterBottomSheet(
             state = moreActionOfPosterBottomSheetState,
+            own = (getPosterState as SimpleDataState.Success).data.own,
             onEdit = { mainController.navigate("edit/$id") },
             onDelete = { vm.deletePosterById(id) },
             onReport = { mainController.navigate("report/poster/$id") },

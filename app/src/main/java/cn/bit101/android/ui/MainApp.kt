@@ -61,7 +61,7 @@ import cn.bit101.android.ui.component.navigationbar.NavigationBar
 import cn.bit101.android.ui.component.snackbar.SnackbarHost
 import cn.bit101.android.ui.component.snackbar.rememberSnackbarState
 import cn.bit101.android.ui.gallery.index.GalleryScreen
-import cn.bit101.android.ui.gallery.message.MessageScreen
+import cn.bit101.android.ui.message.MessageScreen
 import cn.bit101.android.ui.gallery.postedit.PostEditScreen
 import cn.bit101.android.ui.gallery.poster.PosterScreen
 import cn.bit101.android.ui.gallery.report.ReportScreen
@@ -149,13 +149,6 @@ fun MainApp(
         )
     }
 
-    val navBarColor =
-        MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-
-    LaunchedEffect(navBarColor) {
-        systemUiController.setNavigationBarColor(navBarColor)
-    }
-
     // 底部导航栏路由
     data class Screen(val route: String, val label: String, val icon: ImageVector)
 
@@ -188,10 +181,20 @@ fun MainApp(
     // 在导航图中才显示底部导航栏
     val showBottomBar = mainController.navController
         .currentBackStackEntryAsState().value?.destination?.route in routes.map { it.route }
+
     // 底部导航栏的动画状态
     val bottomBarTransitionState =
         remember { MutableTransitionState(false) }
     bottomBarTransitionState.apply { targetState = showBottomBar }
+
+    val navBarColor = when(showBottomBar) {
+        true -> MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+        false -> MaterialTheme.colorScheme.background
+    }
+
+    LaunchedEffect(navBarColor) {
+        systemUiController.setNavigationBarColor(navBarColor)
+    }
 
     val loginStatus by vm.loginStatusFlow.collectAsState(initial = null)
 
@@ -393,9 +396,7 @@ fun MainApp(
                 }
             }
 
-            composable(
-                route = "message",
-            ) {
+            composable(route = "message") {
                 Box(
                     modifier = Modifier
                         .padding(top = paddingValues.calculateTopPadding())

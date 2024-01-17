@@ -8,17 +8,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-private fun <T : UniqueData> List<T>.unique(): List<T> {
-    val set = mutableSetOf<Comparable<*>>()
-    val list = mutableListOf<T>()
-    for (item in this) {
-        if (set.add(item.id)) {
-            list.add(item)
-        }
-    }
-    return list
-}
-
 
 /**
  * 暴露出来的状态
@@ -92,7 +81,7 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
             try {
                 pageFlow.value = 0
                 val posters = refresh()
-                dataFlow.value = posters.toMutableList().unique()
+                dataFlow.value = posters.toMutableList().distinctBy { it.id }
                 if(posters.isEmpty()) {
                     pageFlow.value = -1
                 }
@@ -119,7 +108,7 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
                         // 停止继续加载
                         page = -1
                     }
-                    val allPosters = dataFlow.value.plus(posters).unique()
+                    val allPosters = dataFlow.value.plus(posters).distinctBy { it.id }
                     dataFlow.value = allPosters
                 }
                 loadMoreStateFlow.value = SimpleState.Success
