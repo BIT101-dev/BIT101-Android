@@ -60,7 +60,7 @@ interface PosterRepo {
         id: Long,
     )
 
-    suspend fun getClaim(): List<Claim>
+    suspend fun getClaims(): List<Claim>
 
     suspend fun post(
         anonymous: Boolean,

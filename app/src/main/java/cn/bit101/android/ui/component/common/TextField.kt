@@ -10,6 +10,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.runtime.Composable
@@ -55,7 +56,7 @@ fun CustomOutlinedTextField(
     contentPadding: PaddingValues? = null,
 ) {
     // If color is not provided via the text style, use content color as a default
-    val textColor = textStyle.color.takeOrElse { LocalTextStyle.current.color }
+    val textColor = textStyle.color.takeOrElse { MaterialTheme.colorScheme.onSurface }
     val mergedTextStyle = textStyle.merge(TextStyle(color = textColor))
 
     CompositionLocalProvider(LocalTextSelectionColors provides colors.textSelectionColors) {
@@ -69,11 +70,11 @@ fun CustomOutlinedTextField(
                     .padding(top = OutlinedTextFieldTopPadding)
             } else {
                 modifier
-            }
-                .defaultMinSize(
-                    minWidth = OutlinedTextFieldDefaults.MinWidth,
-                    minHeight = OutlinedTextFieldDefaults.MinHeight
-                ),
+            },
+//                .defaultMinSize(
+//                    minWidth = OutlinedTextFieldDefaults.MinWidth,
+//                    minHeight = OutlinedTextFieldDefaults.MinHeight
+//                ),
             onValueChange = onValueChange,
             enabled = enabled,
             readOnly = readOnly,

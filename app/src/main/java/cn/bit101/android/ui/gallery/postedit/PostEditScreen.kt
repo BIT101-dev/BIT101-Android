@@ -1,46 +1,47 @@
 package cn.bit101.android.ui.gallery.postedit
 
-import android.app.Activity
-import android.content.Intent
-import android.provider.MediaStore
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.Send
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.outlined.Face
+import androidx.compose.material.icons.outlined.FaceRetouchingOff
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Numbers
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.PublicOff
+import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
+import androidx.compose.material3.InputChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -58,51 +59,35 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
+import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
-import cn.bit101.android.ui.common.UploadImageData
+import cn.bit101.android.ui.common.keyboardStateAsState
+import cn.bit101.android.ui.common.rememberImagePicker
+import cn.bit101.android.ui.component.common.CircularProgressIndicatorForPage
+import cn.bit101.android.ui.component.common.CustomOutlinedTextField
+import cn.bit101.android.ui.component.common.EditRowIconButton
+import cn.bit101.android.ui.component.common.ErrorMessageForPage
 import cn.bit101.android.ui.component.gallery.DeleteImageDialog
 import cn.bit101.android.ui.component.image.UploadImageRow
 import cn.bit101.api.model.common.Claim
 import cn.bit101.api.model.common.Image
 
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TagsContent(
-    tags: List<String>,
-
-    onClick: (Int) -> Unit,
-    onAddTag: () -> Unit,
-) {
-    FlowRow {
-        tags.forEachIndexed { index, tag ->
-            SuggestionChip(
-                modifier = Modifier.padding(end = 8.dp),
-                shape = CircleShape,
-                onClick = { onClick(index) },
-                label = { Text(text = tag) }
-            )
-        }
-        IconButton(
-            modifier = Modifier
-                .align(Alignment.CenterVertically)
-                .size(width = 40.dp, height = 32.dp)
-                .padding(end = 8.dp),
-            onClick = onAddTag,
-        ) {
-            Icon(imageVector = Icons.Rounded.Add, contentDescription = "add tag")
-        }
-    }
-}
-
-@Composable
-fun TagEditDialog(
+private fun TagEditDialog(
     tag: String,
     minLength: Int = 1,
     maxLength: Int = 11,
@@ -131,19 +116,13 @@ fun TagEditDialog(
         },
         text = {
             // 最多11个字
-            TextField(
+            OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 isError = tag.length < minLength,
                 value = tag,
                 onValueChange = { onTagChange(it.take(maxLength)) },
                 placeholder = { Text(text = "输入标签") },
                 singleLine = true,
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    errorIndicatorColor = Color.Transparent,
-                ),
                 shape = RoundedCornerShape(10.dp),
                 supportingText = {
                     Text(text = "${tag.length}/$maxLength")
@@ -156,95 +135,62 @@ fun TagEditDialog(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ClaimsDropDownBox(
-    selected: Claim,
+private fun SelectClaimDialog(
+    claim: Claim,
     claims: List<Claim>,
-
-    onSelectIndex: (Claim) -> Unit,
+    onSelectClaim: (Claim) -> Unit,
+    onDismiss: () -> Unit,
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    
-    ExposedDropdownMenuBox(
-        modifier = Modifier.fillMaxWidth(),
-        expanded = expanded,
-        onExpandedChange = { expanded = it },
-    ) {
-        TextField(
-            modifier = Modifier
-                .menuAnchor()
-                .fillMaxWidth(),
-            value = selected.text,
-            onValueChange = { expanded = false },
-            readOnly = true,
-            shape = RoundedCornerShape(10.dp),
-            colors = ExposedDropdownMenuDefaults.textFieldColors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-            ),
-            trailingIcon = {
-                ExposedDropdownMenuDefaults.TrailingIcon(
-                    expanded = expanded
-                )
-            },
-        )
-        ExposedDropdownMenu(
-            modifier = Modifier.fillMaxWidth(),
-            expanded = expanded,
-            onDismissRequest = { expanded = !expanded }
-        ) {
-            claims.forEachIndexed { index, claim ->
-                DropdownMenuItem(
-                    text = { Text(text = claim.text) },
-                    onClick = {
-                        onSelectIndex(claims[index])
-                        expanded = false
+    val selectedClaim = claims.indexOfFirst { it.id == claim.id }.takeIf { it != -1 } ?: 0
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onSelectClaim(claim)
+                    onDismiss()
+                }
+            ) {
+                Text(text = "确定")
+            }
+        },
+        title = { Text(text = "创作者声明") },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                claims.forEachIndexed { idx, claim ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(MaterialTheme.shapes.medium)
+                            .selectable(
+                                selected = (selectedClaim == idx),
+                                onClick = {
+                                    onSelectClaim(claim)
+                                    onDismiss()
+                                },
+                                role = Role.RadioButton
+                            )
+                            .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = (selectedClaim == idx),
+                            onClick = null
+                        )
+                        Text(
+                            text = claim.text,
+                            modifier = Modifier.padding(start = 10.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
                     }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun PostScreenContentAnonymous(
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text("匿名") },
-        shape = CircleShape,
-        leadingIcon = {
-            if(selected) {
-                Icon(
-                    imageVector = Icons.Rounded.Check,
-                    contentDescription = "匿名",
-                )
-            }
-        }
-    )
-}
-
-@Composable
-fun PostScreenContentPublic(
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    FilterChip(
-        selected = selected,
-        onClick = onClick,
-        label = { Text("公开") },
-        shape = CircleShape,
-        leadingIcon = {
-            if(selected) {
-                Icon(
-                    imageVector = Icons.Rounded.Check,
-                    contentDescription = "公开",
-                )
+                }
             }
         }
     )
@@ -256,53 +202,44 @@ fun PostScreenContent(
     mainController: MainController,
 
     id: Long?,
-    /**
-     * 数据
-     */
-    title: String,
-    text: String,
-    uploadImageData: UploadImageData,
-    tags: List<String>,
-    claim: Claim,
-    anonymous: Boolean,
-    public: Boolean,
-
-    /**
-     * 获取声明的状态
-     */
-    claimsState: GetClaimsState?,
-
-    /**
-     * 发布的状态
-     */
-    postState: PutOrPostPosterState?,
+    postOrPutting: Boolean,
+    editData: EditPosterData,
 
     onOpenImage: (Image) -> Unit,
     onUploadImage: () -> Unit,
-
-    /**
-     * 修改数据
-     */
-    onSetTitle: (String) -> Unit,
-    onSetText: (String) -> Unit,
-    onSelectClaim: (Claim) -> Unit,
-    onChangeAnonymous: () -> Unit,
-    onChangePublic: () -> Unit,
-
+    onEditDataChanged: (EditPosterData) -> Unit,
+    onShowSelectClaimDialog: () -> Unit,
     onShowEditTagDialog: (Int) -> Unit,
-
     onPost: () -> Unit,
-    onOpenDeleteImageDialog: (Int) -> Unit,
+    onDeleteImage: (Int) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
+    val titleFocusRequester = remember { FocusRequester() }
+    val textFocusRequester = remember { FocusRequester() }
+
+    val imeStates = keyboardStateAsState()
+
+    val imeHeight by imeStates.first
+    val imeVisible by imeStates.second
+
+    val focusManager = LocalFocusManager.current
+
+    LaunchedEffect(imeVisible) {
+        if(!imeVisible) {
+            focusManager.clearFocus()
+        }
+    }
+
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(bottom = imeHeight),
         topBar = {
             TopAppBar(
                 title = {
                     Text(
-                        text = if(id == null) "新建帖子" else "编辑帖子#$id",
+                        text = if(id == null) "发布帖子" else "编辑帖子#$id",
                         style = MaterialTheme.typography.titleMedium
                     )
                 },
@@ -311,179 +248,212 @@ fun PostScreenContent(
                         Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
+                actions = {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        AnimatedVisibility(visible = editData.anonymous) {
+                            Text(
+                                text = "匿名",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        AnimatedVisibility(visible = !editData.public) {
+                            Text(
+                                text = "仅自己可见",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Bold,
+                                ),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                },
                 scrollBehavior = scrollBehavior
             )
         },
     ) { paddingValues ->
-        LazyColumn(
+        Column(
             modifier = Modifier
-                .nestedScroll(scrollBehavior.nestedScrollConnection)
+                .fillMaxSize()
                 .padding(paddingValues)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(16.dp)
+                .verticalScroll(rememberScrollState())
         ) {
-            // 标题
-            item("title") {
-                Text(text = "标题", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.padding(4.dp))
-                TextField(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    value = title,
-                    onValueChange = onSetTitle,
-                    singleLine = true,
-                    placeholder = { Text(text = "在这里输入标题哦") },
-                    shape = RoundedCornerShape(10.dp),
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                    ),
-                )
-            }
+            CustomOutlinedTextField(
+                modifier = Modifier
+                    .padding(0.dp)
+                    .focusRequester(titleFocusRequester)
+                    .fillMaxWidth(),
+                value = editData.title,
+                onValueChange = { onEditDataChanged(editData.copy(title = it)) },
+                textStyle = MaterialTheme.typography.titleLarge.copy(
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
+                ),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                ),
+                contentPadding = PaddingValues(vertical = 0.dp, horizontal = 12.dp),
+                keyboardActions = KeyboardActions(
+                    onNext = { textFocusRequester.requestFocus() },
+                ),
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next
+                ),
+                minLines = 1,
+                placeholder = {
+                    Text(
+                        text = "在这里输入标题",
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            fontWeight = FontWeight.Bold
+                        ),
+                    )
+                }
+            )
 
-            item(0) {
-                Spacer(modifier = Modifier.padding(8.dp))
-            }
-
-            // 内容
-            item("text") {
-                Text(text = "内容", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.padding(4.dp))
-                TextField(
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    value = text,
-                    onValueChange = onSetText,
-                    placeholder = { Text(text = "在这里输入内容哦") },
-                    shape = RoundedCornerShape(10.dp),
-                    minLines = 5,
-                    colors = TextFieldDefaults.colors(
-                        focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
-                        disabledIndicatorColor = Color.Transparent,
-                    ),
-                )
-            }
-
-            item(1) {
-                Spacer(Modifier.padding(8.dp))
-            }
-
-            // 图片
-            item("image") {
-                Text(text = "图片", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.padding(4.dp))
-                UploadImageRow(
-                    images = uploadImageData.images,
-                    onUploadImage = onUploadImage,
-                    onOpenImage = onOpenImage,
-                    onOpenDeleteDialog = onOpenDeleteImageDialog,
-                )
-            }
-
-            item(2) {
-                Spacer(Modifier.padding(8.dp))
-            }
-
-            // 标签
-            item("tags") {
-                Text(text = "标签", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.padding(1.dp))
-                Text(text = "请至少添加2个标签，合适的标签将有助于内容推荐。", style = MaterialTheme.typography.labelMedium)
-                Spacer(modifier = Modifier.padding(6.dp))
-                TagsContent(
-                    tags = tags,
-                    onClick = { onShowEditTagDialog(it) },
-                    onAddTag = { onShowEditTagDialog(tags.size) }
-                )
-            }
-
-            item(3) {
-                Spacer(Modifier.padding(8.dp))
-            }
-            // 声明
-            item("claim") {
-                Text(text = "声明", style = MaterialTheme.typography.titleMedium)
-                Spacer(modifier = Modifier.padding(1.dp))
-                Text(text = "请根据社区公约选择合适的声明，否则可能会被制裁。", style = MaterialTheme.typography.labelMedium)
-                Spacer(modifier = Modifier.padding(6.dp))
-
-                when(claimsState) {
-                    is GetClaimsState.Loading, null -> {
-                        Text(text = "加载中")
-                    }
-                    is GetClaimsState.Success -> {
-                        ClaimsDropDownBox(
-                            selected = claim,
-                            claims = claimsState.claims,
-                            onSelectIndex = onSelectClaim
+            AnimatedVisibility(visible = (editData.claim?.id != 0 && editData.claim != null)) {
+                Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+                    Spacer(modifier = Modifier.padding(6.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "创作者声明：${editData.claim?.text ?: ""}",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.Bold
+                            ),
                         )
-                    }
-                    is GetClaimsState.Error -> {
-                        Text(text = "加载失败")
                     }
                 }
             }
+            Spacer(modifier = Modifier.padding(6.dp))
 
-            item(23) {
-                Spacer(modifier = Modifier.padding(8.dp))
-            }
+            CustomOutlinedTextField(
+                modifier = Modifier
+                    .padding(0.dp)
+                    .weight(1f)
+                    .focusRequester(textFocusRequester)
+                    .fillMaxWidth(),
+                value = editData.text,
+                onValueChange = { onEditDataChanged(editData.copy(text = it)) },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                ),
+                contentPadding = PaddingValues(vertical = 0.dp, horizontal = 12.dp),
+                placeholder = { Text(text = "在这里输入内容") }
+            )
 
-            // 发布按钮
-            item("publish") {
-                Box(modifier = Modifier.fillMaxWidth()) {
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd),
-                        horizontalArrangement = Arrangement.End
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surfaceContainer
+            ) {
+                Column(modifier = Modifier.padding(vertical = 12.dp)) {
+                    if(editData.uploadImageData.images.isNotEmpty()) {
+                        Box(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                            UploadImageRow(
+                                images = editData.uploadImageData.images,
+                                onOpenDeleteDialog = onDeleteImage,
+                                onOpenImage = onOpenImage,
+                            )
+                        }
+                    }
+                    
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        contentPadding = PaddingValues(horizontal = 12.dp)
                     ) {
-                        Button(
-                            onClick = onPost,
-                            enabled = postState !is PutOrPostPosterState.Loading,
-                        ) {
-                            if(postState is PutOrPostPosterState.Loading) {
-                                CircularProgressIndicator()
-                            } else {
-                                Row {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Rounded.Send,
-                                        contentDescription = "发布",
-                                        modifier = Modifier.align(Alignment.CenterVertically)
-                                    )
-                                    Spacer(modifier = Modifier.padding(4.dp))
-                                    Text(
-                                        text = "发布",
-                                        modifier = Modifier.align(Alignment.CenterVertically)
-                                    )
-                                }
+                        itemsIndexed(editData.tags) { idx, tag ->
+                            InputChip(
+                                shape = CircleShape,
+                                onClick = { onShowEditTagDialog(idx) },
+                                label = { Text(text = "#$tag") },
+                                selected = false,
+                            )
+                        }
+
+                        if(editData.tags.isEmpty()) {
+                            item {
+                                InputChip(
+                                    shape = CircleShape,
+                                    enabled = false,
+                                    onClick = {},
+                                    label = { Text(text = "#添加一个标签吧") },
+                                    selected = false,
+                                )
                             }
                         }
                     }
-                    Row(
+
+                    Box(
                         modifier = Modifier
-                            .align(Alignment.CenterStart),
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp)
                     ) {
-                        PostScreenContentAnonymous(
-                            selected = anonymous,
-                            onClick = onChangeAnonymous,
-                        )
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        PostScreenContentPublic(
-                            selected = public,
-                            onClick = onChangePublic,
-                        )
+                        Row(
+                            modifier = Modifier.align(Alignment.CenterStart),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+
+                            EditRowIconButton(
+                                icon = if(editData.anonymous) Icons.Outlined.FaceRetouchingOff
+                                else Icons.Outlined.Face,
+                                onClick = { onEditDataChanged(editData.copy(anonymous = !editData.anonymous)) },
+                            )
+
+                            EditRowIconButton(
+                                icon = if(editData.public) Icons.Outlined.Public else Icons.Outlined.PublicOff,
+                                onClick = { onEditDataChanged(editData.copy(public = !editData.public)) },
+                            )
+
+                            EditRowIconButton(
+                                icon = Icons.Outlined.Numbers,
+                                onClick = { onShowEditTagDialog(editData.tags.size) },
+                            )
+
+                            EditRowIconButton(
+                                icon = Icons.Outlined.Image,
+                                onClick = onUploadImage,
+                            )
+
+                            EditRowIconButton(
+                                icon = Icons.Outlined.WarningAmber,
+                                onClick = onShowSelectClaimDialog,
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.align(Alignment.CenterEnd),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            FilledTonalButton(
+                                onClick = onPost,
+                                enabled = !postOrPutting && !editData.isEmpty(),
+                            ) {
+                                if(postOrPutting) Text(text = if(id == null) "发布中" else "提交修改中")
+                                else Text(text = if(id == null) "发布" else "提交修改")
+                            }
+                        }
                     }
                 }
             }
-
-            item(25) {
-                Spacer(modifier = Modifier.padding(8.dp))
-            }
         }
     }
-
-
 }
 
 
@@ -499,20 +469,18 @@ fun PostEditScreen(
 
     val ctx = LocalContext.current
 
-    val title by vm.titleFlow.collectAsState()
-    val text by vm.textFlow.collectAsState()
-    val tags by vm.tagsFlow.collectAsState()
-    val claim by vm.claimFlow.collectAsState()
-    val anonymous by vm.anonymousFlow.collectAsState()
-    val public by vm.publicFlow.collectAsState()
+    val editData by vm.editPosterDataFlow.collectAsState()
 
-    val loadState by vm.loadPosterFlow.collectAsState()
-
-    val uploadImageData by vm.uploadImagesStateFlow.collectAsState()
+    val loadPosterState by vm.loadPosterFlow.collectAsState()
 
     val claimsState by vm.getClaimsStateLiveData.observeAsState()
 
     var deleteImageDialogState by remember { mutableIntStateOf(-1) }
+
+    var showEditDialog by remember { mutableIntStateOf(-1) }
+
+    var showSelectClaimDialog by remember { mutableStateOf(false) }
+
 
     LaunchedEffect(claimsState) {
         if(claimsState == null) {
@@ -520,15 +488,14 @@ fun PostEditScreen(
         }
     }
 
-    var showEditDialog by remember { mutableIntStateOf(-1) }
 
     val postState by vm.postStateLiveData.observeAsState()
 
     LaunchedEffect(postState) {
-        if(postState is PutOrPostPosterState.Success) {
+        if(postState is SimpleDataState.Success) {
             if(id == null) {
                 mainController.navController.popBackStack()
-                mainController.navController.navigate("poster/${(postState as PutOrPostPosterState.Success).id}")
+                mainController.navController.navigate("poster/${(postState as SimpleDataState.Success).data}")
                 mainController.snackbar("发布成功OvO")
             } else {
                 mainController.navController.popBackStack()
@@ -536,143 +503,76 @@ fun PostEditScreen(
                 mainController.navController.navigate("poster/$id")
                 mainController.snackbar("修改成功OvO")
             }
-        } else if(postState is PutOrPostPosterState.Error) {
+        } else if(postState is SimpleDataState.Fail) {
             mainController.snackbar("帖子发布或修改失败Orz")
         }
     }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val data = result.data
-            if (data != null) {
-                val uri = data.data
-                if (uri != null) {
-                    vm.uploadImage(ctx, uri)
-                }
-            }
-        }
-    }
-    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI).apply {
-        type = "image/*"
-        putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+    val imagePicker = rememberImagePicker {
+        vm.uploadImage(ctx, it)
     }
 
-    if(claimsState is GetClaimsState.Success && loadState is SimpleState.Success) {
-        val ensureClaimsState = claimsState as GetClaimsState.Success
+    if(claimsState is SimpleDataState.Success && loadPosterState is SimpleState.Success) {
+        val claims = (claimsState as SimpleDataState.Success).data
 
-        LaunchedEffect(claim) {
-            if(claim == null) {
-                vm.setClaim(ensureClaimsState.claims[0])
-            }
+        if(editData.claim == null) {
+            vm.setEditData(editData.copy(claim = claims[0]))
         }
 
-        if(claim != null) PostScreenContent(
+        PostScreenContent(
             mainController = mainController,
             id = id,
-            title = title,
-            text = text,
-            uploadImageData = uploadImageData,
-            tags = tags,
-            anonymous = anonymous,
-            public = public,
-            claim = claim!!,
-
-            claimsState = ensureClaimsState,
-            postState = postState,
-
+            editData = editData,
+            postOrPutting = postState is SimpleDataState.Loading,
             onOpenImage = mainController::showImage,
-            onSetTitle = { vm.setTitle(it) },
-            onSetText = { vm.setText(it) },
-            onChangeAnonymous = { vm.setAnonymous(!anonymous) },
-            onChangePublic = { vm.setPublic(!public) },
+            onEditDataChanged = vm::setEditData,
             onShowEditTagDialog = { showEditDialog = it },
-            onUploadImage = { imagePickerLauncher.launch(intent) },
-            onSelectClaim = vm::setClaim,
-            onOpenDeleteImageDialog = { deleteImageDialogState = it },
+            onUploadImage = imagePicker::pickImage,
+            onDeleteImage = { deleteImageDialogState = it },
+            onShowSelectClaimDialog = { showSelectClaimDialog = true },
             onPost = {
-                if(title.isEmpty()) {
+                if(editData.title.isEmpty()) {
                     mainController.snackbar("标题不能为空哟")
-                } else if(text.isEmpty()) {
+                } else if(editData.text.isEmpty()) {
                     mainController.snackbar("内容不能为空哟")
-                } else if(tags.size < 2) {
+                } else if(editData.tags.size < 2) {
                     mainController.snackbar("请至少添加2个标签哟")
-                } else if(tags.toSet().size != tags.size) {
+                } else if(editData.tags.toSet().size != editData.tags.size) {
                     mainController.snackbar("不要添加重复的标签呦")
                 } else {
-                    if (id == null) {
-                        vm.post(
-                            anonymous = anonymous,
-                            claim = claim ?: ensureClaimsState.claims[0],
-                            uploadImageData = uploadImageData,
-                            public = public,
-                            tags = tags,
-                            text = text,
-                            title = title,
-                        )
-                    } else {
-                        vm.put(
-                            id = id,
-                            anonymous = anonymous,
-                            claim = claim ?: ensureClaimsState.claims[0],
-                            uploadImageData = uploadImageData,
-                            public = public,
-                            tags = tags,
-                            text = text,
-                            title = title,
-                        )
-                    }
+                    if (id == null) vm.post()
+                    else vm.put(id)
                 }
             },
         )
-
-
-    } else if(claimsState is GetClaimsState.Loading || claimsState == null ||
-        loadState is SimpleState.Loading || loadState == null) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .wrapContentSize(Alignment.Center)
-                .width(64.dp)
-        ) {
-            CircularProgressIndicator(
-                modifier = Modifier.width(64.dp),
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
+    } else if(claimsState is SimpleDataState.Loading || claimsState == null ||
+        loadPosterState is SimpleState.Loading || loadPosterState == null) {
+        CircularProgressIndicatorForPage()
     } else {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .wrapContentSize(Alignment.Center)
-                .width(64.dp)
-        ) {
-            Text(text = "加载失败")
-        }
+        ErrorMessageForPage()
     }
 
-    if(showEditDialog != -1 && showEditDialog <= tags.size) {
+    if(showEditDialog != -1 && showEditDialog <= editData.tags.size) {
         var tag by remember(showEditDialog) {
-            mutableStateOf(if(showEditDialog == tags.size) "" else tags[showEditDialog])
+            mutableStateOf(if(showEditDialog == editData.tags.size) "" else editData.tags[showEditDialog])
         }
 
         TagEditDialog(
             tag = tag,
             onTagChange = { tag = it },
             onDelete = {
-                vm.setTags(
-                    tags.toMutableList().apply {
-                        if(showEditDialog != tags.size) removeAt(showEditDialog)
-                    }
-                )
+                vm.setEditData(editData.copy(
+                    tags = editData.tags.toMutableList().apply { removeAt(showEditDialog) }
+                ))
                 showEditDialog = -1
             },
             onEnsure = {
-                vm.setTags(
-                    tags.toMutableList().apply {
-                        if(showEditDialog == tags.size) add(tag)
+                vm.setEditData(editData.copy(
+                    tags = editData.tags.toMutableList().apply {
+                        if(showEditDialog == editData.tags.size) add(tag)
                         else set(showEditDialog, it)
                     }
-                )
+                ))
                 showEditDialog = -1
             },
             onCancel = { showEditDialog = -1 }
@@ -687,6 +587,15 @@ fun PostEditScreen(
                 vm.deleteImage(index)
                 deleteImageDialogState = -1
             }
+        )
+    }
+
+    if(showSelectClaimDialog && editData.claim != null && claimsState is SimpleDataState.Success) {
+        SelectClaimDialog(
+            claim = editData.claim!!,
+            claims = (claimsState as SimpleDataState.Success).data,
+            onSelectClaim = { vm.setEditData(editData.copy(claim = it)) },
+            onDismiss = { showSelectClaimDialog = false }
         )
     }
 }

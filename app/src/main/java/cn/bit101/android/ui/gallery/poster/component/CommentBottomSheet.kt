@@ -1,5 +1,10 @@
 package cn.bit101.android.ui.gallery.poster.component
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -45,6 +50,7 @@ import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
+import cn.bit101.android.ui.component.common.EditRowIconButton
 import cn.bit101.android.ui.component.image.UploadImageRow
 import cn.bit101.android.ui.gallery.poster.CommentEditData
 import cn.bit101.android.ui.gallery.poster.CommentType
@@ -136,9 +142,13 @@ fun CommentBottomSheet(
                     )
                 )
 
-                if(commentEditData.anonymous) {
+                AnimatedVisibility(
+                    modifier = Modifier.align(Alignment.CenterEnd),
+                    visible = commentEditData.anonymous,
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally(),
+                ) {
                     Text(
-                        modifier = Modifier.align(Alignment.CenterEnd),
                         text = "匿名",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Bold,
@@ -149,7 +159,11 @@ fun CommentBottomSheet(
             }
         },
     ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 12.dp)
+        ) {
             TextField(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -172,7 +186,6 @@ fun CommentBottomSheet(
                     val text = when(commentType) {
                         is CommentType.ToComment -> "回复@${commentType.subComment.user.nickname}:"
                         is CommentType.ToPoster -> "评论帖子"
-                        else -> ""
                     }
                     Text(text = text)
                 },
@@ -193,9 +206,7 @@ fun CommentBottomSheet(
             if(commentEditData.uploadImageData.ifUpload) {
                 Box(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp)) {
                     UploadImageRow(
-                        showUploadButton = false,
                         images = commentEditData.uploadImageData.images,
-                        onUploadImage = onUploadImage,
                         onOpenImage = onOpenImage,
                         onOpenDeleteDialog = onOpenDeleteImageDialog,
                     )
@@ -212,40 +223,17 @@ fun CommentBottomSheet(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() },
-                                onClick = { onEditComment(commentEditData.copy(anonymous = !commentEditData.anonymous)) }
-                            )
-                    ) {
-                        Icon(
-                            imageVector = if(commentEditData.anonymous) Icons.Outlined.FaceRetouchingOff
-                            else Icons.Outlined.Face,
-                            contentDescription = "匿名",
-                            modifier = Modifier
-                                .size(28.dp)
-                                .align(Alignment.CenterHorizontally),
-                        )
-                    }
 
-                    Column(
-                        modifier = Modifier
-                            .clickable(
-                                indication = null,
-                                interactionSource = remember { MutableInteractionSource() },
-                                onClick = onUploadImage
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Image,
-                            contentDescription = "图片",
-                            modifier = Modifier
-                                .size(28.dp)
-                                .align(Alignment.CenterHorizontally),
-                        )
-                    }
+                    EditRowIconButton(
+                        icon = if(commentEditData.anonymous) Icons.Outlined.FaceRetouchingOff
+                        else Icons.Outlined.Face,
+                        onClick = { onEditComment(commentEditData.copy(anonymous = !commentEditData.anonymous)) }
+                    )
+
+                    EditRowIconButton(
+                        icon = Icons.Outlined.Image,
+                        onClick = onUploadImage
+                    )
                 }
                 Row(
                     modifier = Modifier.align(Alignment.CenterEnd),

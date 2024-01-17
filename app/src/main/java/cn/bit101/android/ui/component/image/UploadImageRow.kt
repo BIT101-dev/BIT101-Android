@@ -41,22 +41,11 @@ import coil.compose.AsyncImage
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun UploadImageRow(
-    /**
-     * 最大图片数量
-     */
-    maxImages: Int = 100,
-
-    showUploadButton: Boolean = true,
 
     /**
      * 图片列表
      */
     images: List<ImageDataWithUploadState>,
-
-    /**
-     * 上传图片
-     */
-    onUploadImage: () -> Unit,
 
     /**
      * 打开图片
@@ -111,30 +100,6 @@ fun UploadImageRow(
                             imageVector = Icons.Rounded.Add,
                             contentDescription = "fail",
                             tint = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            }
-        }
-        if(showUploadButton) item("upload") {
-            if(images.size < maxImages) {
-                OutlinedCard(
-                    modifier = Modifier
-                        .padding(end = 5.dp)
-                        .size(100.dp),
-                    shape = RoundedCornerShape(10.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clickable { onUploadImage() },
-                    ) {
-                        Icon(
-                            modifier = Modifier
-                                .size(30.dp)
-                                .align(Alignment.Center),
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = "add"
                         )
                     }
                 }

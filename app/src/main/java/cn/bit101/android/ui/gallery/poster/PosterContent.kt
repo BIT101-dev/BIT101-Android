@@ -96,7 +96,7 @@ private fun PosterScreenTopBar(
                 if(it) {
                     Text(
                         text = data.title,
-                        style = MaterialTheme.typography.titleSmall,
+                        style = MaterialTheme.typography.titleMedium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -113,7 +113,7 @@ private fun PosterScreenTopBar(
                         )
                         Column(
                             modifier = Modifier
-                                .padding(start = 8.dp)
+                                .padding(start = 12.dp)
                                 .align(Alignment.CenterVertically)
                         ) {
                             Text(
@@ -342,7 +342,7 @@ fun PosterContent(
             ) {
                 // 标题
                 item(-1) {
-                    Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+                    Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                         SelectionContainer(modifier = Modifier.fillMaxWidth()) {
                             Text(
                                 text = data.title,
@@ -356,8 +356,8 @@ fun PosterContent(
 
                 item(0) {
                     if(data.claim.id != 0) {
-                        Spacer(modifier = Modifier.padding(4.dp))
-                        Row(modifier = Modifier.padding(horizontal = 8.dp)) {
+                        Spacer(modifier = Modifier.padding(6.dp))
+                        Row(modifier = Modifier.padding(horizontal = 12.dp)) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "创作者声明：${data.claim.text}",
@@ -368,16 +368,15 @@ fun PosterContent(
                                 )
                             }
                         }
-                        Spacer(modifier = Modifier.padding(2.dp))
                     }
-                    Spacer(modifier = Modifier.padding(2.dp))
+                    Spacer(modifier = Modifier.padding(6.dp))
                 }
 
                 // 内容
                 item(4) {
                     // 正文
                     if (data.text.isNotEmpty()) {
-                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                             SelectionContainer {
                                 AnnotatedText(
                                     text = data.text,
@@ -396,7 +395,7 @@ fun PosterContent(
                 item(5) {
                     if (data.images.isNotEmpty()) {
                         Spacer(modifier = Modifier.padding(2.dp))
-                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                             PreviewImagesWithGridLayout(
                                 modifier = Modifier.fillMaxWidth(),
                                 images = data.images,
@@ -411,7 +410,7 @@ fun PosterContent(
                 item(6) {
                     if (data.tags.isNotEmpty()) {
                         Spacer(modifier = Modifier.padding(8.dp))
-                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                             FlowRow {
                                 data.tags.forEach { tag ->
                                     Text(
@@ -433,7 +432,7 @@ fun PosterContent(
                 }
 
                 item(12) {
-                    Column(modifier = Modifier.padding(horizontal = 8.dp)) {
+                    Column(modifier = Modifier.padding(horizontal = 12.dp)) {
                         Text(
                             text = "最后编辑于：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.updateTime)),
                             style = MaterialTheme.typography.labelMedium
@@ -447,7 +446,7 @@ fun PosterContent(
 
                 if(data.commentNum > 0) {
                     item(8) {
-                        Box(modifier = Modifier.padding(horizontal = 8.dp)) {
+                        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
                             Text(
                                 text = "评论 ${data.commentNum}",
                                 style = MaterialTheme.typography.titleMedium

@@ -116,7 +116,7 @@ class DefaultPosterRepo @Inject constructor(
         api.posters.deletePoster(id.toInt()).body() ?: throw Exception("delete poster error")
     }
 
-    override suspend fun getClaim() = withContext(Dispatchers.IO) {
+    override suspend fun getClaims() = withContext(Dispatchers.IO) {
         api.posters.getPosterClaims().body() ?: throw Exception("get claim error")
     }
 

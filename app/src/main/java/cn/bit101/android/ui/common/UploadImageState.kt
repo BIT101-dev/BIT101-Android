@@ -67,4 +67,11 @@ fun ImageDataWithUploadState.highModel(): Any = when(uploadImageState) {
 data class UploadImageData(
     val ifUpload: Boolean,
     val images: List<ImageDataWithUploadState>
-)
+) {
+    companion object {
+        val default = UploadImageData(
+            ifUpload = false,
+            images = emptyList()
+        )
+    }
+}

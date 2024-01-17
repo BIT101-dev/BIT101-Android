@@ -187,9 +187,11 @@ fun MainApp(
         remember { MutableTransitionState(false) }
     bottomBarTransitionState.apply { targetState = showBottomBar }
 
-    val navBarColor = when(showBottomBar) {
-        true -> MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-        false -> MaterialTheme.colorScheme.background
+    val navBarColor = if(showBottomBar) MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+    else when(currentBackStackEntry?.destination?.route) {
+        "post", "edit/{id}" -> MaterialTheme.colorScheme.surfaceContainer
+        "poster/{id}" -> MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+        else -> MaterialTheme.colorScheme.background
     }
 
     LaunchedEffect(navBarColor) {

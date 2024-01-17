@@ -49,7 +49,7 @@ internal fun calculateLeftSize(iconSize: Dp) = iconSize * 11 / 10 + 8.dp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CommentCardContent(
+private fun CommentCardContent(
     mainController: MainController,
     comment: Comment,
     liking: Boolean,
@@ -252,13 +252,13 @@ fun CommentCard(
                 onLike = { onLikeComment(comment) },
                 onOpenUserDetail = { mainController.navigate("user/${comment.user.id}") },
                 onOpenImage = { onOpenImage(it, comment.images) },
-                paddingValues = PaddingValues(horizontal = 8.dp),
+                paddingValues = PaddingValues(horizontal = 12.dp),
                 onMoreAction = { onMoreAction(comment) },
             )
 
             if (comment.sub.isNotEmpty() && showSubComments) {
                 Spacer(modifier = Modifier.padding(2.dp))
-                Column(Modifier.padding(start = 45.dp + 8.dp)) {
+                Column(Modifier.padding(start = 45.dp + 12.dp + 2.dp)) {
                     comment.sub.forEach { sub ->
                         CommentCardContent(
                             mainController = mainController,
@@ -271,7 +271,7 @@ fun CommentCard(
                             onLike = { onLikeComment(sub) },
                             onOpenUserDetail = { mainController.navigate("user/${sub.user.id}") },
                             onOpenImage = { onOpenImage(it, sub.images) },
-                            paddingValues = PaddingValues(end = 8.dp),
+                            paddingValues = PaddingValues(end = 12.dp),
                             onMoreAction = { onMoreAction(sub) },
                         )
                         Spacer(modifier = Modifier.padding(1.dp))
@@ -283,7 +283,7 @@ fun CommentCard(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 45.dp + 8.dp + 0.dp),
+                            .padding(start = 45.dp + 12.dp + 0.dp),
                     ) {
                         Text(
                             modifier = Modifier
