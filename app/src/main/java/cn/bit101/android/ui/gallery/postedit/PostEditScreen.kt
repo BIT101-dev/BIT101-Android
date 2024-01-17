@@ -358,6 +358,8 @@ fun PostScreenContent(
                 placeholder = { Text(text = "在这里输入内容") }
             )
 
+            Spacer(modifier = Modifier.padding(6.dp))
+
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 color = MaterialTheme.colorScheme.surfaceContainer
@@ -374,9 +376,10 @@ fun PostScreenContent(
                     }
                     
                     LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp),
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp)
                     ) {
                         itemsIndexed(editData.tags) { idx, tag ->
                             InputChip(

@@ -116,7 +116,7 @@ fun PreviewImagesWithGridLayout(
     onClick: (Int) -> Unit = {},
 ) {
     val width = LocalDensity.current.run {
-        LocalView.current.width - 24.dp.toPx()
+        LocalView.current.width - 24.dp.toPx() - 1.dp.toPx()
     }
 
     val newMaxCountInEachRow = if(images.size < maxCountInEachRow) images.size
