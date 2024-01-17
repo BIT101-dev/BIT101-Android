@@ -2,7 +2,6 @@ package cn.bit101.android.ui.gallery.report
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import cn.bit101.android.repo.base.ManageRepo
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
@@ -10,10 +9,8 @@ import cn.bit101.android.ui.common.withSimpleDataStateFlow
 import cn.bit101.android.ui.common.withSimpleStateLiveData
 import cn.bit101.api.model.common.ReportType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
@@ -21,12 +18,12 @@ class ReportViewModel @Inject constructor(
     private val manageRepo: ManageRepo
 ) : ViewModel() {
 
-    val stateLiveData = MutableLiveData<SimpleState>(null)
+    val stateLiveData = MutableLiveData<SimpleState?>(null)
 
     private val _loadReportTypeStateFlow = MutableStateFlow<SimpleDataState<List<ReportType>>?>(null)
     val loadReportTypeStateFlow = _loadReportTypeStateFlow.asStateFlow()
 
-    val selectedReportTypeLiveData = MutableLiveData<ReportType>(null)
+    val selectedReportTypeLiveData = MutableLiveData<ReportType?>(null)
 
     private val _textFlow = MutableStateFlow("")
     val textFlow = _textFlow.asStateFlow()

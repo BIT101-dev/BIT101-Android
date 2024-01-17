@@ -18,8 +18,8 @@ class LoginOrLogoutViewModel @Inject constructor(
     private val loginRepo: LoginRepo
 ) : ViewModel() {
     // 过程的状态
-    val checkLoginStateLiveData = MutableLiveData<SimpleState>(null)
-    val postLoginStateLiveData = MutableLiveData<SimpleState>(null)
+    val checkLoginStateLiveData = MutableLiveData<SimpleState?>(null)
+    val postLoginStateLiveData = MutableLiveData<SimpleState?>(null)
 
     val sidFlow = loginStatusManager.sid.flow
 

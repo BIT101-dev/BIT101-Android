@@ -23,7 +23,7 @@ fun ViewModel.withSimpleStateFlow(
 }
 
 fun ViewModel.withSimpleStateLiveData(
-    stateLiveData: MutableLiveData<SimpleState>,
+    stateLiveData: MutableLiveData<SimpleState?>,
     block: suspend () -> Unit
 ) {
     viewModelScope.launch(Dispatchers.IO) {
@@ -53,7 +53,7 @@ fun <T> ViewModel.withSimpleDataStateFlow(
 }
 
 fun <T> ViewModel.withSimpleDataStateLiveData(
-    stateLiveData: MutableLiveData<SimpleDataState<T>>,
+    stateLiveData: MutableLiveData<SimpleDataState<T>?>,
     block: suspend () -> T
 ) {
     viewModelScope.launch(Dispatchers.IO) {

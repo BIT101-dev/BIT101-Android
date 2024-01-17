@@ -157,32 +157,32 @@ fun MineScreenContent(
                             Icon(imageVector = Icons.Outlined.Refresh, contentDescription = "刷新")
                         }
 
-                        if(messageCount > 0) {
-                            Box {
-                                Badge(
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .offset(x = (-2).dp, y = 2.dp),
-                                ) {
-                                    Text(text = "9")
-                                }
-                                IconButton(onClick = onOpenMessagePage) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.NotificationsActive,
-                                        tint = MaterialTheme.colorScheme.tertiary,
-                                        contentDescription = "通知"
-                                    )
-                                }
-                            }
-
-                        } else {
-                            IconButton(onClick = onOpenMessagePage) {
-                                Icon(
-                                    imageVector = Icons.Outlined.NotificationsNone,
-                                    contentDescription = "通知"
-                                )
-                            }
-                        }
+//                        if(messageCount > 0) {
+//                            Box {
+//                                Badge(
+//                                    modifier = Modifier
+//                                        .align(Alignment.TopEnd)
+//                                        .offset(x = (-2).dp, y = 2.dp),
+//                                ) {
+//                                    Text(text = "9")
+//                                }
+//                                IconButton(onClick = onOpenMessagePage) {
+//                                    Icon(
+//                                        imageVector = Icons.Outlined.NotificationsActive,
+//                                        tint = MaterialTheme.colorScheme.tertiary,
+//                                        contentDescription = "通知"
+//                                    )
+//                                }
+//                            }
+//
+//                        } else {
+//                            IconButton(onClick = onOpenMessagePage) {
+//                                Icon(
+//                                    imageVector = Icons.Outlined.NotificationsNone,
+//                                    contentDescription = "通知"
+//                                )
+//                            }
+//                        }
 
                         IconButton(onClick = { mainController.navigate("setting?route=") }) {
                             Icon(imageVector = Icons.Outlined.Settings, contentDescription = "通知")

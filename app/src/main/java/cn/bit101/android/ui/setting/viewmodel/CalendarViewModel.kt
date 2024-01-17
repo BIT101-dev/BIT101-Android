@@ -71,19 +71,19 @@ class CalendarViewModel @Inject constructor(
     val timeTableFlow = scheduleSettingManager.timeTable.flow
 
     // 学期列表获取状态
-    val getTermListStateLiveData = MutableLiveData<SimpleDataState<List<String>>>(null)
+    val getTermListStateLiveData = MutableLiveData<SimpleDataState<List<String>>?>(null)
 
     // 学期起始日期获取状态
-    val getFirstDayStateLiveData = MutableLiveData<SimpleState>(null)
+    val getFirstDayStateLiveData = MutableLiveData<SimpleState?>(null)
 
     // 课程获取状态
-    val getCoursesStateLiveData = MutableLiveData<SimpleState>(null)
+    val getCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
 
     // 设置当前学期的状态
-    val setCurrentTermStateLiveData = MutableLiveData<SimpleState>(null)
+    val setCurrentTermStateLiveData = MutableLiveData<SimpleState?>(null)
 
     // 设置时间表的状态
-    val setTimeTableStateLiveData = MutableLiveData<SimpleState>(null)
+    val setTimeTableStateLiveData = MutableLiveData<SimpleState?>(null)
 
     fun getTermList() = withSimpleDataStateLiveData(getTermListStateLiveData) {
         coursesRepo.getTermListFromNet()

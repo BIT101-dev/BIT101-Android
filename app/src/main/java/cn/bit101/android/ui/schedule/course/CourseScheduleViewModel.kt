@@ -61,8 +61,8 @@ class CourseScheduleViewModel @Inject constructor(
     val showDividerFlow = scheduleSettingManager.showDivider.flow
     val showCurrentTimeFlow = scheduleSettingManager.showCurrentTime.flow
 
-    val refreshCoursesStateLiveData = MutableLiveData<SimpleState>(null)
-    val forceRefreshCoursesStateLiveData = MutableLiveData<SimpleState>(null)
+    val refreshCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
+    val forceRefreshCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
 
     init {
         // 课表、周数改变

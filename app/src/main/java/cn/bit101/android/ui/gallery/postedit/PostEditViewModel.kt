@@ -60,9 +60,9 @@ class PostEditViewModel @Inject constructor(
     private val _loadPosterFlow = MutableStateFlow<SimpleState?>(null)
     val loadPosterFlow = _loadPosterFlow.asStateFlow()
 
-    val getClaimsStateLiveData = MutableLiveData<SimpleDataState<List<Claim>>>(null)
+    val getClaimsStateLiveData = MutableLiveData<SimpleDataState<List<Claim>>?>(null)
 
-    val postStateLiveData = MutableLiveData<SimpleDataState<Long>>(null)
+    val postStateLiveData = MutableLiveData<SimpleDataState<Long>?>(null)
 
     private val _editPosterDataFlow = MutableStateFlow(EditPosterData.default)
     val editPosterDataFlow = _editPosterDataFlow.asStateFlow()

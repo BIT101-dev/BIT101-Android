@@ -1,10 +1,14 @@
 package cn.bit101.android.net
 
+import cn.bit101.android.BuildConfig
 import cn.bit101.android.manager.base.LoginStatusManager
 import cn.bit101.android.net.base.APIManager
 import cn.bit101.android.net.basic.CookiesJar
 import cn.bit101.api.Bit101ApiFactory
 import cn.bit101.api.option.DEFAULT_API_OPTION
+import cn.bit101.api.option.DEFAULT_WEB_VPN_URLS
+import cn.bit101.api.option.DEV_URLS
+import cn.bit101.api.option.PROD_URLS
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import java.net.CookieManager
@@ -44,10 +48,15 @@ class DefaultAPIManager @Inject constructor(
 
     private var webVpn = false
 
+    private val localUrls = if(BuildConfig.DEBUG) DEV_URLS else PROD_URLS
+    private val webVpnUrls = if(BuildConfig.DEBUG) DEV_URLS else DEFAULT_WEB_VPN_URLS
+
     private var _api = Bit101ApiFactory.create(
         DEFAULT_API_OPTION.copy(
             bit101Client = bit101Client,
             schoolClient = schoolClient,
+            localUrls = localUrls,
+            webVpnUrls = webVpnUrls,
             webVpn = webVpn,
         )
     )
@@ -59,6 +68,8 @@ class DefaultAPIManager @Inject constructor(
                 DEFAULT_API_OPTION.copy(
                     bit101Client = bit101Client,
                     schoolClient = schoolClient,
+                    localUrls = localUrls,
+                    webVpnUrls = webVpnUrls,
                     webVpn = this.webVpn,
                 )
             )

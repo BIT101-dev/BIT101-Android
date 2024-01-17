@@ -36,9 +36,9 @@ class UserViewModel @Inject constructor(
     }
     val posterStateExport = _posterState.export()
 
-    val followStateMutableLiveData = MutableLiveData<SimpleState>(null)
+    val followStateMutableLiveData = MutableLiveData<SimpleState?>(null)
 
-    val uploadUserInfoStateLiveData = MutableLiveData<SimpleState>(null)
+    val uploadUserInfoStateLiveData = MutableLiveData<SimpleState?>(null)
 
     fun getUserInfo(id: Long) = withSimpleDataStateFlow(_getUserInfoStateFlow) {
         userRepo.getUserInfo(id)

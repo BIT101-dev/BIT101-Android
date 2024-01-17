@@ -17,7 +17,7 @@ class AboutViewModel @Inject constructor(
     private val versionRepo: VersionRepo,
     private val aboutSettingManager: AboutSettingManager
 ) : ViewModel() {
-    val checkUpdateStateLiveData = MutableLiveData<SimpleDataState<Pair<Boolean, GetVersionDataModel.Response>>>(null)
+    val checkUpdateStateLiveData = MutableLiveData<SimpleDataState<Pair<Boolean, GetVersionDataModel.Response>>?>(null)
 
     val autoDetectUpgrade = aboutSettingManager.autoDetectUpgrade
 

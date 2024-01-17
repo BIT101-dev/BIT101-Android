@@ -23,9 +23,9 @@ class DDLViewModel @Inject constructor(
 
     val afterDayFlow = ddlSettingManager.afterDay.flow
 
-    val updateLexueCalendarUrlStateLiveData = MutableLiveData<SimpleState>()
+    val updateLexueCalendarUrlStateLiveData = MutableLiveData<SimpleState?>()
 
-    val updateLexueCalendarLiveData = MutableLiveData<SimpleState>()
+    val updateLexueCalendarLiveData = MutableLiveData<SimpleState?>()
 
     fun setBeforeDay(day: Long) {
         viewModelScope.launch {

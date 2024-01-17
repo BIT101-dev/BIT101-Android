@@ -22,7 +22,7 @@ class MainViewModel @Inject constructor(
     private val loginStatusManager: LoginStatusManager
 ) : ViewModel() {
 
-    val checkUpdateStateLiveData = MutableLiveData<GetVersionDataModel.Response>(null)
+    val checkUpdateStateLiveData = MutableLiveData<GetVersionDataModel.Response?>(null)
 
     val homePageFlow = pageSettingManager.homePage.flow
     val hidePagesFlow = pageSettingManager.hidePages.flow

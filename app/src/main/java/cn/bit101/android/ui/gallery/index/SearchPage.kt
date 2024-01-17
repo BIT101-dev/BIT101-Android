@@ -92,7 +92,7 @@ fun SearchPage(
                                         text = { Text(it.name) },
                                         onClick = {
                                             onSearchDataChanged(searchData.copy(order = it.value))
-                                            onSearch(searchData)
+                                            onSearch(searchData.copy(order = it.value))
                                         },
                                         leadingIcon = {
                                             if(searchData.order == it.value) {

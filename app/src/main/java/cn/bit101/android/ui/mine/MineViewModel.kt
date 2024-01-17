@@ -21,9 +21,9 @@ class MineViewModel @Inject constructor(
     private val posterRepo: PosterRepo,
     private val messageRepo: MessageRepo
 ) : ViewModel() {
-    val userInfoStateLiveData = MutableLiveData<SimpleDataState<GetUserInfoDataModel.Response>>(null)
+    val userInfoStateLiveData = MutableLiveData<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
 
-    val messageCountStateLiveData = MutableLiveData<SimpleDataState<Int>>(null)
+    val messageCountStateLiveData = MutableLiveData<SimpleDataState<Int>?>(null)
 
     private val _followingState = object : RefreshAndLoadMoreStatesCombinedZero<User>(viewModelScope) {
         override fun refresh() = refresh { userRepo.getFollowings() }
