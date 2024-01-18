@@ -76,7 +76,7 @@ import cn.bit101.android.utils.ColorUtils
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
-fun WithLoginStatus(
+private fun WithLoginStatus(
     mainController: MainController,
     status: Boolean?,
     content: @Composable () -> Unit

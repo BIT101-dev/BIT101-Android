@@ -38,7 +38,6 @@ import com.google.accompanist.web.rememberWebViewNavigator
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-@SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun WebScreen(
     mainController: MainController,
