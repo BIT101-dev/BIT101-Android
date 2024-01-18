@@ -24,9 +24,6 @@ class MainViewModel @Inject constructor(
     private val pageSettingManager: PageSettingManager,
     private val loginStatusManager: LoginStatusManager
 ) : ViewModel() {
-
-    val checkUpdateStateLiveData = MutableLiveData<GetVersionDataModel.Response?>(null)
-
     val homePageFlow = pageSettingManager.homePage.flow
     val hidePagesFlow = pageSettingManager.hidePages.flow
     val allPagesFlow = pageSettingManager.allPages.flow
@@ -35,29 +32,7 @@ class MainViewModel @Inject constructor(
 
     val lastVersionFlow = aboutSettingManager.lastVersion.flow
 
-    init {
-        viewModelScope.launch {
-            val autoDetectUpgrade = aboutSettingManager.autoDetectUpgrade.get()
-            if (autoDetectUpgrade) {
-                checkUpdate()
-            }
-        }
-    }
-
-    private fun checkUpdate() {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val version = versionRepo.getVersionInfo() ?: throw Exception("get version error")
-                val ignoreVersion = aboutSettingManager.ignoredVersion.get()
-                val need = version.versionCode.toLong() > ignoreVersion && version.versionCode > BuildConfig.VERSION_CODE
-                if(need) checkUpdateStateLiveData.postValue(version)
-                else checkUpdateStateLiveData.postValue(null)
-            } catch (e: Exception) {
-                e.printStackTrace()
-                checkUpdateStateLiveData.postValue(null)
-            }
-        }
-    }
+    val autoDetectUpgradeFlow = aboutSettingManager.autoDetectUpgrade.flow
 
     fun logout() = withScope {
         loginRepo.logout()
@@ -65,6 +40,10 @@ class MainViewModel @Inject constructor(
 
     fun setLastVersion() = withScope {
         aboutSettingManager.lastVersion.set(BuildConfig.VERSION_CODE.toLong())
+    }
+
+    fun setIgnoreVersion(versionCode: Long) = withScope {
+        aboutSettingManager.ignoredVersion.set(versionCode)
     }
 
 }

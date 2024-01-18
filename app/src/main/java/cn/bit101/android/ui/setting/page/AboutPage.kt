@@ -44,11 +44,13 @@ import cn.bit101.android.ui.component.setting.SettingItemData
 import cn.bit101.android.ui.component.setting.SettingsColumn
 import cn.bit101.android.ui.component.setting.SettingsGroup
 import cn.bit101.android.ui.setting.viewmodel.AboutViewModel
-import cn.bit101.api.model.http.app.GetVersionDataModel
+import cn.bit101.android.ui.versions.UpdateDialog
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 
 @Composable
@@ -350,79 +352,6 @@ private fun AboutDialog(onClose: () -> Unit) {
     )
 }
 
-
-// 更新提醒
-@Composable
-private fun UpdateDialog(
-    version: GetVersionDataModel.Response,
-    onClose: () -> Unit,
-    onIgnore: () -> Unit,
-) {
-    val context = LocalContext.current
-
-    AlertDialog(
-        onDismissRequest = onClose,
-        title = {
-            Column {
-                Text("海日生残夜")
-                Text(
-                    text = "当前版本：${BuildConfig.VERSION_NAME}",
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = "最新版本：${version.versionName}",
-                    style = MaterialTheme.typography.labelMedium
-                )
-                Text(
-                    text = "最低版本：${version.minVersionName}",
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-
-        },
-        text = {
-            val scrollState = rememberScrollState()
-            Text(
-                text = version.msg,
-                modifier = Modifier.verticalScroll(scrollState)
-            )
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onClose()
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(version.url))
-                    context.startActivity(intent)
-                }
-            ) {
-                Text("前往下载")
-            }
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    if (BuildConfig.VERSION_CODE < version.minVersionCode) {
-                        onClose()
-                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(version.url))
-                        context.startActivity(intent)
-                    } else {
-                        onClose()
-                        onIgnore()
-                    }
-
-                }
-            ) {
-                if (BuildConfig.VERSION_CODE < version.minVersionCode) {
-                    Text("强制更新")
-                } else {
-                    Text("忽略该版本")
-                }
-            }
-        },
-    )
-}
-
-
 @Composable
 fun AboutPage(
     mainController: MainController,
@@ -442,6 +371,7 @@ fun AboutPage(
     LaunchedEffect(Unit) {
         //检测更新
         vm.checkUpdate()
+
         //读入开源声明
         MainScope().launch(Dispatchers.IO) {
             val input = App.context.assets.open("open_source_licenses.txt")
@@ -456,10 +386,9 @@ fun AboutPage(
         if (checkUpdateState is SimpleDataState.Fail) {
             mainController.snackbar("检查更新失败")
         } else if (checkUpdateState is SimpleDataState.Success) {
-            val need = (checkUpdateState as SimpleDataState.Success).data.first
+            val need = BuildConfig.VERSION_CODE < (checkUpdateState as SimpleDataState.Success).data.versionCode
             if (need) {
                 showUpgradeDialog = true
-                mainController.snackbar("检测到新版本")
             } else {
                 mainController.snackbar("不需要更新哦")
             }
@@ -493,17 +422,12 @@ fun AboutPage(
         )
     }
 
-    if (showUpgradeDialog) {
-        if (checkUpdateState is SimpleDataState.Success) {
-            val need = (checkUpdateState as SimpleDataState.Success).data.first
-            val version = (checkUpdateState as SimpleDataState.Success).data.second
-            if (need) {
-                UpdateDialog(
-                    version = version,
-                    onClose = { showUpgradeDialog = false },
-                    onIgnore = { vm.setIgnoreVersion(version.versionCode.toLong()) }
-                )
-            }
-        }
+    if (showUpgradeDialog && checkUpdateState is SimpleDataState.Success) {
+        val version = (checkUpdateState as SimpleDataState.Success).data
+        UpdateDialog(
+            version = version,
+            onDismiss = { showUpgradeDialog = false },
+            onIgnore = { vm.setIgnoreVersion(version.versionCode.toLong()) }
+        )
     }
 }

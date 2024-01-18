@@ -34,8 +34,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,6 +75,7 @@ import cn.bit101.android.ui.mine.MineScreen
 import cn.bit101.android.ui.schedule.ScheduleScreen
 import cn.bit101.android.ui.setting.SettingScreen
 import cn.bit101.android.ui.user.UserScreen
+import cn.bit101.android.ui.versions.UpdateDialog
 import cn.bit101.android.ui.versions.VersionDialog
 import cn.bit101.android.ui.web.WebScreen
 import cn.bit101.android.utils.ColorUtils
@@ -211,6 +215,11 @@ fun MainApp(
             onConfirm = vm::logout,
             onDismiss = vm::setLastVersion
         )
+    }
+
+    val autoDetectUpgrade by vm.autoDetectUpgradeFlow.collectAsState(initial = false)
+    if (autoDetectUpgrade) {
+        UpdateDialog()
     }
 
     Scaffold(
@@ -432,14 +441,4 @@ fun MainApp(
             state = mainController.snackbarHostState
         )
     }
-
-    val checkDetectUpgradeState by vm.checkUpdateStateLiveData.observeAsState()
-
-    LaunchedEffect(checkDetectUpgradeState) {
-        if (checkDetectUpgradeState != null) {
-            mainController.navController.navigate("setting?route=about")
-            vm.checkUpdateStateLiveData.value = null
-        }
-    }
-
 }

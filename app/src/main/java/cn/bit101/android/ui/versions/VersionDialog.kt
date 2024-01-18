@@ -36,8 +36,6 @@ fun VersionDialog(
     }
 }
 
-
-
 @HiltViewModel
 class VersionDialogViewModel @Inject constructor(
     private val loginStatusManager: LoginStatusManager
