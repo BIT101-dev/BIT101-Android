@@ -5,6 +5,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,9 +23,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
@@ -32,6 +34,7 @@ import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -41,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -134,7 +138,7 @@ private fun PosterScreenTopBar(
         },
         navigationIcon = {
             IconButton(onClick = { mainController.navController.popBackStack() }) {
-                Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
             }
         },
         actions = {
@@ -165,11 +169,19 @@ private fun PosterScreenBottomBar(
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { onOpenCommentToPoster() })
                 },
+            colors = CardDefaults.cardColors(
+                containerColor = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                disabledContainerColor = Color.Transparent,
+                disabledContentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+            ),
+            shape = CircleShape,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurface),
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 8.dp),
+                    .padding(horizontal = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Start,
             ) {
@@ -495,7 +507,7 @@ fun PosterContent(
                         Column(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
+                                .padding(32.dp),
                             horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Icon(
@@ -505,7 +517,7 @@ fun PosterContent(
                                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             )
 
-                            Spacer(modifier = Modifier.padding(2.dp))
+                            Spacer(modifier = Modifier.padding(4.dp))
 
                             Text(
                                 text = "这里没有评论呢",

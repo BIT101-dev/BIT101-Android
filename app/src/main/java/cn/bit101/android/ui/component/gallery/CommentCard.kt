@@ -2,10 +2,8 @@ package cn.bit101.android.ui.component.gallery
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,15 +16,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FavoriteBorder
-import androidx.compose.material3.CardColors
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -114,7 +109,7 @@ private fun CommentCardContent(
                                 replyUser = if (comment.replyUser.id != 0) comment.replyUser else null,
                                 overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    color = MaterialTheme.colorScheme.onSurface
                                 ),
                                 onOpenPoster = { mainController.navigate("poster/$it") },
                                 onOpenUser = { mainController.navigate("user/$it") }
@@ -144,7 +139,7 @@ private fun CommentCardContent(
                         Column(
                             modifier = Modifier
                                 .pointerInput(Unit) {
-                                    detectTapGestures(onTap = { if(!liking) onLike() })
+                                    detectTapGestures(onTap = { if (!liking) onLike() })
                                 }
                                 .align(Alignment.TopEnd)
                         ) {
@@ -197,11 +192,6 @@ fun CommentCard(
     showSubComments: Boolean = true,
 
     /**
-     * 卡片颜色
-     */
-    colors: CardColors = CardDefaults.cardColors(),
-
-    /**
      * 点赞评论
      */
     onLikeComment: (Comment) -> Unit,
@@ -230,7 +220,6 @@ fun CommentCard(
     Surface(
         modifier = Modifier
             .padding(vertical = 2.dp)
-            .background(colors.containerColor)
             .fillMaxWidth(),
     ) {
         Column(
@@ -303,7 +292,7 @@ fun CommentCard(
 
             if(showDivider) {
                 Spacer(modifier = Modifier.padding(6.dp))
-                HorizontalDivider(
+                Divider(
                     modifier = Modifier.padding(top = 2.dp, bottom = 2.dp, start = calculateLeftSize(mainAvatarSize)),
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f),
                     thickness = 0.5.dp

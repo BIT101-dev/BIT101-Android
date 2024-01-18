@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.component.topbar
 
-import android.util.Log
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.CubicBezierEasing
@@ -27,7 +26,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.TopAppBarState
@@ -57,7 +55,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastFirst
+import androidx.compose.ui.util.fastFirstOrNull
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -147,11 +145,11 @@ private fun TopAppBarLayout(
         modifier = modifier
     ) { measurables, constraints ->
         val navigationIconPlaceable =
-            measurables.fastFirst { it.layoutId == "navigationIcon" }
-                .measure(constraints.copy(minWidth = 0))
+            measurables.fastFirstOrNull { it.layoutId == "navigationIcon" }
+                ?.measure(constraints.copy(minWidth = 0)) ?: throw IllegalStateException()
         val actionIconsPlaceable =
-            measurables.fastFirst { it.layoutId == "actionIcons" }
-                .measure(constraints.copy(minWidth = 0))
+            measurables.fastFirstOrNull { it.layoutId == "actionIcons" }
+                ?.measure(constraints.copy(minWidth = 0)) ?: throw IllegalStateException()
 
         val maxTitleWidth = if (constraints.maxWidth == Constraints.Infinity) {
             constraints.maxWidth
@@ -160,8 +158,8 @@ private fun TopAppBarLayout(
                 .coerceAtLeast(0)
         }
         val titlePlaceable =
-            measurables.fastFirst { it.layoutId == "title" }
-                .measure(constraints.copy(minWidth = 0, maxWidth = maxTitleWidth))
+            measurables.fastFirstOrNull { it.layoutId == "title" }
+                ?.measure(constraints.copy(minWidth = 0, maxWidth = maxTitleWidth)) ?: throw IllegalStateException()
 
         // Locate the title's baseline.
         val titleBaseline =
@@ -304,10 +302,11 @@ fun BasicTwoRowsTopAppBar(
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
-    colors: TopAppBarColors = TopAppBarDefaults.largeTopAppBarColors(),
+    colors: CustomTopAppBarColors = largeTopAppBarColors(),
     pinnedHeight: Dp = 64.0.dp,
     scrollBehavior: TopAppBarScrollBehavior?
 ) {
+
     val pinnedHeightPx: Float
     val maxHeightPx: Float
     val titleBottomPaddingPx: Int

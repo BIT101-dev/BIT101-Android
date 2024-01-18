@@ -45,8 +45,12 @@ object DateTimeUtils {
         val hour = minute / 60
         val day = hour / 24
         val week = day / 7
+        val month = day / 30
+        val year = month / 12
 
         return when {
+            year > 0 -> "${year}年前"
+            month > 0 -> "${month}月前"
             week > 0 -> "${week}周前"
             day > 0 -> "${day}天前"
             hour > 0 -> "${hour}小时前"

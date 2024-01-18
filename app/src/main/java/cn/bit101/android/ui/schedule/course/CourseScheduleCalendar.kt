@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.schedule.course
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -26,9 +24,9 @@ import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
@@ -103,7 +101,7 @@ fun CourseScheduleCalendar(
             }
             for (i in 1..courseNumOfDay) {
                 if (settingData.showDivider && i != 1)
-                    HorizontalDivider(color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
+                    Divider(color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f))
                 Spacer(modifier = Modifier.weight(1f))
             }
         }
@@ -128,7 +126,7 @@ fun CourseScheduleCalendar(
                         )
                     }
                     Spacer(modifier = Modifier.weight(topWeight))
-                    HorizontalDivider(color = MaterialTheme.colorScheme.secondary)
+                    Divider(color = MaterialTheme.colorScheme.secondary)
                     Spacer(modifier = Modifier.weight(courseNumOfDay.toFloat() - topWeight))
                 }
             }

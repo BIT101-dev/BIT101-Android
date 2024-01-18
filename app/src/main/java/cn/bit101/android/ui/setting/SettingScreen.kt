@@ -1,19 +1,14 @@
 package cn.bit101.android.ui.setting
 
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -25,7 +20,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.ui.component.topbar.BasicTwoRowsTopAppBar
 import cn.bit101.android.ui.setting.page.AboutPage
 import cn.bit101.android.ui.setting.page.AccountPage
 import cn.bit101.android.ui.setting.page.CalendarSettingPage
@@ -86,7 +80,7 @@ fun SettingScreen(
                             }
                         }
                     ) {
-                        Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                        Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
             )

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.LocalTonalElevationEnabled
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TopAppBarColors
 import androidx.compose.material3.TopAppBarDefaults
@@ -17,11 +16,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.component.topbar.BasicTwoRowsTopAppBar
+import cn.bit101.android.ui.component.topbar.CustomTopAppBarColors
+import cn.bit101.android.ui.component.topbar.largeTopAppBarColors
 
 @Composable
 private fun ColorScheme.applyTonalElevation(backgroundColor: Color, elevation: Dp): Color {
-    val tonalElevationEnabled = LocalTonalElevationEnabled.current
-    return if (backgroundColor == surface && tonalElevationEnabled) {
+    return if (backgroundColor == surface) {
         surfaceColorAtElevation(elevation)
     } else {
         backgroundColor
@@ -37,7 +37,7 @@ fun UserInfoTopAppBar(
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
     windowInsets: WindowInsets = TopAppBarDefaults.windowInsets,
-    colors: TopAppBarColors = TopAppBarDefaults.largeTopAppBarColors(
+    colors: CustomTopAppBarColors = largeTopAppBarColors(
         containerColor = MaterialTheme.colorScheme.applyTonalElevation(
             backgroundColor = MaterialTheme.colorScheme.surface,
             elevation = 3.0.dp

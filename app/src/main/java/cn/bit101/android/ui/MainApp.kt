@@ -1,7 +1,6 @@
 package cn.bit101.android.ui
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
@@ -17,8 +16,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.Chat
 import androidx.compose.material.icons.rounded.AccountCircle
+import androidx.compose.material.icons.rounded.Chat
 import androidx.compose.material.icons.rounded.Event
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Map
@@ -44,6 +43,7 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavType
@@ -52,6 +52,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import cn.bit101.android.BuildConfig
 import cn.bit101.android.manager.base.PageShowOnNav
 import cn.bit101.android.manager.base.toNameAndValue
 import cn.bit101.android.ui.common.NavBarHeight
@@ -61,16 +62,17 @@ import cn.bit101.android.ui.component.navigationbar.NavigationBar
 import cn.bit101.android.ui.component.snackbar.SnackbarHost
 import cn.bit101.android.ui.component.snackbar.rememberSnackbarState
 import cn.bit101.android.ui.gallery.index.GalleryScreen
-import cn.bit101.android.ui.message.MessageScreen
 import cn.bit101.android.ui.gallery.postedit.PostEditScreen
 import cn.bit101.android.ui.gallery.poster.PosterScreen
 import cn.bit101.android.ui.gallery.report.ReportScreen
 import cn.bit101.android.ui.login.LoginOrLogoutScreen
 import cn.bit101.android.ui.map.MapScreen
+import cn.bit101.android.ui.message.MessageScreen
 import cn.bit101.android.ui.mine.MineScreen
 import cn.bit101.android.ui.schedule.ScheduleScreen
 import cn.bit101.android.ui.setting.SettingScreen
 import cn.bit101.android.ui.user.UserScreen
+import cn.bit101.android.ui.versions.VersionDialog
 import cn.bit101.android.ui.web.WebScreen
 import cn.bit101.android.utils.ColorUtils
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
@@ -121,6 +123,7 @@ fun MainApp(
         imageHostState = rememberImageHostState()
     )
 
+    // 当前路由
     val currentBackStackEntry by mainController.navController.currentBackStackEntryFlow.collectAsState(
         initial = null
     )
@@ -128,12 +131,12 @@ fun MainApp(
     val isDarkMode = MaterialTheme.colorScheme.background.luminance() > 0.5f
 
     val statusColor = when (currentBackStackEntry?.destination?.route) {
-        "bit101-web", "web/{url}" -> Color(0xFFFF9A57)
+        "bit101-web", "web/{url}", "message" -> Color(0xFFFF9A57)
         "setting?route={route}" -> Color.Transparent
         "user/{id}", "mine" -> Color.Transparent
         "post", "edit/{id}" -> Color.Transparent
         "report/{type}/{id}" -> Color.Transparent
-        "poster/{id}" -> Color.Transparent
+        "gallery", "poster/{id}" -> Color.Transparent
         else -> MaterialTheme.colorScheme.background
     }
 
@@ -167,7 +170,7 @@ fun MainApp(
             PageShowOnNav.Schedule -> Icons.Rounded.Event
             PageShowOnNav.Map -> Icons.Rounded.Map
             PageShowOnNav.BIT101Web -> Icons.Rounded.Explore
-            PageShowOnNav.Gallery -> Icons.AutoMirrored.Rounded.Chat
+            PageShowOnNav.Gallery -> Icons.Rounded.Chat
             PageShowOnNav.Mine -> Icons.Rounded.AccountCircle
         }
 
@@ -189,7 +192,7 @@ fun MainApp(
 
     val navBarColor = if(showBottomBar) MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
     else when(currentBackStackEntry?.destination?.route) {
-        "post", "edit/{id}" -> MaterialTheme.colorScheme.surfaceContainer
+        "post", "edit/{id}" -> MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
         "poster/{id}" -> MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
         else -> MaterialTheme.colorScheme.background
     }
@@ -199,6 +202,16 @@ fun MainApp(
     }
 
     val loginStatus by vm.loginStatusFlow.collectAsState(initial = null)
+
+    val lastVersion by vm.lastVersionFlow.collectAsState(initial = null)
+    if(lastVersion == null) return
+
+    if(lastVersion!! < BuildConfig.VERSION_CODE) {
+        VersionDialog(
+            onConfirm = vm::logout,
+            onDismiss = vm::setLastVersion
+        )
+    }
 
     Scaffold(
         bottomBar = {

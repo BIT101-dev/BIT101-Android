@@ -313,28 +313,29 @@ fun PosterScreen(
         )
 
         if(commentTypeNeedShowCommentBottomSheet != null) {
-            val commentType = commentTypeNeedShowCommentBottomSheet!!
-            val commentEditData = commentEditDataMap[commentType] ?: CommentEditData.empty()
-
             CommentBottomSheet(
-                commentType = commentType,
-                commentEditData = commentEditData,
+                commentType = commentTypeNeedShowCommentBottomSheet!!,
+                commentEditData = commentEditDataMap[commentTypeNeedShowCommentBottomSheet!!] ?: CommentEditData.empty(),
                 sending = sendCommentState is SimpleState.Loading,
 
-                onEditComment = { vm.setCommentEditData(commentType, it) },
+                onEditComment = { vm.setCommentEditData(commentTypeNeedShowCommentBottomSheet!!, it) },
                 onOpenImage = mainController::showImage,
                 onUploadImage = { imagePicker.pickImage() },
-                onSendComment = { vm.sendComment(commentType, commentEditData) },
+                onSendComment = {
+                    vm.sendComment(
+                        commentTypeNeedShowCommentBottomSheet!!,
+                        commentEditDataMap[commentTypeNeedShowCommentBottomSheet!!] ?: CommentEditData.empty()
+                    )
+                },
                 onOpenDeleteImageDialog = { showCommentImageDialogState = it },
+                onDeleteFailImage = { vm.deleteFailImageOfComment(commentTypeNeedShowCommentBottomSheet!!, it) },
                 onDismiss = { commentTypeNeedShowCommentBottomSheet = null }
             )
         }
 
         if(showCommentImageDialogState != -1) {
-            val commentType = commentTypeNeedShowCommentBottomSheet!!
-            val index = showCommentImageDialogState
             DeleteImageDialog(
-                onConfirm = { vm.deleteImageOfComment(commentType, index) },
+                onConfirm = { vm.deleteImageOfComment(commentTypeNeedShowCommentBottomSheet!!, showCommentImageDialogState) },
                 onDismiss = { showCommentImageDialogState = -1 }
             )
         }

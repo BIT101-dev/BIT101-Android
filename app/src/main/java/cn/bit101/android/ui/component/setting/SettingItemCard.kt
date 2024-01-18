@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
@@ -22,6 +23,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BasicSettingItemCard(
     modifier: Modifier = Modifier,
@@ -130,6 +132,7 @@ private fun SettingItemCard(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun IndexSettingItem(
     modifier: Modifier = Modifier,

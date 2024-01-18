@@ -6,10 +6,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -83,7 +83,7 @@ fun PosterPage(
                 },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
-                        Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                        Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
                 scrollBehavior = topBarScrollBehavior,
@@ -115,7 +115,7 @@ fun PosterPage(
                                 onOpenPoster = { mainController.navigate("poster/${it.id}") },
                                 onOpenImages = mainController::showImages
                             )
-                            HorizontalDivider(
+                            Divider(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(0.dp),

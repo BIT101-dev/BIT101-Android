@@ -20,7 +20,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.FaceRetouchingOff
 import androidx.compose.material.icons.outlined.Image
@@ -29,10 +29,7 @@ import androidx.compose.material.icons.outlined.Public
 import androidx.compose.material.icons.outlined.PublicOff
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -44,10 +41,10 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -74,6 +71,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
+import cn.bit101.android.ui.common.UploadImageState
 import cn.bit101.android.ui.common.keyboardStateAsState
 import cn.bit101.android.ui.common.rememberImagePicker
 import cn.bit101.android.ui.component.common.CircularProgressIndicatorForPage
@@ -212,6 +210,7 @@ fun PostScreenContent(
     onShowEditTagDialog: (Int) -> Unit,
     onPost: () -> Unit,
     onDeleteImage: (Int) -> Unit,
+    onDeleteFailImage: (Int) -> Unit,
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -222,14 +221,6 @@ fun PostScreenContent(
 
     val imeHeight by imeStates.first
     val imeVisible by imeStates.second
-
-    val focusManager = LocalFocusManager.current
-
-    LaunchedEffect(imeVisible) {
-        if(!imeVisible) {
-            focusManager.clearFocus()
-        }
-    }
 
     Scaffold(
         modifier = Modifier
@@ -245,7 +236,7 @@ fun PostScreenContent(
                 },
                 navigationIcon = {
                     IconButton(onClick = { mainController.navController.popBackStack() }) {
-                        Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                        Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
                 actions = {
@@ -295,14 +286,7 @@ fun PostScreenContent(
                     color = MaterialTheme.colorScheme.onSurface,
                     fontWeight = FontWeight.Bold
                 ),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                ),
+                transparent = true,
                 contentPadding = PaddingValues(vertical = 0.dp, horizontal = 12.dp),
                 keyboardActions = KeyboardActions(
                     onNext = { textFocusRequester.requestFocus() },
@@ -346,14 +330,7 @@ fun PostScreenContent(
                     .fillMaxWidth(),
                 value = editData.text,
                 onValueChange = { onEditDataChanged(editData.copy(text = it)) },
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent,
-                    disabledContainerColor = Color.Transparent,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                ),
+                transparent = true,
                 contentPadding = PaddingValues(vertical = 0.dp, horizontal = 12.dp),
                 placeholder = { Text(text = "在这里输入内容") }
             )
@@ -362,7 +339,7 @@ fun PostScreenContent(
 
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surfaceContainer
+                color = MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
             ) {
                 Column(modifier = Modifier.padding(vertical = 12.dp)) {
                     if(editData.uploadImageData.images.isNotEmpty()) {
@@ -371,6 +348,7 @@ fun PostScreenContent(
                                 images = editData.uploadImageData.images,
                                 onOpenDeleteDialog = onDeleteImage,
                                 onOpenImage = onOpenImage,
+                                onDeleteFailImage = onDeleteFailImage,
                             )
                         }
                     }
@@ -533,6 +511,11 @@ fun PostEditScreen(
             onUploadImage = imagePicker::pickImage,
             onDeleteImage = { deleteImageDialogState = it },
             onShowSelectClaimDialog = { showSelectClaimDialog = true },
+            onDeleteFailImage = {
+                if(editData.uploadImageData.images.getOrNull(it)?.uploadImageState is UploadImageState.Fail) {
+                    vm.deleteImage(it)
+                }
+            },
             onPost = {
                 if(editData.title.isEmpty()) {
                     mainController.snackbar("标题不能为空哟")
@@ -564,6 +547,7 @@ fun PostEditScreen(
             tag = tag,
             onTagChange = { tag = it },
             onDelete = {
+                if(showEditDialog == editData.tags.size) return@TagEditDialog
                 vm.setEditData(editData.copy(
                     tags = editData.tags.toMutableList().apply { removeAt(showEditDialog) }
                 ))

@@ -2,27 +2,33 @@ package cn.bit101.android.ui.gallery.index
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalOverscrollConfiguration
+import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.TabRowDefaults
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
@@ -33,6 +39,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -76,9 +86,7 @@ fun GalleryScreen(
     val recommendPosters by vm.recommendStateExport.dataFlow.collectAsState()
     val searchPosters by vm.searchStateExports.dataFlow.collectAsState()
 
-
     var searchData by rememberSaveable { mutableStateOf(SearchData.default) }
-
 
     val followState = rememberLoadableLazyColumnState(
         refreshing = followRefreshState == SimpleState.Loading,
@@ -189,7 +197,12 @@ fun GalleryScreen(
             SearchPage(
                 mainController = mainController,
                 searchData = searchData,
-                onSearch = { vm.searchStateExports.refresh(it) },
+                onSearch = {
+                    scope.launch {
+                        searchState.lazyListState.scrollToItem(0)
+                        vm.searchStateExports.refresh(it)
+                    }
+                },
                 onSearchDataChanged = { searchData = it },
                 onOpenPoster = onOpenPoster,
                 onPost = onPost,
@@ -203,15 +216,32 @@ fun GalleryScreen(
                 onDismiss = { showSearchPageState = false }
             )
         } else {
+            val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
             Scaffold(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
                 topBar = {
                     CenterAlignedTopAppBar(
+                        scrollBehavior = topAppBarScrollBehavior,
                         title = {
-                            PrimaryTabRow(
+                            TabRow(
                                 modifier = Modifier.width(200.dp),
                                 selectedTabIndex = horizontalPagerState.currentPage,
                                 divider = {},
+                                indicator = { tabPositions ->
+                                    val selectedTabIndex = horizontalPagerState.currentPage
+                                    if (selectedTabIndex < tabPositions.size) {
+                                        Box(
+                                            Modifier
+                                                .width(20.dp)
+                                                .tabIndicatorOffset(tabPositions[selectedTabIndex])
+                                                .height(3.dp)
+                                                .background(color = MaterialTheme.colorScheme.primary)
+                                        )
+                                    }
+                                },
+                                containerColor = Color.Transparent,
                             ) {
                                 pages.forEachIndexed { index, page ->
                                     Tab(
@@ -259,13 +289,11 @@ fun GalleryScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                 ) {
-                    CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
-                        HorizontalPager(
-                            state = horizontalPagerState,
-                            userScrollEnabled = false,
-                        ) { index ->
-                            pages[index].content()
-                        }
+                    HorizontalPager(
+                        state = horizontalPagerState,
+                        userScrollEnabled = true,
+                    ) { index ->
+                        pages[index].content()
                     }
                 }
             }

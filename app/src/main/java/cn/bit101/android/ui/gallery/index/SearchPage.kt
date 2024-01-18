@@ -9,7 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Reorder
 import androidx.compose.material.icons.sharp.Check
 import androidx.compose.material3.DropdownMenu
@@ -21,13 +21,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.ui.MainController
@@ -69,14 +70,18 @@ fun SearchPage(
 
     val orders = PostersOrder.nameAndValues
 
+    val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
+                scrollBehavior = topAppBarScrollBehavior,
                 title = {
                     CustomOutlinedTextField(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(start = 0.dp, end = 16.dp, top = 0.dp, bottom = 0.dp)
+                            .padding(start = 0.dp, end = 12.dp, top = 0.dp, bottom = 0.dp)
                             .height(42.dp),
                         textStyle = MaterialTheme.typography.bodyMedium,
                         suffix = {
@@ -112,13 +117,14 @@ fun SearchPage(
                         contentPadding = PaddingValues(start = 12.dp, end = 0.dp, top = 0.dp, bottom = 0.dp),
                         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions { onSearch(searchData) },
-                        onValueChange = { onSearchDataChanged(searchData.copy(search = it)) }
+                        onValueChange = { onSearchDataChanged(searchData.copy(search = it)) },
+                        placeholder = { Text(text = "在这里搜索哦", style = MaterialTheme.typography.bodyMedium) }
                     )
                 },
                 navigationIcon = {
                     IconButton(onClick = onDismiss) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            imageVector = Icons.Outlined.ArrowBack,
                             contentDescription = "关闭",
                         )
                     }

@@ -352,6 +352,24 @@ class PosterViewModel @Inject constructor(
     }
 
     /**
+     * 删除上传失败的图片
+     */
+    fun deleteFailImageOfComment(
+        commentType: CommentType,
+        index: Int
+    ) {
+        val commentEditDataMap = commentEditDataMapFlow.value
+        val commentEditData = commentEditDataMap[commentType] ?: return
+        setCommentEditData(commentType, commentEditData.copy(
+            uploadImageData = commentEditData.uploadImageData.copy(
+                images = commentEditData.uploadImageData.images.filterIndexed { i, image ->
+                    i != index || image.uploadImageState !is UploadImageState.Fail
+                }
+            )
+        ))
+    }
+
+    /**
      * 根据ID获取评论
      */
     fun findCommentById(id: Long) = _commentState.data.find { it.id.toLong() == id }

@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -56,6 +57,11 @@ fun UploadImageRow(
      * 打开删除图片的对话框
      */
     onOpenDeleteDialog: (Int) -> Unit,
+
+    /**
+     * 删除上传失败的图片
+     */
+    onDeleteFailImage: (Int) -> Unit,
 ) {
     val view = LocalView.current
     LazyRow(
@@ -70,7 +76,15 @@ fun UploadImageRow(
                         .clip(RoundedCornerShape(10.dp))
                         .combinedClickable(
                             onClickLabel = "open image",
-                            onClick = { onOpenImage((image.uploadImageState as UploadImageState.Success).image) },
+                            onClick = {
+                                if (image.uploadImageState is UploadImageState.Fail) {
+                                    onDeleteFailImage(index)
+                                    return@combinedClickable
+                                }
+
+                                val image = (image.uploadImageState as? UploadImageState.Success)?.image ?: return@combinedClickable
+                                onOpenImage(image)
+                            },
                             onLongClickLabel = "delete",
                             onLongClick = {
                                 view.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS)
@@ -97,7 +111,7 @@ fun UploadImageRow(
                             modifier = Modifier
                                 .size(30.dp)
                                 .align(Alignment.Center),
-                            imageVector = Icons.Rounded.Add,
+                            imageVector = Icons.Rounded.Close,
                             contentDescription = "fail",
                             tint = MaterialTheme.colorScheme.error
                         )

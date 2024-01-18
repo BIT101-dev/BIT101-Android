@@ -13,4 +13,6 @@ class DefaultAboutSettingManager @Inject constructor(
     override val ignoredVersion = settingDataStore.settingIgnoreVersion.toSettingItem()
 
     override val autoDetectUpgrade = settingDataStore.settingAutoDetectUpgrade.toSettingItem()
+
+    override val lastVersion = settingDataStore.settingLastVersion.toSettingItem()
 }

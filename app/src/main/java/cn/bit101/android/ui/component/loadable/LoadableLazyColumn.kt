@@ -139,7 +139,9 @@ internal fun BasicLoadableLazyColumn(
     }
     if(loadMoreState != null) {
         // 获取 lazyList 布局信息
-        val listLayoutInfo by derivedStateOf { lazyListState.layoutInfo }
+        val listLayoutInfo by remember {
+            derivedStateOf { lazyListState.layoutInfo }
+        }
 
         // 上次最后一个可见的 index
         var lastTimeLastVisibleIndex by remember {
@@ -169,7 +171,7 @@ internal fun BasicLoadableLazyColumn(
             val isScrollDown = currentLastVisibleIndex > lastTimeLastVisibleIndex ||
                     (currentLastVisibleIndex == lastTimeLastVisibleIndex && currentLastVisibleOffset > lastTimeLastVisibleOffset)
 
-            if(onBottom && isScrollDown && pullRefreshState?.refreshing != true) {
+            if((onBottom || isScrollDown) && pullRefreshState?.refreshing != true) {
                 LaunchedEffect(Unit) {
                     loadMoreState.onLoadMore()
                 }

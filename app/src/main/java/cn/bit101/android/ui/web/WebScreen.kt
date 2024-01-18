@@ -172,7 +172,7 @@ fun WebScreen(
     //进度条
     AnimatedVisibility(visible = (progress > 0f && progress < 1f)) {
         LinearProgressIndicator(
-            progress = { progress },
+            progress = progress,
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.secondary,
             trackColor = Color.Transparent,

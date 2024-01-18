@@ -14,8 +14,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.Send
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -25,7 +25,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -145,7 +144,7 @@ fun ReportScreenContent(
                 },
                 navigationIcon = {
                     IconButton(onClick = { mainController.navController.popBackStack() }) {
-                        Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
+                        Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -218,7 +217,7 @@ fun ReportScreenContent(
                             } else {
                                 Row {
                                     Icon(
-                                        imageVector = Icons.AutoMirrored.Rounded.Send,
+                                        imageVector = Icons.Rounded.Send,
                                         contentDescription = "举报",
                                         modifier = Modifier.align(Alignment.CenterVertically)
                                     )

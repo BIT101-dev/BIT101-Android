@@ -1,6 +1,12 @@
 package cn.bit101.android.ui.setting.page
 
 import android.view.HapticFeedbackConstants
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.with
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,6 +53,7 @@ import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
+@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun PagesSettingPageContent(
     pages: List<PageShowOnNav>,
@@ -94,40 +101,45 @@ private fun PagesSettingPageContent(
             ) {
                 itemsIndexed(changeablePages, { i, s -> s.toNameAndValue().value }) { index, item ->
                     ReorderableItem(state = state, key = item.toNameAndValue().value) { isDragging ->
-                        val color = if (isDragging) MaterialTheme.colorScheme.surfaceContainerHigh
-                        else MaterialTheme.colorScheme.surface
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .detectReorderAfterLongPress(state)
-                                .clip(RoundedCornerShape(8.dp)),
-                            color = color,
-                        ) {
-                            Box(
+                        AnimatedContent(
+                            targetState = if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            else MaterialTheme.colorScheme.surface,
+                            transitionSpec = { fadeIn() togetherWith fadeOut() },
+                            label = "color"
+                        ) { color ->
+                            Surface(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .padding(vertical = 4.dp),
+                                    .detectReorderAfterLongPress(state)
+                                    .clip(RoundedCornerShape(8.dp)),
+                                color = color,
                             ) {
-                                Row(modifier = Modifier.align(Alignment.CenterStart)) {
-                                    IconButton(
-                                        modifier = Modifier.detectReorder(state),
-                                        onClick = { }
-                                    ) {
-                                        Icon(imageVector = Icons.Outlined.DragIndicator, contentDescription = "move")
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 4.dp),
+                                ) {
+                                    Row(modifier = Modifier.align(Alignment.CenterStart)) {
+                                        IconButton(
+                                            modifier = Modifier.detectReorder(state),
+                                            onClick = { }
+                                        ) {
+                                            Icon(imageVector = Icons.Outlined.DragIndicator, contentDescription = "move")
+                                        }
+                                        Spacer(modifier = Modifier.padding(4.dp))
+                                        Text(
+                                            modifier = Modifier.align(Alignment.CenterVertically),
+                                            text = item.toNameAndValue().name
+                                        )
                                     }
-                                    Spacer(modifier = Modifier.padding(4.dp))
-                                    Text(
-                                        modifier = Modifier.align(Alignment.CenterVertically),
-                                        text = item.toNameAndValue().name
-                                    )
-                                }
-                                Row(modifier = Modifier.align(Alignment.CenterEnd)) {
-                                    Checkbox(
-                                        checked = item !in changeableHiddenPages,
-                                        onCheckedChange = { changeableHiddenPages = if(it) changeableHiddenPages - item else changeableHiddenPages + item }
-                                    )
-                                    Spacer(modifier = Modifier.padding(4.dp))
-                                    RadioButton(selected = item == changeableHomePage, onClick = { changeableHomePage = item })
+                                    Row(modifier = Modifier.align(Alignment.CenterEnd)) {
+                                        Checkbox(
+                                            checked = item !in changeableHiddenPages,
+                                            onCheckedChange = { changeableHiddenPages = if(it) changeableHiddenPages - item else changeableHiddenPages + item }
+                                        )
+                                        Spacer(modifier = Modifier.padding(4.dp))
+                                        RadioButton(selected = item == changeableHomePage, onClick = { changeableHomePage = item })
+                                    }
                                 }
                             }
                         }

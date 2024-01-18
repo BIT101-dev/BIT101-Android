@@ -5,29 +5,23 @@ import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.FaceRetouchingOff
 import androidx.compose.material.icons.outlined.Image
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,10 +37,8 @@ import androidx.compose.ui.layout.onPlaced
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import cn.bit101.android.ui.common.clearFocusOnKeyboardDismiss
 import cn.bit101.android.ui.component.bottomsheet.BottomSheet
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetDefaults
-import cn.bit101.android.ui.component.bottomsheet.BottomSheetState
 import cn.bit101.android.ui.component.bottomsheet.BottomSheetValue
 import cn.bit101.android.ui.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.ui.component.bottomsheet.rememberBottomSheetState
@@ -99,6 +91,11 @@ fun CommentBottomSheet(
     onOpenDeleteImageDialog: (Int) -> Unit,
 
     /**
+     * 删除上传失败的图片
+     */
+    onDeleteFailImage: (Int) -> Unit,
+
+    /**
      * 关闭评论框
      */
     onDismiss: () -> Unit,
@@ -132,7 +129,7 @@ fun CommentBottomSheet(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 16.dp, bottom = 4.dp, start = 16.dp, end = 16.dp),
+                    .padding(top = 16.dp, bottom = 4.dp, start = 12.dp, end = 12.dp),
             ) {
                 Text(
                     modifier = Modifier.align(Alignment.Center),
@@ -176,8 +173,7 @@ fun CommentBottomSheet(
                                 placed = true
                             }
                         }
-                    }
-                    .clearFocusOnKeyboardDismiss(),
+                    },
                 value = commentEditData.text,
                 onValueChange = { onEditComment(commentEditData.copy(text = it)) },
                 minLines = 3,
@@ -204,11 +200,12 @@ fun CommentBottomSheet(
             )
 
             if(commentEditData.uploadImageData.ifUpload) {
-                Box(modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp)) {
+                Box(modifier = Modifier.padding(start = 12.dp, end = 12.dp, bottom = 4.dp)) {
                     UploadImageRow(
                         images = commentEditData.uploadImageData.images,
                         onOpenImage = onOpenImage,
                         onOpenDeleteDialog = onOpenDeleteImageDialog,
+                        onDeleteFailImage = onDeleteFailImage
                     )
                 }
             }
@@ -216,7 +213,7 @@ fun CommentBottomSheet(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 16.dp, end = 16.dp, bottom = 4.dp)
+                    .padding(start = 12.dp, end = 12.dp, bottom = 4.dp)
             ) {
                 Row(
                     modifier = Modifier.align(Alignment.CenterStart),

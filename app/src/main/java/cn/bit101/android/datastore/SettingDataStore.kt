@@ -116,5 +116,9 @@ class SettingDataStore @Inject constructor() {
 
     private val SETTING_AUTO_DETECT_UPGRADE = booleanPreferencesKey("setting_auto_detect_upgrade")
     val settingAutoDetectUpgrade = PreferencesDataStoreItem(SETTING_AUTO_DETECT_UPGRADE, true)
+
+    // 上一次的版本，用来记录是不是第一次启动
+    private val SETTING_LAST_VERSION = longPreferencesKey("setting_last_version")
+    val settingLastVersion = PreferencesDataStoreItem(SETTING_LAST_VERSION, -1)
 }
 

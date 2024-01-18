@@ -8,10 +8,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -101,7 +100,7 @@ fun UserScreenContent(
                 navigationIcon = {
                     IconButton(onClick = { mainController.navController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            imageVector = Icons.Outlined.ArrowBack,
                             contentDescription = "back"
                         )
                     }
@@ -132,7 +131,7 @@ fun UserScreenContent(
                         onOpenPoster = { onOpenPoster(poster.id) },
                         onOpenImages = onOpenImages,
                     )
-                    HorizontalDivider(
+                    Divider(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(0.dp),
