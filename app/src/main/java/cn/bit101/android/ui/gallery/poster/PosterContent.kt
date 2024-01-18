@@ -44,7 +44,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -55,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -156,6 +156,7 @@ private fun PosterScreenBottomBar(
     data: GetPosterDataModel.Response,
     onOpenCommentToPoster: () -> Unit,
     onLikePoster: () -> Unit,
+    onShare: () -> Unit,
 ) {
     // 底部评论、点赞、举报等操作
     BottomAppBar(
@@ -216,7 +217,7 @@ private fun PosterScreenBottomBar(
         Column(
             modifier = Modifier
                 .pointerInput(Unit) {
-                    detectTapGestures(onTap = { })
+                    detectTapGestures(onTap = { onShare() })
                 },
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -314,7 +315,7 @@ fun PosterContent(
 ) {
     val cm = LocalClipboardManager.current
 
-    val bottomContentHeight = 60.dp
+    val ctx = LocalContext.current
 
     val topBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
@@ -337,6 +338,7 @@ fun PosterContent(
                 data = data,
                 onOpenCommentToPoster = onOpenCommentToPoster,
                 onLikePoster = onLikePoster,
+                onShare = { mainController.openPoster(data.id.toLong(), ctx) },
             )
         }
     ) { paddingValues ->
