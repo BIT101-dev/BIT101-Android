@@ -6,29 +6,23 @@ import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.room.Room
-import cn.bit101.android.database.BIT101Database
+import androidx.security.crypto.EncryptedSharedPreferences
 import com.umeng.commonsdk.UMConfigure
+import dagger.hilt.android.HiltAndroidApp
 
 /**
  * @author flwfdd
  * @date 2023/3/16 23:19
  * @description _(:з」∠)_
  */
+@HiltAndroidApp
 class App : Application() {
     companion object {
         @SuppressLint("StaticFieldLeak")
         lateinit var context: Context
 
-        // 数据库初始化
-        val DB: BIT101Database by lazy {
-            Room.databaseBuilder(
-                context,
-                BIT101Database::class.java,
-                "bit101.db"
-            ).fallbackToDestructiveMigration().build()
-        }
-        val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+        val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
+
     }
 
     override fun onCreate() {
@@ -44,10 +38,5 @@ class App : Application() {
             UMConfigure.DEVICE_TYPE_PHONE,
             ""
         )
-    }
-
-    override fun onTerminate() {
-        super.onTerminate()
-        DB.close()
     }
 }
