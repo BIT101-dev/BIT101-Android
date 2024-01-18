@@ -1,6 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="17" />
+    <bytecodeTargetLevel target="17">
+      <module name="BIT101.buildSrc" target="17" />
+      <module name="BIT101.buildSrc.main" target="17" />
+      <module name="BIT101.buildSrc.test" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>

@@ -9,8 +9,14 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import cn.bit101.android.database.DataStore
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import cn.bit101.android.manager.base.DarkThemeMode
+import cn.bit101.android.manager.base.ThemeSettingManager
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 
 
 private val LightColors = lightColorScheme(
@@ -80,16 +86,20 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun BIT101Theme(
-    content: @Composable() () -> Unit
+    vm: ThemeViewModel = hiltViewModel(),
+    content: @Composable () -> Unit
 ) {
     val dynamicColor =
-        if (DataStore.settingAutoThemeFlow.collectAsState(initial = false).value)
+        if (vm.dynamicThemeFlow.collectAsState(initial = false).value)
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
-        else
-            false
+        else false
 
-    val useDarkTheme =
-        isSystemInDarkTheme() && !DataStore.settingDisableDarkThemeFlow.collectAsState(initial = false).value
+    val darkThemeMode by vm.darkThemeModeFlow.collectAsState(initial = DarkThemeMode.System)
+    val useDarkTheme = when(darkThemeMode) {
+        is DarkThemeMode.Dark -> true
+        is DarkThemeMode.Light -> false
+        else -> isSystemInDarkTheme()
+    }
 
     // 应用 Material You 动态颜色
     val colors = when {
@@ -103,4 +113,12 @@ fun BIT101Theme(
         colorScheme = colors,
         content = content
     )
+}
+
+@HiltViewModel
+class ThemeViewModel @Inject constructor(
+    private val themeSettingManager: ThemeSettingManager
+) : ViewModel() {
+    val dynamicThemeFlow = themeSettingManager.dynamicTheme.flow
+    val darkThemeModeFlow = themeSettingManager.darkThemeMode.flow
 }
