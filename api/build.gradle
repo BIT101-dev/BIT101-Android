@@ -1,0 +1,29 @@
+plugins {
+    id 'java-library'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    // Retrofit
+    api 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
+
+    // 解析 HTML
+    implementation 'org.jsoup:jsoup:1.15.4'
+
+    // 处理 iCal 格式的日历文件
+    implementation("org.mnode.ical4j:ical4j:3.2.11") {
+        // exclude modules which are in conflict with system libraries
+        exclude group: 'commons-logging'
+        exclude group: 'org.json', module: 'json'
+        // exclude groovy because we don't need it
+        exclude group: 'org.codehaus.groovy', module: 'groovy'
+        exclude group: 'org.codehaus.groovy', module: 'groovy-dateutil'
+    }
+}

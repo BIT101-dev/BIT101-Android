@@ -99,28 +99,16 @@ dependencies {
 
     implementation "com.google.accompanist:accompanist-webview:0.31.2-alpha"
     implementation "com.google.accompanist:accompanist-drawablepainter:0.31.2-alpha"
-    implementation "com.squareup.okhttp3:okhttp:4.11.0"
-    implementation "com.squareup.okhttp3:logging-interceptor:4.11.0"
-    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
-    implementation 'com.squareup.retrofit2:converter-scalars:2.9.0'
     implementation "net.gotev:cookie-store-okhttp:1.5.0"
     implementation "net.gotev:cookie-store:1.5.0"
-    implementation 'org.jsoup:jsoup:1.15.4'
     implementation 'ovh.plrapps:mapcompose:2.5.0'
     implementation("io.coil-kt:coil-compose:2.3.0")
     // 友盟基础组件库（所有友盟业务SDK都依赖基础组件库）
     implementation 'com.umeng.umsdk:common:9.5.4'// (必选)
     implementation 'com.umeng.umsdk:asms:1.6.3'// 必选
 
-    api("org.mnode.ical4j:ical4j:3.2.11") {
-        // exclude modules which are in conflict with system libraries
-        exclude group: 'commons-logging'
-        exclude group: 'org.json', module: 'json'
-        // exclude groovy because we don't need it
-        exclude group: 'org.codehaus.groovy', module: 'groovy'
-        exclude group: 'org.codehaus.groovy', module: 'groovy-dateutil'
-    }
+
+    implementation(project(':api'))
 }
 
 // 开源声明生成配置

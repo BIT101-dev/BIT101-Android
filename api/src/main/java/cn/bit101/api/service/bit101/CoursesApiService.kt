@@ -1,6 +1,5 @@
 package cn.bit101.api.service.bit101
 
-import cn.bit101.api.model.common.CoursesOrder
 import cn.bit101.api.model.common.MaterialType
 import cn.bit101.api.model.http.*
 import cn.bit101.api.model.http.bit101.GetCourseByIdDataModel

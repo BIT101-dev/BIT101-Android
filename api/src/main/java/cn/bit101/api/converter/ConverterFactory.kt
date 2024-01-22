@@ -1,10 +1,16 @@
 package cn.bit101.api.converter
 
-import android.util.Log
-import cn.bit101.api.converter.lexue.*
+import cn.bit101.api.converter.lexue.GetCalendarConvertFactory
+import cn.bit101.api.converter.lexue.GetCalendarUrlConvertFactory
+import cn.bit101.api.converter.lexue.GetIndexConvertFactory
 import cn.bit101.api.converter.login.GetSchoolInitLoginConvertFactory
 import cn.bit101.api.converter.login.PostSchoolLoginConvertFactory
-import cn.bit101.api.model.http.school.*
+import cn.bit101.api.helper.Logger
+import cn.bit101.api.model.http.school.GetCalendarDataModel
+import cn.bit101.api.model.http.school.GetCalendarUrlDataModel
+import cn.bit101.api.model.http.school.GetLexueIndexDataModel
+import cn.bit101.api.model.http.school.GetSchoolInitLoginDataModel
+import cn.bit101.api.model.http.school.PostSchoolLoginDataModel
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Converter
@@ -13,7 +19,8 @@ import java.lang.reflect.Type
 
 class ConverterFactory(
     private val stringConverterFactory: Converter.Factory,
-    private val gsonConverterFactory: Converter.Factory
+    private val gsonConverterFactory: Converter.Factory,
+    logger: Logger,
 ) : Converter.Factory() {
 
     private val responseBodyConverterFactoryMap = mapOf<Class<*>, Converter.Factory>(
@@ -21,19 +28,19 @@ class ConverterFactory(
         Pair(String::class.java, stringConverterFactory),
 
         // 解析乐学主页
-        Pair(GetLexueIndexDataModel.Response::class.java, GetIndexConvertFactory()),
+        Pair(GetLexueIndexDataModel.Response::class.java, GetIndexConvertFactory(logger)),
 
         // 获取课程表链接
-        Pair(GetCalendarUrlDataModel.Response::class.java, GetCalendarUrlConvertFactory()),
+        Pair(GetCalendarUrlDataModel.Response::class.java, GetCalendarUrlConvertFactory(logger)),
 
         // 获取课程表
-        Pair(GetCalendarDataModel.Response::class.java, GetCalendarConvertFactory()),
+        Pair(GetCalendarDataModel.Response::class.java, GetCalendarConvertFactory(logger)),
 
         // 初始化登录
-        Pair(GetSchoolInitLoginDataModel.Response::class.java, GetSchoolInitLoginConvertFactory()),
+        Pair(GetSchoolInitLoginDataModel.Response::class.java, GetSchoolInitLoginConvertFactory(logger)),
 
         // 登录
-        Pair(PostSchoolLoginDataModel.Response::class.java, PostSchoolLoginConvertFactory()),
+        Pair(PostSchoolLoginDataModel.Response::class.java, PostSchoolLoginConvertFactory(logger)),
     )
 
     override fun responseBodyConverter(

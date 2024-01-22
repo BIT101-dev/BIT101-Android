@@ -14,7 +14,6 @@ import cn.bit101.api.service.bit101.VariablesApiService
 import cn.bit101.api.service.school.SchoolJxzxehallappApiService
 import cn.bit101.api.service.school.SchoolLexueApiService
 import cn.bit101.api.service.school.SchoolUserApiService
-import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.create
 

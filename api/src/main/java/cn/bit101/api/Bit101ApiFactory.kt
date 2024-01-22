@@ -1,7 +1,10 @@
 package cn.bit101.api
 
 import cn.bit101.api.converter.ConverterFactory
-import cn.bit101.api.option.*
+import cn.bit101.api.helper.Logger
+import cn.bit101.api.helper.emptyLogger
+import cn.bit101.api.option.ApiOption
+import cn.bit101.api.option.DEFAULT_API_OPTION
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
 import retrofit2.Retrofit
@@ -13,13 +16,18 @@ object Bit101ApiFactory {
         .setFieldNamingStrategy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .create()
 
-    fun create(option: ApiOption = DEFAULT_API_OPTION): Bit101Api {
+    fun create(
+        option: ApiOption = DEFAULT_API_OPTION,
+        logger: Logger = emptyLogger,
+    ): Bit101Api {
+
         val urls = if(option.webVpn) option.webVpnUrls
         else option.localUrls
 
         val converterFactory = ConverterFactory(
             stringConverterFactory = ScalarsConverterFactory.create(),
-            gsonConverterFactory = GsonConverterFactory.create(gson)
+            gsonConverterFactory = GsonConverterFactory.create(gson),
+            logger = logger,
         )
 
         return Bit101Api(

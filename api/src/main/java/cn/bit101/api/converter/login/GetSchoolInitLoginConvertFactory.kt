@@ -1,6 +1,6 @@
 package cn.bit101.api.converter.login
 
-import android.util.Log
+import cn.bit101.api.helper.Logger
 import cn.bit101.api.model.http.school.GetSchoolInitLoginDataModel
 import okhttp3.ResponseBody
 import org.jsoup.Jsoup
@@ -8,7 +8,9 @@ import retrofit2.Converter
 import retrofit2.Retrofit
 import java.lang.reflect.Type
 
-class GetSchoolInitLoginConvertFactory : Converter.Factory() {
+class GetSchoolInitLoginConvertFactory(
+    logger: Logger
+) : Converter.Factory() {
     override fun responseBodyConverter(
         type: Type,
         annotations: Array<out Annotation>,
@@ -33,7 +35,6 @@ class GetSchoolInitLoginConvertFactory : Converter.Factory() {
                     ifLogin = ifLogin,
                 )
             } catch (e: Exception) {
-                Log.e("PostSchoolLoginConvertFactory", e.toString())
                 GetSchoolInitLoginDataModel.Response(
                     html = html,
                     salt = null,

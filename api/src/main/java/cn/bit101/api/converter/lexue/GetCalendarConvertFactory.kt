@@ -1,7 +1,7 @@
 package cn.bit101.api.converter.lexue
 
-import android.util.Log
-import cn.bit101.api.model.http.school.*
+import cn.bit101.api.helper.Logger
+import cn.bit101.api.model.http.school.GetCalendarDataModel
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.property.Categories
@@ -15,7 +15,9 @@ import retrofit2.Retrofit
 import java.lang.reflect.Type
 import java.time.ZoneOffset
 
-class GetCalendarConvertFactory : Converter.Factory() {
+class GetCalendarConvertFactory(
+    logger: Logger
+) : Converter.Factory() {
     override fun responseBodyConverter(
         type: Type,
         annotations: Array<out Annotation>,

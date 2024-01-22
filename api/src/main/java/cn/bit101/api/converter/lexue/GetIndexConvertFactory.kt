@@ -1,12 +1,15 @@
 package cn.bit101.api.converter.lexue
 
+import cn.bit101.api.helper.Logger
 import cn.bit101.api.model.http.school.*
 import okhttp3.ResponseBody
 import retrofit2.Converter
 import retrofit2.Retrofit
 import java.lang.reflect.Type
 
-class GetIndexConvertFactory : Converter.Factory() {
+class GetIndexConvertFactory(
+    logger: Logger
+) : Converter.Factory() {
     override fun responseBodyConverter(
         type: Type,
         annotations: Array<out Annotation>,

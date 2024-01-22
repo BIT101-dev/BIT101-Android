@@ -1,12 +1,15 @@
 package cn.bit101.api.converter.login
 
+import cn.bit101.api.helper.Logger
 import cn.bit101.api.model.http.school.PostSchoolLoginDataModel
 import okhttp3.ResponseBody
 import retrofit2.Converter
 import retrofit2.Retrofit
 import java.lang.reflect.Type
 
-class PostSchoolLoginConvertFactory : Converter.Factory() {
+class PostSchoolLoginConvertFactory(
+    logger: Logger
+) : Converter.Factory() {
     override fun responseBodyConverter(
         type: Type,
         annotations: Array<out Annotation>,
