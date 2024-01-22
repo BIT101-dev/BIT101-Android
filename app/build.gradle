@@ -41,12 +41,6 @@ android {
     kotlinOptions {
         jvmTarget = versions.jvmTarget
     }
-    buildFeatures {
-        compose true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion '1.5.3'
-    }
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
@@ -55,58 +49,16 @@ android {
 }
 
 dependencies {
-
-    // hilt
-    implementation "com.google.dagger:hilt-android:${versions.hilt}"
-    ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
-    implementation "androidx.hilt:hilt-navigation-compose:1.1.0"
-
-    // 状态栏、导航栏管理
-    implementation "com.google.accompanist:accompanist-systemuicontroller:0.31.2-alpha"
-
-    // 启动屏
-    implementation "androidx.core:core-splashscreen:1.0.1"
-
-    // 拖动排序
-    implementation "org.burnoutcrew.composereorderable:reorderable:0.9.6"
-
-    implementation 'androidx.core:core-ktx:1.12.0'
-
-
-    // 物料清单，用于统一管理 Compose 版本
-    implementation platform(boms.compose)
-    androidTestImplementation platform(boms.compose)
-
-    // Compose
-    implementation "androidx.compose.ui:ui"
-    implementation "androidx.compose.ui:ui-util"
-    implementation "androidx.compose.ui:ui-tooling-preview"
-    implementation 'androidx.compose.material3:material3'
-    implementation "androidx.compose.material:material-icons-extended"
-    androidTestImplementation "androidx.compose.ui:ui-test-junit4"
-    debugImplementation "androidx.compose.ui:ui-tooling"
-    debugImplementation "androidx.compose.ui:ui-test-manifest"
-    implementation "androidx.compose.runtime:runtime-livedata"
-
-
-    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
-    implementation "androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0"
-    implementation 'androidx.activity:activity-compose:1.8.2'
-
-    testImplementation 'junit:junit:4.13.2'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-
-    implementation 'com.google.code.gson:gson:2.9.0'
-
-    implementation "com.google.accompanist:accompanist-webview:0.31.2-alpha"
-    implementation "com.google.accompanist:accompanist-drawablepainter:0.31.2-alpha"
-    implementation 'ovh.plrapps:mapcompose:2.5.0'
-    implementation("io.coil-kt:coil-compose:2.3.0")
+    implementation 'androidx.test:core-ktx:1.5.0'
+    implementation 'androidx.test.ext:junit-ktx:1.1.5'
 
     // 友盟基础组件库（所有友盟业务SDK都依赖基础组件库）
     implementation 'com.umeng.umsdk:common:9.5.4'// (必选)
     implementation 'com.umeng.umsdk:asms:1.6.3'// 必选
+
+    // hilt
+    implementation "com.google.dagger:hilt-android:${versions.hilt}"
+    ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
 
     implementation(project(':common'))
     implementation(project(':features'))

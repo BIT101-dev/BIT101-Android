@@ -44,5 +44,4 @@ dependencies {
     // hilt
     implementation "com.google.dagger:hilt-android:${versions.hilt}"
     ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
-
 }

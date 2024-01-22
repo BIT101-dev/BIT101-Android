@@ -49,9 +49,7 @@ android {
 
 dependencies {
 
-    // hilt
-    implementation "com.google.dagger:hilt-android:${versions.hilt}"
-    ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
+    // 用于 Compose 的 hilt
     implementation "androidx.hilt:hilt-navigation-compose:1.1.0"
 
     // 状态栏、导航栏管理
@@ -64,7 +62,6 @@ dependencies {
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.6"
 
     implementation 'androidx.core:core-ktx:1.12.0'
-
 
     // 物料清单，用于统一管理 Compose 版本
     implementation platform(boms.compose)
@@ -97,7 +94,16 @@ dependencies {
     implementation 'ovh.plrapps:mapcompose:2.5.0'
     implementation "io.coil-kt:coil-compose:2.3.0"
 
+    // 引用 common 模块
     implementation(project(':common'))
+
+    // 依赖 data 模块来进行数据交互
     implementation(project(':data'))
+
+    // 依赖 config 模块来进行设置相关操作
     implementation(project(':config'))
+
+    // hilt
+    implementation "com.google.dagger:hilt-android:${versions.hilt}"
+    ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
 }

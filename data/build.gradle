@@ -40,16 +40,19 @@ dependencies {
     ksp "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-testing:$room_version"
 
-    // hilt
-    implementation "com.google.dagger:hilt-android:${versions.hilt}"
-    ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
-
     // CookieJar
     implementation "net.gotev:cookie-store-okhttp:1.5.0"
 
-    // 需要依赖 api 模块来进行网络请求，且将该依赖传递
-    api project(path: ':api')
+    // 引用 common 模块
+    implementation project(':common')
 
-    // 需要依赖 config 模块来进行登录状态相关操作
-    implementation project(path: ':config')
+    // 引用 config 模块
+    implementation project(':config')
+
+    // 需要依赖 api 模块来进行网络请求，且将该依赖传递
+    api project(':api')
+
+    // hilt
+    implementation "com.google.dagger:hilt-android:${versions.hilt}"
+    ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
 }
