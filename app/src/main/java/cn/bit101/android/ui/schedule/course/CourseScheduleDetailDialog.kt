@@ -23,7 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
-import cn.bit101.android.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.CourseScheduleEntity
 
 // 课程详情对话框
 @Composable

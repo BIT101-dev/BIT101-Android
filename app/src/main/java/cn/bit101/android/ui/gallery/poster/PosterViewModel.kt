@@ -4,16 +4,16 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.repo.base.PosterRepo
-import cn.bit101.android.repo.base.ReactionRepo
-import cn.bit101.android.repo.base.UploadRepo
+import cn.bit101.android.data.repo.base.PosterRepo
+import cn.bit101.android.data.repo.base.ReactionRepo
+import cn.bit101.android.data.repo.base.UploadRepo
 import cn.bit101.android.ui.common.ImageData
 import cn.bit101.android.ui.common.ImageDataWithUploadState
-import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedOne
+import cn.bit101.android.ui.common.SimpleDataState
+import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.common.UploadImageData
 import cn.bit101.android.ui.common.UploadImageState
-import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.cleared
 import cn.bit101.android.ui.common.withSimpleDataStateFlow
 import cn.bit101.android.ui.common.withSimpleStateFlow
@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+
 /**
  * 编辑的评论数据
  */
@@ -211,16 +212,12 @@ class PosterViewModel @Inject constructor(
     /**
      * 上传评论中的图片
      */
-    fun uploadImage(
-        context: Context,
-        commentType: CommentType,
-        uri: Uri
-    ) {
+    fun uploadImage(commentType: CommentType, uri: Uri) {
         // 先添加到列表中，再上传
         setUploadImageState(commentType, uri, UploadImageState.Loading)
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val res = uploadRepo.uploadImage(context, uri)
+                val res = uploadRepo.uploadImage(uri)
 
                 // 上传成功后，更新列表
                 setUploadImageState(commentType, uri, UploadImageState.Success(res))

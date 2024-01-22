@@ -3,25 +3,24 @@ package cn.bit101.android.ui.setting.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.database.entity.DDLScheduleEntity
-import cn.bit101.android.manager.DefaultDDLSettingManager
-import cn.bit101.android.repo.base.DDLScheduleRepo
+import cn.bit101.android.config.setting.base.DDLSettings
+import cn.bit101.android.data.database.entity.DDLScheduleEntity
+import cn.bit101.android.data.repo.base.DDLScheduleRepo
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.common.withSimpleStateLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class DDLViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
-    private val ddlSettingManager: DefaultDDLSettingManager
+    private val ddlSettings: DDLSettings
 ) : ViewModel() {
 
-    val beforeDayFlow = ddlSettingManager.beforeDay.flow
+    val beforeDayFlow = ddlSettings.beforeDay.flow
 
-    val afterDayFlow = ddlSettingManager.afterDay.flow
+    val afterDayFlow = ddlSettings.afterDay.flow
 
     val updateLexueCalendarUrlStateLiveData = MutableLiveData<SimpleState?>()
 
@@ -29,25 +28,25 @@ class DDLViewModel @Inject constructor(
 
     fun setBeforeDay(day: Long) {
         viewModelScope.launch {
-            ddlSettingManager.beforeDay.set(day)
+            ddlSettings.beforeDay.set(day)
         }
     }
 
     fun setAfterDay(day: Long) {
         viewModelScope.launch {
-            ddlSettingManager.afterDay.set(day)
+            ddlSettings.afterDay.set(day)
         }
     }
 
     // 从网络获取日程url 返回是否成功
     fun updateLexueCalendarUrl() = withSimpleStateLiveData(updateLexueCalendarUrlStateLiveData) {
         val url = ddlScheduleRepo.getCalendarUrl() ?: throw Exception("url is null")
-        ddlSettingManager.url.set(url)
+        ddlSettings.url.set(url)
     }
 
     // 从网络获取日程
     fun updateLexueCalendar() = withSimpleStateLiveData(updateLexueCalendarLiveData) {
-        val url = ddlSettingManager.url.get()
+        val url = ddlSettings.url.get()
         val events = ddlScheduleRepo.getCalendarFromNet(url)
 
         val UIDs = events.map { it.uid }

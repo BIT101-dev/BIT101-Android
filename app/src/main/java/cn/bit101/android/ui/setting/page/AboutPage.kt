@@ -36,7 +36,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.App
 import cn.bit101.android.BuildConfig
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
@@ -48,9 +47,7 @@ import cn.bit101.android.ui.versions.UpdateDialog
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 
 @Composable
@@ -67,7 +64,7 @@ private fun AboutPageContent(
 ) {
     val context = LocalContext.current
 
-    val logo = App.context.applicationInfo.loadIcon(App.context.packageManager)
+    val logo = context.applicationInfo.loadIcon(context.packageManager)
 
     val gitHubUrl = "https://github.com/BIT101-dev/BIT101-Android"
     val qqUrl = "https://jq.qq.com/?_wv=1027&k=OTttwrzb"
@@ -368,13 +365,15 @@ fun AboutPage(
 
     val checkUpdateState by vm.checkUpdateStateLiveData.observeAsState()
 
+    val context = LocalContext.current
+
     LaunchedEffect(Unit) {
         //检测更新
         vm.checkUpdate()
 
         //读入开源声明
         MainScope().launch(Dispatchers.IO) {
-            val input = App.context.assets.open("open_source_licenses.txt")
+            val input = context.assets.open("open_source_licenses.txt")
             val buffer = ByteArray(input.available())
             input.read(buffer)
             input.close()

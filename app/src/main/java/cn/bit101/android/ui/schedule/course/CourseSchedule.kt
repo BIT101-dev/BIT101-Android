@@ -1,6 +1,5 @@
 package cn.bit101.android.ui.schedule.course
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,13 +15,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.CourseScheduleEntity
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleState
 

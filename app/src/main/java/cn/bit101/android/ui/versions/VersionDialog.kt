@@ -6,7 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import cn.bit101.android.BuildConfig
-import cn.bit101.android.manager.base.LoginStatusManager
+import cn.bit101.android.config.user.base.LoginStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -38,7 +38,7 @@ fun VersionDialog(
 
 @HiltViewModel
 class VersionDialogViewModel @Inject constructor(
-    private val loginStatusManager: LoginStatusManager
+    private val loginStatus: LoginStatus
 ) : ViewModel() {
-    val statusFlow = loginStatusManager.status.flow
+    val statusFlow = loginStatus.status.flow
 }

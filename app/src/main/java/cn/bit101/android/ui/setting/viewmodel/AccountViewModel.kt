@@ -1,13 +1,12 @@
 package cn.bit101.android.ui.setting.viewmodel
 
-import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.manager.base.LoginStatusManager
-import cn.bit101.android.repo.base.LoginRepo
-import cn.bit101.android.repo.base.UploadRepo
-import cn.bit101.android.repo.base.UserRepo
+import cn.bit101.android.config.user.base.LoginStatus
+import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.android.data.repo.base.UploadRepo
+import cn.bit101.android.data.repo.base.UserRepo
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.common.withSimpleDataStateFlow
@@ -24,7 +23,7 @@ class AccountViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val loginRepo: LoginRepo,
     private val uploadRepo: UploadRepo,
-    private val loginStatusManager: LoginStatusManager
+    private val loginStatus: LoginStatus
 ) : ViewModel() {
     private val _getUserInfoStateFlow = MutableStateFlow<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
     val getUserInfoStateFlow = _getUserInfoStateFlow
@@ -32,9 +31,9 @@ class AccountViewModel @Inject constructor(
     private val _checkLoginStateFlow = MutableStateFlow<SimpleState?>(null)
     val checkLoginStateFlow = _checkLoginStateFlow
 
-    val loginStatusFlow = loginStatusManager.status.flow
+    val loginStatusFlow = loginStatus.status.flow
 
-    val sidFlow = loginStatusManager.sid.flow
+    val sidFlow = loginStatus.sid.flow
 
     private val _updateUserInfoStateFlow = MutableStateFlow<SimpleState?>(null)
     val updateUserInfoStateFlow = _updateUserInfoStateFlow
@@ -63,8 +62,8 @@ class AccountViewModel @Inject constructor(
         }
     }
 
-    fun updateAvatar(context: Context, uri: Uri) = withSimpleStateFlow(_updateAvatarStateFlow) {
-        val avatar = uploadRepo.uploadImage(context, uri)
+    fun updateAvatar(uri: Uri) = withSimpleStateFlow(_updateAvatarStateFlow) {
+        val avatar = uploadRepo.uploadImage(uri)
         val oldData = (getUserInfoStateFlow.value as SimpleDataState.Success).data
         userRepo.updateUser(
             avatarMid = avatar.mid,

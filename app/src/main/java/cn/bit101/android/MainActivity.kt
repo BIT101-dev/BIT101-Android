@@ -9,13 +9,11 @@ import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import cn.bit101.android.datastore.SettingDataStore
-import cn.bit101.android.manager.base.ThemeSettingManager
+import cn.bit101.android.config.setting.base.ThemeSettings
 import cn.bit101.android.ui.MainApp
 import cn.bit101.android.ui.theme.BIT101Theme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,7 +22,7 @@ import javax.inject.Inject
 class MainActivity : ComponentActivity() {
 
     @Inject
-    lateinit var themeSettingManager: ThemeSettingManager
+    lateinit var themeSettings: ThemeSettings
 
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
@@ -50,7 +48,7 @@ class MainActivity : ComponentActivity() {
 
         // 设置屏幕旋转
         MainScope().launch {
-            themeSettingManager.autoRotate.flow.collect {
+            themeSettings.autoRotate.flow.collect {
                 requestedOrientation = if (it) {
                     ActivityInfo.SCREEN_ORIENTATION_FULL_SENSOR
                 } else {

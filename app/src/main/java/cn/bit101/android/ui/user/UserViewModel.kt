@@ -3,8 +3,8 @@ package cn.bit101.android.ui.user
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.repo.base.PosterRepo
-import cn.bit101.android.repo.base.UserRepo
+import cn.bit101.android.data.repo.base.PosterRepo
+import cn.bit101.android.data.repo.base.UserRepo
 import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedOne
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState

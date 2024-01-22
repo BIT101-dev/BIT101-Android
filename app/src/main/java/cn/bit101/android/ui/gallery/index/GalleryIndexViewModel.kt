@@ -2,7 +2,7 @@ package cn.bit101.android.ui.gallery.index
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.repo.base.PosterRepo
+import cn.bit101.android.data.repo.base.PosterRepo
 import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedOne
 import cn.bit101.android.ui.common.RefreshAndLoadMoreStatesCombinedZero
 import cn.bit101.api.model.common.PostersFilter

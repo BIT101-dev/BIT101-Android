@@ -197,9 +197,7 @@ fun AccountPage(
     var showMottoEditDialog by rememberSaveable { mutableStateOf(false) }
 
     val imagePicker = rememberImagePicker(
-        onPickImage = {
-            vm.updateAvatar(ctx, it)
-        }
+        vm::updateAvatar
     )
 
     val user = (getUserInfoState as? SimpleDataState.Success)?.data?.user

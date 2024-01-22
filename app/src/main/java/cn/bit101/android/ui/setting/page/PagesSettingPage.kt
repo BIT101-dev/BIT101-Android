@@ -6,7 +6,6 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.animation.with
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -41,8 +40,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.manager.base.PageShowOnNav
-import cn.bit101.android.manager.base.toNameAndValue
+import cn.bit101.android.config.setting.base.PageShowOnNav
+import cn.bit101.android.config.setting.base.toPageData
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.setting.SettingItem
 import cn.bit101.android.ui.component.setting.SettingItemData
@@ -53,7 +52,6 @@ import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
-@OptIn(ExperimentalAnimationApi::class)
 @Composable
 private fun PagesSettingPageContent(
     pages: List<PageShowOnNav>,
@@ -99,8 +97,8 @@ private fun PagesSettingPageContent(
                     .reorderable(state),
                 contentPadding = PaddingValues(12.dp),
             ) {
-                itemsIndexed(changeablePages, { i, s -> s.toNameAndValue().value }) { index, item ->
-                    ReorderableItem(state = state, key = item.toNameAndValue().value) { isDragging ->
+                itemsIndexed(changeablePages, { i, s -> s.toPageData().value }) { index, item ->
+                    ReorderableItem(state = state, key = item.toPageData().value) { isDragging ->
                         AnimatedContent(
                             targetState = if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                             else MaterialTheme.colorScheme.surface,
@@ -129,7 +127,7 @@ private fun PagesSettingPageContent(
                                         Spacer(modifier = Modifier.padding(4.dp))
                                         Text(
                                             modifier = Modifier.align(Alignment.CenterVertically),
-                                            text = item.toNameAndValue().name
+                                            text = item.toPageData().name
                                         )
                                     }
                                     Row(modifier = Modifier.align(Alignment.CenterEnd)) {

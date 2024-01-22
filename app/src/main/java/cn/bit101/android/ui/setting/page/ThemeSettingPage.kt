@@ -25,8 +25,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.manager.base.DarkThemeMode
-import cn.bit101.android.manager.base.toNameAndValue
+import cn.bit101.android.config.setting.base.DarkThemeMode
+import cn.bit101.android.config.setting.base.toDarkThemeData
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.component.setting.SettingItemData
 import cn.bit101.android.ui.component.setting.SettingsColumn
@@ -112,7 +112,7 @@ private fun DarkModeDialog(
                             onClick = null
                         )
                         Text(
-                            text = item.toNameAndValue().name,
+                            text = item.toDarkThemeData().name,
                             modifier = Modifier.padding(start = 10.dp),
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -139,7 +139,7 @@ fun ThemeSettingPage(
 
     ThemeSettingPageContent(
         dynamic = dynamic,
-        darkMode = darkMode.toNameAndValue().name,
+        darkMode = darkMode.toDarkThemeData().name,
         rotate = rotate,
 
         onChangeDynamic = vm::setDynamicTheme,

@@ -1,49 +1,37 @@
 package cn.bit101.android.ui
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import cn.bit101.android.BuildConfig
-import cn.bit101.android.manager.base.AboutSettingManager
-import cn.bit101.android.manager.base.LoginStatusManager
-import cn.bit101.android.manager.base.PageSettingManager
-import cn.bit101.android.repo.base.LoginRepo
-import cn.bit101.android.repo.base.VersionRepo
+import cn.bit101.android.config.setting.base.AboutSettings
+import cn.bit101.android.config.setting.base.PageSettings
+import cn.bit101.android.config.user.base.LoginStatus
+import cn.bit101.android.data.repo.base.LoginRepo
 import cn.bit101.android.ui.common.withScope
-import cn.bit101.api.model.http.app.GetVersionDataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
-    private val versionRepo: VersionRepo,
     private val loginRepo: LoginRepo,
-    private val aboutSettingManager: AboutSettingManager,
-    private val pageSettingManager: PageSettingManager,
-    private val loginStatusManager: LoginStatusManager
+    private val aboutSettings: AboutSettings,
+    private val pageSettings: PageSettings,
+    private val loginStatus: LoginStatus
 ) : ViewModel() {
-    val homePageFlow = pageSettingManager.homePage.flow
-    val hidePagesFlow = pageSettingManager.hidePages.flow
-    val allPagesFlow = pageSettingManager.allPages.flow
+    val homePageFlow = pageSettings.homePage.flow
+    val hidePagesFlow = pageSettings.hidePages.flow
+    val allPagesFlow = pageSettings.allPages.flow
 
-    val loginStatusFlow = loginStatusManager.status.flow
+    val loginStatusFlow = loginStatus.status.flow
 
-    val lastVersionFlow = aboutSettingManager.lastVersion.flow
+    val lastVersionFlow = aboutSettings.lastVersion.flow
 
-    val autoDetectUpgradeFlow = aboutSettingManager.autoDetectUpgrade.flow
+    val autoDetectUpgradeFlow = aboutSettings.autoDetectUpgrade.flow
 
     fun logout() = withScope {
         loginRepo.logout()
     }
 
     fun setLastVersion() = withScope {
-        aboutSettingManager.lastVersion.set(BuildConfig.VERSION_CODE.toLong())
+        aboutSettings.lastVersion.set(BuildConfig.VERSION_CODE.toLong())
     }
-
-    fun setIgnoreVersion(versionCode: Long) = withScope {
-        aboutSettingManager.ignoredVersion.set(versionCode)
-    }
-
 }

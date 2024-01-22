@@ -33,12 +33,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -56,8 +52,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import cn.bit101.android.BuildConfig
-import cn.bit101.android.manager.base.PageShowOnNav
-import cn.bit101.android.manager.base.toNameAndValue
+import cn.bit101.android.config.setting.base.PageShowOnNav
+import cn.bit101.android.config.setting.base.toPageData
 import cn.bit101.android.ui.common.NavBarHeight
 import cn.bit101.android.ui.component.image.ImageHost
 import cn.bit101.android.ui.component.image.rememberImageHostState
@@ -168,7 +164,7 @@ fun MainApp(
     }
 
     val routes = pages!!.filter { !hiddenPages!!.contains(it) }.map {
-        val page = it.toNameAndValue()
+        val page = it.toPageData()
 
         val icon = when(it) {
             PageShowOnNav.Schedule -> Icons.Rounded.Event
@@ -275,7 +271,7 @@ fun MainApp(
     ) { paddingValues ->
         NavHost(
             navController = mainController.navController,
-            startDestination = homePage!!.toNameAndValue().value,
+            startDestination = homePage!!.toPageData().value,
         ) {
             composable("schedule") {
                 WithLoginStatus(mainController, loginStatus) {

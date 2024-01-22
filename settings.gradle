@@ -16,3 +16,5 @@ dependencyResolutionManagement {
 rootProject.name = "BIT101"
 include ':app'
 include ':api'
+include ':config'
+include ':data'

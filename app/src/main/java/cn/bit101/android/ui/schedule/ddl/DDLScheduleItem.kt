@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import cn.bit101.android.database.entity.DDLScheduleEntity
+import cn.bit101.android.data.database.entity.DDLScheduleEntity
 
 /**
  * @author flwfdd

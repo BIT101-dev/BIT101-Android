@@ -3,10 +3,10 @@ package cn.bit101.android.ui.schedule.ddl
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.database.BIT101Database
-import cn.bit101.android.database.entity.DDLScheduleEntity
-import cn.bit101.android.manager.base.DDLSettingManager
-import cn.bit101.android.repo.base.DDLScheduleRepo
+import cn.bit101.android.config.setting.base.DDLSettings
+import cn.bit101.android.data.database.BIT101Database
+import cn.bit101.android.data.database.entity.DDLScheduleEntity
+import cn.bit101.android.data.repo.base.DDLScheduleRepo
 import cn.bit101.android.ui.common.withScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -28,9 +28,9 @@ import javax.inject.Inject
 class DDLScheduleViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
     private val database: BIT101Database,
-    private val ddlSettingManager: DDLSettingManager
+    private val ddlSettings: DDLSettings
 ) : ViewModel() {
-    val lexueCalendarUrlFlow = ddlSettingManager.url.flow
+    val lexueCalendarUrlFlow = ddlSettings.url.flow
     var beforeDay = 7
     var afterDay = 3
 
@@ -42,11 +42,11 @@ class DDLScheduleViewModel @Inject constructor(
     init {
 
         withScope {
-            beforeDay = ddlSettingManager.beforeDay.get().toInt()
+            beforeDay = ddlSettings.beforeDay.get().toInt()
         }
 
         withScope {
-            val afterDayLong = ddlSettingManager.afterDay.get()
+            val afterDayLong = ddlSettings.afterDay.get()
             afterDay = afterDayLong.toInt()
             startGetEvents(afterDayLong)
         }
@@ -61,17 +61,15 @@ class DDLScheduleViewModel @Inject constructor(
     private fun startGetEvents(day: Long) {
         job?.cancel()
         job = viewModelScope.launch {
-            database.DDLScheduleDao().getFuture(LocalDateTime.now().minusDays(day))
-                .collect(
-                    _events::emit
-                )
+            ddlScheduleRepo.getFutureDDL(LocalDateTime.now().minusDays(day))
+                .collect(_events::emit)
         }
     }
 
     // 设置完成状态
     fun setDone(event: DDLScheduleEntity, done: Boolean) {
         viewModelScope.launch {
-            database.DDLScheduleDao().update(event.copy(done = done))
+            ddlScheduleRepo.updateDDL(event.copy(done = done))
         }
     }
 
@@ -92,7 +90,7 @@ class DDLScheduleViewModel @Inject constructor(
             done = false
         )
         viewModelScope.launch {
-            database.DDLScheduleDao().insert(item)
+            ddlScheduleRepo.insertDDL(item)
         }
     }
 
@@ -104,7 +102,7 @@ class DDLScheduleViewModel @Inject constructor(
         text: String,
     ) {
         viewModelScope.launch {
-            database.DDLScheduleDao().update(
+            ddlScheduleRepo.updateDDL(
                 item.copy(
                     title = title,
                     time = time,
@@ -117,7 +115,7 @@ class DDLScheduleViewModel @Inject constructor(
     // 删除DDL
     fun deleteDDL(item: DDLScheduleEntity) {
         viewModelScope.launch {
-            database.DDLScheduleDao().delete(item)
+            ddlScheduleRepo.deleteDDL(item)
         }
     }
 
@@ -165,7 +163,7 @@ class DDLScheduleViewModel @Inject constructor(
                 Log.e("DDLScheduleViewModel", "get lexue calendar url error")
                 return false
             }
-            ddlSettingManager.url.set(url)
+            ddlSettings.url.set(url)
 
             return true
         } catch (e: Exception) {
@@ -178,7 +176,7 @@ class DDLScheduleViewModel @Inject constructor(
     // 从网络获取日程 返回是否成功
     suspend fun updateLexueCalendar(): Boolean {
         try {
-            val url = ddlSettingManager.url.get()
+            val url = ddlSettings.url.get()
             if (url.isEmpty()) {
                 Log.e("DDLScheduleViewModel", "no lexue calendar url")
                 return false
@@ -187,7 +185,7 @@ class DDLScheduleViewModel @Inject constructor(
             val UIDs = events.map { it.uid }
             // 获取数据库中已有日程
             val existItems = HashMap<String, DDLScheduleEntity>()
-            database.DDLScheduleDao().getUIDs(UIDs).forEach { existItems[it.uid] = it }
+            ddlScheduleRepo.getDDLByUIDs(UIDs).forEach { existItems[it.uid] = it }
             events.forEach {
                 val item = DDLScheduleEntity(
                     id = 0,
@@ -200,10 +198,10 @@ class DDLScheduleViewModel @Inject constructor(
                 )
                 if (existItems[it.uid] == null) {
                     // 不存在则插入
-                    database.DDLScheduleDao().insert(item)
+                    ddlScheduleRepo.insertDDL(item)
                 } else {
                     // 存在则更新
-                    database.DDLScheduleDao().update(
+                    ddlScheduleRepo.updateDDL(
                         item.copy(
                             id = existItems[it.uid]!!.id,
                             done = existItems[it.uid]!!.done

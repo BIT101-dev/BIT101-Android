@@ -136,7 +136,7 @@ fun PosterScreen(
      */
     val imagePicker = rememberImagePicker {
         if(commentTypeNeedShowCommentBottomSheet != null) {
-            vm.uploadImage(ctx, commentTypeNeedShowCommentBottomSheet!!, it)
+            vm.uploadImage(commentTypeNeedShowCommentBottomSheet!!, it)
         }
     }
 

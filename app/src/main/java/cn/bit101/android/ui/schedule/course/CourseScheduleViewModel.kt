@@ -2,17 +2,18 @@ package cn.bit101.android.ui.schedule.course
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import cn.bit101.android.database.entity.CourseScheduleEntity
-import cn.bit101.android.manager.base.CourseScheduleSettingManager
-import cn.bit101.android.repo.base.CoursesRepo
+import cn.bit101.android.config.setting.base.CourseScheduleSettings
+import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.repo.base.CoursesRepo
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.common.withScope
 import cn.bit101.android.ui.common.withSimpleStateLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
@@ -35,31 +36,31 @@ data class SettingData(
 @HiltViewModel
 class CourseScheduleViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
-    private val scheduleSettingManager: CourseScheduleSettingManager
+    private val courseScheduleSettings: CourseScheduleSettings
 ) : ViewModel() {
     private val _courses = MutableStateFlow<List<List<CourseScheduleEntity>>>(emptyList())
     val courses: StateFlow<List<List<CourseScheduleEntity>>> = _courses.asStateFlow()
 
-    val firstDayFlow = scheduleSettingManager.firstDay.flow
+    val firstDayFlow = courseScheduleSettings.firstDay.flow
 
     private val _weekFlow = MutableStateFlow(Int.MAX_VALUE)
     val weekFlow: StateFlow<Int> = _weekFlow.asStateFlow()
 
 
     // 课表相关信息
-    val currentTermFlow = scheduleSettingManager.term.flow
-    val timeTableStringFlow = scheduleSettingManager.timeTable.flow
+    val currentTermFlow = courseScheduleSettings.term.flow
+    val timeTableStringFlow = courseScheduleSettings.timeTable.flow
 
     private val coursesFlow = coursesRepo.getCoursesFromLocal()
 
 
     // 显示相关配置
-    val showSaturdayFlow = scheduleSettingManager.showSaturday.flow
-    val showSundayFlow = scheduleSettingManager.showSunday.flow
-    val showBorderFlow = scheduleSettingManager.showBorder.flow
-    val showHighlightTodayFlow = scheduleSettingManager.highlightToday.flow
-    val showDividerFlow = scheduleSettingManager.showDivider.flow
-    val showCurrentTimeFlow = scheduleSettingManager.showCurrentTime.flow
+    val showSaturdayFlow = courseScheduleSettings.showSaturday.flow
+    val showSundayFlow = courseScheduleSettings.showSunday.flow
+    val showBorderFlow = courseScheduleSettings.showBorder.flow
+    val showHighlightTodayFlow = courseScheduleSettings.highlightToday.flow
+    val showDividerFlow = courseScheduleSettings.showDivider.flow
+    val showCurrentTimeFlow = courseScheduleSettings.showCurrentTime.flow
 
     val refreshCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
     val forceRefreshCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
@@ -102,7 +103,7 @@ class CourseScheduleViewModel @Inject constructor(
     fun forceRefreshCourses() = withSimpleStateLiveData(refreshCoursesStateLiveData) {
         // 获得学期
         val term = coursesRepo.getCurrentTermFromNet()
-        scheduleSettingManager.term.set(term)
+        courseScheduleSettings.term.set(term)
 
         // 获取课表
         val courses = coursesRepo.getCoursesFromNet(term)
@@ -110,7 +111,7 @@ class CourseScheduleViewModel @Inject constructor(
 
         // 获取学期第一天
         val firstDay = coursesRepo.getFirstDayFromNet(term)
-        scheduleSettingManager.firstDay.set(firstDay)
+        courseScheduleSettings.firstDay.set(firstDay)
     }
 
 

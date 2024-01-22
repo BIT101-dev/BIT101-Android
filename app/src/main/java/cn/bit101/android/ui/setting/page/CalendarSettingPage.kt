@@ -38,8 +38,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.manager.base.TimeTable
-import cn.bit101.android.manager.base.toTimeTableString
+import cn.bit101.android.config.setting.base.TimeTable
+import cn.bit101.android.config.setting.base.toTimeTableString
 import cn.bit101.android.ui.MainController
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState

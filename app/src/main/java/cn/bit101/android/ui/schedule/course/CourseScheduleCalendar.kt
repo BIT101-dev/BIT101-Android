@@ -49,8 +49,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import cn.bit101.android.database.entity.CourseScheduleEntity
-import cn.bit101.android.manager.base.TimeTable
+import cn.bit101.android.config.setting.base.TimeTable
+import cn.bit101.android.data.database.entity.CourseScheduleEntity
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter

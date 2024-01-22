@@ -13,8 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
-import cn.bit101.android.manager.base.DarkThemeMode
-import cn.bit101.android.manager.base.ThemeSettingManager
+import cn.bit101.android.config.setting.base.DarkThemeMode
+import cn.bit101.android.config.setting.base.ThemeSettings
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -117,8 +117,8 @@ fun BIT101Theme(
 
 @HiltViewModel
 class ThemeViewModel @Inject constructor(
-    private val themeSettingManager: ThemeSettingManager
+    private val themeSettings: ThemeSettings
 ) : ViewModel() {
-    val dynamicThemeFlow = themeSettingManager.dynamicTheme.flow
-    val darkThemeModeFlow = themeSettingManager.darkThemeMode.flow
+    val dynamicThemeFlow = themeSettings.dynamicTheme.flow
+    val darkThemeModeFlow = themeSettings.darkThemeMode.flow
 }

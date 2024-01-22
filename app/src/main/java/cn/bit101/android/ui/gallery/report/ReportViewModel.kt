@@ -2,7 +2,7 @@ package cn.bit101.android.ui.gallery.report
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import cn.bit101.android.repo.base.ManageRepo
+import cn.bit101.android.data.repo.base.ManageRepo
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.common.withSimpleDataStateFlow

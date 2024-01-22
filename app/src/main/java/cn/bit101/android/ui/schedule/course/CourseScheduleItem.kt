@@ -16,7 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import cn.bit101.android.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.CourseScheduleEntity
 
 /**
  * @author flwfdd

@@ -30,8 +30,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import cn.bit101.android.data.database.entity.DDLScheduleEntity
 import cn.bit101.android.ui.MainController
-import cn.bit101.android.database.entity.DDLScheduleEntity
 import java.time.format.DateTimeFormatter
 
 /**

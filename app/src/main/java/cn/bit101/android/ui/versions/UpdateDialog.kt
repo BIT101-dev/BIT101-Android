@@ -21,8 +21,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import cn.bit101.android.BuildConfig
-import cn.bit101.android.manager.base.AboutSettingManager
-import cn.bit101.android.repo.base.VersionRepo
+import cn.bit101.android.config.setting.base.AboutSettings
+import cn.bit101.android.data.repo.base.VersionRepo
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.withScope
 import cn.bit101.android.ui.common.withSimpleDataStateFlow
@@ -132,13 +132,13 @@ fun UpdateDialog(
 
 @HiltViewModel
 class UpdateDialogViewModel @Inject constructor(
-    private val aboutSettingManager: AboutSettingManager,
+    private val aboutSettings: AboutSettings,
     private val versionRepo: VersionRepo
 ) : ViewModel() {
     private val _getVersionStateFlow = MutableStateFlow<SimpleDataState<GetVersionDataModel.Response>?>(null)
     val getVersionStateFlow = _getVersionStateFlow.asStateFlow()
 
-    val ignoreVersionFlow = aboutSettingManager.ignoredVersion.flow
+    val ignoreVersionFlow = aboutSettings.ignoredVersion.flow
 
 
     fun getVersion() = withSimpleDataStateFlow(_getVersionStateFlow) {
@@ -146,6 +146,6 @@ class UpdateDialogViewModel @Inject constructor(
     }
 
     fun ignore(version: GetVersionDataModel.Response) = withScope {
-        aboutSettingManager.ignoredVersion.set(version.versionCode.toLong())
+        aboutSettings.ignoredVersion.set(version.versionCode.toLong())
     }
 }

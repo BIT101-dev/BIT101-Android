@@ -489,9 +489,7 @@ fun PostEditScreen(
         }
     }
 
-    val imagePicker = rememberImagePicker {
-        vm.uploadImage(ctx, it)
-    }
+    val imagePicker = rememberImagePicker(vm::uploadImage)
 
     if(claimsState is SimpleDataState.Success && loadPosterState is SimpleState.Success) {
         val claims = (claimsState as SimpleDataState.Success).data

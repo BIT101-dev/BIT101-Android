@@ -3,9 +3,9 @@ package cn.bit101.android.ui.setting.viewmodel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.manager.base.CourseScheduleSettingManager
-import cn.bit101.android.manager.base.toTimeTable
-import cn.bit101.android.repo.base.CoursesRepo
+import cn.bit101.android.config.setting.base.CourseScheduleSettings
+import cn.bit101.android.config.setting.base.toTimeTable
+import cn.bit101.android.data.repo.base.CoursesRepo
 import cn.bit101.android.ui.common.SimpleDataState
 import cn.bit101.android.ui.common.SimpleState
 import cn.bit101.android.ui.common.withScope
@@ -41,22 +41,22 @@ data class SettingData(
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
-    private val scheduleSettingManager: CourseScheduleSettingManager
+    private val courseScheduleSettings: CourseScheduleSettings
 ) : ViewModel() {
 
     // 设置的当前学期
     val currentTermFlow = coursesRepo.getCurrentTermFromLocal()
 
     // 当前学期的第一天
-    val firstDayFlow = scheduleSettingManager.firstDay.flow
+    val firstDayFlow = courseScheduleSettings.firstDay.flow
 
     val settingDataFlow = combine(
-        scheduleSettingManager.showSaturday.flow,
-        scheduleSettingManager.showSunday.flow,
-        scheduleSettingManager.showBorder.flow,
-        scheduleSettingManager.highlightToday.flow,
-        scheduleSettingManager.showDivider.flow,
-        scheduleSettingManager.showCurrentTime.flow
+        courseScheduleSettings.showSaturday.flow,
+        courseScheduleSettings.showSunday.flow,
+        courseScheduleSettings.showBorder.flow,
+        courseScheduleSettings.highlightToday.flow,
+        courseScheduleSettings.showDivider.flow,
+        courseScheduleSettings.showCurrentTime.flow
     ) { settings ->
         SettingData(
             showSaturday = settings[0],
@@ -68,7 +68,7 @@ class CalendarViewModel @Inject constructor(
         )
     }
 
-    val timeTableFlow = scheduleSettingManager.timeTable.flow
+    val timeTableFlow = courseScheduleSettings.timeTable.flow
 
     // 学期列表获取状态
     val getTermListStateLiveData = MutableLiveData<SimpleDataState<List<String>>?>(null)
@@ -96,7 +96,7 @@ class CalendarViewModel @Inject constructor(
             val oldTerm = currentTermFlow.first() ?: ""
 
             try {
-                scheduleSettingManager.term.set(term)
+                courseScheduleSettings.term.set(term)
 
                 // 重新获取第一天
                 getFirstDayWithoutState()
@@ -107,7 +107,7 @@ class CalendarViewModel @Inject constructor(
                 setCurrentTermStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
                 try {
-                    scheduleSettingManager.term.set(oldTerm)
+                    courseScheduleSettings.term.set(oldTerm)
 
                     // 重新获取第一天
                     getFirstDayWithoutState()
@@ -125,18 +125,18 @@ class CalendarViewModel @Inject constructor(
 
 
     fun setSettingData(settingData: SettingData) = withScope {
-        scheduleSettingManager.showDivider.set(settingData.showDivider)
-        scheduleSettingManager.showSaturday.set(settingData.showSaturday)
-        scheduleSettingManager.showSunday.set(settingData.showSunday)
-        scheduleSettingManager.highlightToday.set(settingData.showHighlightToday)
-        scheduleSettingManager.showBorder.set(settingData.showBorder)
-        scheduleSettingManager.showCurrentTime.set(settingData.showCurrentTime)
+        courseScheduleSettings.showDivider.set(settingData.showDivider)
+        courseScheduleSettings.showSaturday.set(settingData.showSaturday)
+        courseScheduleSettings.showSunday.set(settingData.showSunday)
+        courseScheduleSettings.highlightToday.set(settingData.showHighlightToday)
+        courseScheduleSettings.showBorder.set(settingData.showBorder)
+        courseScheduleSettings.showCurrentTime.set(settingData.showCurrentTime)
     }
 
     private suspend fun getFirstDayWithoutState() {
         val term = currentTermFlow.first() ?: throw Exception("no term")
         val firstDay = coursesRepo.getFirstDayFromNet(term)
-        scheduleSettingManager.firstDay.set(firstDay)
+        courseScheduleSettings.firstDay.set(firstDay)
     }
 
     fun getFirstDay() = withSimpleStateLiveData(getFirstDayStateLiveData) {
@@ -154,6 +154,6 @@ class CalendarViewModel @Inject constructor(
     }
 
     fun setTimeTable(timeTableStr: String) = withSimpleStateLiveData(setTimeTableStateLiveData) {
-        scheduleSettingManager.timeTable.set(timeTableStr.toTimeTable())
+        courseScheduleSettings.timeTable.set(timeTableStr.toTimeTable())
     }
 }

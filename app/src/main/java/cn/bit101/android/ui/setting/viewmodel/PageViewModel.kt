@@ -1,38 +1,35 @@
 package cn.bit101.android.ui.setting.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import cn.bit101.android.manager.base.PageSettingManager
-import cn.bit101.android.manager.base.PageShowOnNav
+import cn.bit101.android.config.setting.base.PageSettings
+import cn.bit101.android.config.setting.base.PageShowOnNav
 import cn.bit101.android.ui.common.withScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 
 @HiltViewModel
 class PageViewModel @Inject constructor(
-    private val pageSettingManager: PageSettingManager
+    private val pageSettings: PageSettings
 ) : ViewModel() {
 
-    val homePageFlow = pageSettingManager.homePage.flow
-    val allPagesFlow = pageSettingManager.allPages.flow
-    val hiddenPagesFlow = pageSettingManager.hidePages.flow
+    val homePageFlow = pageSettings.homePage.flow
+    val allPagesFlow = pageSettings.allPages.flow
+    val hiddenPagesFlow = pageSettings.hidePages.flow
 
     fun changePageSettings(
         allPages: List<PageShowOnNav>,
         homePage: PageShowOnNav,
         hiddenPages: List<PageShowOnNav>
     ) = withScope {
-       pageSettingManager.allPages.set(allPages)
-       pageSettingManager.homePage.set(homePage)
-       pageSettingManager.hidePages.set(hiddenPages)
+       pageSettings.allPages.set(allPages)
+       pageSettings.homePage.set(homePage)
+       pageSettings.hidePages.set(hiddenPages)
     }
 
     fun reset() = withScope {
-        pageSettingManager.allPages.set(PageShowOnNav.allPages)
-        pageSettingManager.homePage.set(PageShowOnNav.homePage)
-        pageSettingManager.hidePages.set(emptyList())
+        pageSettings.allPages.set(PageShowOnNav.allPages)
+        pageSettings.homePage.set(PageShowOnNav.homePage)
+        pageSettings.hidePages.set(emptyList())
     }
 }

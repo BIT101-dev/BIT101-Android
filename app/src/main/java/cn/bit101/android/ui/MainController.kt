@@ -16,6 +16,7 @@ import cn.bit101.android.ui.common.ImageData
 import cn.bit101.android.ui.component.image.ImageHostState
 import cn.bit101.android.ui.component.snackbar.SnackbarState
 import cn.bit101.api.model.common.Image
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -25,7 +26,6 @@ class MainController(
     val snackbarHostState: SnackbarState,
     val imageHostState: ImageHostState,
 ) {
-
     fun navigate(route: String) {
         navController.navigate(route)
     }
