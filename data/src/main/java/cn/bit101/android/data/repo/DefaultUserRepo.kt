@@ -7,7 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class DefaultUserRepo @Inject constructor(
+internal class DefaultUserRepo @Inject constructor(
     private val apiManager: APIManager
 ) : UserRepo {
 

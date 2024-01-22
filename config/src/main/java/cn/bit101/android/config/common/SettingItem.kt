@@ -1,27 +1,29 @@
 package cn.bit101.android.config.common
 
+import cn.bit101.android.config.datastore.basic.DataStoreItem
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-interface FlowableSettingItem<T> {
+/**
+ * 设置项，可以读写，也可以监听
+ */
+interface SettingItem<T> {
     val flow: Flow<T>
-}
-
-interface GettableSettingItem<T> {
     suspend fun get(): T
-}
-
-interface SettableSettingItem<T> {
     suspend fun set(value: T)
 }
 
-interface SettingItem<T>: GettableSettingItem<T>, SettableSettingItem<T>, FlowableSettingItem<T>
-
-interface Transformer <T, R> {
+/**
+ * 用于转换数据类型，T <-> R
+ */
+internal interface Transformer <T, R> {
     fun invokeTo(value: T): R
     fun invokeFrom(value: R): T
 }
 
+/**
+ * 用于转换数据类型
+ */
 internal fun <T, R> SettingItem<T>.map(transformer: Transformer<T, R>): SettingItem<R> {
     val item = this
     return object : SettingItem<R> {
@@ -31,7 +33,10 @@ internal fun <T, R> SettingItem<T>.map(transformer: Transformer<T, R>): SettingI
     }
 }
 
-internal fun <T> cn.bit101.android.config.datastore.basic.DataStoreItem<T>.toSettingItem(): SettingItem<T> {
+/**
+ * 从 DataStoreItem 转换为 SettingItem
+ */
+internal fun <T> DataStoreItem<T>.toSettingItem(): SettingItem<T> {
     val item = this
     return object : SettingItem<T> {
         override val flow: Flow<T> = item.flow

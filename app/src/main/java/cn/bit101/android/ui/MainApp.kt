@@ -175,7 +175,7 @@ fun MainApp(
         }
 
         Screen(
-            route = page.value,
+            route = page.route,
             label = page.name,
             icon = icon
         )
@@ -271,7 +271,7 @@ fun MainApp(
     ) { paddingValues ->
         NavHost(
             navController = mainController.navController,
-            startDestination = homePage!!.toPageData().value,
+            startDestination = homePage!!.toPageData().route,
         ) {
             composable("schedule") {
                 WithLoginStatus(mainController, loginStatus) {

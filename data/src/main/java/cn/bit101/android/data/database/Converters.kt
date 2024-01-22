@@ -6,7 +6,9 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-// 时间数据格式转换器
+/**
+ * 时间、日期数据格式转换器
+ */
 internal class Converters {
     @TypeConverter
     fun toLocalDataTime(value: Long?): LocalDateTime? {

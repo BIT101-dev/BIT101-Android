@@ -32,14 +32,15 @@ android {
 }
 
 dependencies {
+    // 自动生成的东西
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
-
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
+    // Room 数据库
     def room_version = "2.6.1"
     implementation "androidx.room:room-runtime:$room_version"
     annotationProcessor "androidx.room:room-compiler:$room_version"
@@ -47,9 +48,16 @@ dependencies {
     kapt "androidx.room:room-compiler:$room_version"
     implementation "androidx.room:room-testing:$room_version"
 
+    // hilt
     implementation("com.google.dagger:hilt-android:2.48")
     kapt("com.google.dagger:hilt-android-compiler:2.48")
 
+    // CookieJar
+    implementation "net.gotev:cookie-store-okhttp:1.5.0"
+
+    // 需要依赖 api 模块来进行网络请求，且将该依赖传递
     api project(path: ':api')
+
+    // 需要依赖 config 模块来进行登录状态相关操作
     implementation project(path: ':config')
 }

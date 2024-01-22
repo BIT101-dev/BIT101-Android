@@ -12,7 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class DefaultPosterRepo @Inject constructor(
+internal class DefaultPosterRepo @Inject constructor(
     private val apiManager: APIManager
 ) : PosterRepo {
 
@@ -79,14 +79,14 @@ class DefaultPosterRepo @Inject constructor(
     }
 
     override suspend fun getPostersOfUserByUid(
-        id: Long,
+        uid: Long,
         page: Long?
     ) = withContext(Dispatchers.IO) {
-        if(id.toInt() == -1) emptyList()
+        if(uid.toInt() == -1) emptyList()
         else api.posters.getPosters(
             mode = PostersMode.search,
             page = page,
-            uid = id.toInt()
+            uid = uid.toInt()
         ).body() ?: throw Exception("get posters error")
     }
 

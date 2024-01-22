@@ -18,7 +18,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class RepoModule {
+internal abstract class RepoModule {
     @Binds
     @Singleton
     abstract fun bindCalendarRepo(

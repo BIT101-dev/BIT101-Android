@@ -12,6 +12,10 @@ import javax.inject.Inject
 internal class DefaultThemeSettings @Inject constructor(
     settingDataStore: SettingDataStore
 ) : ThemeSettings {
+
+    /**
+     * darkThemeMode 的转换器
+     */
     private val darkThemeModeTransformer = object : Transformer<String, DarkThemeMode> {
         override fun invokeTo(value: String) = DarkThemeMode.getMode(value)
         override fun invokeFrom(value: DarkThemeMode) = value.toDarkThemeData().value

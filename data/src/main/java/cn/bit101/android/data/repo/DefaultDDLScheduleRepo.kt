@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
 
-class DefaultDDLScheduleRepo @Inject constructor(
+internal class DefaultDDLScheduleRepo @Inject constructor(
     private val database: BIT101Database,
     private val apiManager: APIManager,
 ) : DDLScheduleRepo {

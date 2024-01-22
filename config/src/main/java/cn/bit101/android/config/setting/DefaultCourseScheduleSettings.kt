@@ -15,6 +15,10 @@ import javax.inject.Inject
 internal class DefaultCourseScheduleSettings @Inject constructor(
     settingDataStore: SettingDataStore
 ) : CourseScheduleSettings {
+
+    /**
+     * 课表第一天的转换器，用于将字符串转换为日期，或者将日期转换为字符串
+     */
     private val firstDayTransformer = object : Transformer<String, LocalDate?> {
         private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
         override fun invokeTo(value: String): LocalDate? {
@@ -30,6 +34,9 @@ internal class DefaultCourseScheduleSettings @Inject constructor(
         }
     }
 
+    /**
+     * 课表的转换器，用于将字符串转换为课表，或者将课表转换为字符串
+     */
     private val timeTableTransformer = object : Transformer<String, TimeTable> {
         override fun invokeTo(value: String): TimeTable {
             return value.toTimeTable()

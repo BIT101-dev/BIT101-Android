@@ -14,10 +14,34 @@ import java.time.LocalDateTime
 data class DDLScheduleEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int,
-    val group: String, // 分组
-    val uid: String, // 序列号
-    val title: String, // 标题
-    val text: String, // 内容
-    val time: LocalDateTime, // 到期时间
-    val done: Boolean // 是否完成
+
+    /**
+     * 分组
+     */
+    val group: String,
+
+    /**
+     * 序列号
+     */
+    val uid: String,
+
+    /**
+     * 标题
+     */
+    val title: String,
+
+    /**
+     * 内容
+     */
+    val text: String,
+
+    /**
+     * 到期时间
+     */
+    val time: LocalDateTime,
+
+    /**
+     * 是否完成
+     */
+    val done: Boolean
 )

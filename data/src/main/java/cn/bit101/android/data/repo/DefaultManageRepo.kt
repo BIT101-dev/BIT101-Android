@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class DefaultManageRepo @Inject constructor(
+internal class DefaultManageRepo @Inject constructor(
     private val apiManager: APIManager,
 ) : ManageRepo {
 

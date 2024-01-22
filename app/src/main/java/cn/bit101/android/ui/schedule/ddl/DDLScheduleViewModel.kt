@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.DDLSettings
-import cn.bit101.android.data.database.BIT101Database
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
 import cn.bit101.android.data.repo.base.DDLScheduleRepo
 import cn.bit101.android.ui.common.withScope
@@ -27,7 +26,6 @@ import javax.inject.Inject
 @HiltViewModel
 class DDLScheduleViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
-    private val database: BIT101Database,
     private val ddlSettings: DDLSettings
 ) : ViewModel() {
     val lexueCalendarUrlFlow = ddlSettings.url.flow

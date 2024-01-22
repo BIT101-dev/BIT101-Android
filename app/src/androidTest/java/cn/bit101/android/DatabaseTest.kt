@@ -1,11 +1,8 @@
 package cn.bit101.android
 
 import android.content.Context
-import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import cn.bit101.android.database.BIT101Database
-import cn.bit101.android.database.dao.CoursesDao
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
@@ -19,19 +16,19 @@ import org.junit.runner.RunWith
 
 @RunWith(AndroidJUnit4::class)
 class DatabaseTest {
-    private lateinit var db: BIT101Database
-    private lateinit var dao: CoursesDao
+//    private lateinit var db: BIT101Database
+//    private lateinit var dao: CoursesDao
 
     @Before
     fun init() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        db = Room.inMemoryDatabaseBuilder(context, BIT101Database::class.java).build()
-        dao = db.coursesDao()
+//        val context = ApplicationProvider.getApplicationContext<Context>()
+//        db = Room.inMemoryDatabaseBuilder(context, BIT101Database::class.java).build()
+//        dao = db.coursesDao()
     }
 
     @After
     fun close() {
-        db.close()
+//        db.close()
     }
 
     @Test

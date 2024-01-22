@@ -13,7 +13,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
-class DefaultCoursesRepo @Inject internal constructor(
+internal class DefaultCoursesRepo @Inject constructor(
     private val database: BIT101Database,
     private val apiManager: APIManager,
     private val courseScheduleSettings: CourseScheduleSettings

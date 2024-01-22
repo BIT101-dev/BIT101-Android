@@ -7,7 +7,13 @@ interface LoginRepo {
      */
     suspend fun checkLogin(): Boolean
 
+    /**
+     * 登录，并保存登录状态
+     */
     suspend fun login(username: String, password: String): Boolean
 
+    /**
+     * 登出，并清除登录状态
+     */
     suspend fun logout()
 }

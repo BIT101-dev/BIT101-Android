@@ -2,7 +2,6 @@ package cn.bit101.android.ui.setting.page
 
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
@@ -97,8 +96,8 @@ private fun PagesSettingPageContent(
                     .reorderable(state),
                 contentPadding = PaddingValues(12.dp),
             ) {
-                itemsIndexed(changeablePages, { i, s -> s.toPageData().value }) { index, item ->
-                    ReorderableItem(state = state, key = item.toPageData().value) { isDragging ->
+                itemsIndexed(changeablePages, { i, s -> s.toPageData().route }) { index, item ->
+                    ReorderableItem(state = state, key = item.toPageData().route) { isDragging ->
                         AnimatedContent(
                             targetState = if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                             else MaterialTheme.colorScheme.surface,

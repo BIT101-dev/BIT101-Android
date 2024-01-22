@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class DefaultMessageRepo @Inject constructor(
+internal class DefaultMessageRepo @Inject constructor(
     private val apiManager: APIManager
 ) : MessageRepo {
 

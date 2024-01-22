@@ -13,8 +13,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import javax.inject.Inject
 
-
-class DefaultUploadRepo @Inject constructor(
+internal class DefaultUploadRepo @Inject constructor(
     private val apiManager: APIManager,
     @ApplicationContext private val context: Context,
 ) : UploadRepo {

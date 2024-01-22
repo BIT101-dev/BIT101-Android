@@ -6,7 +6,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class DefaultVersionRepo @Inject constructor(
+internal class DefaultVersionRepo @Inject constructor(
     private val apiManager: APIManager
 ) : VersionRepo {
 

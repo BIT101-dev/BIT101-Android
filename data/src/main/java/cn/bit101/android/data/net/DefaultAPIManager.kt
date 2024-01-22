@@ -4,7 +4,6 @@ import cn.bit101.android.data.BuildConfig
 import android.util.Log
 import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.net.base.APIManager
-import cn.bit101.android.data.net.basic.CookiesJar
 import cn.bit101.api.Bit101ApiFactory
 import cn.bit101.api.helper.Logger
 import cn.bit101.api.option.DEFAULT_API_OPTION
@@ -12,9 +11,13 @@ import cn.bit101.api.option.DEFAULT_WEB_VPN_URLS
 import cn.bit101.api.option.DEV_URLS
 import cn.bit101.api.option.PROD_URLS
 import kotlinx.coroutines.runBlocking
+import net.gotev.cookiestore.okhttp.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import javax.inject.Inject
 
+/**
+ * Android 的 Logger，用于在 API 模块使用 Android 的 Log
+ */
 private val androidLogger = object : Logger {
     override fun err(tag: String?, msg: String) { Log.e(tag, msg) }
     override fun warn(tag: String?, msg: String) { Log.w(tag, msg) }
@@ -22,10 +25,10 @@ private val androidLogger = object : Logger {
     override fun debug(tag: String?, msg: String) { Log.d(tag, msg) }
 }
 
-class DefaultAPIManager @Inject constructor(
+internal class DefaultAPIManager @Inject constructor(
     private val loginStatus: LoginStatus
 ) : APIManager {
-    private val cookiesJar = CookiesJar(loginStatus.cookieManager)
+    private val cookiesJar = JavaNetCookieJar(loginStatus.cookieManager)
 
     private val schoolClient = OkHttpClient.Builder()
         .cookieJar(cookiesJar)
@@ -72,15 +75,12 @@ class DefaultAPIManager @Inject constructor(
         logger = androidLogger,
     )
 
-    fun switch(webVpn: Boolean) {
+    override fun switch(webVpn: Boolean) {
         if(webVpn != this.webVpn) {
             this.webVpn = webVpn
             _api = createApi(webVpn)
         }
     }
-
-    fun switchToWebVpn() = switch(true)
-    fun switchToLocal() = switch(false)
 
     override val api = _api
 }

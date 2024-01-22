@@ -16,7 +16,7 @@ private const val FILE_NAME = "bit101.db"
 
 @Module
 @InstallIn(SingletonComponent::class)
-class DatabaseModule {
+internal class DatabaseModule {
     @Provides
     @Singleton
     fun provideDatabase(

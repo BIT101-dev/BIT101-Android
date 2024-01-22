@@ -9,7 +9,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-abstract class NetModule {
+internal abstract class NetModule {
     @Binds
     @Singleton
     abstract fun bindAPIManager(

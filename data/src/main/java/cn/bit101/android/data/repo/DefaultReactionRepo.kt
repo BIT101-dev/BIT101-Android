@@ -10,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class DefaultReactionRepo @Inject constructor(
+internal class DefaultReactionRepo @Inject constructor(
     private val apiManager: APIManager
 ) : ReactionRepo {
 

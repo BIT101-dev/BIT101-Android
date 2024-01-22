@@ -9,7 +9,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal abstract class SettingModule {
+internal abstract class UserModule {
     @Binds
     @Singleton
     abstract fun bindLoginStatus(

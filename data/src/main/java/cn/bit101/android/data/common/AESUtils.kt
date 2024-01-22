@@ -6,10 +6,13 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
+/**
+ * AES 加密工具类，与登录相关
+ */
 internal object AESUtils {
     private const val AES_CHARS = "ABCDEFGHJKMNPQRSTWXYZabcdefhijkmnprstwxyz2345678"
 
-    fun encryptAES(data: String, key: String, iv: String): String {
+    private fun encryptAES(data: String, key: String, iv: String): String {
         val keyBytes = key.toByteArray(Charsets.UTF_8)
         val ivBytes = iv.toByteArray(Charsets.UTF_8)
         val dataBytes = data.toByteArray(Charsets.UTF_8)
@@ -22,7 +25,7 @@ internal object AESUtils {
         return Base64.getEncoder().encodeToString(encrypted)
     }
 
-    fun randomString(length: Int): String {
+    private fun randomString(length: Int): String {
         val random = SecureRandom()
         val sb = StringBuilder(length)
         repeat(length) {

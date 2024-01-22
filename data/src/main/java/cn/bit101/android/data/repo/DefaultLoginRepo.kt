@@ -13,7 +13,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
-class DefaultLoginRepo @Inject constructor(
+internal class DefaultLoginRepo @Inject constructor(
     private val apiManager: APIManager,
     private val loginStatus: LoginStatus
 ) : LoginRepo {

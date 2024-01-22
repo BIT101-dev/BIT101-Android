@@ -23,7 +23,7 @@ import cn.bit101.android.data.database.entity.DDLScheduleEntity
     exportSchema = false
 )
 @TypeConverters(Converters::class)
-abstract class BIT101Database : RoomDatabase() {
+internal abstract class BIT101Database : RoomDatabase() {
     abstract fun coursesDao(): CoursesDao
     abstract fun DDLScheduleDao(): DDLScheduleDao
 }
