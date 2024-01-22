@@ -108,8 +108,9 @@ dependencies {
     implementation 'com.umeng.umsdk:common:9.5.4'// (必选)
     implementation 'com.umeng.umsdk:asms:1.6.3'// 必选
 
-    implementation(project(':data'))
-    implementation(project(':config'))
+    implementation(project(':common'))
+    implementation(project(':features'))
+
 }
 
 // 开源声明生成配置
