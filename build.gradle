@@ -9,6 +9,7 @@ buildscript {
             jvmTarget: '17',
             sourceCompatibility: JavaVersion.VERSION_17,
             targetCompatibility: JavaVersion.VERSION_17,
+            kotlinCompilerExtensionVersion: '1.5.3',
 
             hilt: '2.48'
     ]

@@ -1,13 +1,11 @@
 package cn.bit101.android.features
 
 import androidx.lifecycle.ViewModel
-import cn.bit101.android.features.BuildConfig
 import cn.bit101.android.config.setting.base.AboutSettings
 import cn.bit101.android.config.setting.base.PageSettings
 import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.repo.base.LoginRepo
-import cn.bit101.android.features.common.getAppVersion
-import cn.bit101.android.features.common.withScope
+import cn.bit101.android.features.common.helper.withScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 

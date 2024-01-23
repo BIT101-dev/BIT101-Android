@@ -1,0 +1,88 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'cn.bit101.android.features.common'
+    compileSdk versions.compileSdk
+
+    defaultConfig {
+        minSdk versions.minSdk
+        targetSdk versions.targetSdk
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility = versions.sourceCompatibility
+        targetCompatibility = versions.targetCompatibility
+    }
+    kotlinOptions {
+        jvmTarget = versions.jvmTarget
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion versions.kotlinCompilerExtensionVersion
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+dependencies {
+    // 用来画 app 图标
+    implementation "com.google.accompanist:accompanist-drawablepainter:0.31.2-alpha"
+
+    api 'androidx.core:core-ktx:1.12.0'
+
+    // 物料清单，用于统一管理 Compose 版本
+    api platform(boms.compose)
+    androidTestApi platform(boms.compose)
+
+    // Compose
+    api "androidx.compose.ui:ui"
+    api "androidx.compose.ui:ui-util"
+    api "androidx.compose.ui:ui-tooling-preview"
+    api 'androidx.compose.material3:material3'
+    api "androidx.compose.material:material-icons-extended"
+    androidTestApi "androidx.compose.ui:ui-test-junit4"
+    debugApi "androidx.compose.ui:ui-tooling"
+    debugApi "androidx.compose.ui:ui-test-manifest"
+    api "androidx.compose.runtime:runtime-livedata"
+
+    // 导航
+    api "androidx.navigation:navigation-compose:2.6.0"
+
+    // ViewModel
+    api 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
+    api "androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0"
+
+    // Activity
+    api 'androidx.activity:activity-compose:1.8.2'
+
+    // 测试
+    testApi 'junit:junit:4.13.2'
+    androidTestApi 'androidx.test.ext:junit:1.1.5'
+    androidTestApi 'androidx.test.espresso:espresso-core:3.5.1'
+
+    // 图片加载
+    api "io.coil-kt:coil-compose:2.3.0"
+
+    // 依赖 data 模块来进行数据交互
+    api project(':data')
+
+    // 依赖 config 模块来进行设置相关操作
+    api project(':config')
+}

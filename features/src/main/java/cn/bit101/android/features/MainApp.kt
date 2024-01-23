@@ -51,31 +51,16 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import cn.bit101.android.features.BuildConfig
 import cn.bit101.android.config.setting.base.PageShowOnNav
 import cn.bit101.android.config.setting.base.toPageData
-import cn.bit101.android.features.utils.ColorUtils
-import cn.bit101.android.features.common.NavBarHeight
-import cn.bit101.android.features.common.getAppVersion
-import cn.bit101.android.features.component.image.ImageHost
-import cn.bit101.android.features.component.image.rememberImageHostState
-import cn.bit101.android.features.component.navigationbar.NavigationBar
-import cn.bit101.android.features.component.snackbar.SnackbarHost
-import cn.bit101.android.features.component.snackbar.rememberSnackbarState
-import cn.bit101.android.features.gallery.index.GalleryScreen
-import cn.bit101.android.features.gallery.postedit.PostEditScreen
-import cn.bit101.android.features.gallery.poster.PosterScreen
-import cn.bit101.android.features.gallery.report.ReportScreen
-import cn.bit101.android.features.login.LoginOrLogoutScreen
-import cn.bit101.android.features.map.MapScreen
-import cn.bit101.android.features.message.MessageScreen
-import cn.bit101.android.features.mine.MineScreen
-import cn.bit101.android.features.schedule.ScheduleScreen
-import cn.bit101.android.ui.setting.SettingScreen
-import cn.bit101.android.features.user.UserScreen
+import cn.bit101.android.features.common.MainController
+import cn.bit101.android.features.common.component.NavigationBar
+import cn.bit101.android.features.common.component.image.rememberImageHostState
+import cn.bit101.android.features.common.component.snackbar.rememberSnackbarState
+import cn.bit101.android.features.common.helper.NavBarHeight
+import cn.bit101.android.features.common.helper.getAppVersion
 import cn.bit101.android.features.versions.UpdateDialog
 import cn.bit101.android.features.versions.VersionDialog
-import cn.bit101.android.features.web.WebScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
@@ -117,10 +102,12 @@ fun MainApp(
 
     val systemUiController = rememberSystemUiController()
 
-    val mainController = MainController(
+    val mainController = cn.bit101.android.features.common.MainController(
         scope = rememberCoroutineScope(),
         navController = rememberNavController(),
-        snackbarHostState = rememberSnackbarState(scope = rememberCoroutineScope()),
+        snackbarHostState = rememberSnackbarState(
+            scope = rememberCoroutineScope()
+        ),
         imageHostState = rememberImageHostState()
     )
 
@@ -144,7 +131,7 @@ fun MainApp(
     LaunchedEffect(statusColor) {
         val darkIcons = when (statusColor) {
             Color.Transparent -> isDarkMode
-            else -> ColorUtils.isLightColor(statusColor)
+            else -> cn.bit101.android.features.common.utils.ColorUtils.isLightColor(statusColor)
         }
 
         systemUiController.setStatusBarColor(
@@ -279,23 +266,23 @@ fun MainApp(
             composable("schedule") {
                 WithLoginStatus(mainController, loginStatus) {
                     Box(modifier = Modifier.padding(paddingValues)) {
-                        ScheduleScreen(mainController)
+                        cn.bit101.android.features.schedule.ScheduleScreen(mainController)
                     }
                 }
             }
 
             composable("login") {
-                LoginOrLogoutScreen(mainController)
+                cn.bit101.android.features.login.LoginOrLogoutScreen(mainController)
             }
 
             composable("map") {
                 Box(modifier = Modifier.padding(paddingValues)) {
-                    MapScreen()
+                    cn.bit101.android.features.map.MapScreen()
                 }
             }
             composable("bit101-web") {
                 Box(modifier = Modifier.padding(paddingValues)) {
-                    WebScreen(mainController)
+                    cn.bit101.android.features.web.WebScreen(mainController)
                 }
             }
 
@@ -311,14 +298,14 @@ fun MainApp(
                         .navigationBarsPadding()
                         .statusBarsPadding()
                 ) {
-                    WebScreen(mainController, url = url)
+                    cn.bit101.android.features.web.WebScreen(mainController, url = url)
                 }
             }
 
             composable("gallery") {
                 WithLoginStatus(mainController, loginStatus) {
                     Box(modifier = Modifier.navigationBarsPadding()) {
-                        GalleryScreen(mainController = mainController)
+                        cn.bit101.android.features.gallery.GalleryScreen(mainController = mainController)
                     }
                 }
             }
@@ -328,7 +315,7 @@ fun MainApp(
                         bottom = paddingValues.calculateBottomPadding()
                     )
                 ) {
-                    MineScreen(mainController)
+                    cn.bit101.android.features.mine.MineScreen(mainController)
                 }
             }
 
@@ -343,7 +330,7 @@ fun MainApp(
                 )
             ) {
                 val route = it.arguments?.getString("route") ?: ""
-                SettingScreen(
+                cn.bit101.android.features.setting.SettingScreen(
                     mainController = mainController,
                     initialRoute = route
                 )
@@ -357,7 +344,7 @@ fun MainApp(
             ) {
                 val id = it.arguments?.getLong("id") ?: 0L
                 Box(modifier = Modifier.navigationBarsPadding()) {
-                    UserScreen(
+                    cn.bit101.android.features.user.UserScreen(
                         mainController = mainController,
                         id = id,
                     )
@@ -371,7 +358,7 @@ fun MainApp(
                 ),
             ) {
                 Box(modifier = Modifier.navigationBarsPadding()) {
-                    PosterScreen(
+                    cn.bit101.android.features.poster.PosterScreen(
                         mainController = mainController,
                         id = it.arguments?.getLong("id") ?: 0L,
                     )
@@ -380,7 +367,7 @@ fun MainApp(
 
             composable("post") {
                 Box(modifier = Modifier.navigationBarsPadding()) {
-                    PostEditScreen(
+                    cn.bit101.android.features.postedit.PostEditScreen(
                         mainController = mainController,
                     )
                 }
@@ -394,7 +381,7 @@ fun MainApp(
             ) {
                 val id = it.arguments?.getLong("id") ?: 0L
                 Box(modifier = Modifier.navigationBarsPadding()) {
-                    PostEditScreen(
+                    cn.bit101.android.features.postedit.PostEditScreen(
                         mainController = mainController,
                         id = id,
                     )
@@ -411,7 +398,7 @@ fun MainApp(
                 val type = it.arguments?.getString("type") ?: ""
                 val id = it.arguments?.getLong("id") ?: 0L
                 Box(modifier = Modifier.navigationBarsPadding()) {
-                    ReportScreen(
+                    cn.bit101.android.features.report.ReportScreen(
                         mainController = mainController,
                         objType = type,
                         id = id,
@@ -425,18 +412,18 @@ fun MainApp(
                         .padding(top = paddingValues.calculateTopPadding())
                         .navigationBarsPadding()
                 ) {
-                    MessageScreen(mainController = mainController)
+                    cn.bit101.android.features.message.MessageScreen(mainController = mainController)
                 }
             }
         }
 
-        ImageHost(
+        cn.bit101.android.features.common.component.image.ImageHost(
             modifier = Modifier.fillMaxSize(),
             state = mainController.imageHostState,
             onOpenUrl = { mainController.openUrl(it, ctx) },
         )
 
-        SnackbarHost(
+        cn.bit101.android.features.common.component.snackbar.SnackbarHost(
             state = mainController.snackbarHostState
         )
     }

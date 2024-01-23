@@ -58,10 +58,10 @@ dependencies {
 
     // hilt
     implementation "com.google.dagger:hilt-android:${versions.hilt}"
+    implementation "androidx.hilt:hilt-navigation-compose:1.1.0"
     ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
 
-    implementation(project(':common'))
-    implementation(project(':features'))
+    implementation project(':features')
 
 }
 

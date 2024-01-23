@@ -4,7 +4,6 @@ import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.ui.platform.LocalContext
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
@@ -42,7 +41,6 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             BIT101Theme {
-                cn.bit101.android.common.R.style.ImageAnim
                 MainApp()
             }
         }
