@@ -39,9 +39,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavHostController
 import cn.bit101.android.config.setting.base.PageShowOnNav
 import cn.bit101.android.config.setting.base.toPageData
-import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.setting.component.SettingItem
 import cn.bit101.android.features.setting.component.SettingItemData
 import cn.bit101.android.features.setting.viewmodel.PageViewModel
@@ -96,8 +96,8 @@ private fun PagesSettingPageContent(
                     .reorderable(state),
                 contentPadding = PaddingValues(12.dp),
             ) {
-                itemsIndexed(changeablePages, { i, s -> s.toPageData().route }) { index, item ->
-                    ReorderableItem(state = state, key = item.toPageData().route) { isDragging ->
+                itemsIndexed(changeablePages, { i, s -> s.toPageData().value }) { index, item ->
+                    ReorderableItem(state = state, key = item.toPageData().value) { isDragging ->
                         AnimatedContent(
                             targetState = if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
                             else MaterialTheme.colorScheme.surface,
@@ -166,9 +166,10 @@ private fun PagesSettingPageContent(
 
 @Composable
 internal fun PagesSettingPage(
-    mainController: MainController,
-    vm: PageViewModel = hiltViewModel()
+    navController: NavHostController,
+    onSnackBar: (String) -> Unit,
 ) {
+    val vm: PageViewModel = hiltViewModel()
 
     val pages by vm.allPagesFlow.collectAsState(initial = null)
     val homePage by vm.homePageFlow.collectAsState(initial = null)
@@ -184,13 +185,13 @@ internal fun PagesSettingPage(
         hiddenPages = hiddenPages!!,
         onChangePages = { newPages, newHomePage, newHiddenPages ->
             vm.changePageSettings(newPages, newHomePage, newHiddenPages)
-            mainController.navController.popBackStack()
-            mainController.snackbar("保存成功")
+            navController.popBackStack()
+            onSnackBar("保存成功")
         },
         onReset = {
             vm.reset()
-            mainController.navController.popBackStack()
-            mainController.snackbar("重置成功")
+            navController.popBackStack()
+            onSnackBar("重置成功")
         }
     )
 }

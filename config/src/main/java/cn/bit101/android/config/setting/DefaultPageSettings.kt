@@ -32,7 +32,7 @@ internal class DefaultPageSettings @Inject constructor(
         }
 
         override fun invokeFrom(value: List<PageShowOnNav>): String {
-            return value.joinToString(",") { it.toPageData().route }
+            return value.joinToString(",") { it.toPageData().value }
         }
     }
 
@@ -46,7 +46,7 @@ internal class DefaultPageSettings @Inject constructor(
         }
 
         override fun invokeFrom(value: PageShowOnNav): String {
-            return value.toPageData().route
+            return value.toPageData().value
         }
     }
 
@@ -63,7 +63,7 @@ internal class DefaultPageSettings @Inject constructor(
         }
 
         override fun invokeFrom(value: List<PageShowOnNav>): String {
-            return value.joinToString(",") { it.toPageData().route }
+            return value.joinToString(",") { it.toPageData().value }
         }
     }
 

@@ -17,7 +17,7 @@ import cn.bit101.api.service.school.SchoolUserApiService
 import retrofit2.Retrofit
 import retrofit2.create
 
-class Bit101Api(
+class Bit101Api internal constructor(
     bit101Retrofit: Retrofit,
     appRetrofit: Retrofit,
     jwmsRetrofit: Retrofit,

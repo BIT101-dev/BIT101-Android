@@ -92,12 +92,12 @@ private fun DDLSettingPageContent(
 // 输入数字对话框
 @Composable
 private fun InputNumberDialog(
-    mainController: MainController,
     title: String,
     text: String,
     initValue: Int,
     onChange: (Int) -> Unit,
     onDismiss: () -> Unit,
+    onSnackBar: (String) -> Unit,
 ) {
     var editValue by remember { mutableStateOf(TextFieldValue(initValue.toString())) }
     var errorMessage by remember { mutableStateOf("") }
@@ -135,7 +135,7 @@ private fun InputNumberDialog(
                 onClick = {
                     if (editValue.text.toIntOrNull() != null && editValue.text.toInt() >= 0) {
                         onChange(editValue.text.toInt())
-                        mainController.snackbar("设置成功OvO")
+                        onSnackBar("设置成功OvO")
                         onDismiss()
                     } else {
                         errorMessage = "格式校验失败Orz"
@@ -156,9 +156,9 @@ private fun InputNumberDialog(
 
 @Composable
 internal fun DDLSettingPage(
-    mainController: MainController,
-    vm: DDLViewModel = hiltViewModel(),
+    onSnackBar: (String) -> Unit,
 ) {
+    val vm: DDLViewModel = hiltViewModel()
 
     val afterDay by vm.afterDayFlow.collectAsState(initial = null)
 
@@ -174,18 +174,18 @@ internal fun DDLSettingPage(
 
     DisposableEffect(updateCalendarUrlState) {
         if(updateCalendarUrlState is SimpleState.Success) {
-            mainController.snackbar("获取成功")
+            onSnackBar("获取成功")
         } else if(updateCalendarUrlState is SimpleState.Fail) {
-            mainController.snackbar("获取失败")
+            onSnackBar("获取失败")
         }
         onDispose { }
     }
 
     DisposableEffect(updateCalendarState) {
         if(updateCalendarState is SimpleState.Success) {
-            mainController.snackbar("拉取成功")
+            onSnackBar("拉取成功")
         } else if(updateCalendarState is SimpleState.Fail) {
-            mainController.snackbar("拉取失败")
+            onSnackBar("拉取失败")
         }
         onDispose { }
     }
@@ -207,23 +207,23 @@ internal fun DDLSettingPage(
 
     if(showBeforeDayDialog) {
         InputNumberDialog(
-            mainController = mainController,
             title = "变色天数",
             text = "临近日程会改变颜色",
             initValue = beforeDay?.toInt() ?: 0,
             onChange = { vm.setBeforeDay(it.toLong()) },
             onDismiss = { showBeforeDayDialog = false },
+            onSnackBar = onSnackBar
         )
     }
 
     if(showAfterDayDialog) {
         InputNumberDialog(
-            mainController = mainController,
             title = "滞留天数",
             text = "过期日程会继续显示",
             initValue = afterDay?.toInt() ?: 0,
             onChange = { vm.setAfterDay(it.toLong()) },
             onDismiss = { showAfterDayDialog = false },
+            onSnackBar = onSnackBar
         )
     }
 }

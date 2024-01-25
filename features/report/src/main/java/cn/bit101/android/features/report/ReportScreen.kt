@@ -143,7 +143,7 @@ internal fun ReportScreenContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { mainController.navController.popBackStack() }) {
+                    IconButton(onClick = { mainController.popBackStack() }) {
                         Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
@@ -254,7 +254,7 @@ fun ReportScreen(
 
     LaunchedEffect(state) {
         if (state is SimpleState.Success) {
-            mainController.navController.popBackStack()
+            mainController.popBackStack()
             mainController.snackbar("举报成功")
             vm.stateLiveData.value = null
         } else {

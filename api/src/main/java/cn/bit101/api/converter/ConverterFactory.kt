@@ -17,7 +17,7 @@ import retrofit2.Converter
 import retrofit2.Retrofit
 import java.lang.reflect.Type
 
-class ConverterFactory(
+internal class ConverterFactory(
     private val stringConverterFactory: Converter.Factory,
     private val gsonConverterFactory: Converter.Factory,
     logger: Logger,
@@ -25,22 +25,22 @@ class ConverterFactory(
 
     private val responseBodyConverterFactoryMap = mapOf<Class<*>, Converter.Factory>(
         // 解析字符串
-        Pair(String::class.java, stringConverterFactory),
+        String::class.java to stringConverterFactory,
 
         // 解析乐学主页
-        Pair(GetLexueIndexDataModel.Response::class.java, GetIndexConvertFactory(logger)),
+        GetLexueIndexDataModel.Response::class.java to GetIndexConvertFactory(logger),
 
         // 获取课程表链接
-        Pair(GetCalendarUrlDataModel.Response::class.java, GetCalendarUrlConvertFactory(logger)),
+        GetCalendarUrlDataModel.Response::class.java to GetCalendarUrlConvertFactory(logger),
 
         // 获取课程表
-        Pair(GetCalendarDataModel.Response::class.java, GetCalendarConvertFactory(logger)),
+        GetCalendarDataModel.Response::class.java to GetCalendarConvertFactory(logger),
 
         // 初始化登录
-        Pair(GetSchoolInitLoginDataModel.Response::class.java, GetSchoolInitLoginConvertFactory(logger)),
+        GetSchoolInitLoginDataModel.Response::class.java to GetSchoolInitLoginConvertFactory(logger),
 
         // 登录
-        Pair(PostSchoolLoginDataModel.Response::class.java, PostSchoolLoginConvertFactory(logger)),
+        PostSchoolLoginDataModel.Response::class.java to PostSchoolLoginConvertFactory(logger),
     )
 
     override fun responseBodyConverter(

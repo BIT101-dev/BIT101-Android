@@ -30,6 +30,7 @@ import cn.bit101.android.features.common.component.gallery.PosterCard
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.features.common.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.features.common.helper.SimpleState
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 
 
@@ -112,7 +113,7 @@ internal fun PosterPage(
                         items(posters, { it.id }) {
                             PosterCard(
                                 data = it,
-                                onOpenPoster = { mainController.navigate("poster/${it.id}") },
+                                onOpenPoster = { mainController.navigate(NavDest.Poster(it.id)) },
                                 onOpenImages = mainController::showImages
                             )
                             Divider(

@@ -12,23 +12,33 @@ import androidx.navigation.navOptions
 import cn.bit101.android.features.common.component.image.ImageHostState
 import cn.bit101.android.features.common.component.snackbar.SnackbarState
 import cn.bit101.android.features.common.helper.ImageData
+import cn.bit101.android.features.common.nav.NavDest
+import cn.bit101.android.features.common.nav.NavDestConfig
+import cn.bit101.android.features.common.nav.navigate
 import cn.bit101.api.model.common.Image
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class MainController(
     val scope: CoroutineScope,
-    val navController: NavHostController,
+    private val navController: NavHostController,
     val snackbarHostState: SnackbarState,
     val imageHostState: ImageHostState,
 ) {
-    fun navigate(route: String) {
-        navController.navigate(route)
+    fun navigate(dest: NavDest) =
+        navController.navigate(dest)
+    fun navigate(dest: NavDest, builder: NavOptionsBuilder.() -> Unit) =
+        navController.navigate(dest, navOptions(builder))
+
+    val currentDestConfigFlow = navController.currentBackStackEntryFlow.map {
+        NavDestConfig.fromRoute(it.destination.route)
     }
 
-    fun navigate(route: String, builder: NavOptionsBuilder.() -> Unit) {
-        navController.navigate(route, navOptions(builder))
-    }
+    val startDestId: Int
+        get() = navController.graph.startDestinationId
+
+    fun popBackStack() = navController.popBackStack()
 
     fun snackbar(message: String) {
         scope.launch {
@@ -54,8 +64,7 @@ class MainController(
     }
 
     fun openWebPage(url: String) {
-        val encodedUrl = Uri.encode(url)
-        navigate("web/$encodedUrl")
+        navigate(NavDest.Web(url))
     }
 
     fun openPoster(id: Long, ctx: Context) {

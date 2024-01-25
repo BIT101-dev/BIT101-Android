@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
 import cn.bit101.android.features.common.MainController
+import cn.bit101.android.features.common.nav.NavDest
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 
@@ -174,7 +175,7 @@ internal fun DDLSchedule(
                 FloatingActionButton(
                     modifier = Modifier
                         .size(fabSize),
-                    onClick = { mainController.navController.navigate("setting?route=ddl") },
+                    onClick = { mainController.navigate(NavDest.Setting("ddl")) },
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
                     contentColor = MaterialTheme.colorScheme.primary,
                     elevation = FloatingActionButtonDefaults.elevation(0.dp),

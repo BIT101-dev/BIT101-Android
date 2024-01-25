@@ -36,7 +36,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.getAppVersion
 import cn.bit101.android.features.setting.component.SettingItemData
@@ -353,9 +352,10 @@ private fun AboutDialog(onClose: () -> Unit) {
 
 @Composable
 internal fun AboutPage(
-    mainController: MainController,
-    vm: AboutViewModel = hiltViewModel(),
+    onSnackBar: (String) -> Unit,
 ) {
+
+    val vm: AboutViewModel = hiltViewModel()
 
     val autoDetectUpgrade by vm.autoDetectUpgrade.flow.collectAsState(initial = true)
 
@@ -387,13 +387,13 @@ internal fun AboutPage(
 
     LaunchedEffect(checkUpdateState) {
         if (checkUpdateState is SimpleDataState.Fail) {
-            mainController.snackbar("检查更新失败")
+            onSnackBar("检查更新失败")
         } else if (checkUpdateState is SimpleDataState.Success) {
             val need = appVersion.versionNumber < (checkUpdateState as SimpleDataState.Success).data.versionCode
             if (need) {
                 showUpgradeDialog = true
             } else {
-                mainController.snackbar("不需要更新哦")
+                onSnackBar("不需要更新哦")
             }
         }
     }

@@ -77,6 +77,7 @@ import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.UploadImageState
 import cn.bit101.android.features.common.helper.keyboardStateAsState
 import cn.bit101.android.features.common.helper.rememberImagePicker
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.api.model.common.Claim
 import cn.bit101.api.model.common.Image
 
@@ -193,7 +194,7 @@ private fun SelectClaimDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun PostScreenContent(
+private fun PostScreenContent(
     mainController: MainController,
 
     id: Long?,
@@ -232,7 +233,7 @@ internal fun PostScreenContent(
                     )
                 },
                 navigationIcon = {
-                    IconButton(onClick = { mainController.navController.popBackStack() }) {
+                    IconButton(onClick = { mainController.popBackStack() }) {
                         Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
@@ -473,13 +474,14 @@ fun PostEditScreen(
     LaunchedEffect(postState) {
         if(postState is SimpleDataState.Success) {
             if(id == null) {
-                mainController.navController.popBackStack()
-                mainController.navController.navigate("poster/${(postState as SimpleDataState.Success).data}")
+                val id = (postState as SimpleDataState.Success).data
+                mainController.popBackStack()
+                mainController.navigate(NavDest.Poster(id))
                 mainController.snackbar("发布成功OvO")
             } else {
-                mainController.navController.popBackStack()
-                mainController.navController.popBackStack()
-                mainController.navController.navigate("poster/$id")
+                mainController.popBackStack()
+                mainController.popBackStack()
+                mainController.navigate(NavDest.Poster(id))
                 mainController.snackbar("修改成功OvO")
             }
         } else if(postState is SimpleDataState.Fail) {

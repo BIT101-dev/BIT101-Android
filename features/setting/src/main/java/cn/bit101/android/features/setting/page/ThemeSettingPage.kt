@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.config.setting.base.DarkThemeMode
 import cn.bit101.android.config.setting.base.toDarkThemeData
-import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.setting.component.SettingItemData
 import cn.bit101.android.features.setting.component.SettingsColumn
 import cn.bit101.android.features.setting.component.SettingsGroup
@@ -126,10 +125,8 @@ private fun DarkModeDialog(
 
 
 @Composable
-internal fun ThemeSettingPage(
-    mainController: MainController,
-    vm: ThemeViewModel = hiltViewModel()
-) {
+internal fun ThemeSettingPage() {
+    val vm: ThemeViewModel = hiltViewModel()
 
     val dynamic by vm.dynamicTheme.flow.collectAsState(initial = false)
     val darkMode by vm.darkThemeMode.flow.collectAsState(initial = DarkThemeMode.System)

@@ -42,6 +42,7 @@ import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.component.AnimatedPage
 import cn.bit101.android.features.common.component.loadable.rememberLoadableLazyColumnState
 import cn.bit101.android.features.common.helper.SimpleState
+import cn.bit101.android.features.common.nav.NavDest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -110,11 +111,11 @@ fun GalleryScreen(
     var showSearchPageState by rememberSaveable { mutableStateOf(false) }
 
     val onOpenPoster: (Long) -> Unit = { id ->
-        mainController.navController.navigate("poster/$id")
+        mainController.navigate(NavDest.Poster(id))
     }
 
     val onPost: () -> Unit = {
-        mainController.navController.navigate("post")
+        mainController.navigate(NavDest.Post)
     }
 
     val pages = listOf(

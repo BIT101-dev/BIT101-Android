@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.android.features.common.utils.DateTimeUtils
 import cn.bit101.android.features.common.utils.NumberUtils
 import cn.bit101.api.model.common.Comment
@@ -109,9 +110,10 @@ private fun CommentCardContent(
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = MaterialTheme.colorScheme.onSurface
                                 ),
-                                onOpenPoster = { mainController.navigate("poster/$it") },
-                                onOpenUser = { mainController.navigate("user/$it") }
+                                onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
+                                onOpenUser = { mainController.navigate(NavDest.User(it)) }
                             )
+
                             Spacer(modifier = Modifier.padding(spacePadding))
                             // 图片
                             if (comment.images.isNotEmpty()) {
@@ -234,7 +236,7 @@ fun CommentCard(
                 leftSize = calculateLeftSize(mainAvatarSize),
                 onClick = { onOpenCommentToComment(comment, comment) },
                 onLike = { onLikeComment(comment) },
-                onOpenUserDetail = { mainController.navigate("user/${comment.user.id}") },
+                onOpenUserDetail = { mainController.navigate(NavDest.User(comment.user.id.toLong())) },
                 onOpenImage = { onOpenImage(it, comment.images) },
                 paddingValues = PaddingValues(horizontal = 12.dp),
                 onMoreAction = { onMoreAction(comment) },
@@ -253,7 +255,7 @@ fun CommentCard(
                             leftSize = calculateLeftSize(subAvatarSize),
                             onClick = { onOpenCommentToComment(comment, sub) },
                             onLike = { onLikeComment(sub) },
-                            onOpenUserDetail = { mainController.navigate("user/${sub.user.id}") },
+                            onOpenUserDetail = { mainController.navigate(NavDest.User(sub.user.id.toLong())) },
                             onOpenImage = { onOpenImage(it, sub.images) },
                             paddingValues = PaddingValues(end = 12.dp),
                             onMoreAction = { onMoreAction(sub) },

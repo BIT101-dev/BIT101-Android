@@ -53,6 +53,7 @@ import cn.bit101.android.features.common.helper.CourseUrl
 import cn.bit101.android.features.common.helper.PaperUrl
 import cn.bit101.android.features.common.helper.ScoreUrl
 import cn.bit101.android.features.common.helper.SimpleDataState
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 import kotlinx.coroutines.launch
 
@@ -178,7 +179,7 @@ internal fun MineScreenContent(
                             }
                         }
 
-                        IconButton(onClick = { mainController.navigate("setting?route=") }) {
+                        IconButton(onClick = { mainController.navigate(NavDest.Setting()) }) {
                             Icon(imageVector = Icons.Outlined.Settings, contentDescription = "通知")
                         }
                     },
@@ -207,7 +208,7 @@ internal fun MineScreenContent(
                         data = data,
                         onOpenMineIndex = {
                             (userInfoState as? SimpleDataState.Success)?.data?.user?.id?.let { id ->
-                                mainController.navigate("user/$id")
+                                mainController.navigate(NavDest.User(id.toLong()))
                             }
                         },
                         onOpenFollowerDialog = onOpenFollowerDialog,
@@ -215,8 +216,8 @@ internal fun MineScreenContent(
                         onOpenPostersDialog = onOpenPostersDialog,
                         onCopyText = { mainController.copyText(cm, it) },
                         onShowImage = { mainController.showImage(it) },
-                        onOpenPoster = { mainController.navigate("poster/$it") },
-                        onOpenUser = { mainController.navigate("user/$it") },
+                        onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
+                        onOpenUser = { mainController.navigate(NavDest.User(it)) },
                     )
                     Spacer(modifier = Modifier.padding(12.dp))
                 }

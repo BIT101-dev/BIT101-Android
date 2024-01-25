@@ -20,6 +20,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.features.common.MainController
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.android.features.setting.page.AboutPage
 import cn.bit101.android.features.setting.page.AccountPage
 import cn.bit101.android.features.setting.page.CalendarSettingPage
@@ -38,12 +39,7 @@ fun SettingScreen(
 
     val navController = rememberNavController()
 
-    val settingController = MainController(
-        scope = mainController.scope,
-        navController = navController,
-        snackbarHostState = mainController.snackbarHostState,
-        imageHostState = mainController.imageHostState,
-    )
+    val onSnackBar: (String) -> Unit = { mainController.snackbar(it) }
 
     val currentEntry = navController.currentBackStackEntryFlow.collectAsState(initial = null)
 
@@ -76,7 +72,7 @@ fun SettingScreen(
                             if(navController.previousBackStackEntry != null) {
                                 navController.popBackStack()
                             } else {
-                                mainController.navController.popBackStack()
+                                mainController.popBackStack()
                             }
                         }
                     ) {
@@ -92,7 +88,7 @@ fun SettingScreen(
         ) {
             composable("index") {
                 SettingIndexPage(
-                    mainController = settingController,
+                    navController = navController,
                     paddingValues = paddingValues,
                 )
             }
@@ -100,39 +96,42 @@ fun SettingScreen(
             composable("account") {
                 Box(modifier = Modifier.padding(paddingValues)) {
                     AccountPage(
-                        mainController = settingController,
-                        onLogin = { mainController.navController.navigate("login") }
+                        onLogin = { mainController.navigate(NavDest.Login) },
+                        onSnackBar = onSnackBar,
                     )
                 }
             }
 
             composable("pages") {
                 Box(modifier = Modifier.padding(paddingValues)) {
-                    PagesSettingPage(mainController = settingController)
+                    PagesSettingPage(
+                        navController = navController,
+                        onSnackBar = onSnackBar,
+                    )
                 }
             }
 
             composable("theme") {
                 Box(modifier = Modifier.padding(paddingValues)) {
-                    ThemeSettingPage(mainController = settingController)
+                    ThemeSettingPage()
                 }
             }
 
             composable("calendar") {
                 Box(modifier = Modifier.padding(paddingValues)) {
-                    CalendarSettingPage(mainController = settingController)
+                    CalendarSettingPage(onSnackBar = onSnackBar)
                 }
             }
 
             composable("about") {
                 Box(modifier = Modifier.padding(paddingValues)) {
-                    AboutPage(mainController = settingController)
+                    AboutPage(onSnackBar = onSnackBar)
                 }
             }
 
             composable("ddl") {
                 Box(modifier = Modifier.padding(paddingValues)) {
-                    DDLSettingPage(mainController = settingController)
+                    DDLSettingPage(onSnackBar = onSnackBar)
                 }
             }
         }

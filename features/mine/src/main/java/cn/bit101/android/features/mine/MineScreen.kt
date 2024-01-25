@@ -14,6 +14,7 @@ import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.component.AnimatedPage
 import cn.bit101.android.features.common.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.features.common.helper.SimpleDataState
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.android.features.mine.page.FollowerPage
 import cn.bit101.android.features.mine.page.FollowingPage
 import cn.bit101.android.features.mine.page.PosterPage
@@ -123,7 +124,7 @@ fun MineScreen(mainController: MainController) {
                     onOpenFollowerDialog = { if(pageState.isMainPage()) pageState = PageIndex.FOLLOWER },
                     onOpenFollowingDialog = { if(pageState.isMainPage()) pageState = PageIndex.FOLLOWING },
                     onOpenPostersDialog = { if(pageState.isMainPage()) pageState = PageIndex.POSTERS },
-                    onOpenMessagePage = { mainController.navigate("message") }
+                    onOpenMessagePage = { mainController.navigate(NavDest.Message) }
                 )
             }
         }

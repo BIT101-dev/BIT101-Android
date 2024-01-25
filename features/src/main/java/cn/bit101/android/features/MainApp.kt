@@ -1,6 +1,5 @@
 package cn.bit101.android.features
 
-import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.MutableTransitionState
 import androidx.compose.animation.core.Spring
@@ -8,20 +7,13 @@ import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.slideIn
 import androidx.compose.animation.slideOut
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Chat
 import androidx.compose.material.icons.rounded.Event
 import androidx.compose.material.icons.rounded.Explore
 import androidx.compose.material.icons.rounded.Map
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
@@ -35,22 +27,15 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import cn.bit101.android.config.setting.base.PageShowOnNav
 import cn.bit101.android.config.setting.base.toPageData
 import cn.bit101.android.features.common.MainController
@@ -61,52 +46,36 @@ import cn.bit101.android.features.common.component.snackbar.SnackbarHost
 import cn.bit101.android.features.common.component.snackbar.rememberSnackbarState
 import cn.bit101.android.features.common.helper.NavBarHeight
 import cn.bit101.android.features.common.helper.getAppVersion
+import cn.bit101.android.features.common.nav.NavDest
+import cn.bit101.android.features.common.nav.NavDestConfig
 import cn.bit101.android.features.common.utils.ColorUtils
-import cn.bit101.android.features.gallery.GalleryScreen
-import cn.bit101.android.features.login.LoginOrLogoutScreen
-import cn.bit101.android.features.map.MapScreen
-import cn.bit101.android.features.message.MessageScreen
-import cn.bit101.android.features.mine.MineScreen
-import cn.bit101.android.features.postedit.PostEditScreen
-import cn.bit101.android.features.poster.PosterScreen
-import cn.bit101.android.features.report.ReportScreen
-import cn.bit101.android.features.schedule.ScheduleScreen
-import cn.bit101.android.features.setting.SettingScreen
-import cn.bit101.android.features.user.UserScreen
 import cn.bit101.android.features.versions.UpdateDialog
 import cn.bit101.android.features.versions.VersionDialog
-import cn.bit101.android.features.web.WebScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
+
+private data class SystemUIConfig(
+    val statusBarColor: Color,
+    val statusBarDarkIcon: Boolean,
+)
+
 @Composable
-private fun WithLoginStatus(
-    mainController: MainController,
-    status: Boolean?,
-    content: @Composable () -> Unit
-) {
-    when (status) {
-        null -> {
-            // 未知状态
-        }
-        true -> {
-            content()
-        }
-        false -> {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Button(onClick = {
-                    mainController.navigate("login") {
-                        launchSingleTop = true
-                    }
-                }) {
-                    Text("登录")
-                }
-            }
-        }
+private fun getSystemUI(destConfig: NavDestConfig?): SystemUIConfig {
+    val statusBarColor = when(destConfig) {
+        NavDestConfig.BIT101Web, NavDestConfig.Web, NavDestConfig.Message -> Color(0xFFFF9A57)
+        NavDestConfig.Setting -> Color.Transparent
+        NavDestConfig.User, NavDestConfig.Mine -> Color.Transparent
+        NavDestConfig.Post, NavDestConfig.Edit -> Color.Transparent
+        NavDestConfig.Report -> Color.Transparent
+        NavDestConfig.Gallery, NavDestConfig.Poster -> Color.Transparent
+        else -> MaterialTheme.colorScheme.background
     }
+    val statusBarDarkIcon = when(statusBarColor) {
+        Color.Transparent -> ColorUtils.isLightColor(MaterialTheme.colorScheme.background)
+        else -> ColorUtils.isLightColor(statusBarColor)
+    }
+
+    return SystemUIConfig(statusBarColor, statusBarDarkIcon)
 }
 
 @Composable
@@ -117,9 +86,11 @@ internal fun MainApp() {
 
     val systemUiController = rememberSystemUiController()
 
+    val navController = rememberNavController()
+
     val mainController = MainController(
         scope = rememberCoroutineScope(),
-        navController = rememberNavController(),
+        navController = navController,
         snackbarHostState = rememberSnackbarState(
             scope = rememberCoroutineScope()
         ),
@@ -127,36 +98,23 @@ internal fun MainApp() {
     )
 
     // 当前路由
-    val currentBackStackEntry by mainController.navController.currentBackStackEntryFlow.collectAsState(
-        initial = null
-    )
+    val currentDestConfig by mainController.currentDestConfigFlow.collectAsState(initial = null)
 
-    val isDarkMode = MaterialTheme.colorScheme.background.luminance() > 0.5f
-
-    val statusColor = when (currentBackStackEntry?.destination?.route) {
-        "bit101-web", "web/{url}", "message" -> Color(0xFFFF9A57)
-        "setting?route={route}" -> Color.Transparent
-        "user/{id}", "mine" -> Color.Transparent
-        "post", "edit/{id}" -> Color.Transparent
-        "report/{type}/{id}" -> Color.Transparent
-        "gallery", "poster/{id}" -> Color.Transparent
-        else -> MaterialTheme.colorScheme.background
-    }
-
-    LaunchedEffect(statusColor) {
-        val darkIcons = when (statusColor) {
-            Color.Transparent -> isDarkMode
-            else -> ColorUtils.isLightColor(statusColor)
-        }
-
+    // 状态栏颜色
+    val systemUIConfig = getSystemUI(currentDestConfig)
+    LaunchedEffect(systemUIConfig) {
         systemUiController.setStatusBarColor(
-            color = statusColor,
-            darkIcons = darkIcons,
+            color = systemUIConfig.statusBarColor,
+            darkIcons = systemUIConfig.statusBarDarkIcon,
         )
     }
 
     // 底部导航栏路由
-    data class Screen(val route: String, val label: String, val icon: ImageVector)
+    data class Screen(
+        val dest: NavDest,
+        val label: String,
+        val icon: ImageVector
+    )
 
     val pages by vm.allPagesFlow.collectAsState(initial = null)
     val homePage by vm.homePageFlow.collectAsState(initial = null)
@@ -178,15 +136,14 @@ internal fun MainApp() {
         }
 
         Screen(
-            route = page.route,
+            dest = NavDest.fromRoute(page.value),
             label = page.name,
             icon = icon
         )
     }
 
     // 在导航图中才显示底部导航栏
-    val showBottomBar = mainController.navController
-        .currentBackStackEntryAsState().value?.destination?.route in routes.map { it.route }
+    val showBottomBar = currentDestConfig in routes.map { it.dest.config }
 
     // 底部导航栏的动画状态
     val bottomBarTransitionState =
@@ -194,9 +151,9 @@ internal fun MainApp() {
     bottomBarTransitionState.apply { targetState = showBottomBar }
 
     val navBarColor = if(showBottomBar) MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-    else when(currentBackStackEntry?.destination?.route) {
-        "post", "edit/{id}" -> MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
-        "poster/{id}" -> MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+    else when(currentDestConfig) {
+        NavDestConfig.Post, NavDestConfig.Edit -> MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
+        NavDestConfig.Report -> MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
         else -> MaterialTheme.colorScheme.background
     }
 
@@ -243,10 +200,8 @@ internal fun MainApp() {
                 )
             ) {
                 NavigationBar(height = NavBarHeight) {
-                    val currentDestination = currentBackStackEntry?.destination
                     routes.forEach { screen ->
-                        val selected =
-                            currentDestination?.hierarchy?.any { it.route == screen.route } == true
+                        val selected = currentDestConfig == screen.dest.config
                         NavigationBarItem(
                             icon = {
                                 Icon(
@@ -259,8 +214,8 @@ internal fun MainApp() {
                             onClick = {
                                 if (!selected) {
                                     // 路由跳转 保证一次返回就能回到主页
-                                    mainController.navController.navigate(screen.route) {
-                                        popUpTo(mainController.navController.graph.startDestinationId) {
+                                    mainController.navigate(screen.dest) {
+                                        popUpTo(mainController.startDestId) {
                                             saveState = true
                                         }
                                         launchSingleTop = true
@@ -274,163 +229,18 @@ internal fun MainApp() {
             }
         },
     ) { paddingValues ->
+        val navGraph = rememberMainNavGraph(
+            mainController = mainController,
+            navController = navController,
+            paddingValues = paddingValues,
+            loginStatus = loginStatus,
+            startDestination = homePage!!.toPageData().value,
+        )
+
         NavHost(
-            navController = mainController.navController,
-            startDestination = homePage!!.toPageData().route,
-        ) {
-            composable("schedule") {
-                WithLoginStatus(mainController, loginStatus) {
-                    Box(modifier = Modifier.padding(paddingValues)) {
-                        ScheduleScreen(mainController)
-                    }
-                }
-            }
-
-            composable("login") {
-                LoginOrLogoutScreen(mainController)
-            }
-
-            composable("map") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    MapScreen()
-                }
-            }
-            composable("bit101-web") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    WebScreen(mainController)
-                }
-            }
-
-            composable(
-                route = "web/{url}",
-                arguments = listOf(
-                    navArgument("url") { type = NavType.StringType },
-                ),
-            ) {
-                val url = Uri.decode(it.arguments?.getString("url") ?: "")
-                Box(
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .statusBarsPadding()
-                ) {
-                    WebScreen(mainController, url = url)
-                }
-            }
-
-            composable("gallery") {
-                WithLoginStatus(mainController, loginStatus) {
-                    Box(modifier = Modifier.navigationBarsPadding()) {
-                        GalleryScreen(mainController = mainController)
-                    }
-                }
-            }
-            composable("mine") {
-                Box(
-                    modifier = Modifier.padding(
-                        bottom = paddingValues.calculateBottomPadding()
-                    )
-                ) {
-                    MineScreen(mainController)
-                }
-            }
-
-            composable(
-                route = "setting?route={route}",
-                // 可选参数：打开后的页面
-                arguments = listOf(
-                    navArgument("route") {
-                        type = NavType.StringType
-                        nullable = true
-                    }
-                )
-            ) {
-                val route = it.arguments?.getString("route") ?: ""
-                SettingScreen(
-                    mainController = mainController,
-                    initialRoute = route
-                )
-            }
-
-            composable(
-                route = "user/{id}",
-                arguments = listOf(
-                    navArgument("id") { type = NavType.LongType },
-                ),
-            ) {
-                val id = it.arguments?.getLong("id") ?: 0L
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    UserScreen(
-                        mainController = mainController,
-                        id = id,
-                    )
-                }
-            }
-
-            composable(
-                route = "poster/{id}",
-                arguments = listOf(
-                    navArgument("id") { type = NavType.LongType },
-                ),
-            ) {
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    PosterScreen(
-                        mainController = mainController,
-                        id = it.arguments?.getLong("id") ?: 0L,
-                    )
-                }
-            }
-
-            composable("post") {
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    PostEditScreen(
-                        mainController = mainController,
-                    )
-                }
-            }
-
-            composable(
-                route = "edit/{id}",
-                arguments = listOf(
-                    navArgument("id") { type = NavType.LongType },
-                ),
-            ) {
-                val id = it.arguments?.getLong("id") ?: 0L
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    PostEditScreen(
-                        mainController = mainController,
-                        id = id,
-                    )
-                }
-            }
-
-            composable(
-                route = "report/{type}/{id}",
-                arguments = listOf(
-                    navArgument("type") { type = NavType.StringType },
-                    navArgument("id") { type = NavType.LongType },
-                ),
-            ) {
-                val type = it.arguments?.getString("type") ?: ""
-                val id = it.arguments?.getLong("id") ?: 0L
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    ReportScreen(
-                        mainController = mainController,
-                        objType = type,
-                        id = id,
-                    )
-                }
-            }
-
-            composable(route = "message") {
-                Box(
-                    modifier = Modifier
-                        .padding(top = paddingValues.calculateTopPadding())
-                        .navigationBarsPadding()
-                ) {
-                    MessageScreen(mainController = mainController)
-                }
-            }
-        }
+            navController = navController,
+            graph = navGraph
+        )
 
         ImageHost(
             modifier = Modifier.fillMaxSize(),

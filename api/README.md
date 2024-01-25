@@ -8,4 +8,4 @@
   - `cn.bit101.android.api.model`: 数据模型
   - `cn.bit101.android.api.option`: 配置
   - `cn.bit101.android.api.service`: 网络请求接口
-- 导出：若干个 `Retrofit` 用于网络请求
+- 导出：API 工厂类及其相关配置、数据模型类

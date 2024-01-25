@@ -39,7 +39,7 @@ fun LoginOrLogoutScreen(
                 loginState = postLoginState,
                 onLogin = vm::login,
                 onLoginSuccess = {
-                    mainController.navController.popBackStack()
+                    mainController.popBackStack()
                     mainController.snackbar("登录成功OvO")
                 },
                 onLoginFailed = {
@@ -53,7 +53,7 @@ fun LoginOrLogoutScreen(
             LogoutPage(
                 sid = sid,
                 onLogout = vm::logout,
-                onBack = mainController.navController::popBackStack
+                onBack = mainController::popBackStack
             )
         }
 

@@ -37,6 +37,7 @@ import cn.bit101.android.features.common.component.ErrorMessageForPage
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.features.common.helper.SimpleState
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.api.model.common.User
 
 
@@ -181,7 +182,7 @@ private fun FollowPage(
                         UserItem(
                             mainController = mainController,
                             user = it,
-                            onClick = { mainController.navigate("user/${it.id}") }
+                            onClick = { mainController.navigate(NavDest.User(it.id.toLong())) }
                         )
                     }
                 }

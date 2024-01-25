@@ -41,6 +41,7 @@ import cn.bit101.android.features.common.component.user.UserInfoContent
 import cn.bit101.android.features.common.component.user.UserInfoTopAppBar
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
@@ -79,8 +80,8 @@ private fun UserScreenContent(
                             onFollow = onFollow,
                             onCopyText = { mainController.copyText(cm, it) },
                             onShowImage = { mainController.showImage(it) },
-                            onOpenPoster = { mainController.navigate("poster/$it") },
-                            onOpenUser = { mainController.navigate("user/$it") },
+                            onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
+                            onOpenUser = { mainController.navigate(NavDest.User(it)) },
                         )
                         Spacer(modifier = Modifier.padding(8.dp))
                     }
@@ -98,7 +99,7 @@ private fun UserScreenContent(
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { mainController.navController.popBackStack() }) {
+                    IconButton(onClick = { mainController.popBackStack() }) {
                         Icon(
                             imageVector = Icons.Outlined.ArrowBack,
                             contentDescription = "back"
@@ -205,7 +206,7 @@ fun UserScreen(
             followState = followState,
 
             onOpenImages = mainController::showImages,
-            onOpenPoster = { mainController.navController.navigate("poster/$it") },
+            onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
             onFollow = { vm.follow(id) },
         )
     } else {

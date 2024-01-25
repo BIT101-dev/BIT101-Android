@@ -67,6 +67,7 @@ import cn.bit101.android.features.common.component.gallery.LikeIcon
 import cn.bit101.android.features.common.component.image.PreviewImagesWithGridLayout
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequestState
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.android.features.common.utils.DateTimeUtils
 import cn.bit101.android.features.common.utils.NumberUtils
 import cn.bit101.api.model.common.Comment
@@ -113,7 +114,7 @@ private fun PosterScreenTopBar(
                             user = data.user,
                             low = true,
                             size = 32.dp,
-                            onClick = { mainController.navController.navigate("user/${data.user.id}") }
+                            onClick = { mainController.navigate(NavDest.User(data.user.id.toLong())) }
                         )
                         Column(
                             modifier = Modifier
@@ -137,7 +138,7 @@ private fun PosterScreenTopBar(
             }
         },
         navigationIcon = {
-            IconButton(onClick = { mainController.navController.popBackStack() }) {
+            IconButton(onClick = { mainController.popBackStack() }) {
                 Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
             }
         },
@@ -379,8 +380,8 @@ internal fun PosterContent(
                                     style = MaterialTheme.typography.bodyLarge.copy(
                                         color = MaterialTheme.colorScheme.onSurface
                                     ),
-                                    onOpenPoster = { mainController.navigate("poster/$it") },
-                                    onOpenUser = { mainController.navigate("user/$it") }
+                                    onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
+                                    onOpenUser = { mainController.navigate(NavDest.User(it)) }
                                 )
                             }
                         }

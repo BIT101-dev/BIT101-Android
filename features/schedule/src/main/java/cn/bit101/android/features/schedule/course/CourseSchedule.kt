@@ -23,6 +23,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.helper.SimpleState
+import cn.bit101.android.features.common.nav.NavDest
 
 /**
  * @author flwfdd
@@ -161,7 +162,7 @@ internal fun CourseSchedule(
                     timeTable = timeTable!!,
                     settingData = settingData,
 
-                    onConfig = { mainController.navController.navigate("setting?route=calendar") },
+                    onConfig = { mainController.navigate(NavDest.Setting("calendar")) },
                     onShowDetailDialog = { showCourseDetailState = it },
                     onChangeWeek = { vm.changeWeek(it) }
                 )

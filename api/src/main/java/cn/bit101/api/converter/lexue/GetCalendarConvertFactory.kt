@@ -15,7 +15,7 @@ import retrofit2.Retrofit
 import java.lang.reflect.Type
 import java.time.ZoneOffset
 
-class GetCalendarConvertFactory(
+internal class GetCalendarConvertFactory(
     logger: Logger
 ) : Converter.Factory() {
     override fun responseBodyConverter(
@@ -30,15 +30,15 @@ class GetCalendarConvertFactory(
 
             val list = mutableListOf<GetCalendarDataModel.CalendarEvent>()
             val cal = CalendarBuilder().build(html.byteInputStream())
-            cal.components.forEach { canlenderComponent ->
-                val start = canlenderComponent.getProperty<DtStart>(Property.DTSTART)
+            cal.components.forEach { calendarComponent ->
+                val start = calendarComponent.getProperty<DtStart>(Property.DTSTART)
 
                 list.add(
                     GetCalendarDataModel.CalendarEvent(
-                        canlenderComponent.getProperty<Uid>(Property.UID).value,
-                        canlenderComponent.getProperty<Summary>(Property.SUMMARY).value,
-                        canlenderComponent.getProperty<Description>(Property.DESCRIPTION).value,
-                        canlenderComponent.getProperty<Categories>(Property.CATEGORIES).value,
+                        calendarComponent.getProperty<Uid>(Property.UID).value,
+                        calendarComponent.getProperty<Summary>(Property.SUMMARY).value,
+                        calendarComponent.getProperty<Description>(Property.DESCRIPTION).value,
+                        calendarComponent.getProperty<Categories>(Property.CATEGORIES).value,
                         start.date.toInstant().atZone(ZoneOffset.ofHours(8)).toLocalDateTime()
                     )
                 )

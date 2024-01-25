@@ -48,7 +48,7 @@ sealed interface PageShowOnNav {
          * 通过字符串获取页面
          */
         fun getPage(pageStr: String) =
-            allPages.firstOrNull { it.toPageData().route == pageStr }
+            allPages.firstOrNull { it.toPageData().value == pageStr }
     }
 }
 
@@ -64,7 +64,7 @@ data class PageData(
     /**
      * 页面的 route
      */
-    val route: String
+    val value: String,
 )
 
 /**

@@ -13,10 +13,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.component.Avatar
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
@@ -146,11 +144,10 @@ private fun EditDialog(
 
 @Composable
 internal fun AccountPage(
-    mainController: MainController,
     onLogin: () -> Unit,
-    vm: AccountViewModel = hiltViewModel()
+    onSnackBar: (String) -> Unit,
 ) {
-    val ctx = LocalContext.current
+    val vm: AccountViewModel = hiltViewModel()
 
     val getUserInfoState by vm.getUserInfoStateFlow.collectAsState()
 
@@ -173,17 +170,17 @@ internal fun AccountPage(
 
     LaunchedEffect(checkingLoginState) {
         if (checkingLoginState is SimpleState.Fail) {
-            mainController.snackbar("登录状态检查失败")
+            onSnackBar("登录状态检查失败")
         } else if (checkingLoginState is SimpleState.Success) {
-            mainController.snackbar("登录状态检查成功")
+            onSnackBar("登录状态检查成功")
         }
     }
 
     LaunchedEffect(updateAvatarState, updateUserInfoState) {
         if (updateAvatarState is SimpleState.Fail || updateUserInfoState is SimpleState.Fail) {
-            mainController.snackbar("更新失败")
+            onSnackBar("更新失败")
         } else if (updateAvatarState is SimpleState.Success || updateUserInfoState is SimpleState.Success) {
-            mainController.snackbar("更新成功")
+            onSnackBar("更新成功")
         }
     }
 

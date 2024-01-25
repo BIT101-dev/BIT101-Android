@@ -25,6 +25,7 @@ import cn.bit101.android.features.common.component.loadable.rememberLoadableLazy
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.rememberImagePicker
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.android.features.poster.component.CommentBottomSheet
 import cn.bit101.android.features.poster.component.MoreActionOfCommentBottomSheet
 import cn.bit101.android.features.poster.component.MoreActionOfPosterBottomSheet
@@ -193,7 +194,7 @@ fun PosterScreen(
     LaunchedEffect(deletePosterState) {
         if(deletePosterState is SimpleState.Success) {
             mainController.snackbar("帖子删除成功了！")
-            mainController.navController.popBackStack()
+            mainController.popBackStack()
         } else if(deletePosterState is SimpleState.Fail) {
             mainController.snackbar("帖子删除失败Orz")
         }
@@ -302,8 +303,12 @@ fun PosterScreen(
         MoreActionOfCommentBottomSheet(
             state = moreActionOfCommentBottomSheetState,
             own = commentNeedShowMoreAction?.own ?: false,
-            onDelete = { vm.deleteCommentById(commentNeedShowMoreAction!!.id.toLong()) },
-            onReport = { mainController.navigate("report/comment/${commentNeedShowMoreAction!!.id}") },
+            onDelete = {
+                vm.deleteCommentById(commentNeedShowMoreAction!!.id.toLong())
+            },
+            onReport = {
+                mainController.navigate(NavDest.Report("comment", commentNeedShowMoreAction!!.id.toLong()))
+            },
             onCopy = { mainController.copyText(cm, commentNeedShowMoreAction?.text) },
             onDismiss = { scope.launch { moreActionOfCommentBottomSheetState.collapse() } }
         )
@@ -311,9 +316,11 @@ fun PosterScreen(
         MoreActionOfPosterBottomSheet(
             state = moreActionOfPosterBottomSheetState,
             own = (getPosterState as SimpleDataState.Success).data.own,
-            onEdit = { mainController.navigate("edit/$id") },
+            onEdit = { mainController.navigate(NavDest.Edit(id)) },
             onDelete = { vm.deletePosterById(id) },
-            onReport = { mainController.navigate("report/poster/$id") },
+            onReport = {
+                mainController.navigate(NavDest.Report("poster", id))
+            },
             onOpenInBrowser = { mainController.openPoster(id, ctx) },
 
             onDismiss = { scope.launch { moreActionOfPosterBottomSheetState.collapse() } }

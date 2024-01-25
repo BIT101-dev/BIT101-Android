@@ -7,7 +7,7 @@ import retrofit2.Converter
 import retrofit2.Retrofit
 import java.lang.reflect.Type
 
-class PostSchoolLoginConvertFactory(
+internal class PostSchoolLoginConvertFactory(
     logger: Logger
 ) : Converter.Factory() {
     override fun responseBodyConverter(

@@ -40,7 +40,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.config.setting.base.TimeTable
 import cn.bit101.android.config.setting.base.toTimeTableString
-import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.setting.component.SettingItemData
@@ -266,9 +265,9 @@ private fun TimeTableDialog(
 
 @Composable
 internal fun CalendarSettingPage(
-    mainController: MainController,
-    vm: CalendarViewModel = hiltViewModel(),
+    onSnackBar: (String) -> Unit
 ) {
+    val vm: CalendarViewModel = hiltViewModel()
 
     val currentTerm by vm.currentTermFlow.collectAsState(initial = null)
     val firstDay by vm.firstDayFlow.collectAsState(initial = null)
@@ -294,37 +293,37 @@ internal fun CalendarSettingPage(
 
     DisposableEffect(setCurrentTermState) {
         if(setCurrentTermState is SimpleState.Success) {
-            mainController.snackbar("设置成功")
+            onSnackBar("设置成功")
         } else if(setCurrentTermState is SimpleState.Fail) {
-            mainController.snackbar("设置失败")
+            onSnackBar("设置失败")
         }
         onDispose { }
     }
 
     DisposableEffect(getFirstDayState) {
         if(getFirstDayState is SimpleState.Success) {
-            mainController.snackbar("获取成功")
+            onSnackBar("获取成功")
         } else if(getFirstDayState is SimpleState.Fail) {
-            mainController.snackbar("获取失败")
+            onSnackBar("获取失败")
         }
         onDispose { }
     }
 
     DisposableEffect(getCoursesState) {
         if(getCoursesState is SimpleState.Success) {
-            mainController.snackbar("获取成功")
+            onSnackBar("获取成功")
         } else if(getCoursesState is SimpleState.Fail) {
-            mainController.snackbar("获取失败")
+            onSnackBar("获取失败")
         }
         onDispose { }
     }
 
     DisposableEffect(setTimeTableState) {
         if(setTimeTableState is SimpleState.Success) {
-            mainController.snackbar("设置成功")
+            onSnackBar("设置成功")
             showTimeTableDialog = false
         } else if(setTimeTableState is SimpleState.Fail) {
-            mainController.snackbar("设置失败")
+            onSnackBar("设置失败")
         }
         onDispose { }
     }

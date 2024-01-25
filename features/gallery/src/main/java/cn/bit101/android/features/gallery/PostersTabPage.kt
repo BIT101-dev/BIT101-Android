@@ -36,6 +36,7 @@ import cn.bit101.android.features.common.component.loadable.LoadableLazyColumn
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnState
 import cn.bit101.android.features.common.helper.NavBarHeight
 import cn.bit101.android.features.common.helper.SimpleState
+import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import kotlinx.coroutines.launch
 
@@ -112,7 +113,7 @@ internal fun PostersTabPage(
                         onOpenImages = mainController::showImages,
                         onOpenUserDetail = { user ->
                             user?.let {
-                                mainController.navigate("user/${it.id}")
+                                mainController.navigate(NavDest.User(it.id.toLong()))
                             }
                         }
                     )

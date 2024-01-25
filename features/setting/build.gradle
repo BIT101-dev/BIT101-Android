@@ -53,7 +53,7 @@ dependencies {
     ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
 
     // 拖动排序
-    api "org.burnoutcrew.composereorderable:reorderable:0.9.6"
+    implementation "org.burnoutcrew.composereorderable:reorderable:0.9.6"
     
     implementation project(':features:common')
 
