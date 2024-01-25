@@ -18,7 +18,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class SettingData(
+internal data class SettingData(
     val showDivider: Boolean,
     val showSaturday: Boolean,
     val showSunday: Boolean,
@@ -39,7 +39,7 @@ data class SettingData(
 }
 
 @HiltViewModel
-class CalendarViewModel @Inject constructor(
+internal class CalendarViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
     private val courseScheduleSettings: CourseScheduleSettings
 ) : ViewModel() {

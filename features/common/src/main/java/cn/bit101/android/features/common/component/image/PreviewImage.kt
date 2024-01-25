@@ -103,7 +103,6 @@ fun PreviewImages(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun PreviewImagesWithGridLayout(
     modifier: Modifier = Modifier,

@@ -16,7 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class MineViewModel @Inject constructor(
+internal class MineViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val posterRepo: PosterRepo,
     private val messageRepo: MessageRepo

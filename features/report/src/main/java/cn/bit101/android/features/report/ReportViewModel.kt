@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class ReportViewModel @Inject constructor(
+internal class ReportViewModel @Inject constructor(
     private val manageRepo: ManageRepo
 ) : ViewModel() {
 

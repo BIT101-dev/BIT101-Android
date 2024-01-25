@@ -47,7 +47,7 @@ import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserScreenContent(
+private fun UserScreenContent(
     mainController: MainController,
     data: GetUserInfoDataModel.Response,
     posters: List<GetPostersDataModel.ResponseItem>,
@@ -147,9 +147,10 @@ fun UserScreenContent(
 @Composable
 fun UserScreen(
     mainController: MainController,
-    vm: UserViewModel = hiltViewModel(),
     id: Long = 0,
 ) {
+
+    val vm: UserViewModel = hiltViewModel()
 
     val ctx = LocalContext.current
 

@@ -31,14 +31,14 @@ import kotlinx.coroutines.launch
  * @description 可以左右滑动切换的TabPager
  */
 
-data class TabPagerItem(
+internal data class TabPagerItem(
     val title: String,
     val content: @Composable (active: Boolean) -> Unit
 )
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun TabPager(items: List<TabPagerItem>) {
+internal fun TabPager(items: List<TabPagerItem>) {
     val pagerSate = rememberPagerState(
         initialPage = 0,
         initialPageOffsetFraction = 0f,
@@ -106,7 +106,7 @@ fun TabPager(items: List<TabPagerItem>) {
 
 
 @Composable
-fun FancyAnimatedIndicator(tabPositions: List<TabPosition>, selectedTabIndex: Int) {
+internal fun FancyAnimatedIndicator(tabPositions: List<TabPosition>, selectedTabIndex: Int) {
     val transition = updateTransition(selectedTabIndex, label = "tab index")
     val indicatorStart by transition.animateDp(
         transitionSpec = {

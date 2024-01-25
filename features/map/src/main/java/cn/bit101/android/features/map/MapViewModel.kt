@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
-class MapViewModel @Inject constructor(
+internal class MapViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val mapSettings: MapSettings
 ) : ViewModel() {

@@ -105,9 +105,9 @@ fun UpdateDialog(
 
 
 @Composable
-fun UpdateDialog(
-    vm: UpdateDialogViewModel = hiltViewModel(),
-) {
+fun UpdateDialog() {
+    val vm: UpdateDialogViewModel = hiltViewModel()
+
     val versionState by vm.getVersionStateFlow.collectAsState()
     val context = LocalContext.current
     val appVersion = getAppVersion(context)
@@ -134,7 +134,7 @@ fun UpdateDialog(
 }
 
 @HiltViewModel
-class UpdateDialogViewModel @Inject constructor(
+internal class UpdateDialogViewModel @Inject constructor(
     private val aboutSettings: AboutSettings,
     private val versionRepo: VersionRepo
 ) : ViewModel() {

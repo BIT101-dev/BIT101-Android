@@ -17,7 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
-class UserViewModel @Inject constructor(
+internal class UserViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val posterRepo: PosterRepo,
 ) : ViewModel() {

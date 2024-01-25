@@ -213,7 +213,7 @@ private fun TermListDialog(
 
 // 设置时间表对话框
 @Composable
-fun TimeTableDialog(
+private fun TimeTableDialog(
     timeTable: TimeTable,
     errorMessage: String,
     onSetTimeTable: (String) -> Unit,
@@ -265,7 +265,7 @@ fun TimeTableDialog(
 }
 
 @Composable
-fun CalendarSettingPage(
+internal fun CalendarSettingPage(
     mainController: MainController,
     vm: CalendarViewModel = hiltViewModel(),
 ) {

@@ -24,7 +24,7 @@ import javax.inject.Inject
  * @description _(:з」∠)_
  */
 
-data class SettingData(
+internal data class SettingData(
     val showSaturday: Boolean,
     val showSunday: Boolean,
     val showDivider: Boolean,
@@ -34,7 +34,7 @@ data class SettingData(
 )
 
 @HiltViewModel
-class CourseScheduleViewModel @Inject constructor(
+internal class CourseScheduleViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
     private val courseScheduleSettings: CourseScheduleSettings
 ) : ViewModel() {

@@ -11,7 +11,7 @@ import androidx.compose.ui.platform.LocalView
 import cn.bit101.android.features.common.component.bottomsheet.BottomSheetState
 
 @Composable
-fun MoreActionOfCommentBottomSheet(
+internal fun MoreActionOfCommentBottomSheet(
     state: BottomSheetState,
     own: Boolean,
 

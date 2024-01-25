@@ -27,7 +27,7 @@ import cn.bit101.android.data.database.entity.CourseScheduleEntity
 
 
 @Composable
-fun CourseScheduleItem(
+internal fun CourseScheduleItem(
     modifier: Modifier,
     week: Int,
     course: CourseScheduleEntity

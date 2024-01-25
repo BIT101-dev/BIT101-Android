@@ -6,7 +6,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class MessageViewModel @Inject constructor(
+internal class MessageViewModel @Inject constructor(
     private val messageRepo: MessageRepo,
 ) : ViewModel() {
 }

@@ -10,7 +10,7 @@ import cn.bit101.android.features.common.helper.ImageData
 /**
  * 图片的变换
  */
-data class ImageTransform(
+internal data class ImageTransform(
     val scale: Float,
     val offset: Offset,
 ) {
@@ -25,12 +25,12 @@ data class ImageTransform(
 /**
  * 图片状态接口
  */
-sealed interface BasicImageShowState
+internal sealed interface BasicImageShowState
 
 /**
  * 图片的状态
  */
-class ImageShowState(
+internal class ImageShowState(
     val image: ImageData,
     private val transformState: MutableState<ImageTransform>,
 ) : BasicImageShowState {
@@ -49,7 +49,7 @@ class ImageShowState(
  * [ImageShowState] 的 remember
  */
 @Composable
-fun rememberImageShowState(
+internal fun rememberImageShowState(
     image: ImageData,
 ) = remember(image) {
     ImageShowState(
@@ -61,7 +61,7 @@ fun rememberImageShowState(
 /**
  * 系列图片的状态
  */
-data class SeriesImagesShowState(
+internal data class SeriesImagesShowState(
     val states: List<ImageShowState>,
     private val indexState: MutableState<Int>,
 ) : List<ImageShowState>, BasicImageShowState {
@@ -91,7 +91,7 @@ data class SeriesImagesShowState(
  * [SeriesImagesShowState] 的 remember
  */
 @Composable
-fun rememberSeriesImagesShowState(
+internal fun rememberSeriesImagesShowState(
     images: List<ImageData>,
     initialIndex: Int = 0,
 ): SeriesImagesShowState = remember(images, initialIndex) {

@@ -5,8 +5,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.features.common.MainController
 
 @Composable
-fun MessageScreen(
-    mainController: MainController,
-    vm: MessageViewModel = hiltViewModel(),
-) {
+fun MessageScreen(mainController: MainController) {
+    val vm: MessageViewModel = hiltViewModel()
 }

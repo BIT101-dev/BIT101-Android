@@ -39,7 +39,7 @@ import cn.bit101.android.features.common.helper.SimpleState
 
 // 登录界面
 @Composable
-fun LoginPage(
+internal fun LoginPage(
     loginState: SimpleState?,
 
     onLogin: (String, String) -> Unit,

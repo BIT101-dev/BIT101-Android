@@ -52,7 +52,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
-fun CommentBottomSheet(
+internal fun CommentBottomSheet(
     commentType: CommentType,
 
     /**

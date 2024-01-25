@@ -7,7 +7,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class WebViewModel @Inject constructor(
+internal class WebViewModel @Inject constructor(
     private val loginStatus: LoginStatus
 ) : ViewModel() {
     val BASE_URL = "https://bit101.cn"

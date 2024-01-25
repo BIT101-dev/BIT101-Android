@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 import java.io.Serializable
 import javax.inject.Inject
 
-data class EditPosterData(
+internal data class EditPosterData(
     val anonymous: Boolean,
     val claim: Claim?,
     val uploadImageData: UploadImageData,
@@ -50,7 +50,7 @@ data class EditPosterData(
 }
 
 @HiltViewModel
-class PostEditViewModel @Inject constructor(
+internal class PostEditViewModel @Inject constructor(
     private val posterRepo: PosterRepo,
     private val uploadRepo: UploadRepo,
 ) : ViewModel() {

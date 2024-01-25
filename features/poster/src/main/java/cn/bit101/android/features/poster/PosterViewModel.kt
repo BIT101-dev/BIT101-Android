@@ -31,7 +31,7 @@ import javax.inject.Inject
 /**
  * 编辑的评论数据
  */
-data class CommentEditData(
+internal data class CommentEditData(
     val text: String,
     val uploadImageData: UploadImageData,
     val anonymous: Boolean,
@@ -50,7 +50,7 @@ data class CommentEditData(
     fun isEmpty() = text.isEmpty() && (!uploadImageData.ifUpload || uploadImageData.images.isEmpty())
 }
 
-sealed interface CommentType {
+internal sealed interface CommentType {
     data class ToPoster(
         val posterId: Long,
     ) : CommentType
@@ -60,7 +60,7 @@ sealed interface CommentType {
     ) : CommentType
 }
 
-sealed interface ObjectType {
+internal sealed interface ObjectType {
     data class PosterObject(
         val posterId: Long,
     ) : ObjectType
@@ -70,7 +70,7 @@ sealed interface ObjectType {
 }
 
 @HiltViewModel
-class PosterViewModel @Inject constructor(
+internal class PosterViewModel @Inject constructor(
     private val posterRepo: PosterRepo,
     private val reactionRepo: ReactionRepo,
     private val uploadRepo: UploadRepo,

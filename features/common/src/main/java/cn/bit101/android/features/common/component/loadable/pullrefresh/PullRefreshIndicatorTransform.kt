@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package cn.bit101.android.features.common.component.pullrefresh
+package cn.bit101.android.features.common.component.loadable.pullrefresh
 
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.ui.Modifier
@@ -34,7 +34,7 @@ import androidx.compose.ui.platform.inspectable
  * @param scale A boolean controlling whether the indicator's size scales with pull progress or not.
  */
 // TODO: Consider whether the state parameter should be replaced with lambdas.
-fun Modifier.pullRefreshIndicatorTransform(
+internal fun Modifier.pullRefreshIndicatorTransform(
     state: PullRefreshState,
     scale: Boolean = false,
 ) = inspectable(

@@ -30,7 +30,7 @@ import cn.bit101.api.model.common.User
 
 
 @OptIn(ExperimentalTextApi::class)
-fun getUrl(
+private fun getUrl(
     layoutResult: MutableState<TextLayoutResult?>,
     annotatedText: AnnotatedString,
     pos: Offset,
@@ -42,7 +42,7 @@ fun getUrl(
 }
 
 
-fun getUser(
+private fun getUser(
     layoutResult: MutableState<TextLayoutResult?>,
     annotatedText: AnnotatedString,
     pos: Offset,

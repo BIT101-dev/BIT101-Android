@@ -5,9 +5,9 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.Dp
-import cn.bit101.android.features.common.component.pullrefresh.PullRefreshDefaults
-import cn.bit101.android.features.common.component.pullrefresh.PullRefreshState
-import cn.bit101.android.features.common.component.pullrefresh.rememberPullRefreshState
+import cn.bit101.android.features.common.component.loadable.pullrefresh.PullRefreshDefaults
+import cn.bit101.android.features.common.component.loadable.pullrefresh.PullRefreshState
+import cn.bit101.android.features.common.component.loadable.pullrefresh.rememberPullRefreshState
 
 
 @Composable

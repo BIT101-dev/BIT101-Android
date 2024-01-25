@@ -86,9 +86,10 @@ private val DarkColors = darkColorScheme(
 
 @Composable
 fun BIT101Theme(
-    vm: ThemeViewModel = hiltViewModel(),
     content: @Composable () -> Unit
 ) {
+    val vm: ThemeViewModel = hiltViewModel()
+
     val dynamicColor =
         if (vm.dynamicThemeFlow.collectAsState(initial = false).value)
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
@@ -116,7 +117,7 @@ fun BIT101Theme(
 }
 
 @HiltViewModel
-class ThemeViewModel @Inject constructor(
+internal class ThemeViewModel @Inject constructor(
     private val themeSettings: ThemeSettings
 ) : ViewModel() {
     val dynamicThemeFlow = themeSettings.dynamicTheme.flow

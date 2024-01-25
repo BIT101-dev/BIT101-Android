@@ -155,7 +155,7 @@ private fun InputNumberDialog(
 
 
 @Composable
-fun DDLSettingPage(
+internal fun DDLSettingPage(
     mainController: MainController,
     vm: DDLViewModel = hiltViewModel(),
 ) {

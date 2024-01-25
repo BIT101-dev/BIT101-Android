@@ -86,7 +86,7 @@ import kotlin.math.min
  * @param content Sheet content.
  */
 @Composable
-fun CoreBottomSheet(
+internal fun CoreBottomSheet(
     state: BottomSheetState,
     modifier: Modifier = Modifier,
     skipPeeked: Boolean = false,
@@ -159,7 +159,7 @@ fun CoreBottomSheet(
     }
 
     val dialog = remember(view, state) {
-        cn.bit101.android.features.common.component.BottomSheetWrapper(
+        BottomSheetWrapper(
             onDismissRequest = onDismissRequest,
             behaviors = finalBehaviors,
             composeView = view,
@@ -168,7 +168,7 @@ fun CoreBottomSheet(
         )
     }.apply {
         setContent(composition) {
-            cn.bit101.android.features.common.component.DialogLayout {
+            DialogLayout {
                 CoreBottomSheetLayout(
                     state = currentState,
                     modifier = finalModifier,
@@ -228,7 +228,7 @@ fun CoreBottomSheet(
  * @param content Sheet content.
  */
 @Composable
-fun CoreBottomSheetLayout(
+internal fun CoreBottomSheetLayout(
     state: BottomSheetState,
     modifier: Modifier = Modifier,
     skipPeeked: Boolean = false,

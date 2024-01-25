@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.helper.ImageData
 
 @Composable
-fun ImageController(
+internal fun ImageController(
     modifier: Modifier,
     state: SeriesImagesShowState,
     onOpenUrl: (String) -> Unit,
@@ -84,7 +84,7 @@ fun ImageController(
 
 
 @Composable
-fun ImageController(
+internal fun ImageController(
     modifier: Modifier,
     state: ImageShowState,
     onOpenUrl: (String) -> Unit,

@@ -193,7 +193,7 @@ private fun SelectClaimDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PostScreenContent(
+internal fun PostScreenContent(
     mainController: MainController,
 
     id: Long?,
@@ -439,8 +439,9 @@ fun PostScreenContent(
 fun PostEditScreen(
     mainController: MainController,
     id: Long? = null,
-    vm: PostEditViewModel = hiltViewModel(),
 ) {
+    val vm: PostEditViewModel = hiltViewModel()
+
     LaunchedEffect(id) {
         vm.loadPoster(id)
     }

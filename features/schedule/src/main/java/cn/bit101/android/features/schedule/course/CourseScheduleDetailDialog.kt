@@ -27,7 +27,7 @@ import cn.bit101.android.data.database.entity.CourseScheduleEntity
 
 // 课程详情对话框
 @Composable
-fun CourseScheduleDetailDialog(
+internal fun CourseScheduleDetailDialog(
     course: CourseScheduleEntity,
     onDismiss: () -> Unit,
 ) {
@@ -92,7 +92,7 @@ private fun Item(title: String, content: String) {
 
 @Preview(showBackground = true)
 @Composable
-fun CourseDetailPreview() {
+private fun CourseDetailPreview() {
     var show by remember { mutableStateOf(false) }
     CourseScheduleDetailDialog(
         CourseScheduleEntity(

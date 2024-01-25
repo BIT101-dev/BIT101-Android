@@ -35,7 +35,7 @@ import java.util.UUID
 import kotlin.math.roundToInt
 
 @Composable
-fun SnackbarContent(
+private fun SnackbarContent(
     modifier: Modifier = Modifier,
     message: MessageData,
     behaviors: DialogSheetBehaviors = CoreBottomSheetDefaults.dialogSheetBehaviors(),
@@ -132,7 +132,7 @@ fun SnackbarContent(
 }
 
 @Composable
-fun Snackbar(
+internal fun Snackbar(
     modifier: Modifier = Modifier,
     message: MessageData,
     onDismiss: () -> Unit,

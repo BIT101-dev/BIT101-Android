@@ -26,7 +26,7 @@ import cn.bit101.android.data.database.entity.DDLScheduleEntity
  */
 
 @Composable
-fun DDLScheduleItem(modifier: Modifier, item: DDLScheduleEntity, vm: DDLScheduleViewModel) {
+internal fun DDLScheduleItem(modifier: Modifier, item: DDLScheduleEntity, vm: DDLScheduleViewModel) {
     Surface(
         modifier = modifier,
         color = if (item.done) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f) else mixColor(
@@ -84,7 +84,7 @@ fun DDLScheduleItem(modifier: Modifier, item: DDLScheduleEntity, vm: DDLSchedule
 }
 
 // 混合两个颜色 第一个颜色占比为ratio
-fun mixColor(color1: Color, color2: Color, ratio: Float): Color {
+private fun mixColor(color1: Color, color2: Color, ratio: Float): Color {
     return Color(
         (color1.red * ratio + color2.red * (1 - ratio)),
         (color1.green * ratio + color2.green * (1 - ratio)),

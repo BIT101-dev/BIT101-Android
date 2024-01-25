@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.onSizeChanged
@@ -35,9 +36,9 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.component.ErrorMessageForPage
-import cn.bit101.android.features.common.component.pullrefresh.PullRefreshIndicator
-import cn.bit101.android.features.common.component.pullrefresh.PullRefreshState
-import cn.bit101.android.features.common.component.pullrefresh.pullRefresh
+import cn.bit101.android.features.common.component.loadable.pullrefresh.PullRefreshIndicator
+import cn.bit101.android.features.common.component.loadable.pullrefresh.PullRefreshState
+import cn.bit101.android.features.common.component.loadable.pullrefresh.pullRefresh
 
 
 @Composable
@@ -85,7 +86,13 @@ internal fun BasicLoadableLazyColumn(
 
         lazyColumnModifier = lazyColumnModifier.fillMaxSize()
 
-        if (pullRefreshState != null) lazyColumnModifier = lazyColumnModifier.pullRefresh(state = pullRefreshState)
+        if (pullRefreshState != null) {
+            lazyColumnModifier = lazyColumnModifier
+                .graphicsLayer {
+                    translationY = pullRefreshState.position
+                }
+                .pullRefresh(state = pullRefreshState)
+        }
 
         var size: IntSize by remember { mutableStateOf(IntSize.Zero) }
 

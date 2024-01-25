@@ -21,8 +21,9 @@ import cn.bit101.android.features.common.helper.SimpleState
 @Composable
 fun LoginOrLogoutScreen(
     mainController: MainController,
-    vm: LoginOrLogoutViewModel = hiltViewModel(),
 ) {
+    val vm: LoginOrLogoutViewModel = hiltViewModel()
+
     // 检查登录状态
     val checkLoginStatusState by vm.checkLoginStateLiveData.observeAsState()
     val postLoginState by vm.postLoginStateLiveData.observeAsState()

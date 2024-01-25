@@ -126,7 +126,7 @@ private fun DarkModeDialog(
 
 
 @Composable
-fun ThemeSettingPage(
+internal fun ThemeSettingPage(
     mainController: MainController,
     vm: ThemeViewModel = hiltViewModel()
 ) {

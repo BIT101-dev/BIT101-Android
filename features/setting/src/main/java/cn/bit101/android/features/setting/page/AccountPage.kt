@@ -145,7 +145,7 @@ private fun EditDialog(
 }
 
 @Composable
-fun AccountPage(
+internal fun AccountPage(
     mainController: MainController,
     onLogin: () -> Unit,
     vm: AccountViewModel = hiltViewModel()

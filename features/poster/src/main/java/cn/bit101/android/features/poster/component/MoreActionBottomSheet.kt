@@ -67,7 +67,7 @@ data class Action(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun MoreActionBottomSheet(
+internal fun MoreActionBottomSheet(
     state: BottomSheetState,
     actions: List<Action>,
 

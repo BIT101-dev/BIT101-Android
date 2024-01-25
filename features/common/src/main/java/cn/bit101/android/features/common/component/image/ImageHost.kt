@@ -21,7 +21,7 @@ sealed interface ImageHostData {
         val index: Int,
     ) : ImageHostData
 
-    object None: ImageHostData
+    data object None: ImageHostData
 }
 
 /**

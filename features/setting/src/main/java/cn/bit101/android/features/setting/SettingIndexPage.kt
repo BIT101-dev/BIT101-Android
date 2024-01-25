@@ -21,7 +21,7 @@ import cn.bit101.android.features.setting.component.SettingItem
 import cn.bit101.android.features.setting.component.SettingItemData
 
 @Composable
-fun SettingIndexPage(
+internal fun SettingIndexPage(
     mainController: MainController,
     paddingValues: PaddingValues,
 ) {

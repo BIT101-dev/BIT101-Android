@@ -8,7 +8,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class ThemeViewModel @Inject constructor(
+internal class ThemeViewModel @Inject constructor(
     private val themeSettings: ThemeSettings
 ) : ViewModel() {
     val darkThemeMode = themeSettings.darkThemeMode

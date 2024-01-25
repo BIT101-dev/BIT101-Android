@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 /**
  * 帖子列表的状态
  */
-data class PostersState(
+internal data class PostersState(
     /**
      * 帖子列表
      */
@@ -70,7 +70,7 @@ data class PostersState(
 )
 
 @Composable
-fun PostersTabPage(
+internal fun PostersTabPage(
     mainController: MainController,
 
     postersState: PostersState,

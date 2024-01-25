@@ -11,7 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
-class LoginOrLogoutViewModel @Inject constructor(
+internal class LoginOrLogoutViewModel @Inject constructor(
     private val loginStatus: LoginStatus,
     private val loginRepo: LoginRepo
 ) : ViewModel() {

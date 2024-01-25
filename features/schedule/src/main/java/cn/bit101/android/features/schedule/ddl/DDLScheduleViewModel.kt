@@ -24,7 +24,7 @@ import javax.inject.Inject
  */
 
 @HiltViewModel
-class DDLScheduleViewModel @Inject constructor(
+internal class DDLScheduleViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
     private val ddlSettings: DDLSettings
 ) : ViewModel() {

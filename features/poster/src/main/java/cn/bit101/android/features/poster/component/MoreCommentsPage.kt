@@ -36,7 +36,7 @@ import cn.bit101.api.model.common.Image
 
 
 @Composable
-fun MoreCommentsContent(
+internal fun MoreCommentsContent(
     mainController: MainController,
 
     /**

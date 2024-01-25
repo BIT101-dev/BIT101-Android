@@ -44,9 +44,9 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import ovh.plrapps.mapcompose.ui.MapUI
 
 @Composable
-fun MapScreen(
-    vm: MapViewModel = hiltViewModel(),
-) {
+fun MapScreen() {
+    val vm: MapViewModel = hiltViewModel()
+
     val scale by vm.mapScaleFlow.collectAsState(initial = 2f)
 
     Box {

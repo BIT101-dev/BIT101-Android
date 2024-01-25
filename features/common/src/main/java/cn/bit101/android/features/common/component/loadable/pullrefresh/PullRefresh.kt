@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package cn.bit101.android.features.common.component.pullrefresh
+package cn.bit101.android.features.common.component.loadable.pullrefresh
 
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.Velocity
  * @param enabled If not enabled, all scroll delta and fling velocity will be ignored.
  */
 // TODO(b/244423199): Move pullRefresh into its own material library similar to material-ripple.
-fun Modifier.pullRefresh(
+internal fun Modifier.pullRefresh(
     state: PullRefreshState,
     enabled: Boolean = true,
 ) = inspectable(
@@ -74,7 +74,7 @@ fun Modifier.pullRefresh(
  * @param enabled If not enabled, all scroll delta and fling velocity will be ignored and neither
  * [onPull] nor [onRelease] will be invoked.
  */
-fun Modifier.pullRefresh(
+internal fun Modifier.pullRefresh(
     onPull: (pullDelta: Float) -> Float,
     onRelease: suspend (flingVelocity: Float) -> Float,
     enabled: Boolean = true,

@@ -19,7 +19,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AccountViewModel @Inject constructor(
+internal class AccountViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val loginRepo: LoginRepo,
     private val uploadRepo: UploadRepo,

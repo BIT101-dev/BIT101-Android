@@ -192,7 +192,7 @@ private fun FollowPage(
 
 
 @Composable
-fun FollowerPage(
+internal fun FollowerPage(
     mainController: MainController,
 
     followers: List<User>,

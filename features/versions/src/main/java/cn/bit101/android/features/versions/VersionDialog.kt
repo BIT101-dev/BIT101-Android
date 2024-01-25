@@ -15,8 +15,9 @@ import javax.inject.Inject
 fun VersionDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
-    vm: VersionDialogViewModel = hiltViewModel()
 ) {
+    val vm: VersionDialogViewModel = hiltViewModel()
+
     val context = LocalContext.current
     val appVersion = getAppVersion(context)
 
@@ -39,7 +40,7 @@ fun VersionDialog(
 }
 
 @HiltViewModel
-class VersionDialogViewModel @Inject constructor(
+internal class VersionDialogViewModel @Inject constructor(
     private val loginStatus: LoginStatus
 ) : ViewModel() {
     val statusFlow = loginStatus.status.flow

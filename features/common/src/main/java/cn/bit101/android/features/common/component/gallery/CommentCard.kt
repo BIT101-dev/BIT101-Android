@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -37,7 +38,7 @@ import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
 
 
-internal fun calculateLeftSize(iconSize: Dp) = iconSize * 11 / 10 + 8.dp
+private fun calculateLeftSize(iconSize: Dp) = iconSize * 11 / 10 + 8.dp
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -140,17 +141,13 @@ private fun CommentCardContent(
                                 }
                                 .align(Alignment.TopEnd)
                         ) {
-                            Icon(
-                                imageVector = if(comment.like) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                                contentDescription = "喜欢",
+                            LikeIcon(
+                                like = comment.like,
+                                liking = liking,
                                 modifier = Modifier
                                     .size(suffixIconSize)
                                     .align(Alignment.CenterHorizontally),
-                                tint = if(liking) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                else if(comment.like) MaterialTheme.colorScheme.tertiary
-                                else MaterialTheme.colorScheme.onSurface,
                             )
-
                             Text(
                                 modifier = Modifier.align(Alignment.CenterHorizontally),
                                 text = NumberUtils.format(comment.likeNum),
@@ -211,9 +208,10 @@ fun CommentCard(
     /**
      * 更多操作
      */
-    onMoreAction: (Comment) -> Unit,
+    onMoreAction: (Comment) -> Unit
 
-    ) {
+) {
+
     Surface(
         modifier = Modifier
             .padding(vertical = 2.dp)

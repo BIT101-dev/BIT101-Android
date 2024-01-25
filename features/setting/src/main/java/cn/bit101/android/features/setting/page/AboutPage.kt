@@ -352,7 +352,7 @@ private fun AboutDialog(onClose: () -> Unit) {
 }
 
 @Composable
-fun AboutPage(
+internal fun AboutPage(
     mainController: MainController,
     vm: AboutViewModel = hiltViewModel(),
 ) {

@@ -177,9 +177,7 @@ private fun IndexSettingItem(
 }
 
 @Composable
-fun SettingItem(
-    data: SettingItemData,
-) {
+internal fun SettingItem(data: SettingItemData) {
     when(data) {
         is SettingItemData.Custom -> SettingItemCard(
             modifier = Modifier.fillMaxWidth(),
@@ -243,7 +241,7 @@ fun SettingItem(
     }
 }
 
-sealed interface SettingItemData {
+internal sealed interface SettingItemData {
     val title: String
     data class Custom(
         override val title: String,

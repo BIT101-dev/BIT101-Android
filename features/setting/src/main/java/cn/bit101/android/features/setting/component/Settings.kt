@@ -21,7 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SettingsGroup(
+internal fun SettingsGroup(
     visible: Boolean = true,
     title: String? = null,
     subTitle: String? = null,
@@ -63,7 +63,7 @@ fun SettingsGroup(
 
 
 @Composable
-fun SettingsColumn(
+internal fun SettingsColumn(
     modifier: Modifier = Modifier,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(8.dp),
     horizontalAlignment: Alignment.Horizontal = Alignment.Start,

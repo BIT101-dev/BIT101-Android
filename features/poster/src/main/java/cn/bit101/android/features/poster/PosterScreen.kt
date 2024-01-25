@@ -36,9 +36,10 @@ import kotlinx.coroutines.launch
 @Composable
 fun PosterScreen(
     mainController: MainController,
-    id: Long,
-    vm: PosterViewModel = hiltViewModel()
+    id: Long
 ) {
+    val vm: PosterViewModel = hiltViewModel()
+
     /**
      * 上下文
      */

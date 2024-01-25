@@ -12,7 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import java.io.Serializable
 import javax.inject.Inject
 
-data class SearchData(
+internal data class SearchData(
     val search: String,
     val order: String,
     val filter: Int,
@@ -24,7 +24,7 @@ data class SearchData(
 
 
 @HiltViewModel
-class GalleryIndexViewModel @Inject constructor(
+internal class GalleryIndexViewModel @Inject constructor(
     private val posterRepo: PosterRepo
 ) : ViewModel() {
 

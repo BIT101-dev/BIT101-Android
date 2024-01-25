@@ -27,11 +27,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.Category
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Share
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -64,6 +63,7 @@ import cn.bit101.android.features.common.component.Avatar
 import cn.bit101.android.features.common.component.CustomDivider
 import cn.bit101.android.features.common.component.gallery.AnnotatedText
 import cn.bit101.android.features.common.component.gallery.CommentCard
+import cn.bit101.android.features.common.component.gallery.LikeIcon
 import cn.bit101.android.features.common.component.image.PreviewImagesWithGridLayout
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequestState
@@ -161,7 +161,7 @@ private fun PosterScreenBottomBar(
     // 底部评论、点赞、举报等操作
     BottomAppBar(
         modifier = Modifier.height(64.dp),
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 14.dp),
     ) {
         Card(
             modifier = Modifier
@@ -195,39 +195,21 @@ private fun PosterScreenBottomBar(
             }
         }
         Spacer(modifier = Modifier.padding(8.dp))
-        Column(
+        Row(
             modifier = Modifier
                 .pointerInput(Unit) {
                     detectTapGestures(onTap = { if (!posterLiking) onLikePoster() })
                 },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
         ) {
-            Icon(
-                modifier = Modifier.size(24.dp),
-                imageVector = if(data.like) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                contentDescription = "点赞",
-                tint = if(posterLiking) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                else if(data.like) MaterialTheme.colorScheme.tertiary
-                else MaterialTheme.colorScheme.onSurface
+            LikeIcon(
+                modifier = Modifier.size(28.dp),
+                like = data.like,
+                liking = posterLiking,
             )
-            Text(text = NumberUtils.format(data.likeNum), style = MaterialTheme.typography.labelSmall)
-        }
-        Spacer(modifier = Modifier.padding(8.dp))
-        Column(
-            modifier = Modifier
-                .pointerInput(Unit) {
-                    detectTapGestures(onTap = { onShare() })
-                },
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(
-                modifier = Modifier.size(24.dp),
-                imageVector = Icons.Rounded.Share,
-                contentDescription = "分享",
-            )
-            Text(text = "分享", style = MaterialTheme.typography.labelSmall)
+            Spacer(modifier = Modifier.padding(2.dp))
+            Text(text = NumberUtils.format(data.likeNum), style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -235,7 +217,7 @@ private fun PosterScreenBottomBar(
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun PosterContent(
+internal fun PosterContent(
     mainController: MainController,
 
     /**
@@ -492,6 +474,7 @@ fun PosterContent(
                                 style = MaterialTheme.typography.bodyMedium,
                                 textAlign = TextAlign.Center,
                             )
+                            Spacer(modifier = Modifier.padding(16.dp))
                         }
                     } else if(!loading) {
                         item("footer2") {

@@ -49,7 +49,7 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun DDLSchedule(
+internal fun DDLSchedule(
     mainController: MainController,
     active: Boolean,
     vm: DDLScheduleViewModel = hiltViewModel()

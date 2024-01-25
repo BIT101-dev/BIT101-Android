@@ -65,7 +65,7 @@ private data class FunctionItem(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MineScreenContent(
+internal fun MineScreenContent(
     mainController: MainController,
     messageCount: Int,
     userInfoState: SimpleDataState<GetUserInfoDataModel.Response>,

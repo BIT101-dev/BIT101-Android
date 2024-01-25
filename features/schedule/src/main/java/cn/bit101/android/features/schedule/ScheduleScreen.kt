@@ -8,9 +8,7 @@ import cn.bit101.android.features.schedule.course.CourseSchedule
 import cn.bit101.android.features.schedule.ddl.DDLSchedule
 
 @Composable
-fun ScheduleScreen(
-    mainController: MainController,
-) {
+fun ScheduleScreen(mainController: MainController) {
     val items = listOf(TabPagerItem("课表") {
         CourseSchedule(mainController, it)
     }, TabPagerItem("DDL") {

@@ -5,6 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -30,13 +31,12 @@ private fun Int.isMainPage() =
     this == PageIndex.MINE || this > PageIndex.FOLLOWER
 
 @Composable
-fun MineScreen(
-    mainController: MainController,
-    vm: MineViewModel = hiltViewModel(),
-) {
+fun MineScreen(mainController: MainController) {
+    val vm: MineViewModel = hiltViewModel()
+
     val userInfoState by vm.userInfoStateLiveData.observeAsState()
 
-    var pageState by rememberSaveable { mutableStateOf(PageIndex.MINE) }
+    var pageState by rememberSaveable { mutableIntStateOf(PageIndex.MINE) }
 
     val followings by vm.followingStateExports.dataFlow.collectAsState()
     val followingRefreshState by vm.followingStateExports.refreshStateFlow.collectAsState()

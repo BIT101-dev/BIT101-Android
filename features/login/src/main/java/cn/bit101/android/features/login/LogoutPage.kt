@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 
 // 退出登陆界面
 @Composable
-fun LogoutPage(
+internal fun LogoutPage(
     sid: String?,
 
     onLogout: () -> Unit,

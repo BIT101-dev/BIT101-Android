@@ -57,7 +57,7 @@ import java.time.format.DateTimeFormatter
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DDLScheduleEditDialog(
+internal fun DDLScheduleEditDialog(
     mainController: MainController,
     vm: DDLScheduleViewModel,
     item: DDLScheduleEntity?,

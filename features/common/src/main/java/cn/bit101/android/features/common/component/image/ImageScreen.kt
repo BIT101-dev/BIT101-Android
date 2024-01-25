@@ -137,7 +137,7 @@ private fun ImageContent(
  * 加载并展示图片
  */
 @Composable
-fun ImageWithModel(
+internal fun ImageWithModel(
     modifier: Modifier = Modifier,
     image: ImageShowState,
 
@@ -284,7 +284,7 @@ private fun BasicImageScreen(
  * 展示单张图片
  */
 @Composable
-fun ImageScreen(
+internal fun ImageScreen(
     image: ImageData,
 
     onOpenUrl: (String) -> Unit,
@@ -321,7 +321,7 @@ fun ImageScreen(
  * 展示多张图片
  */
 @Composable
-fun ImageScreen(
+internal fun ImageScreen(
     images: List<ImageData>,
     initialIndex: Int,
 

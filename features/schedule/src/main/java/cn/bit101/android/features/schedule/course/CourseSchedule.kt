@@ -32,7 +32,7 @@ import cn.bit101.android.features.common.helper.SimpleState
  */
 
 @Composable
-fun CourseSchedule(
+internal fun CourseSchedule(
     mainController: MainController,
     active: Boolean,
     vm: CourseScheduleViewModel = hiltViewModel()

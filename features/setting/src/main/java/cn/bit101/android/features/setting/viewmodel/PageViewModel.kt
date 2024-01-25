@@ -9,7 +9,7 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class PageViewModel @Inject constructor(
+internal class PageViewModel @Inject constructor(
     private val pageSettings: PageSettings
 ) : ViewModel() {
 

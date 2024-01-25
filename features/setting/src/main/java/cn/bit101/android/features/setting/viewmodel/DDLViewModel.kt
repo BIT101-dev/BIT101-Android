@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class DDLViewModel @Inject constructor(
+internal class DDLViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
     private val ddlSettings: DDLSettings
 ) : ViewModel() {

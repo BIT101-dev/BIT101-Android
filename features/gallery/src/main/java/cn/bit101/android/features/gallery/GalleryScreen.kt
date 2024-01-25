@@ -23,7 +23,7 @@ import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -34,7 +34,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -48,7 +47,7 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
 
 
-data class TabPagerItem(
+internal data class TabPagerItem(
     val title: String,
     val content: @Composable () -> Unit
 )
@@ -58,8 +57,9 @@ data class TabPagerItem(
 @Composable
 fun GalleryScreen(
     mainController: MainController,
-    vm: GalleryIndexViewModel = hiltViewModel(),
 ) {
+    val vm: GalleryIndexViewModel = hiltViewModel()
+
     val followRefreshState by vm.followStateExport.refreshStateFlow.collectAsState()
     val newestRefreshPostersState by vm.newestStataExport.refreshStateFlow.collectAsState()
     val hotRefreshPostersState by vm.hotStateExport.refreshStateFlow.collectAsState()
@@ -148,18 +148,47 @@ fun GalleryScreen(
                 onOpenPostOrEdit = onPost,
             )
         },
-        TabPagerItem("全部") {
-            AllTabPage(
+        TabPagerItem("最新") {
+            PostersTabPage(
                 mainController = mainController,
-
-                newestPostersState = PostersState(
+                postersState = PostersState(
                     posters = newestPosters,
                     state = newestState,
                     refreshState = newestRefreshPostersState,
                     loadState = newestLoadMorePostersState,
                     onRefresh = vm.newestStataExport.refresh,
                 ),
-                hotPostersState = PostersState(
+
+                onOpenPoster = onOpenPoster,
+                onOpenPostOrEdit = onPost,
+            )
+
+//            AllTabPage(
+//                mainController = mainController,
+//
+//                newestPostersState = PostersState(
+//                    posters = newestPosters,
+//                    state = newestState,
+//                    refreshState = newestRefreshPostersState,
+//                    loadState = newestLoadMorePostersState,
+//                    onRefresh = vm.newestStataExport.refresh,
+//                ),
+//                hotPostersState = PostersState(
+//                    posters = hotPosters,
+//                    state = hotState,
+//                    refreshState = hotRefreshPostersState,
+//                    loadState = hotLoadMorePostersState,
+//                    onRefresh = vm.hotStateExport.refresh,
+//                ),
+//
+//                onOpenPoster = onOpenPoster,
+//                onOpenPostOrEdit = onPost,
+//            )
+        },
+        TabPagerItem("最热") {
+            PostersTabPage(
+                mainController = mainController,
+                postersState = PostersState(
                     posters = hotPosters,
                     state = hotState,
                     refreshState = hotRefreshPostersState,
@@ -170,7 +199,7 @@ fun GalleryScreen(
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
-        },
+        }
     )
 
     val horizontalPagerState = rememberPagerState(
@@ -208,17 +237,14 @@ fun GalleryScreen(
                 onDismiss = { showSearchPageState = false }
             )
         } else {
-            val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
             Scaffold(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection),
+                containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
+                modifier = Modifier.fillMaxSize(),
                 topBar = {
                     CenterAlignedTopAppBar(
-                        scrollBehavior = topAppBarScrollBehavior,
                         title = {
                             TabRow(
-                                modifier = Modifier.width(200.dp),
+                                modifier = Modifier.width(300.dp),
                                 selectedTabIndex = horizontalPagerState.currentPage,
                                 divider = {},
                                 indicator = { tabPositions ->
@@ -226,7 +252,7 @@ fun GalleryScreen(
                                     if (selectedTabIndex < tabPositions.size) {
                                         Box(
                                             Modifier
-                                                .width(20.dp)
+                                                .width(30.dp)
                                                 .tabIndicatorOffset(tabPositions[selectedTabIndex])
                                                 .height(3.dp)
                                                 .background(color = MaterialTheme.colorScheme.primary)

@@ -55,7 +55,7 @@ import cn.bit101.api.model.common.ReportType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportTypeDropDownBox(
+internal fun ReportTypeDropDownBox(
     selected: ReportType,
     reportTypes: List<ReportType>,
 
@@ -110,7 +110,7 @@ fun ReportTypeDropDownBox(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReportScreenContent(
+internal fun ReportScreenContent(
     mainController: MainController,
     objType: String,
     id: Long,
@@ -244,9 +244,10 @@ fun ReportScreenContent(
 fun ReportScreen(
     mainController: MainController,
     objType: String,
-    id: Long,
-    vm: ReportViewModel = hiltViewModel(),
+    id: Long
 ) {
+    val vm: ReportViewModel = hiltViewModel()
+
     val loadReportTypeState by vm.loadReportTypeStateFlow.collectAsState()
 
     val state by vm.stateLiveData.observeAsState()

@@ -1,4 +1,4 @@
-package cn.bit101.android.features.common.component.pullrefresh
+package cn.bit101.android.features.common.component.loadable.pullrefresh
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.surfaceColorAtElevation

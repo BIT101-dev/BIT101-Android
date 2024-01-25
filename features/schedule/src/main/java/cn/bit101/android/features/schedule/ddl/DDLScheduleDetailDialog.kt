@@ -42,7 +42,7 @@ import java.time.format.DateTimeFormatter
  */
 
 @Composable
-fun DDLScheduleDetailDialog(
+internal fun DDLScheduleDetailDialog(
     mainController: MainController,
     vm: DDLScheduleViewModel,
     event: DDLScheduleEntity,

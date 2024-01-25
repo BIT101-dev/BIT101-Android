@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AllTabPage(
+internal fun AllTabPage(
     mainController: MainController,
 
     /**

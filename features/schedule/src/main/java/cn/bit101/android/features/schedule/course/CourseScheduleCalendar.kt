@@ -64,7 +64,7 @@ import kotlin.math.roundToInt
  */
 
 @Composable
-fun CourseScheduleCalendar(
+internal fun CourseScheduleCalendar(
     courses: List<List<CourseScheduleEntity>>,
     week: Int,
     firstDay: LocalDate,

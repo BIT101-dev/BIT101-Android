@@ -35,7 +35,7 @@ import cn.bit101.api.model.http.bit101.GetPostersDataModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PosterPage(
+internal fun PosterPage(
     mainController: MainController,
 
     posters: List<GetPostersDataModel.ResponseItem>,

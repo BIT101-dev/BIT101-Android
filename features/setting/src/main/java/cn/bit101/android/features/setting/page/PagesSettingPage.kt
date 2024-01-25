@@ -165,7 +165,7 @@ private fun PagesSettingPageContent(
 }
 
 @Composable
-fun PagesSettingPage(
+internal fun PagesSettingPage(
     mainController: MainController,
     vm: PageViewModel = hiltViewModel()
 ) {

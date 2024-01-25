@@ -6,7 +6,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 
 @Composable
-fun Version4Dialog(
+internal fun Version4Dialog(
     onConfirm: () -> Unit,
 ) {
     AlertDialog(

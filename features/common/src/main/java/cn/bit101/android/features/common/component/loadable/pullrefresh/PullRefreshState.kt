@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package cn.bit101.android.features.common.component.pullrefresh
+package cn.bit101.android.features.common.component.loadable.pullrefresh
 
 import androidx.compose.animation.core.animate
 import androidx.compose.foundation.MutatorMutex
@@ -52,7 +52,7 @@ import kotlin.math.pow
  * offset corresponds to the position of the bottom of the indicator.
  */
 @Composable
-fun rememberPullRefreshState(
+internal fun rememberPullRefreshState(
     refreshing: Boolean,
     onRefresh: () -> Unit,
     refreshThreshold: Dp = PullRefreshDefaults.RefreshThreshold,
@@ -96,7 +96,7 @@ fun rememberPullRefreshState(
  *
  * Should be created using [rememberPullRefreshState].
  */
-class PullRefreshState internal constructor(
+class PullRefreshState constructor(
     private val animationScope: CoroutineScope,
     private val onRefreshState: State<() -> Unit>,
     refreshingOffset: Float,
@@ -207,7 +207,7 @@ class PullRefreshState internal constructor(
 /**
  * Default parameter values for [rememberPullRefreshState].
  */
-object PullRefreshDefaults {
+internal object PullRefreshDefaults {
     /**
      * If the indicator is below this threshold offset when it is released, a refresh
      * will be triggered.

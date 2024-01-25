@@ -42,8 +42,9 @@ import kotlinx.coroutines.runBlocking
 fun WebScreen(
     mainController: MainController,
     url: String? = null,
-    vm: WebViewModel = hiltViewModel()
 ) {
+    val vm: WebViewModel = hiltViewModel()
+
     val context = LocalContext.current
     val state = rememberSaveableWebViewState()
     val navigator = rememberWebViewNavigator()
