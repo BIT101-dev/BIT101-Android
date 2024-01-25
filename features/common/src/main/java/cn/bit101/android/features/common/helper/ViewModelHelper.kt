@@ -1,5 +1,6 @@
 package cn.bit101.android.features.common.helper
 
+import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -17,6 +18,7 @@ fun ViewModel.withSimpleStateFlow(
             block()
             stateFlow.value = SimpleState.Success
         }.onFailure {
+            it.printStackTrace()
             stateFlow.value = SimpleState.Fail
         }
     }
@@ -32,6 +34,7 @@ fun ViewModel.withSimpleStateLiveData(
             block()
             stateLiveData.postValue(SimpleState.Success)
         }.onFailure {
+            it.printStackTrace()
             stateLiveData.postValue(SimpleState.Fail)
         }
     }
@@ -47,6 +50,7 @@ fun <T> ViewModel.withSimpleDataStateFlow(
             val res = block()
             stateFlow.value = SimpleDataState.Success(res)
         }.onFailure {
+            it.printStackTrace()
             stateFlow.value = SimpleDataState.Fail()
         }
     }
@@ -62,6 +66,7 @@ fun <T> ViewModel.withSimpleDataStateLiveData(
             val res = block()
             stateLiveData.postValue(SimpleDataState.Success(res))
         }.onFailure {
+            it.printStackTrace()
             stateLiveData.postValue(SimpleDataState.Fail())
         }
     }

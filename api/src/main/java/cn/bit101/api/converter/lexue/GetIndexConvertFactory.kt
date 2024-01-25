@@ -8,7 +8,7 @@ import retrofit2.Retrofit
 import java.lang.reflect.Type
 
 internal class GetIndexConvertFactory(
-    logger: Logger
+    private val logger: Logger
 ) : Converter.Factory() {
     override fun responseBodyConverter(
         type: Type,

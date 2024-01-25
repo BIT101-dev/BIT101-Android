@@ -78,7 +78,8 @@ private fun AccountPageContent(
     val loginItems = listOf(
         SettingItemData.Button(
             title = "登录状态检查",
-            subTitle = "登录分为两步，首先进行学校统一身份认证，然后登录BIT101。点击检查二者登录状态",
+            subTitle = "登录分为两步，首先进行学校统一身份认证，然后登录BIT101。\n" +
+                    "点击检查二者登录状态，如果检查登录的结果为“未登录”，APP会根据之前自动加密保存的密码尝试重新登录。",
             onClick = onCheckLogin,
             enable = !checkingLogin,
             text = if (ifLogin) "已登录" else "未登录",
@@ -86,6 +87,7 @@ private fun AccountPageContent(
 
         if(ifLogin) SettingItemData.Button(
             title = "退出登录",
+            subTitle = "清除所有登录状态和保存的账号密码",
             onClick = onLogout,
         ) else SettingItemData.Button(
             title = "登录",

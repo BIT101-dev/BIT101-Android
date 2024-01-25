@@ -9,7 +9,7 @@ import retrofit2.Retrofit
 import java.lang.reflect.Type
 
 internal class GetCalendarUrlConvertFactory(
-    logger: Logger
+    private val logger: Logger
 ) : Converter.Factory() {
     override fun responseBodyConverter(
         type: Type,

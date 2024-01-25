@@ -16,7 +16,7 @@ import java.lang.reflect.Type
 import java.time.ZoneOffset
 
 internal class GetCalendarConvertFactory(
-    logger: Logger
+    private val logger: Logger
 ) : Converter.Factory() {
     override fun responseBodyConverter(
         type: Type,
