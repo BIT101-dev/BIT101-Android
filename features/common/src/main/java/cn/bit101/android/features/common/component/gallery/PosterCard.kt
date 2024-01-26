@@ -21,6 +21,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.component.Avatar
+import cn.bit101.android.features.common.component.image.PreviewImage
+import cn.bit101.android.features.common.component.image.PreviewImagesWithGridLayout
 import cn.bit101.android.features.common.utils.DateTimeUtils
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.common.User
@@ -135,7 +137,7 @@ fun PosterCard(
                         Info(data)
                     }
                     Spacer(modifier = Modifier.padding(4.dp))
-                    cn.bit101.android.features.common.component.image.PreviewImage(
+                    PreviewImage(
                         image = data.images[0],
                         onClick = { onOpenImages(0, data.images) },
                         size = height,
@@ -155,7 +157,7 @@ fun PosterCard(
                     val images = if(data.images.size == 3) data.images.subList(0, 3)
                     else data.images.subList(0, 4)
                     Spacer(modifier = Modifier.padding(4.dp))
-                    cn.bit101.android.features.common.component.image.PreviewImagesWithGridLayout(
+                    PreviewImagesWithGridLayout(
                         images = images,
                         maxCountInEachRow = 4,
                         onClick = { onOpenImages(it, data.images) },

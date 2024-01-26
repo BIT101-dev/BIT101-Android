@@ -18,24 +18,17 @@ package cn.bit101.android.features.common.component.loadable.pullrefresh
 
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,24 +37,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.pow
 
 /**
  * The default indicator for Compose pull-to-refresh, based on Android's SwipeRefreshLayout.
@@ -97,7 +79,7 @@ internal fun PullRefreshIndicator(
         Crossfade(
             targetState = refreshing,
             animationSpec = tween(durationMillis = CrossfadeDurationMs),
-            label = "",
+            label = "refreshing Crossfade",
         ) { refreshing ->
             val spinnerSize = IndicatorSize
 
@@ -136,10 +118,8 @@ private fun CircularArrowIndicator(
     color: Color,
     modifier: Modifier,
 ) {
-    val targetRotation by remember(state) {
-        derivedStateOf {
-            if (state.progress >= 1f) 180f else 0f
-        }
+    val targetRotation by derivedStateOf {
+        if (state.progress >= 1f) 180f else 0f
     }
 
     val rotationState by animateFloatAsState(

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.ZeroCornerSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
@@ -65,7 +66,9 @@ fun MapScreen() {
 
         // 浮动按钮
         Column(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 20.dp),
+            modifier = Modifier
+                .padding(horizontal = 10.dp, vertical = 20.dp)
+                .statusBarsPadding(),
         ) {
             val fabSize = 50.dp
             FloatingActionButton(

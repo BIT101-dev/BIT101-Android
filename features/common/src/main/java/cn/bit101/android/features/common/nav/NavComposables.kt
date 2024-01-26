@@ -1,57 +1,130 @@
 package cn.bit101.android.features.common.nav
 
 import android.net.Uri
+import android.util.Log
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInteropFilter
+import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 
-fun NavGraphBuilder.composableSchedule(
-    content: @Composable (NavBackStackEntry) -> Unit
-) {
-    composable(
-        route = NavDestConfig.Schedule.route,
-        arguments = NavDestConfig.Schedule.arguments,
-        content = content
+/**
+ * 所有动画的时长
+ */
+const val DURATION_MILLIS = 400
+
+/**
+ * 保持
+ */
+val delayRemainTransition = fadeOut(tween(10, DURATION_MILLIS))
+
+/**
+ * 从右侧滑入+淡入
+ */
+val enterTransition = slideInHorizontally(
+    initialOffsetX = { it },
+    animationSpec = tween(
+        durationMillis = DURATION_MILLIS,
+        easing = FastOutSlowInEasing
     )
+)
+//+ fadeIn(
+//    animationSpec = tween(
+//        durationMillis = DURATION_MILLIS,
+//        easing = FastOutSlowInEasing
+//    )
+//)
+
+/**
+ * 向右侧滑出+淡出
+ */
+val exitTransition = slideOutHorizontally(
+    targetOffsetX = { it },
+    animationSpec = tween(
+        durationMillis = DURATION_MILLIS,
+        easing = FastOutSlowInEasing
+    )
+)
+//+ fadeOut(
+//    animationSpec = tween(
+//        durationMillis = DURATION_MILLIS,
+//        easing = LinearOutSlowInEasing
+//    )
+//)
+
+data class NavAnimation(
+    val enterTransition: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)?,
+    val exitTransition: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)?,
+    val popEnterTransition: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)?,
+    val popExitTransition: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition?)?,
+) {
+    companion object {
+        val none = NavAnimation(
+            enterTransition = { EnterTransition.None },
+            exitTransition = { delayRemainTransition },
+            popEnterTransition = { EnterTransition.None },
+            popExitTransition = { delayRemainTransition },
+        )
+    }
 }
 
-fun NavGraphBuilder.composableMap(
-    content: @Composable (NavBackStackEntry) -> Unit
+@OptIn(ExperimentalComposeUiApi::class)
+private fun NavGraphBuilder.animatedComposable(
+    route: String,
+    arguments: List<NamedNavArgument>,
+    navAnimation: NavAnimation,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit
 ) {
     composable(
-        route = NavDestConfig.Map.route,
-        arguments = NavDestConfig.Map.arguments,
-        content = content
-    )
+        route = route,
+        arguments = arguments,
+        enterTransition = navAnimation.enterTransition,
+        exitTransition = navAnimation.exitTransition,
+        popEnterTransition = navAnimation.popEnterTransition,
+        popExitTransition = navAnimation.popExitTransition,
+    ) {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInteropFilter {
+                    val isCurrentScreen = navController.currentDestination?.route == route
+                    !isCurrentScreen
+                }
+        ) {
+            content(it)
+        }
+    }
 }
 
-fun NavGraphBuilder.composableBIT101Web(
-    content: @Composable (NavBackStackEntry) -> Unit
+fun NavGraphBuilder.composableIndex(
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit
 ) {
-    composable(
-        route = NavDestConfig.BIT101Web.route,
-        arguments = NavDestConfig.BIT101Web.arguments,
-        content = content
-    )
-}
-
-fun NavGraphBuilder.composableGallery(
-    content: @Composable (NavBackStackEntry) -> Unit
-) {
-    composable(
-        route = NavDestConfig.Gallery.route,
-        arguments = NavDestConfig.Gallery.arguments,
-        content = content
-    )
-}
-
-fun NavGraphBuilder.composableMine(
-    content: @Composable (NavBackStackEntry) -> Unit
-) {
-    composable(
-        route = NavDestConfig.Mine.route,
-        arguments = NavDestConfig.Mine.arguments,
+    animatedComposable(
+        route = NavDestConfig.Index.route,
+        arguments = NavDestConfig.Index.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
         content = content
     )
 }
@@ -59,11 +132,15 @@ fun NavGraphBuilder.composableMine(
 typealias InitialRoute = String
 
 fun NavGraphBuilder.composableSetting(
-    content: @Composable (NavBackStackEntry, InitialRoute) -> Unit
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry, InitialRoute) -> Unit
 ) {
-    composable(
+    animatedComposable(
         route = NavDestConfig.Setting.route,
         arguments = NavDestConfig.Setting.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
     ) {
         val initialRoute = it.arguments?.getString("route") ?: ""
         content(it, initialRoute)
@@ -71,11 +148,15 @@ fun NavGraphBuilder.composableSetting(
 }
 
 fun NavGraphBuilder.composableLogin(
-    content: @Composable (NavBackStackEntry) -> Unit
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit
 ) {
-    composable(
+    animatedComposable(
         route = NavDestConfig.Login.route,
         arguments = NavDestConfig.Login.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
         content = content
     )
 }
@@ -83,11 +164,15 @@ fun NavGraphBuilder.composableLogin(
 typealias UID = Long
 
 fun NavGraphBuilder.composableUser(
-    content: @Composable (NavBackStackEntry, UID) -> Unit
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry, UID) -> Unit
 ) {
-    composable(
+    animatedComposable(
         route = NavDestConfig.User.route,
         arguments = NavDestConfig.User.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
     ) {
         val id = it.arguments?.getLong("id") ?: 0L
         content(it, id)
@@ -97,11 +182,15 @@ fun NavGraphBuilder.composableUser(
 typealias PosterId = Long
 
 fun NavGraphBuilder.composablePoster(
-    content: @Composable (NavBackStackEntry, PosterId) -> Unit
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry, PosterId) -> Unit
 ) {
-    composable(
+    animatedComposable(
         route = NavDestConfig.Poster.route,
         arguments = NavDestConfig.Poster.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
     ) {
         val id = it.arguments?.getLong("id") ?: 0L
         content(it, id)
@@ -109,21 +198,29 @@ fun NavGraphBuilder.composablePoster(
 }
 
 fun NavGraphBuilder.composablePost(
-    content: @Composable (NavBackStackEntry) -> Unit
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit
 ) {
-    composable(
+    animatedComposable(
         route = NavDestConfig.Post.route,
         arguments = NavDestConfig.Post.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
         content = content
     )
 }
 
 fun NavGraphBuilder.composableEdit(
-    content: @Composable (NavBackStackEntry, PosterId) -> Unit
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry, PosterId) -> Unit
 ) {
-    composable(
+    animatedComposable(
         route = NavDestConfig.Edit.route,
         arguments = NavDestConfig.Edit.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
     ) {
         val id = it.arguments?.getLong("id") ?: 0L
         content(it, id)
@@ -134,11 +231,15 @@ typealias ReportType = String
 typealias ReportId = Long
 
 fun NavGraphBuilder.composableReport(
-    content: @Composable (NavBackStackEntry, ReportType, ReportId) -> Unit
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry, ReportType, ReportId) -> Unit
 ) {
-    composable(
+    animatedComposable(
         route = NavDestConfig.Report.route,
         arguments = NavDestConfig.Report.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
     ) {
         val type = it.arguments?.getString("type") ?: ""
         val id = it.arguments?.getLong("id") ?: 0L
@@ -147,11 +248,15 @@ fun NavGraphBuilder.composableReport(
 }
 
 fun NavGraphBuilder.composableMessage(
-    content: @Composable (NavBackStackEntry) -> Unit
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry) -> Unit
 ) {
-    composable(
+    animatedComposable(
         route = NavDestConfig.Message.route,
         arguments = NavDestConfig.Message.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
         content = content
     )
 }
@@ -159,11 +264,15 @@ fun NavGraphBuilder.composableMessage(
 typealias URL = String
 
 fun NavGraphBuilder.composableWeb(
-    content: @Composable (NavBackStackEntry, URL) -> Unit
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry, URL) -> Unit
 ) {
-    composable(
+    animatedComposable(
         route = NavDestConfig.Web.route,
         arguments = NavDestConfig.Web.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
     ) {
         val url = Uri.decode(it.arguments?.getString("url") ?: "")
         content(it, url)

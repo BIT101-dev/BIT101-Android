@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.EventNote
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.Dashboard
@@ -54,7 +55,7 @@ internal fun SettingIndexPage(
         SettingItemData.IndexCard(
             title = "DDL设置",
             subTitle = "日程数据及显示方式",
-            icon = Icons.Outlined.EventNote,
+            icon = Icons.AutoMirrored.Outlined.EventNote,
             onClick = { navController.navigate("ddl") },
         ),
         SettingItemData.IndexCard(

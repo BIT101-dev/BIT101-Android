@@ -28,6 +28,7 @@ class MainController(
 ) {
     fun navigate(dest: NavDest) =
         navController.navigate(dest)
+
     fun navigate(dest: NavDest, builder: NavOptionsBuilder.() -> Unit) =
         navController.navigate(dest, navOptions(builder))
 

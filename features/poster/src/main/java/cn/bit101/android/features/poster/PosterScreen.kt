@@ -1,5 +1,7 @@
 package cn.bit101.android.features.poster
 
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -11,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -224,136 +227,167 @@ fun PosterScreen(
         onDispose { vm.clearStates() }
     }
 
-    if(getPosterState is SimpleDataState.Loading || refreshState is SimpleState.Loading) {
-        CircularProgressIndicatorForPage()
-    } else if(getPosterState is SimpleDataState.Success && refreshState is SimpleState.Success) {
+    Surface(modifier = Modifier.fillMaxSize()) {
+        if (getPosterState is SimpleDataState.Loading || refreshState is SimpleState.Loading) {
+            CircularProgressIndicatorForPage()
+        } else if (getPosterState is SimpleDataState.Success && refreshState is SimpleState.Success) {
 
-        val mainListState = rememberLoadableLazyColumnWithoutPullRequestState(
-            onLoadMore = { vm.commentStateExports.loadMore(id) }
-        )
+            val mainListState = rememberLoadableLazyColumnWithoutPullRequestState(
+                onLoadMore = { vm.commentStateExports.loadMore(id) }
+            )
 
-        AnimatedPage(
-            page = showMoreCommentsPage,
-            isMainPage = !showMoreCommentsPage,
-            label = "poster screen content",
-            onDismiss = { showMoreCommentsPage = false }
-        ) { showMoreComment ->
-            if(showMoreComment) {
-                MoreCommentsPage(
-                    mainController = mainController,
-                    comment = vm.findCommentById(commentIdForShowMoreComments!!),
-                    subComments = subComments,
-                    commentLikings = commentLikings,
-                    loading = subCommentsLoadMoreState is SimpleState.Loading,
-                    loaded = subCommentLoaded,
-                    refreshing = subCommentsRefreshState is SimpleState.Loading,
-                    state = rememberLoadableLazyColumnWithoutPullRequestState(
-                        onLoadMore = { vm.subCommentStateExports.loadMore(commentIdForShowMoreComments!!) }
-                    ),
+            AnimatedPage(
+                page = showMoreCommentsPage,
+                isMainPage = !showMoreCommentsPage,
+                label = "poster screen content",
+                onDismiss = { showMoreCommentsPage = false }
+            ) { showMoreComment ->
+                if (showMoreComment) {
+                    MoreCommentsPage(
+                        mainController = mainController,
+                        comment = vm.findCommentById(commentIdForShowMoreComments!!),
+                        subComments = subComments,
+                        commentLikings = commentLikings,
+                        loading = subCommentsLoadMoreState is SimpleState.Loading,
+                        loaded = subCommentLoaded,
+                        refreshing = subCommentsRefreshState is SimpleState.Loading,
+                        state = rememberLoadableLazyColumnWithoutPullRequestState(
+                            onLoadMore = {
+                                vm.subCommentStateExports.loadMore(
+                                    commentIdForShowMoreComments!!
+                                )
+                            }
+                        ),
 
-                    onDismiss = { showMoreCommentsPage = false },
-                    onOpenImages = mainController::showImages,
-                    onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
-                    onOpenCommentToComment = { c, sc -> commentTypeNeedShowCommentBottomSheet =
-                        CommentType.ToComment(c, sc)
-                    },
-                    onOpenMoreActionOfCommentBottomSheet = {
-                        commentNeedShowMoreAction = it
-                        scope.launch { moreActionOfCommentBottomSheetState.expand() }
-                    },
-                )
-            } else {
-                PosterContent(
-                    mainController = mainController,
+                        onDismiss = { showMoreCommentsPage = false },
+                        onOpenImages = mainController::showImages,
+                        onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
+                        onOpenCommentToComment = { c, sc ->
+                            commentTypeNeedShowCommentBottomSheet =
+                                CommentType.ToComment(c, sc)
+                        },
+                        onOpenMoreActionOfCommentBottomSheet = {
+                            commentNeedShowMoreAction = it
+                            scope.launch { moreActionOfCommentBottomSheetState.expand() }
+                        },
+                    )
+                } else {
+                    PosterContent(
+                        mainController = mainController,
 
-                    data = (getPosterState as SimpleDataState.Success).data,
-                    comments = comments,
-                    posterLiking = posterLiking,
-                    commentLikings = commentLikings,
-                    loading = loadMoreState is SimpleState.Loading,
-                    loaded = commentLoaded,
-                    state = mainListState,
+                        data = (getPosterState as SimpleDataState.Success).data,
+                        comments = comments,
+                        posterLiking = posterLiking,
+                        commentLikings = commentLikings,
+                        loading = loadMoreState is SimpleState.Loading,
+                        loaded = commentLoaded,
+                        state = mainListState,
 
-                    onLikePoster = { vm.like(ObjectType.PosterObject(id)) },
-                    onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
-                    onShowMoreComments = {
-                        commentIdForShowMoreComments = it.id.toLong()
-                        vm.subCommentStateExports.refresh(it.id.toLong())
-                        showMoreCommentsPage = true
-                    },
+                        onLikePoster = { vm.like(ObjectType.PosterObject(id)) },
+                        onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
+                        onShowMoreComments = {
+                            commentIdForShowMoreComments = it.id.toLong()
+                            vm.subCommentStateExports.refresh(it.id.toLong())
+                            showMoreCommentsPage = true
+                        },
 
-                    onOpenImages = mainController::showImages,
-                    onOpenCommentToPoster = { commentTypeNeedShowCommentBottomSheet =
-                        CommentType.ToPoster(id)
-                    },
-                    onOpenCommentToComment = { c, sc -> commentTypeNeedShowCommentBottomSheet =
-                        CommentType.ToComment(c, sc)
-                    },
-                    onOpenMoreActionOfCommentBottomSheet = {
-                        commentNeedShowMoreAction = it
-                        scope.launch { moreActionOfCommentBottomSheetState.expand() }
-                    },
-                    onOpenMoreActionOfPosterBottomSheet = {
-                        scope.launch { moreActionOfPosterBottomSheetState.expand() }
-                    },
-                )
+                        onOpenImages = mainController::showImages,
+                        onOpenCommentToPoster = {
+                            commentTypeNeedShowCommentBottomSheet =
+                                CommentType.ToPoster(id)
+                        },
+                        onOpenCommentToComment = { c, sc ->
+                            commentTypeNeedShowCommentBottomSheet =
+                                CommentType.ToComment(c, sc)
+                        },
+                        onOpenMoreActionOfCommentBottomSheet = {
+                            commentNeedShowMoreAction = it
+                            scope.launch { moreActionOfCommentBottomSheetState.expand() }
+                        },
+                        onOpenMoreActionOfPosterBottomSheet = {
+                            scope.launch { moreActionOfPosterBottomSheetState.expand() }
+                        },
+                    )
+                }
             }
-        }
 
-        MoreActionOfCommentBottomSheet(
-            state = moreActionOfCommentBottomSheetState,
-            own = commentNeedShowMoreAction?.own ?: false,
-            onDelete = {
-                vm.deleteCommentById(commentNeedShowMoreAction!!.id.toLong())
-            },
-            onReport = {
-                mainController.navigate(NavDest.Report("comment", commentNeedShowMoreAction!!.id.toLong()))
-            },
-            onCopy = { mainController.copyText(cm, commentNeedShowMoreAction?.text) },
-            onDismiss = { scope.launch { moreActionOfCommentBottomSheetState.collapse() } }
-        )
-
-        MoreActionOfPosterBottomSheet(
-            state = moreActionOfPosterBottomSheetState,
-            own = (getPosterState as SimpleDataState.Success).data.own,
-            onEdit = { mainController.navigate(NavDest.Edit(id)) },
-            onDelete = { vm.deletePosterById(id) },
-            onReport = {
-                mainController.navigate(NavDest.Report("poster", id))
-            },
-            onOpenInBrowser = { mainController.openPoster(id, ctx) },
-
-            onDismiss = { scope.launch { moreActionOfPosterBottomSheetState.collapse() } }
-        )
-
-        if(commentTypeNeedShowCommentBottomSheet != null) {
-            CommentBottomSheet(
-                commentType = commentTypeNeedShowCommentBottomSheet!!,
-                commentEditData = commentEditDataMap[commentTypeNeedShowCommentBottomSheet!!] ?: CommentEditData.empty(),
-                sending = sendCommentState is SimpleState.Loading,
-
-                onEditComment = { vm.setCommentEditData(commentTypeNeedShowCommentBottomSheet!!, it) },
-                onOpenImage = mainController::showImage,
-                onUploadImage = { imagePicker.pickImage() },
-                onSendComment = {
-                    vm.sendComment(
-                        commentTypeNeedShowCommentBottomSheet!!,
-                        commentEditDataMap[commentTypeNeedShowCommentBottomSheet!!] ?: CommentEditData.empty()
+            MoreActionOfCommentBottomSheet(
+                state = moreActionOfCommentBottomSheetState,
+                own = commentNeedShowMoreAction?.own ?: false,
+                onDelete = {
+                    vm.deleteCommentById(commentNeedShowMoreAction!!.id.toLong())
+                },
+                onReport = {
+                    mainController.navigate(
+                        NavDest.Report(
+                            "comment",
+                            commentNeedShowMoreAction!!.id.toLong()
+                        )
                     )
                 },
-                onOpenDeleteImageDialog = { showCommentImageDialogState = it },
-                onDeleteFailImage = { vm.deleteFailImageOfComment(commentTypeNeedShowCommentBottomSheet!!, it) },
-                onDismiss = { commentTypeNeedShowCommentBottomSheet = null }
+                onCopy = { mainController.copyText(cm, commentNeedShowMoreAction?.text) },
+                onDismiss = { scope.launch { moreActionOfCommentBottomSheetState.collapse() } }
             )
-        }
 
-        if(showCommentImageDialogState != -1) {
-            DeleteImageDialog(
-                onConfirm = { vm.deleteImageOfComment(commentTypeNeedShowCommentBottomSheet!!, showCommentImageDialogState) },
-                onDismiss = { showCommentImageDialogState = -1 }
+            MoreActionOfPosterBottomSheet(
+                state = moreActionOfPosterBottomSheetState,
+                own = (getPosterState as SimpleDataState.Success).data.own,
+                onEdit = { mainController.navigate(NavDest.Edit(id)) },
+                onDelete = { vm.deletePosterById(id) },
+                onReport = {
+                    mainController.navigate(NavDest.Report("poster", id))
+                },
+                onOpenInBrowser = { mainController.openPoster(id, ctx) },
+
+                onDismiss = { scope.launch { moreActionOfPosterBottomSheetState.collapse() } }
             )
+
+            if (commentTypeNeedShowCommentBottomSheet != null) {
+                CommentBottomSheet(
+                    commentType = commentTypeNeedShowCommentBottomSheet!!,
+                    commentEditData = commentEditDataMap[commentTypeNeedShowCommentBottomSheet!!]
+                        ?: CommentEditData.empty(),
+                    sending = sendCommentState is SimpleState.Loading,
+
+                    onEditComment = {
+                        vm.setCommentEditData(
+                            commentTypeNeedShowCommentBottomSheet!!,
+                            it
+                        )
+                    },
+                    onOpenImage = mainController::showImage,
+                    onUploadImage = { imagePicker.pickImage() },
+                    onSendComment = {
+                        vm.sendComment(
+                            commentTypeNeedShowCommentBottomSheet!!,
+                            commentEditDataMap[commentTypeNeedShowCommentBottomSheet!!]
+                                ?: CommentEditData.empty()
+                        )
+                    },
+                    onOpenDeleteImageDialog = { showCommentImageDialogState = it },
+                    onDeleteFailImage = {
+                        vm.deleteFailImageOfComment(
+                            commentTypeNeedShowCommentBottomSheet!!,
+                            it
+                        )
+                    },
+                    onDismiss = { commentTypeNeedShowCommentBottomSheet = null }
+                )
+            }
+
+            if (showCommentImageDialogState != -1) {
+                DeleteImageDialog(
+                    onConfirm = {
+                        vm.deleteImageOfComment(
+                            commentTypeNeedShowCommentBottomSheet!!,
+                            showCommentImageDialogState
+                        )
+                    },
+                    onDismiss = { showCommentImageDialogState = -1 }
+                )
+            }
+        } else if (getPosterState is SimpleDataState.Fail || refreshState is SimpleState.Fail) {
+            ErrorMessageForPage()
         }
-    } else if(getPosterState is SimpleDataState.Fail || refreshState is SimpleState.Fail) {
-        ErrorMessageForPage()
     }
 }

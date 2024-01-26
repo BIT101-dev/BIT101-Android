@@ -23,7 +23,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.setting.component.SettingItemData
 import cn.bit101.android.features.setting.component.SettingsColumn

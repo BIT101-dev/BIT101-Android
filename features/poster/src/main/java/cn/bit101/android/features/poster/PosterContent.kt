@@ -6,6 +6,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Favorite
 import androidx.compose.material.icons.outlined.FavoriteBorder
@@ -39,10 +41,12 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -139,7 +143,7 @@ private fun PosterScreenTopBar(
         },
         navigationIcon = {
             IconButton(onClick = { mainController.popBackStack() }) {
-                Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
+                Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
             }
         },
         actions = {
@@ -147,7 +151,7 @@ private fun PosterScreenTopBar(
                 Icon(imageVector = Icons.Rounded.MoreVert, contentDescription = "更多")
             }
         },
-        scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior,
     )
 }
 
@@ -157,7 +161,6 @@ private fun PosterScreenBottomBar(
     data: GetPosterDataModel.Response,
     onOpenCommentToPoster: () -> Unit,
     onLikePoster: () -> Unit,
-    onShare: () -> Unit,
 ) {
     // 底部评论、点赞、举报等操作
     BottomAppBar(
@@ -298,8 +301,6 @@ internal fun PosterContent(
 ) {
     val cm = LocalClipboardManager.current
 
-    val ctx = LocalContext.current
-
     val topBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     Scaffold(
@@ -321,25 +322,28 @@ internal fun PosterContent(
                 data = data,
                 onOpenCommentToPoster = onOpenCommentToPoster,
                 onLikePoster = onLikePoster,
-                onShare = { mainController.openPoster(data.id.toLong(), ctx) },
             )
         }
     ) { paddingValues ->
-        Box(
+
+        val backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
+
+        Surface(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            // poster内容卡片
             LoadableLazyColumnWithoutPullRequest(
                 modifier = Modifier.fillMaxWidth(),
                 loading = loading,
                 state = state,
                 contentPadding = PaddingValues(bottom = 16.dp),
             ) {
-                // 标题
-                item(-1) {
-                    Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+                // 标题+声明+正文+图片+标签+最后编辑时间
+                item(0) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = 12.dp)
+                    ) {
                         SelectionContainer(modifier = Modifier.fillMaxWidth()) {
                             Text(
                                 text = data.title,
@@ -348,13 +352,8 @@ internal fun PosterContent(
                                 ),
                             )
                         }
-                    }
-                }
-
-                item(0) {
-                    if(data.claim.id != 0) {
-                        Spacer(modifier = Modifier.padding(6.dp))
-                        Row(modifier = Modifier.padding(horizontal = 12.dp)) {
+                        if(data.claim.id != 0) {
+                            Spacer(modifier = Modifier.padding(6.dp))
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Text(
                                     text = "创作者声明：${data.claim.text}",
@@ -365,15 +364,8 @@ internal fun PosterContent(
                                 )
                             }
                         }
-                    }
-                    Spacer(modifier = Modifier.padding(6.dp))
-                }
-
-                // 内容
-                item(4) {
-                    // 正文
-                    if (data.text.isNotEmpty()) {
-                        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+                        Spacer(modifier = Modifier.padding(6.dp))
+                        if (data.text.isNotEmpty()) {
                             SelectionContainer {
                                 AnnotatedText(
                                     text = data.text,
@@ -385,14 +377,8 @@ internal fun PosterContent(
                                 )
                             }
                         }
-                    }
-                }
-
-                // 图片
-                item(5) {
-                    if (data.images.isNotEmpty()) {
-                        Spacer(modifier = Modifier.padding(2.dp))
-                        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+                        if (data.images.isNotEmpty()) {
+                            Spacer(modifier = Modifier.padding(2.dp))
                             PreviewImagesWithGridLayout(
                                 modifier = Modifier.fillMaxWidth(),
                                 images = data.images,
@@ -400,14 +386,8 @@ internal fun PosterContent(
                                 onClick = { onOpenImages(it, data.images) },
                             )
                         }
-                    }
-                }
-
-                // 标签
-                item(6) {
-                    if (data.tags.isNotEmpty()) {
-                        Spacer(modifier = Modifier.padding(8.dp))
-                        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
+                        if (data.tags.isNotEmpty()) {
+                            Spacer(modifier = Modifier.padding(8.dp))
                             FlowRow {
                                 data.tags.forEach { tag ->
                                     Text(
@@ -424,12 +404,7 @@ internal fun PosterContent(
                                 }
                             }
                         }
-                    }
-                    Spacer(modifier = Modifier.padding(4.dp))
-                }
-
-                item(12) {
-                    Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+                        Spacer(modifier = Modifier.padding(4.dp))
                         Text(
                             text = "最后编辑于：" + DateTimeUtils.format(DateTimeUtils.formatTime(data.updateTime)),
                             style = MaterialTheme.typography.labelMedium

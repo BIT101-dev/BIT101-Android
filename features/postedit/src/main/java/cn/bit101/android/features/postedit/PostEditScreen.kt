@@ -1,15 +1,19 @@
 package cn.bit101.android.features.postedit
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
@@ -20,7 +24,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Face
 import androidx.compose.material.icons.outlined.FaceRetouchingOff
 import androidx.compose.material.icons.outlined.Image
@@ -58,7 +62,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -75,7 +78,7 @@ import cn.bit101.android.features.common.component.image.UploadImageRow
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.UploadImageState
-import cn.bit101.android.features.common.helper.keyboardStateAsState
+import cn.bit101.android.features.common.helper.keyboardHeightAsState
 import cn.bit101.android.features.common.helper.rememberImagePicker
 import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.api.model.common.Claim
@@ -215,14 +218,12 @@ private fun PostScreenContent(
     val titleFocusRequester = remember { FocusRequester() }
     val textFocusRequester = remember { FocusRequester() }
 
-    val imeStates = keyboardStateAsState()
-
-    val imeHeight by imeStates.first
-    val imeVisible by imeStates.second
+    val imeHeight by keyboardHeightAsState()
 
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
             .padding(bottom = imeHeight),
         topBar = {
             TopAppBar(
@@ -234,7 +235,7 @@ private fun PostScreenContent(
                 },
                 navigationIcon = {
                     IconButton(onClick = { mainController.popBackStack() }) {
-                        Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
+                        Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
                 actions = {
@@ -271,67 +272,72 @@ private fun PostScreenContent(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
         ) {
-            CustomOutlinedTextField(
+            Column(
                 modifier = Modifier
-                    .padding(0.dp)
-                    .focusRequester(titleFocusRequester)
-                    .fillMaxWidth(),
-                value = editData.title,
-                onValueChange = { onEditDataChanged(editData.copy(title = it)) },
-                textStyle = MaterialTheme.typography.titleLarge.copy(
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontWeight = FontWeight.Bold
-                ),
-                transparent = true,
-                contentPadding = PaddingValues(vertical = 0.dp, horizontal = 12.dp),
-                keyboardActions = KeyboardActions(
-                    onNext = { textFocusRequester.requestFocus() },
-                ),
-                keyboardOptions = KeyboardOptions.Default.copy(
-                    imeAction = ImeAction.Next
-                ),
-                minLines = 1,
-                placeholder = {
-                    Text(
-                        text = "在这里输入标题",
-                        style = MaterialTheme.typography.titleLarge.copy(
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            fontWeight = FontWeight.Bold
-                        ),
-                    )
-                }
-            )
-
-            AnimatedVisibility(visible = (editData.claim?.id != 0 && editData.claim != null)) {
-                Column(modifier = Modifier.padding(horizontal = 12.dp)) {
-                    Spacer(modifier = Modifier.padding(6.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    .weight(1f)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                CustomOutlinedTextField(
+                    modifier = Modifier
+                        .padding(0.dp)
+                        .focusRequester(titleFocusRequester)
+                        .fillMaxWidth(),
+                    value = editData.title,
+                    onValueChange = { onEditDataChanged(editData.copy(title = it)) },
+                    textStyle = MaterialTheme.typography.titleLarge.copy(
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
+                    ),
+                    transparent = true,
+                    contentPadding = PaddingValues(vertical = 0.dp, horizontal = 12.dp),
+                    keyboardActions = KeyboardActions(
+                        onNext = { textFocusRequester.requestFocus() },
+                    ),
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        imeAction = ImeAction.Next
+                    ),
+                    minLines = 1,
+                    placeholder = {
                         Text(
-                            text = "创作者声明：${editData.claim?.text ?: ""}",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                color = MaterialTheme.colorScheme.error,
+                            text = "在这里输入标题",
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                                 fontWeight = FontWeight.Bold
                             ),
                         )
                     }
-                }
-            }
-            Spacer(modifier = Modifier.padding(6.dp))
+                )
 
-            CustomOutlinedTextField(
-                modifier = Modifier
-                    .padding(0.dp)
-                    .weight(1f)
-                    .focusRequester(textFocusRequester)
-                    .fillMaxWidth(),
-                value = editData.text,
-                onValueChange = { onEditDataChanged(editData.copy(text = it)) },
-                transparent = true,
-                contentPadding = PaddingValues(vertical = 0.dp, horizontal = 12.dp),
-                placeholder = { Text(text = "在这里输入内容") }
-            )
+                AnimatedVisibility(visible = (editData.claim?.id != 0 && editData.claim != null)) {
+                    Column(modifier = Modifier.padding(horizontal = 12.dp)) {
+                        Spacer(modifier = Modifier.padding(6.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(
+                                text = "创作者声明：${editData.claim?.text ?: ""}",
+                                style = MaterialTheme.typography.bodyLarge.copy(
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                            )
+                        }
+                    }
+                }
+                Spacer(modifier = Modifier.padding(6.dp))
+
+                CustomOutlinedTextField(
+                    modifier = Modifier
+                        .padding(0.dp)
+                        .focusRequester(textFocusRequester)
+                        .fillMaxWidth(),
+                    value = editData.text,
+                    onValueChange = { onEditDataChanged(editData.copy(text = it)) },
+                    transparent = true,
+                    contentPadding = PaddingValues(vertical = 0.dp, horizontal = 12.dp),
+                    minLines = 25,
+                    placeholder = { Text(text = "在这里输入内容") }
+                )
+            }
 
             Spacer(modifier = Modifier.padding(6.dp))
 
@@ -447,8 +453,6 @@ fun PostEditScreen(
         vm.loadPoster(id)
     }
 
-    val ctx = LocalContext.current
-
     val editData by vm.editPosterDataFlow.collectAsState()
 
     val loadPosterState by vm.loadPosterFlow.collectAsState()
@@ -468,15 +472,13 @@ fun PostEditScreen(
         }
     }
 
-
     val postState by vm.postStateLiveData.observeAsState()
 
     LaunchedEffect(postState) {
         if(postState is SimpleDataState.Success) {
             if(id == null) {
-                val id = (postState as SimpleDataState.Success).data
                 mainController.popBackStack()
-                mainController.navigate(NavDest.Poster(id))
+                mainController.navigate(NavDest.Poster((postState as SimpleDataState.Success).data))
                 mainController.snackbar("发布成功OvO")
             } else {
                 mainController.popBackStack()

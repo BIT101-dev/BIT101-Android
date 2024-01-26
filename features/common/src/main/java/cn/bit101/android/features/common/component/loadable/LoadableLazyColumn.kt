@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,7 +51,6 @@ internal fun BasicLoadableLazyColumn(
     error: Boolean = false,
     loadMoreState: LoadMoreState?,
     pullRefreshState: PullRefreshState?,
-    nestedScrollConnection: NestedScrollConnection? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     reverseLayout: Boolean = false,
     verticalArrangement: Arrangement.Vertical =
@@ -79,12 +79,7 @@ internal fun BasicLoadableLazyColumn(
     content: LazyListScope.() -> Unit,
 ) {
     Box(modifier = modifier) {
-
-        var lazyColumnModifier: Modifier = Modifier
-
-        if (nestedScrollConnection != null) lazyColumnModifier = lazyColumnModifier.nestedScroll(nestedScrollConnection)
-
-        lazyColumnModifier = lazyColumnModifier.fillMaxSize()
+        var lazyColumnModifier: Modifier = Modifier.fillMaxSize()
 
         if (pullRefreshState != null) {
             lazyColumnModifier = lazyColumnModifier
@@ -94,10 +89,8 @@ internal fun BasicLoadableLazyColumn(
                 .pullRefresh(state = pullRefreshState)
         }
 
-        var size: IntSize by remember { mutableStateOf(IntSize.Zero) }
-
         LazyColumn(
-            modifier = lazyColumnModifier.onSizeChanged { size = it },
+            modifier = lazyColumnModifier,
             contentPadding = contentPadding,
             state = lazyListState,
             reverseLayout = reverseLayout,
@@ -108,16 +101,7 @@ internal fun BasicLoadableLazyColumn(
             content = {
                 if(error) {
                     item {
-                        var dpSize: DpSize
-                        LocalDensity.current.run {
-                            dpSize = DpSize(size.width.toDp(), size.height.toDp())
-                        }
-                        Box(
-                            modifier = Modifier.size(
-                                height = dpSize.height - contentPadding.calculateTopPadding() - contentPadding.calculateBottomPadding(),
-                                width = dpSize.width
-                            )
-                        ) {
+                        Surface(modifier = Modifier.fillMaxSize()) {
                             ErrorMessageForPage()
                         }
                     }
@@ -184,7 +168,6 @@ fun LoadableLazyColumnWithoutPullRequest(
     state: LoadableLazyColumnWithoutPullRequestState,
     loading: Boolean,
     error: Boolean = false,
-    nestedScrollConnection: NestedScrollConnection? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     reverseLayout: Boolean = false,
     verticalArrangement: Arrangement.Vertical =
@@ -201,7 +184,6 @@ fun LoadableLazyColumnWithoutPullRequest(
         error = error,
         loadMoreState = state.loadMoreState,
         pullRefreshState = null,
-        nestedScrollConnection = nestedScrollConnection,
         contentPadding = contentPadding,
         reverseLayout = reverseLayout,
         verticalArrangement = verticalArrangement,
@@ -219,7 +201,6 @@ fun LoadableLazyColumn(
     refreshing: Boolean,
     loading: Boolean,
     error: Boolean = false,
-    nestedScrollConnection: NestedScrollConnection? = null,
     contentPadding: PaddingValues = PaddingValues(0.dp),
     reverseLayout: Boolean = false,
     verticalArrangement: Arrangement.Vertical =
@@ -237,7 +218,6 @@ fun LoadableLazyColumn(
         loadMoreState = state.loadMoreState,
         refreshing = refreshing,
         pullRefreshState = state.pullRefreshState,
-        nestedScrollConnection = nestedScrollConnection,
         contentPadding = contentPadding,
         reverseLayout = reverseLayout,
         verticalArrangement = verticalArrangement,

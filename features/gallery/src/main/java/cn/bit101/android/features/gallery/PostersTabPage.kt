@@ -5,13 +5,13 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
@@ -34,7 +34,6 @@ import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.component.gallery.PosterCard
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumn
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnState
-import cn.bit101.android.features.common.helper.NavBarHeight
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
@@ -104,7 +103,6 @@ internal fun PostersTabPage(
                 state = postersState.state,
                 loading = postersState.loadState == SimpleState.Loading,
                 refreshing = postersState.refreshState == SimpleState.Loading,
-                contentPadding = PaddingValues(bottom = NavBarHeight)
             ) {
                 itemsIndexed(postersState.posters, { _, poster -> poster.id }) { _, it ->
                     PosterCard(
@@ -132,7 +130,7 @@ internal fun PostersTabPage(
             Column(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(10.dp, 20.dp, 10.dp, 20.dp + NavBarHeight)
+                    .padding(10.dp, 20.dp, 10.dp, 20.dp)
             ) {
                 val show by remember { derivedStateOf { postersState.state.lazyListState.firstVisibleItemIndex > 1 } }
                 AnimatedVisibility(

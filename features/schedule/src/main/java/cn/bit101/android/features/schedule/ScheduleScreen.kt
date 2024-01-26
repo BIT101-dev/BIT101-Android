@@ -1,6 +1,10 @@
 package cn.bit101.android.features.schedule
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.schedule.component.TabPager
 import cn.bit101.android.features.schedule.component.TabPagerItem
@@ -15,5 +19,9 @@ fun ScheduleScreen(mainController: MainController) {
         DDLSchedule(mainController, it)
     })
 
-    TabPager(items)
+    Scaffold {
+        Box(modifier = Modifier.padding(it)) {
+            TabPager(items)
+        }
+    }
 }

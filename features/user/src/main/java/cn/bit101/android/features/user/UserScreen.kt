@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -101,7 +102,7 @@ private fun UserScreenContent(
                 navigationIcon = {
                     IconButton(onClick = { mainController.popBackStack() }) {
                         Icon(
-                            imageVector = Icons.Outlined.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
                             contentDescription = "back"
                         )
                     }
@@ -152,8 +153,6 @@ fun UserScreen(
 ) {
 
     val vm: UserViewModel = hiltViewModel()
-
-    val ctx = LocalContext.current
 
     val getUserInfoState by vm.getUserInfoStateFlow.collectAsState()
 

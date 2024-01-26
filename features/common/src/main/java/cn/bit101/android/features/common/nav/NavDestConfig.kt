@@ -10,11 +10,7 @@ sealed interface NavDestConfig {
 
     companion object {
         val all = listOf(
-            Schedule,
-            Map,
-            BIT101Web,
-            Gallery,
-            Mine,
+            Index,
             Setting,
             Login,
             User,
@@ -31,28 +27,8 @@ sealed interface NavDestConfig {
         }
     }
 
-    data object Schedule : NavDestConfig {
-        override val route: String = "schedule"
-        override val arguments: List<NamedNavArgument> = emptyList()
-    }
-
-    data object Map : NavDestConfig {
-        override val route: String = "map"
-        override val arguments: List<NamedNavArgument> = emptyList()
-    }
-
-    data object BIT101Web : NavDestConfig {
-        override val route: String = "bit101-web"
-        override val arguments: List<NamedNavArgument> = emptyList()
-    }
-
-    data object Gallery : NavDestConfig {
-        override val route: String = "gallery"
-        override val arguments: List<NamedNavArgument> = emptyList()
-    }
-
-    data object Mine : NavDestConfig {
-        override val route: String = "mine"
+    data object Index : NavDestConfig {
+        override val route: String = "index"
         override val arguments: List<NamedNavArgument> = emptyList()
     }
 

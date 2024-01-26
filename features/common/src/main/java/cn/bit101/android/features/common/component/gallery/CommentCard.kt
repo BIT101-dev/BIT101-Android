@@ -1,7 +1,6 @@
 package cn.bit101.android.features.common.component.gallery
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -13,16 +12,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material3.Divider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -68,8 +62,8 @@ private fun CommentCardContent(
                 onLongClickLabel = "action",
                 onLongClick = onMoreAction
             )
-            .background(Color.Transparent)
             .fillMaxWidth(),
+        color = Color.Transparent
     ) {
         Column(
             modifier = Modifier
@@ -218,6 +212,7 @@ fun CommentCard(
         modifier = Modifier
             .padding(vertical = 2.dp)
             .fillMaxWidth(),
+        color = Color.Transparent
     ) {
         Column(
             modifier = Modifier

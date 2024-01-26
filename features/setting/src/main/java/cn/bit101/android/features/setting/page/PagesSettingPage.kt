@@ -96,7 +96,7 @@ private fun PagesSettingPageContent(
                     .reorderable(state),
                 contentPadding = PaddingValues(12.dp),
             ) {
-                itemsIndexed(changeablePages, { i, s -> s.toPageData().value }) { index, item ->
+                itemsIndexed(changeablePages, { _, s -> s.toPageData().value }) { _, item ->
                     ReorderableItem(state = state, key = item.toPageData().value) { isDragging ->
                         AnimatedContent(
                             targetState = if (isDragging) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)

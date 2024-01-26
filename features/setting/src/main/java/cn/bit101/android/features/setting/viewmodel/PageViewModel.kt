@@ -15,7 +15,7 @@ internal class PageViewModel @Inject constructor(
 
     val homePageFlow = pageSettings.homePage.flow
     val allPagesFlow = pageSettings.allPages.flow
-    val hiddenPagesFlow = pageSettings.hidePages.flow
+    val hiddenPagesFlow = pageSettings.hiddenPages.flow
 
     fun changePageSettings(
         allPages: List<PageShowOnNav>,
@@ -24,12 +24,12 @@ internal class PageViewModel @Inject constructor(
     ) = withScope {
        pageSettings.allPages.set(allPages)
        pageSettings.homePage.set(homePage)
-       pageSettings.hidePages.set(hiddenPages)
+       pageSettings.hiddenPages.set(hiddenPages)
     }
 
     fun reset() = withScope {
         pageSettings.allPages.set(PageShowOnNav.allPages)
         pageSettings.homePage.set(PageShowOnNav.homePage)
-        pageSettings.hidePages.set(emptyList())
+        pageSettings.hiddenPages.set(emptyList())
     }
 }

@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Send
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material.icons.rounded.Send
 import androidx.compose.material3.Button
@@ -144,7 +146,7 @@ internal fun ReportScreenContent(
                 },
                 navigationIcon = {
                     IconButton(onClick = { mainController.popBackStack() }) {
-                        Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
+                        Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
                 scrollBehavior = scrollBehavior
@@ -217,7 +219,7 @@ internal fun ReportScreenContent(
                             } else {
                                 Row {
                                     Icon(
-                                        imageVector = Icons.Rounded.Send,
+                                        imageVector = Icons.AutoMirrored.Rounded.Send,
                                         contentDescription = "举报",
                                         modifier = Modifier.align(Alignment.CenterVertically)
                                     )

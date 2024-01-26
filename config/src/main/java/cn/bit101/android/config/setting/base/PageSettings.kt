@@ -88,7 +88,7 @@ interface PageSettings {
     /**
      * 隐藏的页面
      */
-    val hidePages: SettingItem<List<PageShowOnNav>>
+    val hiddenPages: SettingItem<List<PageShowOnNav>>
 
     /**
      * 所有页面的顺序

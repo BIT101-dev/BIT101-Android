@@ -13,19 +13,17 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 
 @Composable
-fun keyboardStateAsState(): Pair<State<Dp>, State<Boolean>> {
+fun keyboardHeightAsState(): State<Dp> {
     val density = LocalDensity.current
     val keyboardHeight = remember { mutableStateOf(0.dp) }
-    val keyboardVisible = remember { mutableStateOf(false) }
     val view = LocalView.current
     LaunchedEffect(view) {
         ViewCompat.setOnApplyWindowInsetsListener(view) { _, insets ->
             keyboardHeight.value = density.run {
                 insets.getInsets(WindowInsetsCompat.Type.ime()).bottom.toDp()
             }
-            keyboardVisible.value = insets.isVisible(WindowInsetsCompat.Type.ime())
             insets
         }
     }
-    return Pair(keyboardHeight, keyboardVisible)
+    return keyboardHeight
 }

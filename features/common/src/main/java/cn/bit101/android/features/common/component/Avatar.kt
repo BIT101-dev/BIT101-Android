@@ -42,8 +42,7 @@ fun Avatar(
 
         val offset = size / 20
 
-        Box(
-        ) {
+        Box {
             var modifier = Modifier
                 .size(size)
                 .clip(CircleShape)

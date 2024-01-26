@@ -1,8 +1,13 @@
 package cn.bit101.android.features.setting
 
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -76,7 +81,7 @@ fun SettingScreen(
                             }
                         }
                     ) {
-                        Icon(imageVector = Icons.Outlined.ArrowBack, contentDescription = "返回")
+                        Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
                     }
                 },
             )
@@ -84,7 +89,19 @@ fun SettingScreen(
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = initialRoute.ifBlank { "index" }
+            startDestination = initialRoute.ifBlank { "index" },
+            enterTransition = {
+                fadeIn()
+            },
+            exitTransition = {
+                ExitTransition.None
+            },
+            popEnterTransition = {
+                fadeIn()
+            },
+            popExitTransition = {
+                ExitTransition.None
+            }
         ) {
             composable("index") {
                 SettingIndexPage(

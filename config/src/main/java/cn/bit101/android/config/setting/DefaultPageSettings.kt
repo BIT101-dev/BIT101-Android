@@ -67,7 +67,7 @@ internal class DefaultPageSettings @Inject constructor(
         }
     }
 
-    override val hidePages = settingDataStore.settingPageVisible.toSettingItem().map(hidePagesTransformer)
+    override val hiddenPages = settingDataStore.settingPageVisible.toSettingItem().map(hidePagesTransformer)
 
     override val homePage = settingDataStore.settingHomePage.toSettingItem().map(homePageTransformer)
 
