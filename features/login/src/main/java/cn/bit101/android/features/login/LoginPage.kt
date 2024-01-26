@@ -24,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -82,9 +83,9 @@ internal fun LoginPage(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var sid by remember { mutableStateOf(TextFieldValue("")) }
-        var password by remember { mutableStateOf(TextFieldValue("")) }
-        var passwordHidden by remember { mutableStateOf(true) }
+        var sid by rememberSaveable { mutableStateOf("") }
+        var password by rememberSaveable { mutableStateOf("") }
+        var passwordHidden by rememberSaveable { mutableStateOf(true) }
         Column(
             modifier = Modifier
                 .padding(horizontal = 42.dp),
@@ -152,7 +153,7 @@ internal fun LoginPage(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = !loading,
                 onClick = {
-                    onLogin(sid.text, password.text)
+                    onLogin(sid, password)
                 },
             ) {
                 if (loading) CircularProgressIndicator(

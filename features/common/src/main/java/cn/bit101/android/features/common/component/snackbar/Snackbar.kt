@@ -64,6 +64,7 @@ private fun SnackbarContent(
 
     val textStyle = MaterialTheme.typography.bodyMedium.copy(
         fontWeight = FontWeight.Bold,
+        color = MaterialTheme.colorScheme.onPrimaryContainer,
     )
 
     // 大小的动画
