@@ -12,12 +12,23 @@ import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -41,7 +52,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @Composable
-fun WebScreen(
+internal fun WebContent(
     mainController: MainController,
     url: String? = null,
 ) {
@@ -75,18 +86,10 @@ fun WebScreen(
         }
     }
 
-    Surface(
-        modifier = Modifier.statusBarsPadding()
-    ) {
-
-    }
-
     WebView(
         state = state,
         navigator = navigator,
-        modifier = Modifier
-            .fillMaxSize()
-            .statusBarsPadding(),
+        modifier = Modifier.fillMaxSize(),
         captureBackPresses = url == null,
         onCreated = {
             it.settings.javaScriptEnabled = true
@@ -183,11 +186,31 @@ fun WebScreen(
     //进度条
     AnimatedVisibility(visible = (progress > 0f && progress < 1f)) {
         LinearProgressIndicator(
-            progress = progress,
+            progress = { progress },
             modifier = Modifier.fillMaxWidth(),
             color = MaterialTheme.colorScheme.secondary,
             trackColor = Color.Transparent,
             strokeCap = StrokeCap.Round,
         )
     }
+}
+
+@Composable
+fun WebScreen(
+    mainController: MainController,
+    url: String? = null,
+) {
+    val systemBarsPadding = WindowInsets.systemBars.asPaddingValues()
+    val statusBarHeight = systemBarsPadding.calculateTopPadding()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(statusBarHeight),
+            color = Color(0xFFFF9A57),
+        ) {}
+        WebContent(mainController, url)
+    }
+
 }

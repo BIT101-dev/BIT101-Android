@@ -27,7 +27,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 /**
  * 所有动画的时长
  */
-const val DURATION_MILLIS = 400
+const val DURATION_MILLIS = 300
 
 /**
  * 保持
@@ -79,7 +79,7 @@ data class NavAnimation(
             enterTransition = { EnterTransition.None },
             exitTransition = { delayRemainTransition },
             popEnterTransition = { EnterTransition.None },
-            popExitTransition = { delayRemainTransition },
+            popExitTransition = { ExitTransition.None },
         )
     }
 }

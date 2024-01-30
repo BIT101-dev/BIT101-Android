@@ -1,27 +1,18 @@
 package cn.bit101.android.features
 
 import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarDefaults
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
@@ -32,7 +23,6 @@ import cn.bit101.android.features.common.component.snackbar.SnackbarHost
 import cn.bit101.android.features.common.component.snackbar.rememberSnackbarState
 import cn.bit101.android.features.common.helper.MessageUrl
 import cn.bit101.android.features.common.helper.getAppVersion
-import cn.bit101.android.features.common.nav.DURATION_MILLIS
 import cn.bit101.android.features.common.nav.NavAnimation
 import cn.bit101.android.features.common.nav.NavDestConfig
 import cn.bit101.android.features.common.nav.composableEdit
@@ -49,11 +39,8 @@ import cn.bit101.android.features.common.nav.delayRemainTransition
 import cn.bit101.android.features.common.nav.enterTransition
 import cn.bit101.android.features.common.nav.exitTransition
 import cn.bit101.android.features.common.utils.ColorUtils
-import cn.bit101.android.features.component.SystemUIConfig
-import cn.bit101.android.features.component.WithSystemUIConfig
 import cn.bit101.android.features.index.IndexScreen
 import cn.bit101.android.features.login.LoginOrLogoutScreen
-import cn.bit101.android.features.message.MessageScreen
 import cn.bit101.android.features.postedit.PostEditScreen
 import cn.bit101.android.features.poster.PosterScreen
 import cn.bit101.android.features.report.ReportScreen
@@ -62,37 +49,7 @@ import cn.bit101.android.features.user.UserScreen
 import cn.bit101.android.features.versions.UpdateDialog
 import cn.bit101.android.features.versions.VersionDialog
 import cn.bit101.android.features.web.WebScreen
-
-/**
- * 获取系统 UI 配置，包括状态栏颜色和图标颜色、底部导航栏颜色
- */
-@Composable
-private fun getSystemUI(destConfig: NavDestConfig?): SystemUIConfig {
-
-    val statusBarColor = when(destConfig) {
-        NavDestConfig.Web, NavDestConfig.Message -> Color(0xFFFF9A57)
-        NavDestConfig.Setting -> Color.Transparent
-        NavDestConfig.User -> Color.Transparent
-        NavDestConfig.Post, NavDestConfig.Edit -> Color.Transparent
-        NavDestConfig.Report -> Color.Transparent
-        NavDestConfig.Poster -> Color.Transparent
-        else -> MaterialTheme.colorScheme.background
-    }
-
-    val statusBarDarkIcon = when(statusBarColor) {
-        Color.Transparent -> ColorUtils.isLightColor(MaterialTheme.colorScheme.background)
-        else -> ColorUtils.isLightColor(statusBarColor)
-    }
-
-    val navBarColor = if(destConfig == NavDestConfig.Index) {
-        MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-    } else when(destConfig) {
-        NavDestConfig.Post, NavDestConfig.Edit -> MaterialTheme.colorScheme.surfaceColorAtElevation(3.dp)
-        NavDestConfig.Report -> MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-        else -> MaterialTheme.colorScheme.background
-    }
-    return SystemUIConfig(statusBarColor, statusBarDarkIcon, navBarColor)
-}
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 internal fun MainApp() {
@@ -110,12 +67,20 @@ internal fun MainApp() {
         imageHostState = rememberImageHostState()
     )
 
-    // 当前路由
-    val currentDestConfig by mainController.currentDestConfigAsState()
+    val systemUiController = rememberSystemUiController()
 
-    // 状态栏颜色
-    val systemUIConfig = getSystemUI(currentDestConfig)
-    WithSystemUIConfig(systemUIConfig) {}
+    val bottomNavBarColor = MaterialTheme.colorScheme.surface
+    val darkTheme = !ColorUtils.isLightColor(MaterialTheme.colorScheme.background)
+    LaunchedEffect(bottomNavBarColor, darkTheme) {
+        systemUiController.setStatusBarColor(
+            color = Color.Transparent,
+            darkIcons = !darkTheme
+        )
+
+        systemUiController.setNavigationBarColor(
+            color = bottomNavBarColor
+        )
+    }
 
     // 版本信息
     val lastVersion = vm.lastVersionFlow.collectAsState(initial = null).value ?: return
@@ -145,78 +110,50 @@ internal fun MainApp() {
         }
 
         composableLogin(navController = navController) {
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                LoginOrLogoutScreen(mainController)
-            }
+            LoginOrLogoutScreen(mainController)
         }
 
         composableWeb(navAnim, navController) { _, url ->
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                Box(
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .statusBarsPadding()
-                ) {
-                    WebScreen(mainController, url = url)
-                }
-            }
+            WebScreen(mainController, url = url)
         }
 
         composableSetting(navAnim, navController) { _, initialRoute ->
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                SettingScreen(mainController, initialRoute)
-            }
+            SettingScreen(mainController, initialRoute)
         }
 
         composableUser(navAnim, navController) { _, uid ->
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    UserScreen(mainController, uid)
-                }
+            Box(modifier = Modifier.navigationBarsPadding()) {
+                UserScreen(mainController, uid)
             }
         }
 
         composablePoster(navAnim, navController) { _, id ->
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    PosterScreen(mainController, id)
-                }
+            Box(modifier = Modifier.navigationBarsPadding()) {
+                PosterScreen(mainController, id)
             }
         }
 
         composablePost(navAnim, navController) {
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    PostEditScreen(mainController)
-                }
+            Box(modifier = Modifier.navigationBarsPadding()) {
+                PostEditScreen(mainController)
             }
         }
 
         composableEdit(navAnim, navController) { _, id ->
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    PostEditScreen(mainController, id)
-                }
+            Box(modifier = Modifier.navigationBarsPadding()) {
+                PostEditScreen(mainController, id)
             }
         }
 
         composableReport(navAnim, navController) { _, type, id ->
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                Box(modifier = Modifier.navigationBarsPadding()) {
-                    ReportScreen(mainController, type, id,)
-                }
+            Box(modifier = Modifier.navigationBarsPadding()) {
+                ReportScreen(mainController, type, id,)
             }
         }
 
         composableMessage(navAnim, navController) {
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                Box(
-                    modifier = Modifier
-                        .navigationBarsPadding()
-                        .statusBarsPadding()
-                ) {
-                    WebScreen(mainController, MessageUrl)
-                }
+            Box(modifier = Modifier.navigationBarsPadding()) {
+                WebScreen(mainController, MessageUrl)
             }
         }
     }

@@ -22,7 +22,9 @@ import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.R
 import cn.bit101.api.model.common.User
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun Avatar(
@@ -57,7 +59,11 @@ fun Avatar(
             AsyncImage(
                 modifier = modifier,
                 contentScale = ContentScale.FillBounds,
-                model = if(low == true) user?.avatar?.lowUrl else user?.avatar?.url,
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(if(low == true) user?.avatar?.lowUrl else user?.avatar?.url)
+                    .crossfade(true)
+                    .dispatcher(Dispatchers.IO)
+                    .build(),
                 placeholder = painter,
                 error = painter,
                 fallback = painter,

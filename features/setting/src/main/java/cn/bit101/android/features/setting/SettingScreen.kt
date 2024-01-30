@@ -1,31 +1,19 @@
 package cn.bit101.android.features.setting
 
 import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.nav.NavDest
+import cn.bit101.android.features.common.nav.delayRemainTransition
+import cn.bit101.android.features.common.nav.enterTransition
+import cn.bit101.android.features.common.nav.exitTransition
+import cn.bit101.android.features.setting.component.SettingPage
 import cn.bit101.android.features.setting.page.AboutPage
 import cn.bit101.android.features.setting.page.AccountPage
 import cn.bit101.android.features.setting.page.CalendarSettingPage
@@ -40,116 +28,91 @@ fun SettingScreen(
     mainController: MainController,
     initialRoute: String = "",
 ) {
-    val topAppBarBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-
     val navController = rememberNavController()
-
     val onSnackBar: (String) -> Unit = { mainController.snackbar(it) }
 
-    val currentEntry = navController.currentBackStackEntryFlow.collectAsState(initial = null)
-
-    val title = when(currentEntry.value?.destination?.route) {
-        "index" -> "设置"
-        "account" -> "账号设置"
-        "pages" -> "页面设置"
-        "theme" -> "外观设置"
-        "calendar" -> "课程表设置"
-        "about" -> "关于"
-        "ddl" -> "DDL设置"
-        else -> "设置"
-    }
-
-    // 沉浸式状态栏
-    Scaffold(
-        modifier = Modifier.nestedScroll(topAppBarBehavior.nestedScrollConnection),
-        topBar = {
-            TopAppBar (
-                title = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                },
-                scrollBehavior = topAppBarBehavior,
-                navigationIcon = {
-                    IconButton(
-                        onClick = {
-                            if(navController.previousBackStackEntry != null) {
-                                navController.popBackStack()
-                            } else {
-                                mainController.popBackStack()
-                            }
-                        }
-                    ) {
-                        Icon(imageVector = Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "返回")
-                    }
-                },
-            )
-        },
-    ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = initialRoute.ifBlank { "index" },
-            enterTransition = {
-                fadeIn()
-            },
-            exitTransition = {
-                ExitTransition.None
-            },
-            popEnterTransition = {
-                fadeIn()
-            },
-            popExitTransition = {
-                ExitTransition.None
+    NavHost(
+        modifier = Modifier.fillMaxSize(),
+        navController = navController,
+        startDestination = initialRoute.ifBlank { "index" },
+        enterTransition = { enterTransition },
+        exitTransition = { delayRemainTransition },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { exitTransition },
+    ) {
+        composable("index") {
+            SettingPage(
+                mainController = mainController,
+                title = "设置",
+                navController = navController,
+            ) {
+                SettingIndexPage(navController)
             }
-        ) {
-            composable("index") {
-                SettingIndexPage(
-                    navController = navController,
-                    paddingValues = paddingValues,
+        }
+
+        composable("account") {
+            SettingPage(
+                mainController = mainController,
+                title = "账号设置",
+                navController = navController,
+            ) {
+                AccountPage(
+                    onLogin = { mainController.navigate(NavDest.Login) },
+                    onSnackBar = onSnackBar,
                 )
             }
+        }
 
-            composable("account") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    AccountPage(
-                        onLogin = { mainController.navigate(NavDest.Login) },
-                        onSnackBar = onSnackBar,
-                    )
-                }
+        composable("pages") {
+            SettingPage(
+                mainController = mainController,
+                title = "页面设置",
+                navController = navController,
+            ) {
+                PagesSettingPage(
+                    navController = navController,
+                    onSnackBar = onSnackBar,
+                )
             }
+        }
 
-            composable("pages") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    PagesSettingPage(
-                        navController = navController,
-                        onSnackBar = onSnackBar,
-                    )
-                }
+        composable("theme") {
+            SettingPage(
+                mainController = mainController,
+                title = "外观设置",
+                navController = navController,
+            ) {
+                ThemeSettingPage()
             }
+        }
 
-            composable("theme") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    ThemeSettingPage()
-                }
+        composable("calendar") {
+            SettingPage(
+                mainController = mainController,
+                title = "课程表设置",
+                navController = navController,
+            ) {
+                CalendarSettingPage(onSnackBar = onSnackBar)
             }
+        }
 
-            composable("calendar") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    CalendarSettingPage(onSnackBar = onSnackBar)
-                }
+        composable("about") {
+            SettingPage(
+                mainController = mainController,
+                title = "关于",
+                navController = navController,
+            ) {
+                AboutPage(onSnackBar = onSnackBar)
             }
+        }
 
-            composable("about") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    AboutPage(onSnackBar = onSnackBar)
-                }
-            }
-
-            composable("ddl") {
-                Box(modifier = Modifier.padding(paddingValues)) {
-                    DDLSettingPage(onSnackBar = onSnackBar)
-                }
+        composable("ddl") {
+            SettingPage(
+                mainController = mainController,
+                title = "DDL设置",
+                navController = navController,
+            ) {
+                DDLSettingPage(onSnackBar = onSnackBar)
             }
         }
     }

@@ -70,7 +70,7 @@ internal fun SearchPage(
     val orders = PostersOrder.nameAndValues
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
+        containerColor = MaterialTheme.colorScheme.surfaceContainer,
         topBar = {
             TopAppBar(
                 title = {

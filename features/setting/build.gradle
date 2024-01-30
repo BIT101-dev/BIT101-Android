@@ -45,7 +45,7 @@ android {
 
 dependencies {
     // 用来画 app 图标
-    implementation "com.google.accompanist:accompanist-drawablepainter:0.31.2-alpha"
+    implementation "com.google.accompanist:accompanist-drawablepainter:0.32.0"
 
     // hilt
     implementation "androidx.hilt:hilt-navigation-compose:1.1.0"

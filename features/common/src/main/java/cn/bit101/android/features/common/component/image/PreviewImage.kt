@@ -21,10 +21,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import cn.bit101.android.features.common.R
 import cn.bit101.api.model.common.Image
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
+import kotlinx.coroutines.Dispatchers
 
 @Composable
 fun PreviewImage(
@@ -37,12 +42,16 @@ fun PreviewImage(
     AsyncImage(
         modifier = modifier
             .size(size)
-            .clip(RoundedCornerShape(if(corner) 4.dp else 0.dp))
+            .clip(RoundedCornerShape(if (corner) 4.dp else 0.dp))
             .pointerInput(Unit) {
                 detectTapGestures(onTap = { onClick() })
             },
         contentScale = ContentScale.Crop,
-        model = image.lowUrl,
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(image.lowUrl)
+            .crossfade(true)
+            .dispatcher(Dispatchers.IO)
+            .build(),
         contentDescription = "image",
     )
 }
@@ -62,7 +71,11 @@ fun PreviewImage(
                 detectTapGestures(onTap = { onClick() })
             },
         contentScale = contentScale,
-        model = image.lowUrl,
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(image.lowUrl)
+            .crossfade(true)
+            .dispatcher(Dispatchers.IO)
+            .build(),
         contentDescription = "image",
     )
 }

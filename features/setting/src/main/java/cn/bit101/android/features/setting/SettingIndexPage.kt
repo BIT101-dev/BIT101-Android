@@ -25,7 +25,6 @@ import cn.bit101.android.features.setting.component.SettingItemData
 @Composable
 internal fun SettingIndexPage(
     navController: NavHostController,
-    paddingValues: PaddingValues,
 ) {
     val subSettings = listOf(
         SettingItemData.IndexCard(
@@ -68,9 +67,7 @@ internal fun SettingIndexPage(
 
 
     LazyColumn(
-        modifier = Modifier
-            .padding(paddingValues)
-            .fillMaxSize(),
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(12.dp),
     ) {
         items(subSettings) {

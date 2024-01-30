@@ -43,10 +43,10 @@ android {
 
 dependencies {
     // 用来画 app 图标
-    implementation "com.google.accompanist:accompanist-drawablepainter:0.31.2-alpha"
+    implementation "com.google.accompanist:accompanist-drawablepainter:0.32.0"
 
     // 图片加载
-    implementation "io.coil-kt:coil-compose:2.3.0"
+    implementation "io.coil-kt:coil-compose:2.5.0"
 
     api 'androidx.core:core-ktx:1.12.0'
 

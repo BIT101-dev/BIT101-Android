@@ -21,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.helper.ImageDataWithUploadState
@@ -28,6 +29,8 @@ import cn.bit101.android.features.common.helper.UploadImageState
 import cn.bit101.android.features.common.helper.lowModel
 import cn.bit101.api.model.common.Image
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import kotlinx.coroutines.Dispatchers
 
 /**
  * 上传图片的部分
@@ -85,7 +88,11 @@ fun UploadImageRow(
                             }
                         ),
                     contentScale = ContentScale.Crop,
-                    model = image.lowModel(),
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(image.lowModel())
+                        .crossfade(true)
+                        .dispatcher(Dispatchers.IO)
+                        .build(),
                     contentDescription = "image",
                 )
 

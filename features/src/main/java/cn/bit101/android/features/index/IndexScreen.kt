@@ -1,34 +1,26 @@
 package cn.bit101.android.features.index
 
-import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.config.setting.base.PageShowOnNav
 import cn.bit101.android.features.common.MainController
-import cn.bit101.android.features.common.nav.NavDestConfig
-import cn.bit101.android.features.common.utils.ColorUtils
-import cn.bit101.android.features.component.SystemUIConfig
 import cn.bit101.android.features.component.WithLoginStatus
-import cn.bit101.android.features.component.WithSystemUIConfig
 import cn.bit101.android.features.gallery.GalleryScreen
 import cn.bit101.android.features.map.MapScreen
 import cn.bit101.android.features.mine.MineScreen
@@ -63,27 +55,6 @@ private fun IndexScreenNavBar(
     }
 }
 
-/**
- * 获取系统 UI 配置，包括状态栏颜色和图标颜色、底部导航栏颜色
- */
-@Composable
-private fun getSystemUI(page: PageShowOnNav): SystemUIConfig {
-
-    val statusBarColor = when(page) {
-        PageShowOnNav.BIT101Web -> Color(0xFFFF9A57)
-        else -> Color.Transparent
-    }
-
-    val statusBarDarkIcon = when(statusBarColor) {
-        Color.Transparent -> ColorUtils.isLightColor(MaterialTheme.colorScheme.background)
-        else -> ColorUtils.isLightColor(statusBarColor)
-    }
-
-    val navBarColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-
-    return SystemUIConfig(statusBarColor, statusBarDarkIcon, navBarColor)
-}
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun IndexScreen(
@@ -102,7 +73,9 @@ internal fun IndexScreen(
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(indexScreenConfig) {
-        state.scrollToPage(indexScreenConfig.initialPage)
+        if (state.currentPage >= indexScreenConfig.pages.size) {
+            state.scrollToPage(indexScreenConfig.initialPage)
+        }
     }
 
     Scaffold(
@@ -126,39 +99,32 @@ internal fun IndexScreen(
             if(it >= indexScreenConfig.pages.size) {
                 return@HorizontalPager
             }
-            val page = indexScreenConfig.pages[it].page
+            when (indexScreenConfig.pages[it].page) {
+                PageShowOnNav.BIT101Web -> @Composable {
+                    WebScreen(mainController)
+                }
 
-            val systemUIConfig = getSystemUI(page)
-            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                when (page) {
-                    PageShowOnNav.BIT101Web -> @Composable {
-                        WebScreen(mainController)
+                PageShowOnNav.Gallery -> @Composable {
+                    WithLoginStatus(mainController, loginStatus) {
+                        GalleryScreen(mainController)
                     }
+                }
 
-                    PageShowOnNav.Gallery -> @Composable {
-                        WithLoginStatus(mainController, loginStatus) {
-                            GalleryScreen(mainController)
-                        }
-                    }
+                PageShowOnNav.Map -> @Composable {
+                    MapScreen()
+                }
 
-                    PageShowOnNav.Map -> @Composable {
-                        MapScreen()
-                    }
+                PageShowOnNav.Mine -> @Composable {
+                    MineScreen(mainController)
+                }
 
-                    PageShowOnNav.Mine -> @Composable {
-                        MineScreen(mainController)
-                    }
-
-                    PageShowOnNav.Schedule -> @Composable {
-                        WithLoginStatus(mainController, loginStatus) {
-                            ScheduleScreen(mainController)
-                        }
+                PageShowOnNav.Schedule -> @Composable {
+                    WithLoginStatus(mainController, loginStatus) {
+                        ScheduleScreen(mainController)
                     }
                 }
             }
         }
-
-
     }
 
 }

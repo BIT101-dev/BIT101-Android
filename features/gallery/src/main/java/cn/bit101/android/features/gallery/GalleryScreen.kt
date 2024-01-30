@@ -1,7 +1,6 @@
 package cn.bit101.android.features.gallery
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.LocalOverscrollConfiguration
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -23,7 +22,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -215,79 +213,79 @@ fun GalleryScreen(
                 onDismiss = { showSearchPageState = false }
             )
         } else {
-            CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
-                Scaffold(
-                    containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        TopAppBar(
-                            title = {
-                                TabRow(
-                                    modifier = Modifier.width(280.dp),
-                                    selectedTabIndex = horizontalPagerState.currentPage,
-                                    divider = {},
-                                    containerColor = Color.Transparent,
-                                ) {
-                                    pages.forEachIndexed { index, page ->
-                                        Tab(
-                                            selected = horizontalPagerState.currentPage == index,
-                                            onClick = {
-                                                scope.launch {
-                                                    horizontalPagerState.scrollToPage(index, 0f)
-                                                }
-                                            },
-                                            text = {
-                                                Text(
-                                                    text = page.title,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    style = MaterialTheme.typography.titleMedium.copy(
-                                                        color = if (horizontalPagerState.currentPage == index) MaterialTheme.colorScheme.onSurface
-                                                        else MaterialTheme.colorScheme.onSurface.copy(
-                                                            alpha = 0.6f
-                                                        ),
-                                                        fontWeight = if (horizontalPagerState.currentPage == index) MaterialTheme.typography.titleMedium.fontWeight
-                                                        else FontWeight.Bold,
-                                                    )
+            Scaffold(
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                modifier = Modifier.fillMaxSize(),
+                topBar = {
+                    TopAppBar(
+                        title = {
+                            TabRow(
+                                modifier = Modifier.width(280.dp),
+                                selectedTabIndex = horizontalPagerState.currentPage,
+                                divider = {},
+                                containerColor = Color.Transparent,
+                            ) {
+                                pages.forEachIndexed { index, page ->
+                                    Tab(
+                                        selected = horizontalPagerState.currentPage == index,
+                                        onClick = {
+                                            scope.launch {
+                                                horizontalPagerState.scrollToPage(index, 0f)
+                                            }
+                                        },
+                                        text = {
+                                            Text(
+                                                text = page.title,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis,
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    color = if (horizontalPagerState.currentPage == index) MaterialTheme.colorScheme.onSurface
+                                                    else MaterialTheme.colorScheme.onSurface.copy(
+                                                        alpha = 0.6f
+                                                    ),
+                                                    fontWeight = if (horizontalPagerState.currentPage == index) MaterialTheme.typography.titleMedium.fontWeight
+                                                    else FontWeight.Bold,
                                                 )
-                                            },
-                                            //禁用水波纹特效
-                                            interactionSource = remember {
-                                                object : MutableInteractionSource {
-                                                    override val interactions: Flow<Interaction> =
-                                                        emptyFlow()
+                                            )
+                                        },
+                                        //禁用水波纹特效
+                                        interactionSource = remember {
+                                            object : MutableInteractionSource {
+                                                override val interactions: Flow<Interaction> =
+                                                    emptyFlow()
 
-                                                    override suspend fun emit(interaction: Interaction) {}
-                                                    override fun tryEmit(interaction: Interaction) =
-                                                        true
-                                                }
-                                            },
-                                        )
-                                    }
-                                }
-                            },
-                            actions = {
-                                IconButton(onClick = { showSearchPageState = true }) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Search,
-                                        contentDescription = "搜索"
+                                                override suspend fun emit(interaction: Interaction) {}
+                                                override fun tryEmit(interaction: Interaction) =
+                                                    true
+                                            }
+                                        },
                                     )
                                 }
-                            },
-                        )
-                    }
-                ) { paddingValues ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(paddingValues)
-                    ) {
-                        HorizontalPager(
-                            state = horizontalPagerState,
-                            userScrollEnabled = false,
-                        ) { index ->
-                            pages[index].content()
-                        }
+                            }
+                        },
+                        actions = {
+                            IconButton(onClick = { showSearchPageState = true }) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Search,
+                                    contentDescription = "搜索"
+                                )
+                            }
+                        },
+                    )
+                }
+            ) { paddingValues ->
+                val top = paddingValues.calculateTopPadding()
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(top = top)
+                ) {
+                    HorizontalPager(
+                        state = horizontalPagerState,
+                        userScrollEnabled = false,
+                    ) { index ->
+                        pages[index].content()
                     }
                 }
             }
