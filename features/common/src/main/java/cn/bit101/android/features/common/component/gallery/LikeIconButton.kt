@@ -22,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.PointMode
 import androidx.compose.ui.graphics.StrokeCap
@@ -96,14 +97,11 @@ fun LikeIcon(
 ) {
     var lastLike by remember { mutableStateOf(like) }
 
-    LaunchedEffect(like) {
-        if(!like) {
-            lastLike = false
-        }
-    }
-
+    // 1. 状态改变，lastlike != like 0 -> 1
+    // 2. 当 1 完成后 lastlike 被赋值成 like
+    // 3. lastlike == like 1 -> 0
     val process by animateFloatAsState(
-        targetValue = if(lastLike != like) 0f else 1f,
+        targetValue = if(lastLike == like) 0f else 1f,
         animationSpec = tween(200, easing = FastOutLinearInEasing),
         label = "like anim",
         finishedListener = {
@@ -111,15 +109,20 @@ fun LikeIcon(
         }
     )
 
+    // 如果正在点赞，那么根据 process 改变缩放，否则不缩放
+    val scale = if(like) process * 0.3f + 1f else 1f
+
 
     var size by remember { mutableStateOf(IntSize.Zero) }
     var offset by remember { mutableStateOf(Offset.Zero) }
 
     Icon(
-        modifier = modifier.onPlaced {
-            size = it.size
-            offset = it.positionInWindow()
-        },
+        modifier = modifier
+            .onPlaced {
+                size = it.size
+                offset = it.positionInWindow()
+            }
+            .scale(scale),
         imageVector = if(like) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
         contentDescription = "点赞",
         tint = if(liking) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)

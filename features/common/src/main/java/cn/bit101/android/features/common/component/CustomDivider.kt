@@ -27,7 +27,7 @@ fun CustomDivider(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant),
+            .background(MaterialTheme.colorScheme.surfaceContainer),
     ) {
         Card(
             modifier = Modifier

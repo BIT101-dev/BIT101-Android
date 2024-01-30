@@ -30,6 +30,7 @@ import cn.bit101.android.features.common.component.image.ImageHost
 import cn.bit101.android.features.common.component.image.rememberImageHostState
 import cn.bit101.android.features.common.component.snackbar.SnackbarHost
 import cn.bit101.android.features.common.component.snackbar.rememberSnackbarState
+import cn.bit101.android.features.common.helper.MessageUrl
 import cn.bit101.android.features.common.helper.getAppVersion
 import cn.bit101.android.features.common.nav.DURATION_MILLIS
 import cn.bit101.android.features.common.nav.NavAnimation
@@ -209,7 +210,13 @@ internal fun MainApp() {
 
         composableMessage(navAnim, navController) {
             WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-                MessageScreen(mainController)
+                Box(
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .statusBarsPadding()
+                ) {
+                    WebScreen(mainController, MessageUrl)
+                }
             }
         }
     }
