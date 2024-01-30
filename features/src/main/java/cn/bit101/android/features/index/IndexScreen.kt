@@ -14,6 +14,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -100,7 +101,9 @@ internal fun IndexScreen(
 
     val scope = rememberCoroutineScope()
 
-    val systemUIConfig = getSystemUI(indexScreenConfig.pages[state.currentPage].page)
+    LaunchedEffect(indexScreenConfig) {
+        state.scrollToPage(indexScreenConfig.initialPage)
+    }
 
     Scaffold(
         bottomBar = {
@@ -114,28 +117,39 @@ internal fun IndexScreen(
         }
     ) { paddingValues ->
         val bottomPadding = paddingValues.calculateBottomPadding()
-        WithSystemUIConfig(systemUIConfig = systemUIConfig) {
-            HorizontalPager(
-                modifier = Modifier.padding(bottom = bottomPadding),
-                userScrollEnabled = false,
-                state = state
-            ) {
-                when (indexScreenConfig.pages[it].page) {
-                    PageShowOnNav.BIT101Web -> @Composable{
+
+        HorizontalPager(
+            modifier = Modifier.padding(bottom = bottomPadding),
+            userScrollEnabled = false,
+            state = state
+        ) {
+            if(it >= indexScreenConfig.pages.size) {
+                return@HorizontalPager
+            }
+            val page = indexScreenConfig.pages[it].page
+
+            val systemUIConfig = getSystemUI(page)
+            WithSystemUIConfig(systemUIConfig = systemUIConfig) {
+                when (page) {
+                    PageShowOnNav.BIT101Web -> @Composable {
                         WebScreen(mainController)
                     }
-                    PageShowOnNav.Gallery -> @Composable{
+
+                    PageShowOnNav.Gallery -> @Composable {
                         WithLoginStatus(mainController, loginStatus) {
                             GalleryScreen(mainController)
                         }
                     }
-                    PageShowOnNav.Map -> @Composable{
+
+                    PageShowOnNav.Map -> @Composable {
                         MapScreen()
                     }
-                    PageShowOnNav.Mine -> @Composable{
+
+                    PageShowOnNav.Mine -> @Composable {
                         MineScreen(mainController)
                     }
-                    PageShowOnNav.Schedule -> @Composable{
+
+                    PageShowOnNav.Schedule -> @Composable {
                         WithLoginStatus(mainController, loginStatus) {
                             ScheduleScreen(mainController)
                         }
@@ -143,6 +157,8 @@ internal fun IndexScreen(
                 }
             }
         }
+
+
     }
 
 }

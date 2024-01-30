@@ -37,8 +37,6 @@ internal class IndexViewModel @Inject constructor(
         pageSettings.hiddenPages.flow,
         pageSettings.allPages.flow
     ) { homePage, hiddenPages, allPages ->
-        val pages = allPages.filter { it !in hiddenPages }
-
         val indexPages = allPages
             .filter { it !in hiddenPages }
             .map {
@@ -53,7 +51,9 @@ internal class IndexViewModel @Inject constructor(
                 IndexPage(it, label, icon)
             }
 
-        val initialPage = indexPages.indexOfFirst { it.page == homePage }
+        val initialPage = indexPages.indexOfFirst { it.page == homePage }.takeIf {
+            it >= 0
+        } ?: 0
 
         IndexScreenConfig(
             pages = indexPages,

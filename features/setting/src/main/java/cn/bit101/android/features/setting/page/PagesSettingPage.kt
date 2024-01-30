@@ -184,6 +184,16 @@ internal fun PagesSettingPage(
         homePage = homePage!!,
         hiddenPages = hiddenPages!!,
         onChangePages = { newPages, newHomePage, newHiddenPages ->
+            if(newHomePage in newHiddenPages) {
+                onSnackBar("主页不能隐藏")
+                return@PagesSettingPageContent
+            }
+
+            if(PageShowOnNav.Mine in newHiddenPages) {
+                onSnackBar("我的页面不能隐藏")
+                return@PagesSettingPageContent
+            }
+
             vm.changePageSettings(newPages, newHomePage, newHiddenPages)
             navController.popBackStack()
             onSnackBar("保存成功")
