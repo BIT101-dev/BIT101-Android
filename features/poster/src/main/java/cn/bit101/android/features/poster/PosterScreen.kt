@@ -100,6 +100,16 @@ fun PosterScreen(
     val comments by vm.commentStateExports.dataFlow.collectAsState()
 
     /**
+     * 评论的排序
+     */
+    val commentsOrder by vm.commentsOrderFlow.collectAsState()
+
+    /**
+     * 子评论的排序
+     */
+    val subCommentsOrder by vm.subCommentsOrderFlow.collectAsState()
+
+    /**
      * 点赞状态
      */
     val likings by vm.likingsFlow.collectAsState()
@@ -228,9 +238,9 @@ fun PosterScreen(
     }
 
     Surface(modifier = Modifier.fillMaxSize()) {
-        if (getPosterState is SimpleDataState.Loading || refreshState is SimpleState.Loading) {
+        if (getPosterState is SimpleDataState.Loading) {
             CircularProgressIndicatorForPage()
-        } else if (getPosterState is SimpleDataState.Success && refreshState is SimpleState.Success) {
+        } else if (getPosterState is SimpleDataState.Success) {
 
             val mainListState = rememberLoadableLazyColumnWithoutPullRequestState(
                 onLoadMore = { vm.commentStateExports.loadMore(id) }
@@ -247,6 +257,8 @@ fun PosterScreen(
                         mainController = mainController,
                         comment = vm.findCommentById(commentIdForShowMoreComments!!),
                         subComments = subComments,
+                        subCommentsOrder = subCommentsOrder,
+
                         commentLikings = commentLikings,
                         loading = subCommentsLoadMoreState is SimpleState.Loading,
                         loaded = subCommentLoaded,
@@ -270,6 +282,11 @@ fun PosterScreen(
                             commentNeedShowMoreAction = it
                             scope.launch { moreActionOfCommentBottomSheetState.expand() }
                         },
+
+                        onSelectCommentsOrder = {
+                            vm.setSubCommentsOrder(it)
+                            vm.subCommentStateExports.refresh(commentIdForShowMoreComments!!)
+                        },
                     )
                 } else {
                     PosterContent(
@@ -277,6 +294,8 @@ fun PosterScreen(
 
                         data = (getPosterState as SimpleDataState.Success).data,
                         comments = comments,
+                        commentsOrder = commentsOrder,
+
                         posterLiking = posterLiking,
                         commentLikings = commentLikings,
                         loading = loadMoreState is SimpleState.Loading,
@@ -285,6 +304,12 @@ fun PosterScreen(
 
                         onLikePoster = { vm.like(ObjectType.PosterObject(id)) },
                         onLikeComment = { vm.like(ObjectType.CommentObject(it)) },
+
+                        onSelectCommentsOrder = {
+                            vm.setCommentsOrder(it)
+                            vm.commentStateExports.refresh(id)
+                        },
+
                         onShowMoreComments = {
                             commentIdForShowMoreComments = it.id.toLong()
                             vm.subCommentStateExports.refresh(it.id.toLong())
@@ -387,7 +412,9 @@ fun PosterScreen(
                 )
             }
         } else if (getPosterState is SimpleDataState.Fail || refreshState is SimpleState.Fail) {
-            ErrorMessageForPage()
+            Surface(modifier = Modifier.fillMaxSize()) {
+                ErrorMessageForPage()
+            }
         }
     }
 }

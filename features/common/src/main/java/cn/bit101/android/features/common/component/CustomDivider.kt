@@ -20,35 +20,35 @@ import androidx.compose.ui.unit.dp
 fun CustomDivider(
     height: Dp = 12.dp,
     padding: Dp = 4.dp,
-    cornerRadius: Dp = 12.dp,
+    cornerRadius: Dp = 0.dp,
 ) {
-    Divider(Modifier.padding(vertical = padding + height))
+//    Divider(Modifier.padding(vertical = padding + height))
 
-//    Column(
-//        modifier = Modifier
-//            .fillMaxWidth()
-//            .background(MaterialTheme.colorScheme.surfaceVariant),
-//    ) {
-//        Card(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(height),
-//            shape = RoundedCornerShape(bottomStart = cornerRadius, bottomEnd = cornerRadius),
-//            colors = CardDefaults.cardColors(
-//                containerColor = MaterialTheme.colorScheme.surface,
-//                disabledContainerColor = MaterialTheme.colorScheme.surface,
-//            ),
-//        ) {}
-//        Spacer(modifier = Modifier.padding(padding))
-//        Card(
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .height(height),
-//            shape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
-//            colors = CardDefaults.cardColors(
-//                containerColor = MaterialTheme.colorScheme.surface,
-//                disabledContainerColor = MaterialTheme.colorScheme.surface,
-//            ),
-//        ) {}
-//    }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
+            shape = RoundedCornerShape(bottomStart = cornerRadius, bottomEnd = cornerRadius),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+            ),
+        ) {}
+        Spacer(modifier = Modifier.padding(padding))
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(height),
+            shape = RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surface,
+                disabledContainerColor = MaterialTheme.colorScheme.surface,
+            ),
+        ) {}
+    }
 }

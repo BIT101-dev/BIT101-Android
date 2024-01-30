@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.MainController
@@ -32,12 +30,13 @@ import cn.bit101.android.features.common.component.CustomDivider
 import cn.bit101.android.features.common.component.gallery.CommentCard
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequest
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequestState
+import cn.bit101.android.features.poster.CommentsOrderWithName
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
 
 
 @Composable
-internal fun MoreCommentsContent(
+private fun MoreCommentsContent(
     mainController: MainController,
 
     /**
@@ -49,6 +48,11 @@ internal fun MoreCommentsContent(
      * 所有子评论
      */
     subComments: List<Comment>,
+
+    /**
+     * 评论的排序方式
+     */
+    subCommentsOrder: CommentsOrderWithName,
 
     /**
      * 所有评论的点赞状态，存储在一个Set中，如果评论的id在Set中，说明正在进行点赞操作
@@ -94,6 +98,11 @@ internal fun MoreCommentsContent(
      * 打开评论的更多操作
      */
     onOpenMoreActionOfCommentBottomSheet: (Comment) -> Unit,
+
+    /**
+     * 选择评论的排序方式
+     */
+    onSelectCommentsOrder: (CommentsOrderWithName) -> Unit,
 ) {
     Surface(modifier = Modifier.fillMaxWidth()) {
         LoadableLazyColumnWithoutPullRequest(
@@ -117,14 +126,11 @@ internal fun MoreCommentsContent(
             }
 
             item("reply header") {
-                Text(
-                    modifier = Modifier.padding(horizontal = 12.dp),
-                    text = "回复 ${comment.commentNum}",
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold
-                    )
+                CommentHeader(
+                    title = "回复 ${comment.commentNum}",
+                    commentsOrder = subCommentsOrder,
+                    onSelectCommentsOrder = onSelectCommentsOrder,
                 )
-                Spacer(modifier = Modifier.padding(4.dp))
             }
 
             if(refreshing) {
@@ -191,6 +197,8 @@ fun MoreCommentsPage(
     mainController: MainController,
     comment: Comment?,
     subComments: List<Comment>,
+    subCommentsOrder: CommentsOrderWithName,
+
     commentLikings: Set<Long>,
     loading: Boolean,
     loaded: Boolean,
@@ -206,6 +214,7 @@ fun MoreCommentsPage(
     onOpenCommentToComment: (Comment, Comment) -> Unit,
     onOpenImages: (Int, List<Image>) -> Unit,
     onOpenMoreActionOfCommentBottomSheet: (Comment) -> Unit,
+    onSelectCommentsOrder: (CommentsOrderWithName) -> Unit,
 ) {
     if(comment == null) return
 
@@ -244,6 +253,8 @@ fun MoreCommentsPage(
                 mainController = mainController,
                 comment = comment,
                 subComments = subComments,
+                subCommentsOrder = subCommentsOrder,
+
                 commentLikings = commentLikings,
                 loading = loading,
                 loaded = loaded,
@@ -254,6 +265,7 @@ fun MoreCommentsPage(
                 onOpenImages = onOpenImages,
                 onOpenCommentDialog = onOpenCommentToComment,
                 onOpenMoreActionOfCommentBottomSheet = onOpenMoreActionOfCommentBottomSheet,
+                onSelectCommentsOrder = onSelectCommentsOrder,
             )
         }
     }

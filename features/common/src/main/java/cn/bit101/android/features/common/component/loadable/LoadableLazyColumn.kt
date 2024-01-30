@@ -149,7 +149,7 @@ internal fun BasicLoadableLazyColumn(
             val isScrollDown = currentLastVisibleIndex > lastTimeLastVisibleIndex ||
                     (currentLastVisibleIndex == lastTimeLastVisibleIndex && currentLastVisibleOffset > lastTimeLastVisibleOffset)
 
-            if((onBottom || isScrollDown) && pullRefreshState?.refreshing != true) {
+            if(onBottom && pullRefreshState?.refreshing != true) {
                 LaunchedEffect(Unit) {
                     loadMoreState.onLoadMore()
                 }

@@ -93,22 +93,24 @@ internal class DefaultPosterRepo @Inject constructor(
     override suspend fun getCommentsById(
         id: Long,
         page: Int?,
+        order: String
     ) = withContext(Dispatchers.IO) {
         api.reaction.getComments(
             obj = "poster$id",
             page = page,
-            order = CommentsOrder.NEW,
+            order = order,
         ).body() ?: throw Exception("get comments error")
     }
 
     override suspend fun getCommentsOfCommentById(
         id: Long,
-        page: Int?
+        page: Int?,
+        order: String
     ) = withContext(Dispatchers.IO) {
         api.reaction.getComments(
             obj = "comment$id",
             page = page,
-            order = CommentsOrder.NEW,
+            order = order,
         ).body() ?: throw Exception("get comments error")
     }
 

@@ -1,5 +1,6 @@
 package cn.bit101.android.features.gallery
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.data.repo.base.PosterRepo

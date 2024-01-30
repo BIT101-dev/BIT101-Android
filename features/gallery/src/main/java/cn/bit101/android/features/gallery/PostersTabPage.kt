@@ -11,8 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowUpward
@@ -94,35 +93,30 @@ internal fun PostersTabPage(
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
-        Column {
-            LoadableLazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .align(Alignment.CenterHorizontally),
-                error = postersState.refreshState is SimpleState.Fail,
-                state = postersState.state,
-                loading = postersState.loadState == SimpleState.Loading,
-                refreshing = postersState.refreshState == SimpleState.Loading,
-            ) {
-                itemsIndexed(postersState.posters, { _, poster -> poster.id }) { _, it ->
-                    PosterCard(
-                        data = it,
-                        onOpenPoster = { onOpenPoster(it.id) },
-                        onOpenImages = mainController::showImages,
-                        onOpenUserDetail = { user ->
-                            user?.let {
-                                mainController.navigate(NavDest.User(it.id.toLong()))
-                            }
-                        }
-                    )
-                    Divider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(0.dp),
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
-                    )
-                }
+        LoadableLazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            error = postersState.refreshState is SimpleState.Fail,
+            state = postersState.state,
+            loading = postersState.loadState == SimpleState.Loading,
+            refreshing = postersState.refreshState == SimpleState.Loading,
+        ) {
+            items(postersState.posters, { it.id }) {
+                PosterCard(
+                    data = it,
+                    onOpenPoster = { onOpenPoster(it.id) },
+                    onOpenImages = mainController::showImages,
+                    onOpenUserDetail = { user ->
+                        if(user == null) return@PosterCard
+                        mainController.navigate(NavDest.User(user.id.toLong()))
+                    }
+                )
+                Divider(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(0.dp),
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
+                )
             }
         }
         if(postersState.refreshState is SimpleState.Success) {

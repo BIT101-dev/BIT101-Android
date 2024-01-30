@@ -2,19 +2,16 @@ package cn.bit101.android.features.gallery
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalOverscrollConfiguration
-import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -22,8 +19,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -223,24 +220,12 @@ fun GalleryScreen(
                     containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp),
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        CenterAlignedTopAppBar(
+                        TopAppBar(
                             title = {
                                 TabRow(
-                                    modifier = Modifier.width(300.dp),
+                                    modifier = Modifier.width(280.dp),
                                     selectedTabIndex = horizontalPagerState.currentPage,
                                     divider = {},
-                                    indicator = { tabPositions ->
-                                        val selectedTabIndex = horizontalPagerState.currentPage
-                                        if (selectedTabIndex < tabPositions.size) {
-                                            Box(
-                                                Modifier
-                                                    .width(30.dp)
-                                                    .tabIndicatorOffset(tabPositions[selectedTabIndex])
-                                                    .height(3.dp)
-                                                    .background(color = MaterialTheme.colorScheme.primary)
-                                            )
-                                        }
-                                    },
                                     containerColor = Color.Transparent,
                                 ) {
                                     pages.forEachIndexed { index, page ->
@@ -299,7 +284,7 @@ fun GalleryScreen(
                     ) {
                         HorizontalPager(
                             state = horizontalPagerState,
-                            userScrollEnabled = true,
+                            userScrollEnabled = false,
                         ) { index ->
                             pages[index].content()
                         }

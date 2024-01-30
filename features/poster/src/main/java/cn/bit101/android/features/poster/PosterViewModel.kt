@@ -20,6 +20,8 @@ import cn.bit101.android.features.poster.utils.addCommentToComment
 import cn.bit101.android.features.poster.utils.changeLike
 import cn.bit101.android.features.poster.utils.deleteComment
 import cn.bit101.api.model.common.Comment
+import cn.bit101.api.model.common.CommentsOrder
+import cn.bit101.api.model.common.NameAndValue
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +71,16 @@ internal sealed interface ObjectType {
     ) : ObjectType
 }
 
+typealias CommentsOrderWithName = NameAndValue<String>
+
+internal object CommentsOrdersWithName {
+    val NEW = CommentsOrderWithName("最新", CommentsOrder.NEW)
+    val OLD = CommentsOrderWithName("最旧", CommentsOrder.OLD)
+    val LIKE = CommentsOrderWithName("高赞", CommentsOrder.LIKE)
+
+    val all = listOf(NEW, OLD, LIKE)
+}
+
 @HiltViewModel
 internal class PosterViewModel @Inject constructor(
     private val posterRepo: PosterRepo,
@@ -78,15 +90,29 @@ internal class PosterViewModel @Inject constructor(
     private val _getPosterStateFlow = MutableStateFlow<SimpleDataState<GetPosterDataModel.Response>?>(null)
     val getPosterStateFlow = _getPosterStateFlow.asStateFlow()
 
+    private val _commentsOrderFlow = MutableStateFlow(CommentsOrdersWithName.NEW)
+    val commentsOrderFlow = _commentsOrderFlow.asStateFlow()
+
+    fun setCommentsOrder(order: CommentsOrderWithName) {
+        _commentsOrderFlow.value = order
+    }
+
     private val _commentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-        override fun refresh(data: Long) = refresh { posterRepo.getCommentsById(data) }
-        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsById(data, it.toInt()) }
+        override fun refresh(data: Long) = refresh { posterRepo.getCommentsById(data, null, commentsOrderFlow.value.value) }
+        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsById(data, it.toInt(), commentsOrderFlow.value.value) }
     }
     val commentStateExports = _commentState.export()
 
+    private val _subCommentsOrderFlow = MutableStateFlow(CommentsOrdersWithName.NEW)
+    val subCommentsOrderFlow = _subCommentsOrderFlow.asStateFlow()
+
+    fun setSubCommentsOrder(order: CommentsOrderWithName) {
+        _subCommentsOrderFlow.value = order
+    }
+
     private val _subCommentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-        override fun refresh(data: Long) = refresh { posterRepo.getCommentsOfCommentById(data) }
-        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsOfCommentById(data, it.toInt()) }
+        override fun refresh(data: Long) = refresh { posterRepo.getCommentsOfCommentById(data, null, subCommentsOrderFlow.value.value) }
+        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsOfCommentById(data, it.toInt(), subCommentsOrderFlow.value.value) }
     }
     val subCommentStateExports = _subCommentState.export()
 
@@ -136,6 +162,9 @@ internal class PosterViewModel @Inject constructor(
         )))
     }
 
+    /**
+     * 点赞
+     */
     fun like(objectType: ObjectType) {
         _likingsFlow.value = _likingsFlow.value.plus(objectType)
         viewModelScope.launch(Dispatchers.IO) {

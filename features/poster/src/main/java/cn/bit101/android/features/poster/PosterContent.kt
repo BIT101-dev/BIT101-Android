@@ -6,10 +6,8 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -28,9 +26,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Favorite
-import androidx.compose.material.icons.outlined.FavoriteBorder
 import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.MoreVert
 import androidx.compose.material3.BottomAppBar
@@ -46,7 +41,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -57,7 +51,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -74,6 +67,7 @@ import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWi
 import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.android.features.common.utils.DateTimeUtils
 import cn.bit101.android.features.common.utils.NumberUtils
+import cn.bit101.android.features.poster.component.CommentHeader
 import cn.bit101.api.model.common.Comment
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
@@ -92,7 +86,7 @@ private fun PosterScreenTopBar(
         title = {
             // 如果目前在评论区，那么显示帖子的标题
             // 否则显示头像、昵称、身份
-            val showTitle by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex >= 7} }
+            val showTitle by remember { derivedStateOf { state.lazyListState.firstVisibleItemIndex >= 2} }
 
             AnimatedContent(
                 targetState = showTitle,
@@ -240,6 +234,11 @@ internal fun PosterContent(
     comments: List<Comment>,
 
     /**
+     * 当前的评论排序方式
+     */
+    commentsOrder: CommentsOrderWithName,
+
+    /**
      * 评论区的加载状态，这里只有加载更多和，没有下拉刷新
      */
     state: LoadableLazyColumnWithoutPullRequestState,
@@ -268,6 +267,11 @@ internal fun PosterContent(
      * 对评论点赞，需要传入评论的ID
      */
     onLikeComment: (Comment) -> Unit,
+
+    /**
+     * 选择评论排序方式，需要传入排序方式的值
+     */
+    onSelectCommentsOrder: (CommentsOrderWithName) -> Unit,
 
     /**
      * 显示更多评论，需要传入*需要显示子评论的评论*的数据
@@ -325,8 +329,6 @@ internal fun PosterContent(
             )
         }
     ) { paddingValues ->
-
-        val backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(4.dp)
 
         Surface(
             modifier = Modifier
@@ -418,13 +420,11 @@ internal fun PosterContent(
 
                 if(data.commentNum > 0) {
                     item(8) {
-                        Box(modifier = Modifier.padding(horizontal = 12.dp)) {
-                            Text(
-                                text = "评论 ${data.commentNum}",
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                        }
-                        Spacer(modifier = Modifier.padding(4.dp))
+                        CommentHeader(
+                            title = "评论 ${data.commentNum}",
+                            commentsOrder = commentsOrder,
+                            onSelectCommentsOrder = onSelectCommentsOrder,
+                        )
                     }
 
                     // 评论展示

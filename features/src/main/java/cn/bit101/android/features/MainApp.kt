@@ -110,7 +110,7 @@ internal fun MainApp() {
     )
 
     // 当前路由
-    val currentDestConfig by mainController.currentDestConfigFlow.collectAsState(initial = null)
+    val currentDestConfig by mainController.currentDestConfigAsState()
 
     // 状态栏颜色
     val systemUIConfig = getSystemUI(currentDestConfig)

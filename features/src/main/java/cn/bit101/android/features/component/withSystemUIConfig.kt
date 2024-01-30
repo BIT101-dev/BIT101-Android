@@ -32,18 +32,4 @@ internal fun WithSystemUIConfig(
     }
 
     content()
-
-    val darkIcon = ColorUtils.isLightColor(MaterialTheme.colorScheme.background)
-
-    DisposableEffect(Unit) {
-        onDispose {
-            systemUiController.setStatusBarColor(
-                color = Color.Transparent,
-                darkIcons = darkIcon
-            )
-            systemUiController.setNavigationBarColor(
-                color = Color.Transparent
-            )
-        }
-    }
 }

@@ -45,6 +45,9 @@ dependencies {
     // 用来画 app 图标
     implementation "com.google.accompanist:accompanist-drawablepainter:0.31.2-alpha"
 
+    // 图片加载
+    implementation "io.coil-kt:coil-compose:2.3.0"
+
     api 'androidx.core:core-ktx:1.12.0'
 
     // 物料清单，用于统一管理 Compose 版本
@@ -63,7 +66,7 @@ dependencies {
     api "androidx.compose.runtime:runtime-livedata"
 
     // 导航
-    api "androidx.navigation:navigation-compose:2.8.0-alpha01"
+    api "androidx.navigation:navigation-compose:2.7.6"
 
     // ViewModel
     api 'androidx.lifecycle:lifecycle-runtime-ktx:2.7.0'
@@ -76,9 +79,6 @@ dependencies {
     testApi 'junit:junit:4.13.2'
     androidTestApi 'androidx.test.ext:junit:1.1.5'
     androidTestApi 'androidx.test.espresso:espresso-core:3.5.1'
-
-    // 图片加载
-    api "io.coil-kt:coil-compose:2.3.0"
 
     // 依赖 data 模块来进行数据交互
     api project(':data')

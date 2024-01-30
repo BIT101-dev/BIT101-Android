@@ -4,10 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.util.Log
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.navigation.NavHostController
 import androidx.navigation.NavOptionsBuilder
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navOptions
 import cn.bit101.android.features.common.component.image.ImageHostState
 import cn.bit101.android.features.common.component.snackbar.SnackbarState
@@ -32,8 +36,11 @@ class MainController(
     fun navigate(dest: NavDest, builder: NavOptionsBuilder.() -> Unit) =
         navController.navigate(dest, navOptions(builder))
 
-    val currentDestConfigFlow = navController.currentBackStackEntryFlow.map {
-        NavDestConfig.fromRoute(it.destination.route)
+    @Composable
+    fun currentDestConfigAsState(): State<NavDestConfig?> {
+        return navController.currentBackStackEntryFlow.map {
+            NavDestConfig.fromRoute(it.destination.route)
+        }.collectAsState(initial = null)
     }
 
     val startDestId: Int

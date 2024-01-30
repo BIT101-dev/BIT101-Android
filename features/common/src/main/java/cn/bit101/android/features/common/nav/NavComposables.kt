@@ -1,22 +1,19 @@
 package cn.bit101.android.features.common.nav
 
 import android.net.Uri
-import android.util.Log
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInteropFilter
@@ -25,6 +22,7 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 
 /**
  * 所有动画的时长
@@ -102,11 +100,14 @@ private fun NavGraphBuilder.animatedComposable(
         popEnterTransition = navAnimation.popEnterTransition,
         popExitTransition = navAnimation.popExitTransition,
     ) {
+//        val visibleEntries by navController.visibleEntries.collectAsState()
+        val currentDest by navController.currentBackStackEntryAsState()
+
         Surface(
             modifier = Modifier
                 .fillMaxSize()
                 .pointerInteropFilter {
-                    val isCurrentScreen = navController.currentDestination?.route == route
+                    val isCurrentScreen = currentDest?.destination?.route == route
                     !isCurrentScreen
                 }
         ) {

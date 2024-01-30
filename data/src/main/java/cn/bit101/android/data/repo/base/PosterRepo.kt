@@ -1,6 +1,7 @@
 package cn.bit101.android.data.repo.base
 
 import cn.bit101.api.model.common.Claim
+import cn.bit101.api.model.common.CommentsOrder
 import cn.bit101.api.model.http.bit101.GetCommentsDataModel
 import cn.bit101.api.model.http.bit101.GetPosterDataModel
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
@@ -66,6 +67,7 @@ interface PosterRepo {
     suspend fun getCommentsById(
         id: Long,
         page: Int? = null,
+        order: String = CommentsOrder.NEW,
     ): GetCommentsDataModel.Response
 
     /**
@@ -74,6 +76,7 @@ interface PosterRepo {
     suspend fun getCommentsOfCommentById(
         id: Long,
         page: Int? = null,
+        order: String = CommentsOrder.NEW,
     ): GetCommentsDataModel.Response
 
     /**
