@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
@@ -87,6 +88,8 @@ private val DarkColors = darkColorScheme(
     scrim = md_theme_dark_scrim,
 )
 
+val LocalThemeIsDark = staticCompositionLocalOf<Boolean> { error("No theme provided") }
+
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BIT101Theme(
@@ -100,7 +103,7 @@ fun BIT101Theme(
         else false
 
     val darkThemeMode by vm.darkThemeModeFlow.collectAsState(initial = DarkThemeMode.System)
-    val useDarkTheme = when(darkThemeMode) {
+    val useDarkTheme = when (darkThemeMode) {
         is DarkThemeMode.Dark -> true
         is DarkThemeMode.Light -> false
         else -> isSystemInDarkTheme()
@@ -108,23 +111,31 @@ fun BIT101Theme(
 
     // 应用 Material You 动态颜色
     val colors = when {
-        dynamicColor && useDarkTheme -> dynamicDarkColorScheme(LocalContext.current)
-        dynamicColor && !useDarkTheme -> dynamicLightColorScheme(LocalContext.current)
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && dynamicColor && useDarkTheme -> dynamicDarkColorScheme(
+            LocalContext.current
+        )
+
+        Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && dynamicColor && !useDarkTheme -> dynamicLightColorScheme(
+            LocalContext.current
+        )
+
         useDarkTheme -> DarkColors
         else -> LightColors
     }
 
     CompositionLocalProvider(LocalOverscrollConfiguration provides null) {
-        MaterialTheme(
-            colorScheme = colors,
-            content = content
-        )
+        CompositionLocalProvider(LocalThemeIsDark provides useDarkTheme) {
+            MaterialTheme(
+                colorScheme = colors,
+                content = content
+            )
+        }
     }
 }
 
 @HiltViewModel
 internal class ThemeViewModel @Inject constructor(
-    private val themeSettings: ThemeSettings
+    themeSettings: ThemeSettings
 ) : ViewModel() {
     val dynamicThemeFlow = themeSettings.dynamicTheme.flow
     val darkThemeModeFlow = themeSettings.darkThemeMode.flow

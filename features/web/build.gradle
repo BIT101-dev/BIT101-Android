@@ -53,4 +53,5 @@ dependencies {
     ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
 
     implementation project(':features:common')
+    implementation project(':features:theme')
 }

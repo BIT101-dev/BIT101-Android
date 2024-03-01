@@ -12,23 +12,16 @@ import android.webkit.WebView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,6 +36,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.features.common.MainController
+import cn.bit101.android.features.theme.LocalThemeIsDark
 import com.google.accompanist.web.AccompanistWebChromeClient
 import com.google.accompanist.web.AccompanistWebViewClient
 import com.google.accompanist.web.WebView
@@ -85,6 +79,8 @@ internal fun WebContent(
             fileChooserValueCallback?.onReceiveValue(null)
         }
     }
+    val themeIsDark = LocalThemeIsDark.current
+    Log.i("WebScreen", "themeIsDark: $themeIsDark")
 
     WebView(
         state = state,
@@ -101,8 +97,21 @@ internal fun WebContent(
 
                 Log.i("WebScreen", "onPageStarted: $url")
 
-                // 注入fake-cookie
                 scope.launch {
+                    // 切换主题模式
+                    val themeMode=if(themeIsDark) "dark" else "light"
+                    view.evaluateJavascript(
+                        """
+                        if (!window.localStorage.getItem("store")) {
+                            window.localStorage.setItem("store", '{"theme_mode":"$themeMode"}')
+                        } else {
+                            store_tmp = JSON.parse(window.localStorage.store);
+                            store_tmp.theme_mode = "$themeMode";
+                            window.localStorage.setItem("store", JSON.stringify(store_tmp));
+                        }
+                    """.trimIndent(), null
+                    )
+                    // 注入fake-cookie
                     val fakeCookie = vm.fakeCookie.get()
                     Log.d("WebScreen", fakeCookie)
                     if (fakeCookie.isNotEmpty()) {
