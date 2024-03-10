@@ -1,0 +1,55 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
+}
+
+android {
+    namespace 'cn.bit101.android.data'
+    compileSdk versions.compileSdk
+
+    defaultConfig {
+        minSdk versions.minSdk
+        targetSdk versions.targetSdk
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility = versions.sourceCompatibility
+        targetCompatibility = versions.targetCompatibility
+    }
+    kotlinOptions {
+        jvmTarget = versions.jvmTarget
+    }
+}
+
+dependencies {
+    // Room 数据库
+    def room_version = "2.6.1"
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-ktx:$room_version"
+    ksp "androidx.room:room-compiler:$room_version"
+    implementation "androidx.room:room-testing:$room_version"
+
+    // CookieJar
+    implementation "net.gotev:cookie-store-okhttp:1.5.0"
+
+    // 引用 config 模块
+    implementation project(':config')
+
+    // 需要依赖 api 模块来进行网络请求，且将该依赖传递
+    api project(':api')
+
+    // hilt
+    implementation "com.google.dagger:hilt-android:${versions.hilt}"
+    ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
+}
