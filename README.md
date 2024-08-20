@@ -34,7 +34,7 @@
 
 注：由于篇幅限制，服务端仅介绍和客户端直接相关的一些部分，对于服务端更详细的说明请见[GitHub](https://github.com/flwfdd/BIT101-GO)。
 
-![架构](https://i.niupic.com/images/2023/05/22/b71Z.png)
+![架构](https://github.com/user-attachments/assets/a378649a-85dd-46ce-b779-0f2ec4ae5f95)
 
 项目整体使用`MVVM`的架构，有三层数据模型：底层`Model`层负责处理、提供数据，中间的`ViewModel`层负责对接数据并管理运行状态，顶层的`View`层使用模型层提供的数据和状态与用户进行交互。
 
