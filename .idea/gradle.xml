@@ -11,7 +11,26 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/api" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/config" />
+            <option value="$PROJECT_DIR$/data" />
+            <option value="$PROJECT_DIR$/features" />
+            <option value="$PROJECT_DIR$/features/common" />
+            <option value="$PROJECT_DIR$/features/gallery" />
+            <option value="$PROJECT_DIR$/features/login" />
+            <option value="$PROJECT_DIR$/features/map" />
+            <option value="$PROJECT_DIR$/features/message" />
+            <option value="$PROJECT_DIR$/features/mine" />
+            <option value="$PROJECT_DIR$/features/postedit" />
+            <option value="$PROJECT_DIR$/features/poster" />
+            <option value="$PROJECT_DIR$/features/report" />
+            <option value="$PROJECT_DIR$/features/schedule" />
+            <option value="$PROJECT_DIR$/features/setting" />
+            <option value="$PROJECT_DIR$/features/theme" />
+            <option value="$PROJECT_DIR$/features/user" />
+            <option value="$PROJECT_DIR$/features/versions" />
+            <option value="$PROJECT_DIR$/features/web" />
           </set>
         </option>
       </GradleProjectSettings>

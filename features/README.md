@@ -1,0 +1,21 @@
+# `features` 模块
+
+- 依赖：`config`、`data`
+- 作用：App 的 UI 界面，按照页面分成了若干子模块
+- 结构：
+    - `:features:common`: 提供 `features` 子模块共用的库依赖，提供通用的组合函数、工具类等
+    - `:features:theme`: 提供 `BIT101Theme` 用来应用主题
+    - `:features:login`: 登录功能模块，提供 `LoginOrLogoutScreen` 显示登录或登出界面
+    - `:features:schedule`: 课程表及 DDL 功能模块，提供 `ScheduleScreen` 来显示该界面
+    - `:features:map`: 地图功能模块，提供 `MapScreen` 来显示该界面
+    - `:features:web`: WEB 功能模块，提供 `WebScreen` 来显示 BIT101 主页等页面
+    - `:features:gallery`: 话廊（主页）功能模块，提供 `GalleryScreen` 来显示话廊（主页）页面
+    - `:features:poster`: 帖子功能模块，提供 `PosterScreen` 来显示帖子详细页面
+    - `:features:postedit`: 帖子发布与修改功能模块，提供 `PostEditScreen` 来显示该界面
+    - `:features:report`: 举报功能模块，提供 `ReportScreen` 来显示该界面
+    - `:features:user`: 用户（主页）功能模块，提供 `UserScreen` 来显示用户主页
+    - `:features:mine`: “我的”功能模块，提供 `MineScreen` 来显示“我的”页面
+    - `:features:setting`: 设置功能模块，提供 `SettingScreen` 来显示设置
+    - `:features:versions`: 版本管理功能模块，提供 `UpdateDialog`、`VersionDialog` 来向用户说明版本相关信息
+    - `:features:message`: 消息功能模块，目前正在开发，提供 `MessageScreen` 来显示消息界面
+- 导出：界面的 Activity: `MainActivity`。

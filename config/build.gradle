@@ -1,0 +1,47 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
+}
+
+android {
+    namespace 'cn.bit101.android.config'
+    compileSdk versions.compileSdk
+
+    defaultConfig {
+        minSdk versions.minSdk
+        targetSdk versions.targetSdk
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility = versions.sourceCompatibility
+        targetCompatibility = versions.targetCompatibility
+    }
+    kotlinOptions {
+        jvmTarget = versions.jvmTarget
+    }
+}
+
+dependencies {
+    // datastore
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+    // 加密 Preferences
+    implementation "androidx.security:security-crypto:1.0.0"
+
+    // Cookie 存储
+    implementation "net.gotev:cookie-store:1.5.0"
+
+    // hilt
+    implementation "com.google.dagger:hilt-android:${versions.hilt}"
+    ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
+}

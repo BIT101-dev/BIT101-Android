@@ -1,0 +1,76 @@
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'com.google.devtools.ksp'
+    id 'dagger.hilt.android.plugin'
+}
+
+android {
+    namespace 'cn.bit101.android.features'
+    compileSdk versions.compileSdk
+
+    defaultConfig {
+        minSdk versions.minSdk
+        targetSdk versions.targetSdk
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        vectorDrawables {
+            useSupportLibrary true
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility = versions.sourceCompatibility
+        targetCompatibility = versions.targetCompatibility
+    }
+    kotlinOptions {
+        jvmTarget = versions.jvmTarget
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion versions.kotlinCompilerExtensionVersion
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+dependencies {
+    implementation project(':features:common')
+    implementation project(':features:theme')
+
+    implementation project(':features:gallery')
+    implementation project(':features:login')
+    implementation project(':features:map')
+    implementation project(':features:message')
+    implementation project(':features:mine')
+    implementation project(':features:postedit')
+    implementation project(':features:poster')
+    implementation project(':features:report')
+    implementation project(':features:schedule')
+    implementation project(':features:setting')
+    implementation project(':features:user')
+    implementation project(':features:versions')
+    implementation project(':features:web')
+
+    // 启动屏
+    implementation "androidx.core:core-splashscreen:1.0.1"
+
+    // 状态栏、导航栏管理
+    implementation "com.google.accompanist:accompanist-systemuicontroller:0.31.2-alpha"
+
+    // hilt
+    implementation "com.google.dagger:hilt-android:${versions.hilt}"
+    implementation "androidx.hilt:hilt-navigation-compose:1.1.0"
+    ksp "com.google.dagger:hilt-android-compiler:${versions.hilt}"
+}
