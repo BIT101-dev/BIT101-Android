@@ -1,9 +1,7 @@
 package cn.bit101.android.features.index
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -14,19 +12,22 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.config.setting.base.PageShowOnNav
 import cn.bit101.android.features.common.MainController
+import cn.bit101.android.features.common.motion.materialSharedAxisZIn
+import cn.bit101.android.features.common.motion.materialSharedAxisZOut
 import cn.bit101.android.features.component.WithLoginStatus
 import cn.bit101.android.features.gallery.GalleryScreen
 import cn.bit101.android.features.map.MapScreen
 import cn.bit101.android.features.mine.MineScreen
 import cn.bit101.android.features.schedule.ScheduleScreen
 import cn.bit101.android.features.web.WebScreen
-import kotlinx.coroutines.launch
 
 
 /**
@@ -35,11 +36,11 @@ import kotlinx.coroutines.launch
 @Composable
 private fun IndexScreenNavBar(
     pages: List<IndexPage>,
-    selectedIndex: Int,
-    onSelected: (Int) -> Unit,
+    selectedIndex: String,
+    onSelected: (String) -> Unit,
 ) {
     NavigationBar {
-        pages.forEachIndexed { i, page ->
+        pages.forEach { page ->
             NavigationBarItem(
                 icon = {
                     Icon(
@@ -48,8 +49,8 @@ private fun IndexScreenNavBar(
                     )
                 },
                 label = { Text(text = page.label) },
-                selected = i == selectedIndex,
-                onClick = { onSelected(i) }
+                selected = page.route == selectedIndex,
+                onClick = { onSelected(page.route) }
             )
         }
     }
@@ -70,7 +71,11 @@ internal fun IndexScreen(
         pageCount = { indexScreenConfig.pages.size }
     )
 
-    val scope = rememberCoroutineScope()
+    val navController = rememberNavController()
+
+    val startRoute = PageShowOnNav.Schedule.toString()
+    val navEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navEntry?.destination?.route ?: startRoute
 
     LaunchedEffect(indexScreenConfig) {
         if (state.currentPage >= indexScreenConfig.pages.size) {
@@ -82,49 +87,50 @@ internal fun IndexScreen(
         bottomBar = {
             IndexScreenNavBar(
                 pages = indexScreenConfig.pages,
-                selectedIndex = state.currentPage,
+                selectedIndex = currentRoute,
                 onSelected = {
-                    scope.launch { state.scrollToPage(it) }
+                    if (it == currentRoute) return@IndexScreenNavBar
+                    navController.navigate(route = it)
                 }
             )
         }
     ) { paddingValues ->
         val bottomPadding = paddingValues.calculateBottomPadding()
 
-        HorizontalPager(
+        NavHost (
             modifier = Modifier.padding(bottom = bottomPadding),
-            userScrollEnabled = false,
-            state = state
+            navController = navController,
+            startDestination = startRoute,
+            enterTransition = { enterTransition },
+            exitTransition = { exitTransition },
+            popEnterTransition = { popEnterTransition },
+            popExitTransition = { popExitTransition },
         ) {
-            if(it >= indexScreenConfig.pages.size) {
-                return@HorizontalPager
+            composable(route = PageShowOnNav.BIT101Web.toString()) {
+                WebScreen(mainController)
             }
-            when (indexScreenConfig.pages[it].page) {
-                PageShowOnNav.BIT101Web -> @Composable {
-                    WebScreen(mainController)
+            composable(route = PageShowOnNav.Gallery.toString()) {
+                WithLoginStatus(mainController, loginStatus) {
+                    GalleryScreen(mainController)
                 }
-
-                PageShowOnNav.Gallery -> @Composable {
-                    WithLoginStatus(mainController, loginStatus) {
-                        GalleryScreen(mainController)
-                    }
-                }
-
-                PageShowOnNav.Map -> @Composable {
-                    MapScreen()
-                }
-
-                PageShowOnNav.Mine -> @Composable {
-                    MineScreen(mainController)
-                }
-
-                PageShowOnNav.Schedule -> @Composable {
-                    WithLoginStatus(mainController, loginStatus) {
-                        ScheduleScreen(mainController)
-                    }
+            }
+            composable(route = PageShowOnNav.Map.toString()) {
+                MapScreen()
+            }
+            composable(route = PageShowOnNav.Mine.toString()) {
+                MineScreen(mainController)
+            }
+            composable(route = PageShowOnNav.Schedule.toString()) {
+                WithLoginStatus(mainController, loginStatus) {
+                    ScheduleScreen(mainController)
                 }
             }
         }
     }
 
 }
+
+private val enterTransition = materialSharedAxisZIn()
+private val exitTransition = materialSharedAxisZOut()
+private val popEnterTransition = materialSharedAxisZIn()
+private val popExitTransition = materialSharedAxisZOut()

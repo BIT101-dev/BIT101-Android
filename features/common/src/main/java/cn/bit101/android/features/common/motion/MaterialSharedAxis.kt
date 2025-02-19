@@ -20,12 +20,15 @@ import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.FastOutLinearInEasing
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutHorizontally
@@ -173,5 +176,39 @@ public fun materialSharedAxisYOut(
         durationMillis = durationMillis.ForOutgoing,
         delayMillis = 0,
         easing = FastOutLinearInEasing
+    )
+)
+
+public fun materialSharedAxisZIn(
+    durationMillis: Int = MotionConstants.DefaultMotionDuration,
+    easing: Easing = MotionConstants.EmphasizedDecelerate,
+): EnterTransition = scaleIn(
+    initialScale = 0.8f,
+    animationSpec = tween(
+        durationMillis = durationMillis,
+        easing = easing,
+    )
+) + fadeIn(
+    animationSpec = tween(
+        durationMillis = durationMillis.ForIncoming,
+        delayMillis = durationMillis.ForOutgoing,
+        easing = easing
+    )
+)
+
+public fun materialSharedAxisZOut(
+    durationMillis: Int = MotionConstants.DefaultMotionDuration,
+    easing: Easing = MotionConstants.EmphasizedAccelerate,
+): ExitTransition = scaleOut(
+    targetScale = 1.2f,
+    animationSpec = tween(
+        durationMillis = durationMillis,
+        easing = easing,
+    )
+) + fadeOut(
+    animationSpec = tween(
+        durationMillis = durationMillis.ForOutgoing,
+        delayMillis = 0,
+        easing = easing
     )
 )
