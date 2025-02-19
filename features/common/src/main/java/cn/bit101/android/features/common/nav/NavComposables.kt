@@ -5,11 +5,8 @@ import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibilityScope
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -23,6 +20,8 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import cn.bit101.android.features.common.motion.materialSharedAxisXIn
+import cn.bit101.android.features.common.motion.materialSharedAxisXOut
 
 /**
  * 所有动画的时长
@@ -37,36 +36,22 @@ val delayRemainTransition = fadeOut(tween(10, DURATION_MILLIS))
 /**
  * 从右侧滑入+淡入
  */
-val enterTransition = slideInHorizontally(
-    initialOffsetX = { it },
-    animationSpec = tween(
-        durationMillis = DURATION_MILLIS,
-        easing = FastOutSlowInEasing
-    )
-)
-//+ fadeIn(
-//    animationSpec = tween(
-//        durationMillis = DURATION_MILLIS,
-//        easing = FastOutSlowInEasing
-//    )
-//)
+val enterTransition = materialSharedAxisXIn({ (it * 0.1).toInt() })
+
+/**
+ * 向左侧滑出+淡出
+ */
+val exitTransition = materialSharedAxisXOut({ -(it * 0.1).toInt() })
+
+/**
+ * 从左侧滑入+淡入
+ */
+val popEnterTransition = materialSharedAxisXIn({ -(it * 0.1).toInt() })
 
 /**
  * 向右侧滑出+淡出
  */
-val exitTransition = slideOutHorizontally(
-    targetOffsetX = { it },
-    animationSpec = tween(
-        durationMillis = DURATION_MILLIS,
-        easing = FastOutSlowInEasing
-    )
-)
-//+ fadeOut(
-//    animationSpec = tween(
-//        durationMillis = DURATION_MILLIS,
-//        easing = LinearOutSlowInEasing
-//    )
-//)
+val popExitTransition = materialSharedAxisXOut({ (it * 0.1).toInt() })
 
 data class NavAnimation(
     val enterTransition: @JvmSuppressWildcards (AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition?)?,
