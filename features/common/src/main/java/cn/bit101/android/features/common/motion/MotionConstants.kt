@@ -17,6 +17,8 @@ package cn.bit101.android.features.common.motion
  */
 
 
+import androidx.compose.animation.core.CubicBezierEasing
+import androidx.compose.animation.core.Easing
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -25,4 +27,7 @@ public object MotionConstants {
     public const val DefaultFadeInDuration: Int = 150
     public const val DefaultFadeOutDuration: Int = 75
     public val DefaultSlideDistance: Dp = 30.dp
+
+    public val EmphasizedDecelerate: Easing = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
+    public val EmphasizedAccelerate: Easing = CubicBezierEasing(0.3f, 0.0f, 0.8f, 0.15f)
 }

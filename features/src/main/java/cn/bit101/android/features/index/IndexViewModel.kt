@@ -20,7 +20,9 @@ internal data class IndexPage(
     val page: PageShowOnNav,
     val label: String,
     val icon: ImageVector,
-)
+) {
+    val route = page.toString()
+}
 
 internal data class IndexScreenConfig(
     val pages: List<IndexPage>,
