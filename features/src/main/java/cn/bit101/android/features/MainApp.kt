@@ -1,6 +1,6 @@
 package cn.bit101.android.features
 
-import androidx.compose.animation.EnterTransition
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
@@ -35,9 +35,10 @@ import cn.bit101.android.features.common.nav.composableReport
 import cn.bit101.android.features.common.nav.composableSetting
 import cn.bit101.android.features.common.nav.composableUser
 import cn.bit101.android.features.common.nav.composableWeb
-import cn.bit101.android.features.common.nav.delayRemainTransition
 import cn.bit101.android.features.common.nav.enterTransition
 import cn.bit101.android.features.common.nav.exitTransition
+import cn.bit101.android.features.common.nav.popEnterTransition
+import cn.bit101.android.features.common.nav.popExitTransition
 import cn.bit101.android.features.common.utils.ColorUtils
 import cn.bit101.android.features.index.IndexScreen
 import cn.bit101.android.features.login.LoginOrLogoutScreen
@@ -69,7 +70,8 @@ internal fun MainApp() {
 
     val systemUiController = rememberSystemUiController()
 
-    val bottomNavBarColor = MaterialTheme.colorScheme.surface
+    val backgroundColor = MaterialTheme.colorScheme.surface
+    val bottomNavBarColor = MaterialTheme.colorScheme.surfaceContainerHigh
     val darkTheme = !ColorUtils.isLightColor(MaterialTheme.colorScheme.background)
     LaunchedEffect(bottomNavBarColor, darkTheme) {
         systemUiController.setStatusBarColor(
@@ -78,7 +80,7 @@ internal fun MainApp() {
         )
 
         systemUiController.setNavigationBarColor(
-            color = bottomNavBarColor
+            color = Color.Transparent,
         )
     }
 
@@ -101,15 +103,19 @@ internal fun MainApp() {
     }
 
     NavHost(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(color = backgroundColor),
         navController = navController,
         startDestination = NavDestConfig.Index.route,
+        enterTransition = { enterTransition },
+        exitTransition = { exitTransition },
+        popEnterTransition = { popEnterTransition },
+        popExitTransition = { popExitTransition },
     ) {
-        composableIndex(navController = navController) {
+        composableIndex(navAnim, navController = navController) {
             IndexScreen(mainController)
         }
 
-        composableLogin(navController = navController) {
+        composableLogin(navAnim, navController = navController) {
             LoginOrLogoutScreen(mainController)
         }
 
@@ -175,7 +181,7 @@ internal fun MainApp() {
  */
 private val navAnim = NavAnimation(
     enterTransition = { enterTransition },
-    exitTransition = { delayRemainTransition },
-    popEnterTransition = { EnterTransition.None },
-    popExitTransition = { exitTransition },
+    exitTransition = { exitTransition },
+    popEnterTransition = { popEnterTransition },
+    popExitTransition = { popExitTransition },
 )

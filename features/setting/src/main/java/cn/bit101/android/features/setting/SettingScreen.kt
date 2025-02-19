@@ -1,6 +1,5 @@
 package cn.bit101.android.features.setting
 
-import androidx.compose.animation.EnterTransition
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -10,9 +9,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.nav.NavDest
-import cn.bit101.android.features.common.nav.delayRemainTransition
 import cn.bit101.android.features.common.nav.enterTransition
 import cn.bit101.android.features.common.nav.exitTransition
+import cn.bit101.android.features.common.nav.popEnterTransition
+import cn.bit101.android.features.common.nav.popExitTransition
 import cn.bit101.android.features.setting.component.SettingPage
 import cn.bit101.android.features.setting.page.AboutPage
 import cn.bit101.android.features.setting.page.AccountPage
@@ -36,9 +36,9 @@ fun SettingScreen(
         navController = navController,
         startDestination = initialRoute.ifBlank { "index" },
         enterTransition = { enterTransition },
-        exitTransition = { delayRemainTransition },
-        popEnterTransition = { EnterTransition.None },
-        popExitTransition = { exitTransition },
+        exitTransition = { exitTransition },
+        popEnterTransition = { popEnterTransition },
+        popExitTransition = { popExitTransition },
     ) {
         composable("index") {
             SettingPage(
