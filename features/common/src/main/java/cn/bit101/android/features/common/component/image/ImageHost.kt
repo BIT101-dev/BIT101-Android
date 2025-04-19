@@ -57,7 +57,7 @@ class ImageHostState(
 fun ImageHost(
     modifier: Modifier = Modifier,
     state: ImageHostState,
-    onOpenUrl: (String) -> Unit,
+    onOpenUrl: (String, ()->Unit) -> Unit,
 ) {
     Box(modifier = modifier) {
         when(val data = state.data) {
