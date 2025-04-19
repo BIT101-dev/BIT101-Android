@@ -1,27 +1,12 @@
 package cn.bit101.android.features.common.component.image
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.ArrowBackIos
 import androidx.compose.material.icons.automirrored.rounded.ArrowForwardIos
 import androidx.compose.material.icons.rounded.Download
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.FilledTonalIconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedCard
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -31,7 +16,7 @@ import cn.bit101.android.features.common.helper.ImageData
 internal fun ImageController(
     modifier: Modifier,
     state: SeriesImagesShowState,
-    onOpenUrl: (String) -> Unit,
+    onOpenUrl: (String, ()->Unit) -> Unit,
 ) {
 
     val currentState = state.currentState
@@ -41,6 +26,8 @@ internal fun ImageController(
         is ImageData.RemoteUseUrl -> currentState.image.url
         else -> null
     }
+
+    var nowDownloadingImage by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Row(
@@ -110,9 +97,21 @@ internal fun ImageController(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f),
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 ),
-                onClick = { onOpenUrl(url) }
+                onClick = {
+                    nowDownloadingImage = true
+                    onOpenUrl(url) { nowDownloadingImage = false }
+                }
             ) {
-                Icon(imageVector = Icons.Rounded.Download, contentDescription = "download")
+                if(nowDownloadingImage)
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        strokeWidth = 2.5.dp,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .padding(7.5.dp)
+                    )
+                else
+                    Icon(imageVector = Icons.Rounded.Download, contentDescription = "download")
             }
         }
     }
@@ -123,13 +122,16 @@ internal fun ImageController(
 internal fun ImageController(
     modifier: Modifier,
     state: ImageShowState,
-    onOpenUrl: (String) -> Unit,
+    onOpenUrl: (String, ()->Unit) -> Unit,
 ) {
     val url = when(state.image) {
         is ImageData.Remote -> state.image.image.url
         is ImageData.RemoteUseUrl -> state.image.url
         else -> null
     }
+
+    var nowDownloadingImage by remember { mutableStateOf(false) }
+
     Box(modifier = Modifier.fillMaxSize()) {
 
         if (url != null) {
@@ -141,9 +143,21 @@ internal fun ImageController(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f),
                     contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
                 ),
-                onClick = { onOpenUrl(url) }
+                onClick = {
+                    nowDownloadingImage = true
+                    onOpenUrl(url) { nowDownloadingImage = false }
+                }
             ) {
-                Icon(imageVector = Icons.Rounded.Download, contentDescription = "download")
+                if(nowDownloadingImage)
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        strokeWidth = 2.5.dp,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .padding(7.5.dp)
+                    )
+                else
+                    Icon(imageVector = Icons.Rounded.Download, contentDescription = "download")
             }
         }
     }
