@@ -119,55 +119,5 @@ internal fun PostersTabPage(
                 )
             }
         }
-        if(postersState.refreshState is SimpleState.Success) {
-            val fabSize = 42.dp
-            Column(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(10.dp, 20.dp, 10.dp, 20.dp)
-            ) {
-                val show by remember { derivedStateOf { postersState.state.lazyListState.firstVisibleItemIndex > 1 } }
-                AnimatedVisibility(
-                    visible = show,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    FloatingActionButton(
-                        modifier = Modifier
-                            .size(fabSize),
-                        onClick = {
-                            scope.launch {
-                                postersState.state.lazyListState.animateScrollToItem(0, 0)
-                            }
-                        },
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        elevation = FloatingActionButtonDefaults.elevation(0.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.ArrowUpward,
-                            contentDescription = "回到顶部"
-                        )
-                    }
-                }
-
-                if(showPostButton) {
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    FloatingActionButton(
-                        modifier = Modifier.size(fabSize),
-                        onClick = onOpenPostOrEdit,
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
-                        contentColor = MaterialTheme.colorScheme.primary,
-                        elevation = FloatingActionButtonDefaults.elevation(0.dp),
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Add,
-                            contentDescription = "张贴Poster"
-                        )
-                    }
-                }
-            }
-        }
     }
 }

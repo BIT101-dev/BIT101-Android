@@ -1,34 +1,22 @@
 package cn.bit101.android.features.gallery
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.interaction.Interaction
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.surfaceColorAtElevation
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -115,18 +103,42 @@ fun GalleryScreen(
         mainController.navigate(NavDest.Post)
     }
 
+    val posterStates = listOf(
+        PostersState(
+            posters = followPosters,
+            state = followState,
+            refreshState = followRefreshState,
+            loadState = followLoadMoreState,
+            onRefresh = vm.followStateExport.refresh,
+        ),
+        PostersState(
+            posters = recommendPosters,
+            state = recommendState,
+            refreshState = recommendRefreshPostersState,
+            loadState = recommendLoadMorePostersState,
+            onRefresh = vm.recommendStateExport.refresh,
+        ),
+        PostersState(
+            posters = newestPosters,
+            state = newestState,
+            refreshState = newestRefreshPostersState,
+            loadState = newestLoadMorePostersState,
+            onRefresh = vm.newestStataExport.refresh,
+        ),
+        PostersState(
+            posters = hotPosters,
+            state = hotState,
+            refreshState = hotRefreshPostersState,
+            loadState = hotLoadMorePostersState,
+            onRefresh = vm.hotStateExport.refresh,
+        )
+    )
+
     val pages = listOf(
         TabPagerItem("关注") {
             PostersTabPage(
                 mainController = mainController,
-                postersState = PostersState(
-                    posters = followPosters,
-                    state = followState,
-                    refreshState = followRefreshState,
-                    loadState = followLoadMoreState,
-                    onRefresh = vm.followStateExport.refresh,
-                ),
-
+                postersState = posterStates[0],
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -134,14 +146,7 @@ fun GalleryScreen(
         TabPagerItem("推荐") {
             PostersTabPage(
                 mainController = mainController,
-                postersState = PostersState(
-                    posters = recommendPosters,
-                    state = recommendState,
-                    refreshState = recommendRefreshPostersState,
-                    loadState = recommendLoadMorePostersState,
-                    onRefresh = vm.recommendStateExport.refresh,
-                ),
-
+                postersState = posterStates[1],
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -149,14 +154,7 @@ fun GalleryScreen(
         TabPagerItem("最新") {
             PostersTabPage(
                 mainController = mainController,
-                postersState = PostersState(
-                    posters = newestPosters,
-                    state = newestState,
-                    refreshState = newestRefreshPostersState,
-                    loadState = newestLoadMorePostersState,
-                    onRefresh = vm.newestStataExport.refresh,
-                ),
-
+                postersState = posterStates[2],
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -164,14 +162,7 @@ fun GalleryScreen(
         TabPagerItem("最热") {
             PostersTabPage(
                 mainController = mainController,
-                postersState = PostersState(
-                    posters = hotPosters,
-                    state = hotState,
-                    refreshState = hotRefreshPostersState,
-                    loadState = hotLoadMorePostersState,
-                    onRefresh = vm.hotStateExport.refresh,
-                ),
-
+                postersState = posterStates[3],
                 onOpenPoster = onOpenPoster,
                 onOpenPostOrEdit = onPost,
             )
@@ -283,9 +274,59 @@ fun GalleryScreen(
                 ) {
                     HorizontalPager(
                         state = horizontalPagerState,
-                        userScrollEnabled = false,
                     ) { index ->
                         pages[index].content()
+                    }
+
+                    val postersState = posterStates[horizontalPagerState.currentPage]
+
+                    if(postersState.refreshState is SimpleState.Success) {
+                        val fabSize = 42.dp
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(10.dp, 20.dp, 10.dp, 20.dp)
+                        ) {
+                            val show by remember { derivedStateOf { posterStates[horizontalPagerState.currentPage].state.lazyListState.firstVisibleItemIndex > 1 } }
+                            AnimatedVisibility(
+                                visible = show,
+                                enter = fadeIn(),
+                                exit = fadeOut()
+                            ) {
+                                FloatingActionButton(
+                                    modifier = Modifier
+                                        .size(fabSize),
+                                    onClick = {
+                                        scope.launch {
+                                            postersState.state.lazyListState.animateScrollToItem(0, 0)
+                                        }
+                                    },
+                                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                                    contentColor = MaterialTheme.colorScheme.primary,
+                                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.ArrowUpward,
+                                        contentDescription = "回到顶部"
+                                    )
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+
+                            FloatingActionButton(
+                                modifier = Modifier.size(fabSize),
+                                onClick = onPost,
+                                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                                contentColor = MaterialTheme.colorScheme.primary,
+                                elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Add,
+                                    contentDescription = "张贴Poster"
+                                )
+                            }
+                        }
                     }
                 }
             }
