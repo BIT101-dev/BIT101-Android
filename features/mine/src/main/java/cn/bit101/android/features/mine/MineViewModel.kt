@@ -3,6 +3,7 @@ package cn.bit101.android.features.mine
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cn.bit101.android.config.setting.base.GallerySettings
 import cn.bit101.android.data.repo.base.MessageRepo
 import cn.bit101.android.data.repo.base.PosterRepo
 import cn.bit101.android.data.repo.base.UserRepo
@@ -19,25 +20,26 @@ import javax.inject.Inject
 internal class MineViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val posterRepo: PosterRepo,
-    private val messageRepo: MessageRepo
+    private val messageRepo: MessageRepo,
+    private val gallerySettings: GallerySettings,
 ) : ViewModel() {
     val userInfoStateLiveData = MutableLiveData<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
 
     val messageCountStateLiveData = MutableLiveData<SimpleDataState<Int>?>(null)
 
-    private val _followingState = object : RefreshAndLoadMoreStatesCombinedZero<User>(viewModelScope) {
+    private val _followingState = object : RefreshAndLoadMoreStatesCombinedZero<User>(viewModelScope, gallerySettings) {
         override fun refresh() = refresh { userRepo.getFollowings() }
         override fun loadMore() = loadMore { userRepo.getFollowings(it.toInt()) }
     }
     val followingStateExports = _followingState.export()
 
-    private val _followerState = object : RefreshAndLoadMoreStatesCombinedZero<User>(viewModelScope) {
+    private val _followerState = object : RefreshAndLoadMoreStatesCombinedZero<User>(viewModelScope, gallerySettings) {
         override fun refresh() = refresh { userRepo.getFollowers() }
         override fun loadMore() = loadMore { userRepo.getFollowers(it.toInt()) }
     }
     val followerStateExports = _followerState.export()
 
-    private val _postersState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+    private val _postersState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
         override fun refresh() = refresh { posterRepo.getPostersOfUserByUid(0) }
         override fun loadMore() = loadMore { posterRepo.getPostersOfUserByUid(0, it) }
     }

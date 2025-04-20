@@ -14,6 +14,7 @@ import cn.bit101.android.features.common.nav.delayRemainTransition
 import cn.bit101.android.features.common.nav.enterTransition
 import cn.bit101.android.features.common.nav.exitTransition
 import cn.bit101.android.features.setting.component.SettingPage
+import cn.bit101.android.features.setting.page.*
 import cn.bit101.android.features.setting.page.AboutPage
 import cn.bit101.android.features.setting.page.AccountPage
 import cn.bit101.android.features.setting.page.CalendarSettingPage
@@ -93,6 +94,16 @@ fun SettingScreen(
                 navController = navController,
             ) {
                 CalendarSettingPage(onSnackBar = onSnackBar)
+            }
+        }
+
+        composable("gallery") {
+            SettingPage(
+                mainController = mainController,
+                title = "话廊设置",
+                navController = navController,
+            ) {
+                GallerySettingPage()
             }
         }
 

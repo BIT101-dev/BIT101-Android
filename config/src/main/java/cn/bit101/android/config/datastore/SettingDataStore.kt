@@ -109,6 +109,14 @@ internal class SettingDataStore @Inject constructor(
     private val DDL_SCHEDULE_AFTER_DAY = longPreferencesKey("ddl_schedule_after_day")
     val ddlScheduleAfterDay = PreferencesDataStoreItem(DDL_SCHEDULE_AFTER_DAY, 3, preferences.SETTING_DATASTORE)
 
+    // 话廊设置
+    // 是否隐藏机器人 Poster
+    private val GALLERY_HIDE_BOT_POSTER = booleanPreferencesKey("gallery_hide_bot_poster")
+    val galleryHideBotPoster = PreferencesDataStoreItem(GALLERY_HIDE_BOT_POSTER, false, preferences.SETTING_DATASTORE)
+
+    // 是否包括搜索栏中的机器人 Poster
+    private val GALLERY_HIDE_BOT_POSTER_IN_SEARCH = booleanPreferencesKey("gallery_hide_bot_poster_in_search")
+    val galleryHideBotPosterInSearch = PreferencesDataStoreItem(GALLERY_HIDE_BOT_POSTER_IN_SEARCH, false, preferences.SETTING_DATASTORE)
 
     // 主页设置
     private val HOME_PAGE = stringPreferencesKey("home_page")
