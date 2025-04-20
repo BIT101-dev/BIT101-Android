@@ -1,11 +1,6 @@
 package cn.bit101.android.config.setting
 
-import cn.bit101.android.config.setting.base.AboutSettings
-import cn.bit101.android.config.setting.base.CourseScheduleSettings
-import cn.bit101.android.config.setting.base.DDLSettings
-import cn.bit101.android.config.setting.base.MapSettings
-import cn.bit101.android.config.setting.base.PageSettings
-import cn.bit101.android.config.setting.base.ThemeSettings
+import cn.bit101.android.config.setting.base.*
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -51,4 +46,10 @@ internal abstract class SettingModule {
     abstract fun bindMapSettings(
         mapSettings: DefaultMapSettings
     ): MapSettings
+
+    @Binds
+    @Singleton
+    abstract fun bindGallerySettings(
+        gallerySettings: DefaultGallerySettings
+    ): GallerySettings
 }

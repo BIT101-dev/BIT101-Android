@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.EventNote
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.ColorLens
@@ -56,6 +57,12 @@ internal fun SettingIndexPage(
             subTitle = "日程数据及显示方式",
             icon = Icons.AutoMirrored.Outlined.EventNote,
             onClick = { navController.navigate("ddl") },
+        ),
+        SettingItemData.IndexCard(
+            title = "话廊设置",
+            subTitle = "设置是否显示某些 Poster",
+            icon = Icons.AutoMirrored.Outlined.Chat,
+            onClick = { navController.navigate("gallery") },
         ),
         SettingItemData.IndexCard(
             title = "关于",

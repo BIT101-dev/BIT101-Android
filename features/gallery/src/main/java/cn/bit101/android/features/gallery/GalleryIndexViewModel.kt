@@ -3,6 +3,7 @@ package cn.bit101.android.features.gallery
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cn.bit101.android.config.setting.base.GallerySettings
 import cn.bit101.android.data.repo.base.PosterRepo
 import cn.bit101.android.features.common.helper.RefreshAndLoadMoreStatesCombinedOne
 import cn.bit101.android.features.common.helper.RefreshAndLoadMoreStatesCombinedZero
@@ -10,6 +11,7 @@ import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersOrder
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.zip
 import java.io.Serializable
 import javax.inject.Inject
 
@@ -26,37 +28,41 @@ internal data class SearchData(
 
 @HiltViewModel
 internal class GalleryIndexViewModel @Inject constructor(
-    private val posterRepo: PosterRepo
+    private val posterRepo: PosterRepo,
+    private val gallerySettings: GallerySettings,
 ) : ViewModel() {
-
-    private val _recommendState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+    private val _recommendState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
         override fun refresh() = refresh { posterRepo.getRecommendPosters() }
         override fun loadMore() = loadMore { page -> posterRepo.getRecommendPosters(page) }
     }
     val recommendStateExport = _recommendState.export()
 
-    private val _hotState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+    private val _hotState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
         override fun refresh() = refresh { posterRepo.getHotPosters() }
         override fun loadMore() = loadMore { page -> posterRepo.getHotPosters(page) }
     }
     val hotStateExport = _hotState.export()
 
-    private val _followState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+    private val _followState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
         override fun refresh() = refresh { posterRepo.getFollowPosters() }
         override fun loadMore() = loadMore { page -> posterRepo.getFollowPosters(page) }
     }
     val followStateExport = _followState.export()
 
-    private val _newestStata = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+    private val _newestStata = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
         override fun refresh() = refresh { posterRepo.getNewestPosters() }
         override fun loadMore() = loadMore { page -> posterRepo.getNewestPosters(page) }
     }
     val newestStataExport = _newestStata.export()
 
-    private val _searchState = object : RefreshAndLoadMoreStatesCombinedOne<SearchData, GetPostersDataModel.ResponseItem>(viewModelScope) {
+    private val _searchState = object : RefreshAndLoadMoreStatesCombinedOne<SearchData, GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
         private var searchData = SearchData.default
 
-        override fun refresh(data: SearchData) = refresh {
+        private val legacyModeFlow = gallerySettings.hideBotPoster.flow.zip(gallerySettings.hideBotPosterInSearch.flow) {
+            a, b -> a && b
+        }
+
+        override fun refresh(data: SearchData) = refresh(legacyModeFlow) {
             searchData = data
             posterRepo.getSearchPosters(
                 search = searchData.search,
@@ -66,7 +72,7 @@ internal class GalleryIndexViewModel @Inject constructor(
             ).toMutableList()
         }
 
-        override fun loadMore(data: SearchData) = loadMore { page ->
+        override fun loadMore(data: SearchData) = loadMore(legacyModeFlow) { page ->
             posterRepo.getSearchPosters(
                 search = searchData.search,
                 order = searchData.order,
@@ -76,5 +82,4 @@ internal class GalleryIndexViewModel @Inject constructor(
         }
     }
     val searchStateExports = _searchState.export()
-
 }
