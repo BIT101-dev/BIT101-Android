@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material.icons.rounded.Search
@@ -65,6 +66,8 @@ fun GalleryScreen(
     val searchPosters by vm.searchStateExports.dataFlow.collectAsState()
 
     var searchData by rememberSaveable { mutableStateOf(SearchData.default) }
+
+    val enableHorizontalScroll by vm.enableHorizontalScrollFlow.collectAsState(initial = false)
 
     val followState = rememberLoadableLazyColumnState(
         refreshing = followRefreshState == SimpleState.Loading,
@@ -274,19 +277,22 @@ fun GalleryScreen(
                 ) {
                     HorizontalPager(
                         state = horizontalPagerState,
+                        userScrollEnabled = enableHorizontalScroll,
                     ) { index ->
                         pages[index].content()
                     }
 
                     val postersState = posterStates[horizontalPagerState.currentPage]
 
-                    if(postersState.refreshState is SimpleState.Success) {
+                    // 右下角按钮组
+                    Column(
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(10.dp, 20.dp, 10.dp, 20.dp)
+                    ) {
                         val fabSize = 42.dp
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.BottomEnd)
-                                .padding(10.dp, 20.dp, 10.dp, 20.dp)
-                        ) {
+
+                        if (postersState.refreshState is SimpleState.Success) {
                             val show by remember { derivedStateOf { posterStates[horizontalPagerState.currentPage].state.lazyListState.firstVisibleItemIndex > 1 } }
                             AnimatedVisibility(
                                 visible = show,
@@ -326,6 +332,23 @@ fun GalleryScreen(
                                     contentDescription = "张贴Poster"
                                 )
                             }
+
+                            Spacer(modifier = Modifier.height(10.dp))
+                        }
+
+                        // 无论有没有加载出来都可以把设置按钮显示出来
+                        FloatingActionButton(
+                            modifier = Modifier
+                                .size(fabSize),
+                            onClick = { mainController.navigate(NavDest.Setting("gallery")) },
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                            contentColor = MaterialTheme.colorScheme.primary,
+                            elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = "settings",
+                            )
                         }
                     }
                 }

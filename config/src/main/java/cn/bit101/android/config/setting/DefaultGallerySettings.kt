@@ -11,4 +11,6 @@ internal class DefaultGallerySettings @Inject constructor(
 ) : GallerySettings {
     override val hideBotPoster: SettingItem<Boolean> = settingDataStore.galleryHideBotPoster.toSettingItem()
     override val hideBotPosterInSearch: SettingItem<Boolean> = settingDataStore.galleryHideBotPosterInSearch.toSettingItem()
+
+    override val allowHorizontalScroll: SettingItem<Boolean> = settingDataStore.galleryAllowHorizonalScroll.toSettingItem()
 }

@@ -1,6 +1,5 @@
 package cn.bit101.android.config.datastore
 
-import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
@@ -109,6 +108,19 @@ internal class SettingDataStore @Inject constructor(
     private val DDL_SCHEDULE_AFTER_DAY = longPreferencesKey("ddl_schedule_after_day")
     val ddlScheduleAfterDay = PreferencesDataStoreItem(DDL_SCHEDULE_AFTER_DAY, 3, preferences.SETTING_DATASTORE)
 
+    // 空教室检索设置
+    // 当前校区名
+    private val FREE_CLASSROOM_CURRENT_CAMPUS = stringPreferencesKey("free_classroom_campus")
+    val freeClassroomCurrentCampus = PreferencesDataStoreItem(FREE_CLASSROOM_CURRENT_CAMPUS, "", preferences.SETTING_DATASTORE)
+
+    // 是否隐藏不空闲的教室
+    private val FREE_CLASSROOM_HIDE_BUSY_CLASSROOM = booleanPreferencesKey("free_classroom_hide_busy_classroom")
+    val freeClassroomHideBusyClassroom = PreferencesDataStoreItem(FREE_CLASSROOM_HIDE_BUSY_CLASSROOM, true, preferences.SETTING_DATASTORE)
+
+    // 最小空闲阈值
+    private val FREE_CLASSROOM_FREE_MINUTES_THRESHOLD = longPreferencesKey("free_classroom_free_minutes_threshold")
+    val freeClassroomFreeMinutesThreshold = PreferencesDataStoreItem(FREE_CLASSROOM_FREE_MINUTES_THRESHOLD, 5, preferences.SETTING_DATASTORE)
+
     // 话廊设置
     // 是否隐藏机器人 Poster
     private val GALLERY_HIDE_BOT_POSTER = booleanPreferencesKey("gallery_hide_bot_poster")
@@ -117,6 +129,10 @@ internal class SettingDataStore @Inject constructor(
     // 是否包括搜索栏中的机器人 Poster
     private val GALLERY_HIDE_BOT_POSTER_IN_SEARCH = booleanPreferencesKey("gallery_hide_bot_poster_in_search")
     val galleryHideBotPosterInSearch = PreferencesDataStoreItem(GALLERY_HIDE_BOT_POSTER_IN_SEARCH, false, preferences.SETTING_DATASTORE)
+
+    // 是否允许横向滚动
+    private val GALLERY_ALLOW_HORIZONAL_SCROLL = booleanPreferencesKey("gallery_allow_horizonal_scroll")
+    val galleryAllowHorizonalScroll = PreferencesDataStoreItem(GALLERY_ALLOW_HORIZONAL_SCROLL, false, preferences.SETTING_DATASTORE)
 
     // 主页设置
     private val HOME_PAGE = stringPreferencesKey("home_page")

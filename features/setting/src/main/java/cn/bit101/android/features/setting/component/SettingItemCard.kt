@@ -235,7 +235,7 @@ internal fun SettingItem(data: SettingItemData) {
             onClick = { data.onClick(!data.checked) },
             enabled = data.enable,
             suffix = {
-                Switch(checked = data.checked, onCheckedChange = data.onClick)
+                Switch(checked = data.checked, onCheckedChange = data.onClick, enabled = data.enable)
             }
         )
     }

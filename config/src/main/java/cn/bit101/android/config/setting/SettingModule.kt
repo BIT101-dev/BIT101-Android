@@ -52,4 +52,10 @@ internal abstract class SettingModule {
     abstract fun bindGallerySettings(
         gallerySettings: DefaultGallerySettings
     ): GallerySettings
+
+    @Binds
+    @Singleton
+    abstract fun bindFreeClassroomSettings(
+        freeClassroomSettings: DefaultFreeClassroomSettings
+    ): FreeClassroomSettings
 }

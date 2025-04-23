@@ -126,5 +126,15 @@ fun SettingScreen(
                 DDLSettingPage(onSnackBar = onSnackBar)
             }
         }
+
+        composable("freeClassroom") {
+            SettingPage(
+                mainController = mainController,
+                title = "空教室查询设置",
+                navController = navController,
+            ) {
+                FreeClassroomSettingPage(onSnackBar = onSnackBar)
+            }
+        }
     }
 }
