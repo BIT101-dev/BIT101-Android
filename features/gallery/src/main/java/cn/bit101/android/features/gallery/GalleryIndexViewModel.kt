@@ -1,6 +1,5 @@
 package cn.bit101.android.features.gallery
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.GallerySettings
@@ -82,4 +81,6 @@ internal class GalleryIndexViewModel @Inject constructor(
         }
     }
     val searchStateExports = _searchState.export()
+
+    val enableHorizontalScrollFlow = gallerySettings.allowHorizontalScroll.flow
 }

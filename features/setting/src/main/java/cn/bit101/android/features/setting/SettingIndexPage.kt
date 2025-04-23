@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Chat
 import androidx.compose.material.icons.automirrored.outlined.EventNote
+import androidx.compose.material.icons.automirrored.outlined.NotListedLocation
 import androidx.compose.material.icons.outlined.AccountCircle
 import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.Dashboard
@@ -60,9 +61,15 @@ internal fun SettingIndexPage(
         ),
         SettingItemData.IndexCard(
             title = "话廊设置",
-            subTitle = "设置是否显示某些 Poster",
+            subTitle = "话廊数据及显示方式",
             icon = Icons.AutoMirrored.Outlined.Chat,
             onClick = { navController.navigate("gallery") },
+        ),
+        SettingItemData.IndexCard(
+            title = "空教室查询设置",
+            subTitle = "所在校区及显示方式",
+            icon = Icons.AutoMirrored.Outlined.NotListedLocation,
+            onClick = { navController.navigate("freeClassroom") },
         ),
         SettingItemData.IndexCard(
             title = "关于",

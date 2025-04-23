@@ -1,15 +1,6 @@
 package cn.bit101.android.data.repo
 
-import cn.bit101.android.data.repo.base.CoursesRepo
-import cn.bit101.android.data.repo.base.DDLScheduleRepo
-import cn.bit101.android.data.repo.base.LoginRepo
-import cn.bit101.android.data.repo.base.ManageRepo
-import cn.bit101.android.data.repo.base.MessageRepo
-import cn.bit101.android.data.repo.base.PosterRepo
-import cn.bit101.android.data.repo.base.ReactionRepo
-import cn.bit101.android.data.repo.base.UploadRepo
-import cn.bit101.android.data.repo.base.UserRepo
-import cn.bit101.android.data.repo.base.VersionRepo
+import cn.bit101.android.data.repo.base.*
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -78,4 +69,10 @@ internal abstract class RepoModule {
     abstract fun bindLoginRepo(
         loginRepo: DefaultLoginRepo
     ): LoginRepo
+
+    @Binds
+    @Singleton
+    abstract fun bindFreeClassroomRepo(
+        freeClassroomRepo: DefaultFreeClassroomRepo
+    ): FreeClassroomRepo
 }

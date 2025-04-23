@@ -1,5 +1,7 @@
 package cn.bit101.api.model.http.school
 
+import cn.bit101.api.model.common.BuildingInfo
+import cn.bit101.api.model.common.ClassroomInfo
 import cn.bit101.api.model.common.CourseForSchedule
 import cn.bit101.api.model.common.TermForSchedule
 import com.google.gson.annotations.SerializedName
@@ -63,5 +65,33 @@ class PostGetScheduleDataModel private constructor() {
 
     data class Response(
         val datas: Datas
+    )
+}
+
+class GetBuildingTypeDataModel private constructor() {
+    data class CXJXL(
+        val rows: List<BuildingInfo>,
+    )
+
+    data class Datas(
+        val cxjxl: CXJXL
+    )
+
+    data class Response(
+        val datas: Datas,
+    )
+}
+
+class GetClassroomDataModel private constructor() {
+    data class CXKXJASQK(
+        val rows: List<ClassroomInfo>,
+    )
+
+    data class Datas(
+        val cxkxjasqk: CXKXJASQK
+    )
+
+    data class Response(
+        val datas: Datas,
     )
 }

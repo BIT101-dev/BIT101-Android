@@ -26,13 +26,27 @@ private fun GallerySettingPageContent(
             subTitle = "未开启隐藏机器人 Poster 时不生效",
             onClick = { onSettingChange(settingData.copy(hideBotPosterInSearch = it)) },
             checked = settingData.hideBotPosterInSearch,
+            enable = settingData.hideBotPoster,
+        ),
+    )
+
+    val viewSettings = listOf(
+        SettingItemData.Switch(
+            title = "允许横向滑动",
+            subTitle = "可以横向滑动来切换选项卡, 可能导致误触",
+            onClick = { onSettingChange(settingData.copy(allowHorizontalScroll = it)) },
+            checked = settingData.allowHorizontalScroll,
         ),
     )
 
     SettingsColumn {
         SettingsGroup(
-            title = "屏蔽设定",
-            items = if(settingData.hideBotPoster) hideSettings.subList(0,2) else hideSettings.subList(0,1)
+            title = "屏蔽设置",
+            items = hideSettings
+        )
+        SettingsGroup(
+            title = "浏览设置",
+            items = viewSettings
         )
     }
 }
@@ -45,5 +59,6 @@ internal fun GallerySettingPage() {
 
     GallerySettingPageContent(
         settingData = settingData,
-        onSettingChange = vm::setSettingData)
+        onSettingChange = vm::setSettingData
+    )
 }

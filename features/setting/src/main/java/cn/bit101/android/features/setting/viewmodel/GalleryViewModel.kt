@@ -10,11 +10,13 @@ import javax.inject.Inject
 internal data class GallerySettingData(
     val hideBotPoster: Boolean,
     val hideBotPosterInSearch: Boolean,
+    val allowHorizontalScroll: Boolean,
 ) {
     companion object {
         val default = GallerySettingData(
             hideBotPoster = false,
-            hideBotPosterInSearch = false
+            hideBotPosterInSearch = false,
+            allowHorizontalScroll = false
         )
     }
 }
@@ -25,16 +27,19 @@ internal class GalleryViewModel @Inject constructor(
 ) : ViewModel() {
     val settingDataFlow = combine(
         gallerySettings.hideBotPoster.flow,
-        gallerySettings.hideBotPosterInSearch.flow
+        gallerySettings.hideBotPosterInSearch.flow,
+        gallerySettings.allowHorizontalScroll.flow,
     ) { settings ->
         GallerySettingData(
             hideBotPoster = settings[0],
             hideBotPosterInSearch = settings[1],
+            allowHorizontalScroll = settings[2],
         )
     }
 
     fun setSettingData(settingData: GallerySettingData) = withScope {
         gallerySettings.hideBotPoster.set(settingData.hideBotPoster)
         gallerySettings.hideBotPosterInSearch.set(settingData.hideBotPosterInSearch)
+        gallerySettings.allowHorizontalScroll.set(settingData.allowHorizontalScroll)
     }
 }

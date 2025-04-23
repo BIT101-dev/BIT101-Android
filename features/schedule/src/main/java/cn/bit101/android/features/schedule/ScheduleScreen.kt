@@ -6,6 +6,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import cn.bit101.android.features.common.MainController
+import cn.bit101.android.features.schedule.classroom.FreeClassroomSearch
 import cn.bit101.android.features.schedule.component.TabPager
 import cn.bit101.android.features.schedule.component.TabPagerItem
 import cn.bit101.android.features.schedule.course.CourseSchedule
@@ -17,6 +18,8 @@ fun ScheduleScreen(mainController: MainController) {
         CourseSchedule(mainController, it)
     }, TabPagerItem("DDL") {
         DDLSchedule(mainController, it)
+    }, TabPagerItem("空教室") {
+        FreeClassroomSearch(mainController, it)
     })
 
     Scaffold {
