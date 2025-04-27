@@ -57,14 +57,14 @@ class ImageHostState(
 fun ImageHost(
     modifier: Modifier = Modifier,
     state: ImageHostState,
-    onOpenUrl: (String, ()->Unit) -> Unit,
+    onDownloadImage: (String, ()->Unit) -> Unit,
 ) {
     Box(modifier = modifier) {
         when(val data = state.data) {
             is ImageHostData.Single -> {
                 ImageScreen(
                     image = data.image,
-                    onOpenUrl = onOpenUrl,
+                    onDownloadImage = onDownloadImage,
                     onDismiss = state::dismiss
                 )
             }
@@ -72,7 +72,7 @@ fun ImageHost(
                 ImageScreen(
                     images = data.images,
                     initialIndex = data.index,
-                    onOpenUrl = onOpenUrl,
+                    onDownloadImage = onDownloadImage,
                     onDismiss = state::dismiss
                 )
             }

@@ -3,7 +3,6 @@ package cn.bit101.android.data.repo
 import cn.bit101.android.config.setting.base.GallerySettings
 import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.android.data.repo.base.PosterRepo
-import cn.bit101.api.model.common.CommentsOrder
 import cn.bit101.api.model.common.PostersFilter
 import cn.bit101.api.model.common.PostersMode
 import cn.bit101.api.model.common.PostersOrder
@@ -15,7 +14,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 internal class DefaultPosterRepo @Inject constructor(
-    private val apiManager: APIManager,
+    apiManager: APIManager,
     private val gallerySettings: GallerySettings
 ) : PosterRepo {
 
@@ -26,8 +25,8 @@ internal class DefaultPosterRepo @Inject constructor(
                            page: Long? = null,
                            search: String? = null,
                            uid: Int? = null,
-                           noBot: Boolean = false): GetPostersDataModel.Response
-    {
+                           noBot: Boolean = false
+    ): GetPostersDataModel.Response {
         val datas = api.posters.getPosters(mode,order,page,search,uid).body() ?: throw Exception("get posters error")
 
         if(noBot)

@@ -287,7 +287,7 @@ private fun BasicImageScreen(
 internal fun ImageScreen(
     image: ImageData,
 
-    onOpenUrl: (String, ()->Unit) -> Unit,
+    onDownloadImage: (String, ()->Unit) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val state = rememberImageShowState(
@@ -304,7 +304,7 @@ internal fun ImageScreen(
                     .align(Alignment.BottomCenter)
                     .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                 state = state,
-                onOpenUrl = onOpenUrl
+                onOpenUrl = onDownloadImage
             )
         },
         imageContent = {
@@ -325,7 +325,7 @@ internal fun ImageScreen(
     images: List<ImageData>,
     initialIndex: Int,
 
-    onOpenUrl: (String, ()->Unit) -> Unit,
+    onDownloadImage: (String, ()->Unit) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val state = rememberSeriesImagesShowState(
@@ -344,7 +344,7 @@ internal fun ImageScreen(
                     .align(Alignment.BottomCenter)
                     .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)),
                 state = state,
-                onOpenUrl = onOpenUrl,
+                onOpenUrl = onDownloadImage,
             )
         },
         imageContent = {

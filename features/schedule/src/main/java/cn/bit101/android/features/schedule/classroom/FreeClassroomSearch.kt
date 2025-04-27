@@ -131,7 +131,15 @@ internal fun ClassroomList(
                         MaterialTheme.colorScheme.secondaryContainer,
                         0.5f
                     ),
-                contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                contentColor =
+                if(isFreeNow(item))
+                    MaterialTheme.colorScheme.onSecondaryContainer
+                else
+                    mixColor(
+                        MaterialTheme.colorScheme.onErrorContainer,
+                        MaterialTheme.colorScheme.onSecondaryContainer,
+                        0.5f
+                    ),
                 shape = MaterialTheme.shapes.medium
             ) {
                 Row(
@@ -170,7 +178,7 @@ internal fun ClassroomList(
                                 else -> {
                                     if(restSeconds > 0)
                                         "还会空闲 ${formatSecondToString(restSeconds)}"
-                                    else if(item.nextFreeTime!=null)
+                                    else if(item.nextFreeTime != null)
                                         "${
                                             formatSecondToString(
                                                 item.nextFreeTime.toSecondOfDay() - nowTime.toSecondOfDay()
@@ -203,14 +211,26 @@ internal fun BuildingItem(
     expanded: Boolean,
     onSwitchActive: () -> Unit,
 ) {
+    // 这里如果用 PrimaryContainer 系颜色的话, 就会和右下角的按钮完美地糊在一块, 用 SecondaryContainer 系的又会和教室完美地糊在一块
+    // 于是调了半天调出了个勉强不会糊在一块的颜色
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp, 5.dp)
             .clip(MaterialTheme.shapes.medium)
             .clickable { onSwitchActive() },
-        color = MaterialTheme.colorScheme.primaryContainer,
-        contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        color =
+        mixColor(
+            MaterialTheme.colorScheme.surface,
+            MaterialTheme.colorScheme.primaryContainer,
+            0.25f
+        ),
+        contentColor =
+        mixColor(
+            MaterialTheme.colorScheme.onSurface,
+            MaterialTheme.colorScheme.onPrimaryContainer,
+            0.25f
+        ),
         shape = MaterialTheme.shapes.medium
     ) {
         val arrowRotateDegrees: Float by animateFloatAsState(if (expanded) 90f else 0f)
@@ -256,22 +276,24 @@ internal fun BuildingItem(
 internal fun LoadingTip(
     tipText: String,
 ) {
-    Text(
-        text = tipText,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(10.dp, 5.dp)
-            .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.secondaryContainer)
-            .padding(10.dp, 5.dp),
-        textAlign = TextAlign.Center,
-        color = MaterialTheme.colorScheme.onSecondaryContainer,
-    )
-    LinearProgressIndicator(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(20.dp, 5.dp)
-    )
+    Box{
+        Text(
+            text = tipText,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(10.dp, 5.dp)
+                .clip(MaterialTheme.shapes.medium)
+                .background(MaterialTheme.colorScheme.secondaryContainer)
+                .padding(10.dp, 5.dp),
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+        )
+        LinearProgressIndicator(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp, 5.dp),
+        )
+    }
 }
 
 @Composable
@@ -349,7 +371,9 @@ internal fun FreeClassroomSearch(
                 item { LoadingTip("正在拉取教学楼列表...") }
             } else {
                 val validBuildings = allBuildings.filter {
-                    currentCampus == null || currentCampus == "" || it.campusName == currentCampus
+                    // currentCampus 会时不时为 null (实则为 initial), 导致列表滚动位置出现奇怪的偏移
+                    // 所以这里用 lastCampus. 实际上 lastCampus 几乎总等价于当前校区 (变量名起得不好导致的)
+                    lastCampus.orEmpty() == "" || it.campusName == lastCampus
                 }
 
                 itemsIndexed(validBuildings) { index, item ->
@@ -367,11 +391,6 @@ internal fun FreeClassroomSearch(
                         }
                     )
 
-                    val currentClassrooms =
-                        currentClassroomData[item.buildingIndex]
-                            .orEmpty()
-                            .filter { !hideBusyClassroom.value || vm.isFreeNow(it, nowTime, freeMinutesThreshold ?: 0) }
-
                     AnimatedVisibility(
                         visible = nowExpanded,
                         enter = fadeIn()
@@ -382,28 +401,42 @@ internal fun FreeClassroomSearch(
                         else
                             fadeOut() + shrinkVertically()
                     ) {
-                        if(getClassroomStatusMap[item.buildingIndex] is SimpleState.Loading) {
-                            LoadingTip("正在获取教室列表...")
-                        } else {
-                            if(currentClassrooms.isEmpty()) {
-                                Text(
-                                    text = "未找到教室 :(",
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(10.dp, 5.dp)
-                                        .clip(MaterialTheme.shapes.medium)
-                                        .background(MaterialTheme.colorScheme.secondaryContainer)
-                                        .padding(10.dp, 5.dp),
-                                    textAlign = TextAlign.Center,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(start = 25.dp)
+                        ) {
+                            if (getClassroomStatusMap[item.buildingIndex] is SimpleState.Loading) {
+                                LoadingTip("正在获取教室列表...")
                             } else {
-                                Column(
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .padding(start = 25.dp)
-                                )
-                                {
+                                if (currentClassroomData.containsKey(item.buildingIndex)) {
+                                    vm.refreshClassroomInfoIfInvalid(item.buildingIndex)
+                                }
+
+                                val currentClassrooms =
+                                    currentClassroomData[item.buildingIndex]
+                                        .orEmpty()
+                                        .filter {
+                                            !hideBusyClassroom.value || vm.isFreeNow(
+                                                it,
+                                                nowTime,
+                                                freeMinutesThreshold ?: 0
+                                            )
+                                        }
+
+                                if (currentClassrooms.isEmpty()) {
+                                    Text(
+                                        text = "未找到教室 :(",
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(10.dp, 5.dp)
+                                            .clip(MaterialTheme.shapes.medium)
+                                            .background(MaterialTheme.colorScheme.secondaryContainer)
+                                            .padding(10.dp, 5.dp),
+                                        textAlign = TextAlign.Center,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    )
+                                } else {
                                     ClassroomList(
                                         currentClassrooms = currentClassrooms,
                                         nowTime = nowTime,
@@ -412,6 +445,7 @@ internal fun FreeClassroomSearch(
                                 }
                             }
                         }
+
                     }
                 }
             }
