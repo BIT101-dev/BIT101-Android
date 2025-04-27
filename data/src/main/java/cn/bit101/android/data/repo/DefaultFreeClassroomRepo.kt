@@ -2,7 +2,6 @@ package cn.bit101.android.data.repo
 
 import cn.bit101.android.config.setting.base.CourseScheduleSettings
 import cn.bit101.android.config.setting.base.FreeClassroomSettings
-import cn.bit101.android.data.database.BIT101Database
 import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.android.data.repo.base.FreeClassroomRepo
 import cn.bit101.api.model.common.BuildingInfo
@@ -12,8 +11,7 @@ import java.io.IOException
 import javax.inject.Inject
 
 internal class DefaultFreeClassroomRepo @Inject constructor(
-    private val database: BIT101Database,
-    private val apiManager: APIManager,
+    apiManager: APIManager,
     private val freeClassroomSettings: FreeClassroomSettings,
     private val scheduleSettings: CourseScheduleSettings
 ): FreeClassroomRepo{

@@ -30,48 +30,75 @@ internal class GalleryIndexViewModel @Inject constructor(
     private val posterRepo: PosterRepo,
     private val gallerySettings: GallerySettings,
 ) : ViewModel() {
-    private val _recommendState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
-        override fun refresh() = refresh { posterRepo.getRecommendPosters() }
-        override fun loadMore() = loadMore { page -> posterRepo.getRecommendPosters(page) }
+    private val newLoadMode = gallerySettings.hideBotPoster.flow
+
+    private val _recommendState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh() = refresh(
+            newLoadMode,
+            refresh = { posterRepo.getRecommendPosters() },
+            loadMore = { page -> posterRepo.getRecommendPosters(page) }
+        )
+        override fun loadMore() = loadMore(newLoadMode) { page -> posterRepo.getRecommendPosters(page) }
     }
     val recommendStateExport = _recommendState.export()
 
-    private val _hotState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
-        override fun refresh() = refresh { posterRepo.getHotPosters() }
-        override fun loadMore() = loadMore { page -> posterRepo.getHotPosters(page) }
+    private val _hotState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh() = refresh(
+            newLoadMode,
+            refresh = { posterRepo.getHotPosters() },
+            loadMore = { page -> posterRepo.getHotPosters(page) }
+        )
+        override fun loadMore() = loadMore(newLoadMode) { page -> posterRepo.getHotPosters(page) }
     }
     val hotStateExport = _hotState.export()
 
-    private val _followState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
-        override fun refresh() = refresh { posterRepo.getFollowPosters() }
-        override fun loadMore() = loadMore { page -> posterRepo.getFollowPosters(page) }
+    private val _followState = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh() = refresh(
+            newLoadMode,
+            refresh = { posterRepo.getFollowPosters() },
+            loadMore = { page -> posterRepo.getFollowPosters(page) }
+        )
+        override fun loadMore() = loadMore(newLoadMode) { page -> posterRepo.getFollowPosters(page) }
     }
     val followStateExport = _followState.export()
 
-    private val _newestStata = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
-        override fun refresh() = refresh { posterRepo.getNewestPosters() }
-        override fun loadMore() = loadMore { page -> posterRepo.getNewestPosters(page) }
+    private val _newestStata = object : RefreshAndLoadMoreStatesCombinedZero<GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh() = refresh(
+            newLoadMode,
+            refresh = { posterRepo.getNewestPosters() },
+            loadMore = { page -> posterRepo.getNewestPosters(page) }
+        )
+        override fun loadMore() = loadMore(newLoadMode) { page -> posterRepo.getNewestPosters(page) }
     }
     val newestStataExport = _newestStata.export()
 
-    private val _searchState = object : RefreshAndLoadMoreStatesCombinedOne<SearchData, GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
+    private val _searchState = object : RefreshAndLoadMoreStatesCombinedOne<SearchData, GetPostersDataModel.ResponseItem>(viewModelScope) {
         private var searchData = SearchData.default
 
-        private val legacyModeFlow = gallerySettings.hideBotPoster.flow.zip(gallerySettings.hideBotPosterInSearch.flow) {
-            a, b -> a && b
-        }
+        private val newModeFlow = newLoadMode.zip(gallerySettings.hideBotPosterInSearch.flow) { a, b -> a && b }
 
-        override fun refresh(data: SearchData) = refresh(legacyModeFlow) {
-            searchData = data
-            posterRepo.getSearchPosters(
-                search = searchData.search,
-                order = searchData.order,
-                uid = searchData.filter,
-                page = 0,
-            ).toMutableList()
-        }
+        override fun refresh(data: SearchData) = refresh(
+            newModeFlow,
+            refresh = {
+                searchData = data
+                posterRepo.getSearchPosters(
+                    search = searchData.search,
+                    order = searchData.order,
+                    uid = searchData.filter,
+                    page = 0,
+                ).toMutableList()
+            },
+            loadMore = { page ->
+                posterRepo.getSearchPosters(
+                    search = searchData.search,
+                    order = searchData.order,
+                    uid = searchData.filter,
+                    page = page,
+                )
+            }
+        )
 
-        override fun loadMore(data: SearchData) = loadMore(legacyModeFlow) { page ->
+        override fun loadMore(data: SearchData) = loadMore(newModeFlow) { page ->
             posterRepo.getSearchPosters(
                 search = searchData.search,
                 order = searchData.order,

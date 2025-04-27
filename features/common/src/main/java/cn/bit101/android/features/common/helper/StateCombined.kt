@@ -1,6 +1,5 @@
 package cn.bit101.android.features.common.helper
 
-import cn.bit101.android.config.setting.base.GallerySettings
 import cn.bit101.api.model.UniqueData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -59,7 +58,6 @@ data class RefreshAndLoadMoreStatesCombinedExportDataZero <T : UniqueData>(
  */
 abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
     private val viewModelScope: CoroutineScope,
-    private val gallerySettings: GallerySettings,
 ) {
     protected val refreshStateFlow = MutableStateFlow<SimpleState?>(null)
     protected val loadMoreStateFlow = MutableStateFlow<SimpleState?>(null)
@@ -73,8 +71,9 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
     abstract fun export(): BasicRefreshAndLoadMoreStatesCombinedExportData<T>
 
     protected fun refresh(
-        newLoadMode: Flow<Boolean> = gallerySettings.hideBotPoster.flow,
-        refresh: suspend () -> List<T>
+        newLoadMode: Flow<Boolean>,
+        refresh: suspend () -> List<T>,
+        loadMore: suspend (Long) -> List<T> = { refresh() }
     ) {
         if(refreshStateFlow.value == SimpleState.Loading) return
         refreshStateFlow.value = SimpleState.Loading
@@ -89,7 +88,8 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
 
                     while (posters.size < 15 && tryCount < 10) {
                         tryCount++
-                        posters = posters.plus(refresh())
+                        pageFlow.value++
+                        posters = posters.plus(loadMore(pageFlow.value.toLong()))
                     }
 
                     dataFlow.value = posters.toMutableList().distinctBy { it.id }
@@ -110,7 +110,7 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
     }
 
     protected fun loadMore(
-        newLoadMode: Flow<Boolean> = gallerySettings.hideBotPoster.flow,
+        newLoadMode: Flow<Boolean>,
         loadMore: suspend (Long) -> List<T>
     ) {
         if(loadMoreStateFlow.value == SimpleState.Loading) return
@@ -165,8 +165,7 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
  */
 abstract class RefreshAndLoadMoreStatesCombinedOne <A, T : UniqueData>(
     viewModelScope: CoroutineScope,
-    private val gallerySettings: GallerySettings,
-) : BasicRefreshAndLoadMoreStatesCombined<T>(viewModelScope, gallerySettings) {
+) : BasicRefreshAndLoadMoreStatesCombined<T>(viewModelScope) {
 
     /**
      * 将所有的状态暴露出来给组合函数
@@ -190,8 +189,7 @@ abstract class RefreshAndLoadMoreStatesCombinedOne <A, T : UniqueData>(
  */
 abstract class RefreshAndLoadMoreStatesCombinedZero <T : UniqueData>(
     viewModelScope: CoroutineScope,
-    private val gallerySettings: GallerySettings,
-) : BasicRefreshAndLoadMoreStatesCombined<T>(viewModelScope, gallerySettings) {
+) : BasicRefreshAndLoadMoreStatesCombined<T>(viewModelScope) {
 
     /**
      * 将所有的状态暴露出来给组合函数

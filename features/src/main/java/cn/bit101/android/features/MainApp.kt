@@ -5,11 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -102,7 +98,7 @@ internal fun MainApp() {
     }
 
     // 图片保存工具类
-    val imageDownloader = ImageDownloader()
+    val imageDownloader = remember { ImageDownloader() }
 
     NavHost(
         modifier = Modifier.fillMaxSize(),
@@ -166,7 +162,7 @@ internal fun MainApp() {
     ImageHost(
         modifier = Modifier.fillMaxSize(),
         state = mainController.imageHostState,
-        onOpenUrl = {str:String,callback:()->Unit ->
+        onDownloadImage = { str: String, callback: () -> Unit ->
             imageDownloader.downloadAndAddImage(str, ctx, mainController, callback)
         },
     )

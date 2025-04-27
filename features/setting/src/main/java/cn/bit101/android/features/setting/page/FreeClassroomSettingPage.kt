@@ -189,6 +189,7 @@ private fun FreeClassroomSettingPageContent(
     SettingsColumn {
         SettingsGroup(
             title = "空教室查询设置",
+            subTitle = "如果获取失败可以尝试在账号设置中“检查登录状态”哦",
             items = hideSettings
         )
     }

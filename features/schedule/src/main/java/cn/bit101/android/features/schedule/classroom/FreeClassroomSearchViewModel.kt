@@ -197,7 +197,7 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
                             val nowIndex = sortedBusyTimeIndices[findIndex]
                             val nextIndex = sortedBusyTimeIndices[findIndex + 1]
 
-                            if(timeTable[nowIndex].startTime >= LocalTime.now()
+                            if(timeTable[nowIndex].endTime >= LocalTime.now()
                                 && timeTable[nextIndex].startTime.toSecondOfDay()
                                 - timeTable[nowIndex].endTime.toSecondOfDay()
                                 > settingData.freeMinutesThreshold.get() * 60) {
@@ -232,7 +232,8 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
                 )
             }
 
-            classroomDataMap[buildingId] = classroomDataCache[buildingId]!!.data
+            if(classroomDataCache[buildingId]!!.data != classroomDataMap[buildingId])
+                classroomDataMap[buildingId] = classroomDataCache[buildingId]!!.data
 
             getClassroomsStatesMap[buildingId] = SimpleState.Success
             getClassroomLastStatusLiveData.value = SimpleState.Success
@@ -247,6 +248,10 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
         classroomDataCache.forEach { classroomDataCache[it.key] = it.value.copy(cacheValidUntil = LocalDateTime.now()) }
         val tempKeys = classroomDataCache.map { it.key }
         tempKeys.forEach {loadClassroomInfos(it)}
+    }
+    fun refreshClassroomInfoIfInvalid(buildingId:String) {
+        if(classroomDataCache[buildingId]!!.cacheValidUntil < LocalDateTime.now())
+            loadClassroomInfos(buildingId)
     }
 
     fun isFreeNow(classroomBusyData: ClassroomBusyData,

@@ -21,18 +21,22 @@ import javax.inject.Inject
 internal class UserViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val posterRepo: PosterRepo,
-    private val gallerySettings: GallerySettings
+    gallerySettings: GallerySettings
 ) : ViewModel() {
 
     private val _getUserInfoStateFlow = MutableStateFlow<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
     val getUserInfoStateFlow = _getUserInfoStateFlow
 
-    private val _posterState = object : RefreshAndLoadMoreStatesCombinedOne<Long, GetPostersDataModel.ResponseItem>(viewModelScope, gallerySettings) {
-        override fun refresh(data: Long) = refresh {
-            posterRepo.getPostersOfUserByUid(data)
-        }
+    private val newLoadMode = gallerySettings.hideBotPoster.flow
 
-        override fun loadMore(data: Long) = loadMore { page ->
+    private val _posterState = object : RefreshAndLoadMoreStatesCombinedOne<Long, GetPostersDataModel.ResponseItem>(viewModelScope) {
+        override fun refresh(data: Long) = refresh(
+            newLoadMode,
+            refresh = { posterRepo.getPostersOfUserByUid(data) },
+            loadMore = { posterRepo.getPostersOfUserByUid(data, it) }
+        )
+
+        override fun loadMore(data: Long) = loadMore(newLoadMode) { page ->
             posterRepo.getPostersOfUserByUid(data, page)
         }
     }
