@@ -20,13 +20,12 @@ internal class GetSchoolInitLoginConvertFactory(
 
         return Converter<ResponseBody?, GetSchoolInitLoginDataModel.Response> {
             val html = it.string()
-            val ifLogin = html.indexOf("帐号登录或动态码登录") == -1
+            val ifLogin = html.indexOf("用户名密码") == -1   // TODO
 
             try {
                 val doc = Jsoup.parse(html)
-                val form = doc.select("#pwdFromId")
-                val salt = form.select("#pwdEncryptSalt").attr("value")
-                val execution = form.select("#execution").attr("value")
+                val salt = doc.select("#login-croypto").first()!!.childNode(0).toString()
+                val execution = doc.select("#login-page-flowkey").first()!!.childNode(0).toString()
 
                 GetSchoolInitLoginDataModel.Response(
                     html = html,
