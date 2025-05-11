@@ -9,7 +9,7 @@ val DEFAULT_WEB_VPN_URLS = ApiUrlOption(
     jxzxehallappUrl = "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421faef5b842238695c720999bcd6572a216b231105adc27d",
     lexueUrl = "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421fcf25989227e6a596a468ca88d1b203b",
     androidUrl = "http://android.bit101.cn",
-    schoolLoginUrl = "https://login.bit.edu.cn"
+    schoolLoginUrl = "https://sso.bit.edu.cn"
 )
 
 val PROD_URLS = ApiUrlOption(
@@ -19,7 +19,7 @@ val PROD_URLS = ApiUrlOption(
     jxzxehallappUrl = "https://jxzxehallapp.bit.edu.cn",
     lexueUrl = "https://lexue.bit.edu.cn",
     androidUrl = "http://android.bit101.cn",
-    schoolLoginUrl = "https://login.bit.edu.cn"
+    schoolLoginUrl = "https://sso.bit.edu.cn"
 )
 
 val DEV_URLS = ApiUrlOption(
@@ -29,7 +29,7 @@ val DEV_URLS = ApiUrlOption(
     jxzxehallappUrl = "https://jxzxehallapp.bit.edu.cn",
     lexueUrl = "https://lexue.bit.edu.cn",
     androidUrl = "http://android.bit101.cn",
-    schoolLoginUrl = "https://login.bit.edu.cn"
+    schoolLoginUrl = "https://sso.bit.edu.cn"
 )
 
 

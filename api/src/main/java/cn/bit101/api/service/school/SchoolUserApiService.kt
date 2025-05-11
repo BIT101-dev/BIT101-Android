@@ -14,28 +14,28 @@ import retrofit2.http.POST
 import retrofit2.http.Query
 
 interface SchoolUserApiService : ApiService {
-    @GET("/authserver/login")
+    @GET("/cas/login")
     suspend fun initLogin(): Response<GetSchoolInitLoginDataModel.Response>
 
     @FormUrlEncoded
-    @POST("/authserver/login")
+    @POST("/cas/login")
     suspend fun login(
         @Field("username") username: String,
         @Field("password") password: String,
         @Field("execution") execution: String,
-        @Field("captcha") captcha: String = "",
+        @Field("croypto") salt: String,
+        @Field("captcha_payload") captchaPayload: String,
+        @Field("type") type: String = "UsernamePassword",
+        @Field("geolocation") geolocation: String = "",
+        @Field("captcha_code") captcha: String = "",
         @Field("_eventId") eventId: String = "submit",
-        @Field("cllt") cllt: String = "userNameLogin",
-        @Field("dllt") dllt: String = "generalLogin",
-        @Field("lt") lt: String = "",
-        @Field("rememberMe") rememberMe: String = "true",
     ): Response<PostSchoolLoginDataModel.Response>
 
-    @GET("/authserver/checkNeedCaptcha.htl")
+    @GET("/cas/checkNeedCaptcha.htl")
     suspend fun checkNeedCaptcha(
         @Query("username") username: String? = null,
     ): Response<GetCheckNeedCaptchaDataModel.Response>
 
-    @GET("/authserver/getCaptcha.htl")
+    @GET("/cas/getCaptcha.htl")
     suspend fun getCaptcha(): Response<String>
 }
