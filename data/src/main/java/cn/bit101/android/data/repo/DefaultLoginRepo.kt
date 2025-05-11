@@ -72,12 +72,14 @@ internal class DefaultLoginRepo @Inject constructor(
             finalExecution = initResponse.execution
         }
 
-        val cryptPassword = AESUtils.encryptPassword(password, finalSalt ?: "")
+        val cryptPassword = AESUtils.encryptPasswordNew(password, finalSalt ?: "")
 
         val res = api.schoolUser.login(
             username = username,
             password = cryptPassword,
             execution = finalExecution ?: "",
+            salt = finalSalt ?: "",
+            captchaPayload = AESUtils.encryptPasswordNew("{}", finalSalt ?: "")
         ).body() ?: throw Exception("login response error")
         res.success
     }
