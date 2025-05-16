@@ -43,13 +43,16 @@ internal object AESUtils {
         }
     }
 
-    // 适配新版的学校统一认证, TODO
+    // 适配新版的学校统一认证
     fun encryptPasswordNew(password: String, loginCrypto: String): String {
+        val passwordBytes = password.toByteArray(Charsets.UTF_8)
+
         val decodedKey = Base64.getDecoder().decode(loginCrypto)
         val secretKey = SecretKeySpec(decodedKey, "AES")
         val cipher = Cipher.getInstance("AES/ECB/PKCS5Padding")
+
         cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-        val encryptedBytes = cipher.doFinal(password.toByteArray(Charsets.UTF_8))
+        val encryptedBytes = cipher.doFinal(passwordBytes)
         return Base64.getEncoder().encodeToString(encryptedBytes)
     }
 }

@@ -20,7 +20,7 @@ internal class PostSchoolLoginConvertFactory(
         return Converter<ResponseBody?, PostSchoolLoginDataModel.Response> {
             val html = it.string()
 
-            val success = html.indexOf("帐号登录或动态码登录") == -1
+            val success = html.indexOf("用户名密码") == -1
 
             PostSchoolLoginDataModel.Response(
                 html = html,

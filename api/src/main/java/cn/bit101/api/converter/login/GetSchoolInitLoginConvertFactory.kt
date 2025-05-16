@@ -20,7 +20,7 @@ internal class GetSchoolInitLoginConvertFactory(
 
         return Converter<ResponseBody?, GetSchoolInitLoginDataModel.Response> {
             val html = it.string()
-            val ifLogin = html.indexOf("用户名密码") == -1   // TODO
+            val ifLogin = html.indexOf("用户名密码") == -1
 
             try {
                 val doc = Jsoup.parse(html)
