@@ -79,7 +79,19 @@ internal class DefaultLoginRepo @Inject constructor(
             password = cryptPassword,
             execution = finalExecution ?: "",
             salt = finalSalt ?: "",
-            captchaPayload = AESUtils.encryptPasswordNew("{}", finalSalt ?: "")
+            captchaPayload = AESUtils.encryptPasswordNew("{}", finalSalt ?: "") // 去掉似乎也没问题
+            // 不需要验证码:
+            // 这里模拟的是正式的登录请求 (对应开发者工具的 Network 里的 login)
+            // 官方网页端会在发送这个正式登录请求前先发送一个验证码请求, 检查是否需要验证码 (/cas/api/protected/user/findCaptchaCount/{学号}?{一串数字})
+            // 发现需要验证码后就会请求验证码图片 (默认是 /cas/api/captcha/generate/DEFAULT)
+            // 在请求完这个图片后, 这个登录请求里就必须附上正确(和最后一个请求的验证码图片匹配)的验证码才能成功了
+            // 没错, 这意味着只要不请求验证码, 就不需要验证码, 完美的唯心主义登录
+            // 可以自己实验一下: 正常在官方网页端输错三次密码, 显示出验证码后, 手动开新标签页访问上面那个验证码图片链接, 然后输入里面的验证码(而不是网页端此时显示的那个), 你会发现登录成功了, 即使你输入的是"错误的"验证码
+            // 另一个实验: 先在网页端输错三次密码启用验证码, 再开一个新无痕窗口访问登录页面, 此时页面上不会显示验证码, 但当你点击登录按钮时验证码框就会弹出来
+            //           在验证码框弹出来前, 用开发者工具替换掉 main-es2015.d28ec9f63aa61a984122.js, 删去 9021~9033 行(改完保存完记得刷新), 再点击登录, 就直接登录成功了
+            //           但如果你在验证码弹出来后再做如上替换, 登录就会失败(查看 POST 的 Response 也会发现确实失败了)
+            // 所以理论上应该是完全不需要验证码的
+            // 顺便那个 captchaPayload 对应的 Json 一直是空的, 哪怕网页端在有验证码时发的 POST 里面的这个 Json 都是空的, 翻 js 代码发现里面似乎只会存意义不明的错误码
         ).body() ?: throw Exception("login response error")
         res.success
     }
