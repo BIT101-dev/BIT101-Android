@@ -72,14 +72,14 @@ internal class DefaultLoginRepo @Inject constructor(
             finalExecution = initResponse.execution
         }
 
-        val cryptPassword = AESUtils.encryptPasswordNew(password, finalSalt ?: "")
+        val cryptPassword = AESUtils.encryptPassword(password, finalSalt ?: "")
 
         val res = api.schoolUser.login(
             username = username,
             password = cryptPassword,
             execution = finalExecution ?: "",
             salt = finalSalt ?: "",
-            captchaPayload = AESUtils.encryptPasswordNew("{}", finalSalt ?: "") // 去掉似乎也没问题
+            captchaPayload = AESUtils.encryptPassword("{}", finalSalt ?: "") // 去掉似乎也没问题
             // 不需要验证码:
             // 这里模拟的是正式的登录请求 (对应开发者工具的 Network 里的 login)
             // 官方网页端会在发送这个正式登录请求前先发送一个验证码请求, 检查是否需要验证码 (/cas/api/protected/user/findCaptchaCount/{学号}?{一串数字})
@@ -114,6 +114,7 @@ internal class DefaultLoginRepo @Inject constructor(
                 password = encryptedPassword,
                 execution = execution,
                 cookie = cookie,
+                salt = salt,
                 captcha = ""
             )
         ).body() ?: throw Exception("get webVpnVerify response error")

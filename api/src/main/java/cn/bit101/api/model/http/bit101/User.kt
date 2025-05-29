@@ -30,6 +30,8 @@ class PostWebvpnVerifyDataModel private constructor() {
         val execution: String,
         val cookie: String,
 
+        val salt: String,
+
         // 验证码，为空则不需要验证码
         val captcha: String? = null,
     )
