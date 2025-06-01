@@ -31,16 +31,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
@@ -51,6 +48,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.config.setting.base.TimeTable
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.features.common.utils.mixColor
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -65,14 +63,13 @@ import kotlin.math.roundToInt
 
 @Composable
 internal fun CourseScheduleCalendar(
-    courses: List<List<CourseScheduleEntity>>,
+    schedules: List<List<ScheduleItem>>,
     week: Int,
     firstDay: LocalDate,
     settingData: SettingData,
     timeTable: TimeTable,
 
     onConfig: () -> Unit,
-    onShowDetailDialog: (CourseScheduleEntity) -> Unit,
     onChangeWeek: (Int) -> Unit,
 ) {
     /**
@@ -81,6 +78,34 @@ internal fun CourseScheduleCalendar(
     val courseNumOfDay = timeTable.size
 
     val courseTimes = timeTable.map { it.startTime.format(DateTimeFormatter.ofPattern("HH:mm")) }
+
+    // 配色方案, 为支持可变配色方案, 写在 Compose 层 (其实是因为不让写在 ViewModel 层 XP)
+    val colorScheme = MaterialTheme.colorScheme
+    val scheduleItemColors = rememberSaveable(colorScheme) {
+        listOf(
+            // 此处顺序和枚举顺序对应
+            // 课程
+            ScheduleItemColor(
+                boarderColor = colorScheme.secondary.copy(alpha = 0.25f),
+                containerColor = colorScheme.secondaryContainer,
+                contextColor = colorScheme.onSecondaryContainer,
+            ),
+            // 考试
+            ScheduleItemColor(
+                boarderColor = colorScheme.secondary.copy(alpha = 0.25f),
+                containerColor = mixColor(
+                    colorScheme.secondaryContainer,
+                    colorScheme.errorContainer,
+                    0.75f
+                ),
+                contextColor = mixColor(
+                    colorScheme.onSecondaryContainer,
+                    colorScheme.onErrorContainer,
+                    0.75f
+                ),
+            ),
+        )
+    }
 
     var boxSize by remember { mutableStateOf(IntSize.Zero) }
     Box(
@@ -197,7 +222,7 @@ internal fun CourseScheduleCalendar(
                 }
 
                 // 遍历每一天
-                courses.forEachIndexed { index, it ->
+                schedules.forEachIndexed { index, schedules ->
                     if (!settingData.showSaturday && index == 5) return@forEachIndexed
                     if (!settingData.showSunday && index == 6) return@forEachIndexed
                     // 计算星期和日期
@@ -249,38 +274,39 @@ internal fun CourseScheduleCalendar(
                         }
 
                         // 遍历一天的每一节课
-                        var i = 1 // 节次游标
-                        it.forEach {
-                            if (it.start_section >= i && it.end_section <= courseNumOfDay) {
-                                if (it.start_section > i) {
-                                    Spacer(modifier = Modifier.weight((it.start_section - i).toFloat()))
+                        var i = 0.0f // 节次游标, 精确值
+                        schedules.forEach {
+                            if (it.startSection >= i && it.endSection <= courseNumOfDay) {
+                                if (it.startSection > i) {
+                                    Spacer(modifier = Modifier.weight(it.startSection - i))
                                 }
                                 var modifier = Modifier
                                     .fillMaxWidth()
-                                    .weight((it.end_section - it.start_section + 1).toFloat())
+                                    .weight(it.endSection - it.startSection)
                                 // 是否显示边框
                                 if (settingData.showBorder) {
                                     modifier = modifier.border(
                                         1.dp,
-                                        MaterialTheme.colorScheme.secondary.copy(alpha = 0.25f),
+                                        scheduleItemColors[it.color.ordinal].boarderColor,
                                         shape = CardDefaults.shape
                                     )
                                 }
-                                i = it.end_section + 1
+                                i = it.endSection
 
                                 CourseScheduleItem(
                                     modifier = modifier
                                         .clip(CardDefaults.shape) // 使点击波纹形状匹配
-                                        .clickable { onShowDetailDialog(it) },
+                                        .clickable(onClick = it.onClick),
                                     week = week,
-                                    course = it
+                                    item = it,
+                                    color = scheduleItemColors[it.color.ordinal],
                                 )
                             }
                         }
 
                         // 填充剩余空白
-                        if (i <= courseNumOfDay) {
-                            Spacer(modifier = Modifier.weight(courseNumOfDay - i + 1f))
+                        if (courseNumOfDay > i) {
+                            Spacer(modifier = Modifier.weight(courseNumOfDay - i))
                         }
                     }
                 }
@@ -363,3 +389,8 @@ internal fun CourseScheduleCalendar(
     }
 }
 
+internal data class ScheduleItemColor(
+    val boarderColor : Color,
+    val containerColor : Color,
+    val contextColor : Color,
+)

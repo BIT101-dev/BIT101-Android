@@ -25,6 +25,7 @@ internal data class SettingData(
     val showHighlightToday: Boolean,
     val showBorder: Boolean,
     val showCurrentTime: Boolean,
+    val showExamInfo: Boolean,
 ) {
     companion object {
         val default = SettingData(
@@ -33,7 +34,8 @@ internal data class SettingData(
             showSunday = false,
             showHighlightToday = false,
             showBorder = false,
-            showCurrentTime = false
+            showCurrentTime = false,
+            showExamInfo = false,
         )
     }
 }
@@ -56,7 +58,8 @@ internal class CalendarViewModel @Inject constructor(
         courseScheduleSettings.showBorder.flow,
         courseScheduleSettings.highlightToday.flow,
         courseScheduleSettings.showDivider.flow,
-        courseScheduleSettings.showCurrentTime.flow
+        courseScheduleSettings.showCurrentTime.flow,
+        courseScheduleSettings.showExamInfo.flow,
     ) { settings ->
         SettingData(
             showSaturday = settings[0],
@@ -64,7 +67,8 @@ internal class CalendarViewModel @Inject constructor(
             showBorder = settings[2],
             showHighlightToday = settings[3],
             showDivider = settings[4],
-            showCurrentTime = settings[5]
+            showCurrentTime = settings[5],
+            showExamInfo = settings[6],
         )
     }
 
@@ -102,7 +106,7 @@ internal class CalendarViewModel @Inject constructor(
                 getFirstDayWithoutState()
 
                 // 重新获取课程
-                getCoursesWithoutState()
+                getSchedulesWithoutState()
 
                 setCurrentTermStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
@@ -113,7 +117,7 @@ internal class CalendarViewModel @Inject constructor(
                     getFirstDayWithoutState()
 
                     // 重新获取课程
-                    getCoursesWithoutState()
+                    getSchedulesWithoutState()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -131,6 +135,7 @@ internal class CalendarViewModel @Inject constructor(
         courseScheduleSettings.highlightToday.set(settingData.showHighlightToday)
         courseScheduleSettings.showBorder.set(settingData.showBorder)
         courseScheduleSettings.showCurrentTime.set(settingData.showCurrentTime)
+        courseScheduleSettings.showExamInfo.set(settingData.showExamInfo)
     }
 
     private suspend fun getFirstDayWithoutState() {
@@ -143,14 +148,18 @@ internal class CalendarViewModel @Inject constructor(
         getFirstDayWithoutState()
     }
 
-    private suspend fun getCoursesWithoutState() {
+    private suspend fun getSchedulesWithoutState() {
         val term = currentTermFlow.first() ?: throw Exception("no term")
+
         val courses = coursesRepo.getCoursesFromNet(term)
         coursesRepo.saveCourses(courses)
+
+        val exams = coursesRepo.getExamsFromNet(term)
+        coursesRepo.saveExams(exams)
     }
 
-    fun getCourses() = withSimpleStateLiveData(getCoursesStateLiveData) {
-        getCoursesWithoutState()
+    fun getSchedules() = withSimpleStateLiveData(getCoursesStateLiveData) {
+        getSchedulesWithoutState()
     }
 
     fun setTimeTable(timeTableStr: String) = withSimpleStateLiveData(setTimeTableStateLiveData) {

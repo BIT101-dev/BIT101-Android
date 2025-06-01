@@ -64,4 +64,11 @@ interface SchoolJxzxehallappApiService : ApiService {
         @Field("XNXQDM") termCode: String,  // 比如 2024-2025-2
         @Field("XNDM") termYearCode: String,
     ): Response<GetClassroomDataModel.Response>
+
+    @FormUrlEncoded
+    @POST("/jwapp/sys/wdksapMobile/modules/ksap/cxxsksap.do")
+    suspend fun getExamsData(
+        @Field("XNXQDM") termCode: String,
+        @Field("*order") order: String = "-KSRQ",
+    ): Response<GetExamsDataModel.Response>
 }

@@ -9,5 +9,5 @@ interface FreeClassroomRepo {
 
     suspend fun getClassroomInfos(buildingId: String): List<ClassroomInfo>
 
-    fun getCurrentCampus() : Flow<String>
+    fun getCurrentCampus(): Flow<String>
 }

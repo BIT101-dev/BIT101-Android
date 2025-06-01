@@ -4,6 +4,7 @@ import android.util.Log
 import cn.bit101.android.config.setting.base.CourseScheduleSettings
 import cn.bit101.android.data.database.BIT101Database
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.ExamScheduleEntity
 import cn.bit101.android.data.database.entity.toEntity
 import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.android.data.repo.base.CoursesRepo
@@ -34,6 +35,20 @@ internal class DefaultCoursesRepo @Inject constructor(
         courseList.map { it.toEntity() }
     }
 
+    override suspend fun getExamsFromNet(
+        term: String
+    ) = withContext(Dispatchers.IO) {
+        api.schoolJxzxehallapp.getAppConfig()
+        api.schoolJxzxehallapp.switchLang()
+
+        if(term.isBlank()) throw Exception("term is empty error")
+
+        val examList = api.schoolJxzxehallapp.getExamsData(term).body()?.datas?.cxxsksap?.rows
+            ?: throw Exception("get exam list error")
+
+        examList.map { it.toEntity() }
+    }
+
     override suspend fun saveCourses(
         courses: List<CourseScheduleEntity>
     ) = withContext(Dispatchers.IO) {
@@ -42,6 +57,14 @@ internal class DefaultCoursesRepo @Inject constructor(
 
         // 放入进现在获得的所有课程
         database.coursesDao().insertCourses(courses)
+    }
+
+    override suspend fun saveExams(
+        exams: List<ExamScheduleEntity>
+    ) = withContext(Dispatchers.IO) {
+        database.examsDao().deleteAllExams()
+
+        database.examsDao().insertExams(exams)
     }
 
     override fun getCoursesFromLocal(
@@ -54,6 +77,12 @@ internal class DefaultCoursesRepo @Inject constructor(
     ) = database.coursesDao().getCoursesByTermWeek(term, week)
 
     override fun getCoursesFromLocal() = database.coursesDao().getAllCourses()
+
+    override fun getExamsFromLocal(
+        term: String,
+    ) = database.examsDao().getExamsByTerm(term)
+
+    override fun getExamsFromLocal() = database.examsDao().getAllExams()
 
     override suspend fun getTermListFromNet() = withContext(Dispatchers.IO) {
         api.schoolJxzxehallapp.getAppConfig()

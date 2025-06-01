@@ -44,9 +44,9 @@ internal fun CourseSchedule(
     val term by vm.currentTermFlow.collectAsState(initial = null)
 
     /**
-     * 课表数据
+     * 日程数据
      */
-    val courses by vm.courses.collectAsState()
+    val schedules by vm.schedules.collectAsState()
 
     /**
      * 当前周
@@ -78,9 +78,13 @@ internal fun CourseSchedule(
     val currentTime by vm.showCurrentTimeFlow.collectAsState(initial = null)
 
     /**
-     * 课程详情数据，如果为null就不显示该对话框
+     * 显示考试信息
      */
-    var showCourseDetailState by remember { mutableStateOf<CourseScheduleEntity?>(null) }
+    val showExamInfo by vm.showExamInfoFlow.collectAsState(initial = null)
+
+    val showCourseDetailState by vm.showCourseDetail.collectAsState()
+
+    val showExamDetailState by vm.showExamDetail.collectAsState()
 
     val refreshCoursesState by vm.refreshCoursesStateLiveData.observeAsState()
 
@@ -148,29 +152,36 @@ internal fun CourseSchedule(
                 showHighlightToday = showHighlightToday!!,
                 showBorder = showBorder!!,
                 showCurrentTime = currentTime!!,
+                showExamInfo = showExamInfo!!
             )
 
             // 数据加载完毕
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // 课程表
+                // 课程表 (考试安排也显示在里面)
                 CourseScheduleCalendar(
-                    courses = courses,
+                    schedules = schedules,
                     week = week,
                     firstDay = firstDay!!,
                     timeTable = timeTable!!,
                     settingData = settingData,
 
                     onConfig = { mainController.navigate(NavDest.Setting("calendar")) },
-                    onShowDetailDialog = { showCourseDetailState = it },
                     onChangeWeek = { vm.changeWeek(it) }
                 )
                 if(showCourseDetailState != null) {
                     // 课程详情对话框
                     CourseScheduleDetailDialog(
                         course = showCourseDetailState!!,
-                        onDismiss = { showCourseDetailState = null }
+                        onDismiss = vm::clearShowCourseDetail
+                    )
+                }
+                if(showExamDetailState != null) {
+                    // 考试详情对话框
+                    ExamScheduleDetailDialog(
+                        exam = showExamDetailState!!,
+                        onDismiss = vm::clearShowExamDetail
                     )
                 }
             }

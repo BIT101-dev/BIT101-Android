@@ -16,7 +16,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import cn.bit101.android.data.database.entity.CourseScheduleEntity
 
 /**
  * @author flwfdd
@@ -30,15 +29,16 @@ import cn.bit101.android.data.database.entity.CourseScheduleEntity
 internal fun CourseScheduleItem(
     modifier: Modifier,
     week: Int,
-    course: CourseScheduleEntity
+    item: ScheduleItem,
+    color: ScheduleItemColor
 ) {
-    val alpha = remember(course, week) { Math.random().toFloat() * 0.5f + 0.5f }
+    val alpha = remember(item, week) { Math.random().toFloat() * 0.5f + 0.5f }
 
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = alpha),
-            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            containerColor = color.containerColor.copy(alpha = alpha),
+            contentColor = color.contextColor,
         ),
     ) {
         Column(
@@ -51,7 +51,7 @@ internal fun CourseScheduleItem(
             // 课程名
             Box(contentAlignment = Alignment.Center, modifier = Modifier.weight(1f)) {
                 Text(
-                    text = course.name,
+                    text = item.title,
                     style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75),
                     textAlign = TextAlign.Center,
                     overflow = TextOverflow.Ellipsis
@@ -60,7 +60,7 @@ internal fun CourseScheduleItem(
             // 教室
             Box(contentAlignment = Alignment.BottomCenter) {
                 Text(
-                    text = course.classroom,
+                    text = item.subtitle,
                     style = MaterialTheme.typography.labelSmall.copy(lineHeight = MaterialTheme.typography.labelSmall.lineHeight * 0.75),
                     textAlign = TextAlign.Center,
                     overflow = TextOverflow.Ellipsis

@@ -1,6 +1,7 @@
 package cn.bit101.android.data.repo.base
 
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.ExamScheduleEntity
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 
@@ -56,4 +57,23 @@ interface CoursesRepo {
      */
     suspend fun saveCourses(courses: List<CourseScheduleEntity>)
 
+    /**
+     * 从本地获得所有考试安排
+     */
+    fun getExamsFromLocal(): Flow<List<ExamScheduleEntity>>
+
+    /**
+     * 根据学期从本地获得考试安排
+     */
+    fun getExamsFromLocal(term: String): Flow<List<ExamScheduleEntity>>
+
+    /**
+     * 从网络中获取学期对应的考试安排
+     */
+    suspend fun getExamsFromNet(term: String): List<ExamScheduleEntity>
+
+    /**
+     * 更新数据库中某学期的考试安排
+     */
+    suspend fun saveExams(exams: List<ExamScheduleEntity>)
 }

@@ -89,7 +89,7 @@ private fun CalendarSettingPageContent(
 
         SettingItemData.Button(
             title = "时间表",
-            subTitle = "每节课的上课和下课时间",
+            subTitle = "每节课的上课和下课时间\n不建议乱改, 很多模块高度依赖此表格",
             onClick = onOpenTimeTable,
         )
 
@@ -125,6 +125,12 @@ private fun CalendarSettingPageContent(
             title = "显示当前时间线",
             onClick = { onSettingChange(settingData.copy(showCurrentTime = it)) },
             checked = settingData.showCurrentTime,
+        ),
+        SettingItemData.Switch(
+            title = "显示考试安排",
+            subTitle = "考试安排更新时需手动刷新才能更新\n仅供参考, 错过考试概不负责 XP",
+            onClick = { onSettingChange(settingData.copy(showExamInfo = it)) },
+            checked = settingData.showExamInfo,
         ),
     )
 
@@ -339,7 +345,7 @@ internal fun CalendarSettingPage(
 
         onOpenTermListDialog = { showTermListDialog = true },
         onGetFirstDay = vm::getFirstDay,
-        onGetCourses = vm::getCourses,
+        onGetCourses = vm::getSchedules,
         onOpenTimeTable = { showTimeTableDialog = true },
         onSettingChange = vm::setSettingData
     )

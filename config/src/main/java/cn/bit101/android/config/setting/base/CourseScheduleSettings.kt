@@ -101,6 +101,11 @@ interface CourseScheduleSettings {
     val showCurrentTime: SettingItem<Boolean>
 
     /**
+     * 是否显示考试信息
+     */
+    val showExamInfo: SettingItem<Boolean>
+
+    /**
      * 时间表
      */
     val timeTable: SettingItem<TimeTable>

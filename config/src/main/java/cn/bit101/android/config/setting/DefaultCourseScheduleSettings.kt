@@ -63,5 +63,7 @@ internal class DefaultCourseScheduleSettings @Inject constructor(
 
     override val showCurrentTime = settingDataStore.courseScheduleShowCurrentTime.toSettingItem()
 
+    override val showExamInfo = settingDataStore.courseScheduleShowExamInfo.toSettingItem()
+
     override val timeTable = settingDataStore.courseScheduleTimeTable.toSettingItem().map(timeTableTransformer)
 }

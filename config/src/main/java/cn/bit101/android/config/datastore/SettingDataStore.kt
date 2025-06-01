@@ -72,6 +72,10 @@ internal class SettingDataStore @Inject constructor(
     private val COURSE_SCHEDULE_SHOW_CURRENT_TIME = booleanPreferencesKey("course_schedule_show_current_time")
     val courseScheduleShowCurrentTime = PreferencesDataStoreItem(COURSE_SCHEDULE_SHOW_CURRENT_TIME, true, preferences.SETTING_DATASTORE)
 
+    // 是否显示考试信息
+    private val COURSE_SCHEDULE_SHOW_EXAM_INFO = booleanPreferencesKey("course_schedule_show_exam_info")
+    val courseScheduleShowExamInfo = PreferencesDataStoreItem(COURSE_SCHEDULE_SHOW_EXAM_INFO, true, preferences.SETTING_DATASTORE)
+
     // 时间表
     private val COURSE_SCHEDULE_TIME_TABLE = stringPreferencesKey("course_schedule_time_table")
     val courseScheduleTimeTable = PreferencesDataStoreItem(

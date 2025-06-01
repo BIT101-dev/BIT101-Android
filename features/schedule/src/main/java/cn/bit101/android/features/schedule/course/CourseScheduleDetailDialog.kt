@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.ExamScheduleEntity
 
 // 课程详情对话框
 @Composable
@@ -54,6 +55,48 @@ internal fun CourseScheduleDetailDialog(
                     Item("课程性质：", course.type)
                     Item("课程类别：", course.category)
                     Item("开课单位：", course.department)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = onDismiss
+            ) {
+                Text("关闭")
+            }
+        },
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    )
+}
+
+// 考试详情对话框
+@Composable
+internal fun ExamScheduleDetailDialog(
+    exam: ExamScheduleEntity,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        modifier = Modifier.fillMaxSize(0.9f),
+        tonalElevation = 1.dp,
+        onDismissRequest = onDismiss,
+        title = {
+            Text(text = "[考试] ${exam.name}")
+        },
+        text = {
+            val scrollState = rememberScrollState()
+            SelectionContainer {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                ) {
+                    Item(title = "考试地点：", content = exam.classroom)
+                    Item("考试日期：", exam.date.toString())
+                    Item("考试时间：", "${exam.beginTime} ~ ${exam.endTime}")
+                    Item("课程号：", exam.courseId)
+                    Item("授课教师：", exam.teacher)
+                    Item("座位号：", exam.seatId)
+                    Item("考试模式：", exam.examMode)
                 }
             }
         },

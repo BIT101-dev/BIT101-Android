@@ -13,10 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
+import cn.bit101.android.features.common.utils.mixColor
 
 /**
  * @author flwfdd
@@ -81,13 +81,4 @@ internal fun DDLScheduleItem(modifier: Modifier, item: DDLScheduleEntity, vm: DD
             })
         }
     }
-}
-
-// 混合两个颜色 第一个颜色占比为ratio
-private fun mixColor(color1: Color, color2: Color, ratio: Float): Color {
-    return Color(
-        (color1.red * ratio + color2.red * (1 - ratio)),
-        (color1.green * ratio + color2.green * (1 - ratio)),
-        (color1.blue * ratio + color2.blue * (1 - ratio))
-    )
 }

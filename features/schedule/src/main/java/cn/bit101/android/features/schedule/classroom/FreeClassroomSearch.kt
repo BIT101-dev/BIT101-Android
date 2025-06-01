@@ -33,6 +33,7 @@ import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.nav.NavDest
+import cn.bit101.android.features.common.utils.mixColor
 import cn.bit101.android.features.schedule.classroom.FreeClassroomSearchViewModel.ClassroomBusyData
 import cn.bit101.api.model.common.BuildingInfo
 import kotlinx.coroutines.launch
@@ -79,15 +80,6 @@ internal fun GetCurrentTime(): LocalTime {
     }
 
     return currentTime
-}
-
-// 从 DDL 那拾来的
-private fun mixColor(color1: Color, color2: Color, ratio: Float): Color {
-    return Color(
-        (color1.red * ratio + color2.red * (1 - ratio)),
-        (color1.green * ratio + color2.green * (1 - ratio)),
-        (color1.blue * ratio + color2.blue * (1 - ratio))
-    )
 }
 
 private fun formatSecondToString(second: Int): String {
