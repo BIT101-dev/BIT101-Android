@@ -59,11 +59,11 @@ import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 import kotlinx.coroutines.launch
 
 
-private data class FunctionItem(
-    val name: String,
-    val icon: ImageVector,
-    val onClick: () -> Unit
-)
+//private data class FunctionItem(
+//    val name: String,
+//    val icon: ImageVector,
+//    val onClick: () -> Unit
+//)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -81,68 +81,68 @@ internal fun MineScreenContent(
 
     val scrollState = rememberScrollState()
 
-    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-    val scope = rememberCoroutineScope()
+//    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+//    val scope = rememberCoroutineScope()
 
-    val functions = listOf(
-        FunctionItem(
-            name = "成绩",
-            icon = Icons.Outlined.School,
-            onClick = { mainController.openWebPage(ScoreUrl) }
-        ),
-        FunctionItem(
-            name = "文章",
-            icon = Icons.AutoMirrored.Outlined.Article,
-            onClick = { mainController.openWebPage(PaperUrl) }
-        ),
-        FunctionItem(
-            name = "课程",
-            icon = Icons.Outlined.Book,
-            onClick = { mainController.openWebPage(CourseUrl) }
-        ),
-    )
+//    val functions = listOf(
+//        FunctionItem(
+//            name = "成绩",
+//            icon = Icons.Outlined.School,
+//            onClick = { mainController.openWebPage(ScoreUrl) }
+//        ),
+//        FunctionItem(
+//            name = "文章",
+//            icon = Icons.AutoMirrored.Outlined.Article,
+//            onClick = { mainController.openWebPage(PaperUrl) }
+//        ),
+//        FunctionItem(
+//            name = "课程",
+//            icon = Icons.Outlined.Book,
+//            onClick = { mainController.openWebPage(CourseUrl) }
+//        ),
+//    )
 
-    BackHandler(drawerState.isOpen) {
-        scope.launch { drawerState.close() }
-    }
+//    BackHandler(drawerState.isOpen) {
+//        scope.launch { drawerState.close() }
+//    }
 
-    val viewWidth = LocalDensity.current.run {
-        LocalView.current.measuredWidth.toDp()
-    }
+//    val viewWidth = LocalDensity.current.run {
+//        LocalView.current.measuredWidth.toDp()
+//    }
 
     // 解决横屏时抽屉宽度过大的问题
-    val drawerMaxWidth = minOf(viewWidth * 0.6f, DrawerDefaults.MaximumDrawerWidth)
+//    val drawerMaxWidth = minOf(viewWidth * 0.6f, DrawerDefaults.MaximumDrawerWidth)
 
-    ModalNavigationDrawer(
-        drawerState = drawerState,
-        drawerContent = {
-            ModalDrawerSheet(
-                modifier = Modifier.width(drawerMaxWidth),
-            ){
-                LazyColumn {
-                    item {
-                        Text(
-                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
-                            text = "其他功能",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Divider(
-                            thickness = 0.5.dp,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
-                        )
-                    }
-                    items(functions) {
-                        ListItem(
-                            modifier = Modifier.clickable { it.onClick() },
-                            leadingContent = { Icon(imageVector = it.icon, contentDescription = null) },
-                            headlineContent = { Text(text = it.name) },
-                        )
-                    }
-                }
-            }
-        },
-        gesturesEnabled = drawerState.isOpen,
-    ) {
+//    ModalNavigationDrawer(
+//        drawerState = drawerState,
+//        drawerContent = {
+//            ModalDrawerSheet(
+//                modifier = Modifier.width(drawerMaxWidth),
+//            ){
+//                LazyColumn {
+//                    item {
+//                        Text(
+//                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 18.dp),
+//                            text = "其他功能",
+//                            style = MaterialTheme.typography.titleMedium
+//                        )
+//                        Divider(
+//                            thickness = 0.5.dp,
+//                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f)
+//                        )
+//                    }
+//                    items(functions) {
+//                        ListItem(
+//                            modifier = Modifier.clickable { it.onClick() },
+//                            leadingContent = { Icon(imageVector = it.icon, contentDescription = null) },
+//                            headlineContent = { Text(text = it.name) },
+//                        )
+//                    }
+//                }
+//            }
+//        },
+//        gesturesEnabled = drawerState.isOpen,
+//    ) {
         Scaffold(
             modifier = Modifier.fillMaxSize(),
             topBar = {
@@ -153,42 +153,42 @@ internal fun MineScreenContent(
                             Icon(imageVector = Icons.Outlined.Refresh, contentDescription = "刷新")
                         }
 
-                        if(messageCount > 0) {
-                            Box {
-                                Badge(
-                                    modifier = Modifier
-                                        .align(Alignment.TopEnd)
-                                        .offset(x = (-2).dp, y = 2.dp),
-                                ) {
-                                    Text(text = messageCount.toString())
-                                }
-                                IconButton(onClick = onOpenMessagePage) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.NotificationsActive,
-                                        tint = MaterialTheme.colorScheme.tertiary,
-                                        contentDescription = "通知"
-                                    )
-                                }
-                            }
-
-                        } else {
-                            IconButton(onClick = onOpenMessagePage) {
-                                Icon(
-                                    imageVector = Icons.Outlined.NotificationsNone,
-                                    contentDescription = "通知"
-                                )
-                            }
-                        }
+//                        if(messageCount > 0) {
+//                            Box {
+//                                Badge(
+//                                    modifier = Modifier
+//                                        .align(Alignment.TopEnd)
+//                                        .offset(x = (-2).dp, y = 2.dp),
+//                                ) {
+//                                    Text(text = messageCount.toString())
+//                                }
+//                                IconButton(onClick = onOpenMessagePage) {
+//                                    Icon(
+//                                        imageVector = Icons.Outlined.NotificationsActive,
+//                                        tint = MaterialTheme.colorScheme.tertiary,
+//                                        contentDescription = "通知"
+//                                    )
+//                                }
+//                            }
+//
+//                        } else {
+//                            IconButton(onClick = onOpenMessagePage) {
+//                                Icon(
+//                                    imageVector = Icons.Outlined.NotificationsNone,
+//                                    contentDescription = "通知"
+//                                )
+//                            }
+//                        }
 
                         IconButton(onClick = { mainController.navigate(NavDest.Setting()) }) {
                             Icon(imageVector = Icons.Outlined.Settings, contentDescription = "通知")
                         }
                     },
-                    navigationIcon = {
-                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
-                            Icon(imageVector = Icons.Outlined.Menu, contentDescription = "侧边抽屉")
-                        }
-                    }
+//                    navigationIcon = {
+//                        IconButton(onClick = { scope.launch { drawerState.open() } }) {
+//                            Icon(imageVector = Icons.Outlined.Menu, contentDescription = "侧边抽屉")
+//                        }
+//                    }
                 )
             }
         ) { paddingValues ->
@@ -224,5 +224,5 @@ internal fun MineScreenContent(
                 }
             }
         }
-    }
+//    }
 }
