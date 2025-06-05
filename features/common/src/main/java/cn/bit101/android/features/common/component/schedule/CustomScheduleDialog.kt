@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import cn.bit101.android.data.database.entity.CustomScheduleEntity
@@ -84,9 +85,6 @@ fun CustomScheduleDetailDialog(
                     Item(title = "标题：", content = schedule.title)
                     Item("副标题：", schedule.subtitle)
                     Item("描述：", schedule.description)
-
-                    Spacer(modifier = Modifier.padding(2.dp))
-
                     Item("日期：", schedule.date.toString())
                     Item(
                         "时间：",
@@ -318,37 +316,40 @@ fun AddEditScheduleDialog(
                         modifier = Modifier
                             .fillMaxWidth(),
                     ) {
-                        AssistChip(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 20.dp),
-                            shape = MaterialTheme.shapes.medium,
-                            onClick = { showDateDialog.value = true },
-                            label = {
-                                Text(
-                                    if (date == null)
-                                        "请选择日期"
-                                    else
-                                        date!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                                    Modifier.padding(vertical = 10.dp)
-                                )
-                            },
-                            leadingIcon = {
-                                Icon(
-                                    Icons.Filled.Today,
-                                    contentDescription = "Select Date",
-                                    Modifier.size(AssistChipDefaults.IconSize)
-                                )
-                            }
-                        )
-
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(vertical = 6.dp)
+                                .padding(vertical = 6.dp),
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             AssistChip(
-                                modifier = Modifier.weight(1f),
+                                shape = MaterialTheme.shapes.medium,
+                                onClick = { showDateDialog.value = true },
+                                label = {
+                                    Text(
+                                        modifier = Modifier.padding(vertical = 10.dp),
+                                        text =
+                                        when {
+                                            date == null -> "日期"
+                                            date!!.year == LocalDate.now().year -> date!!.format(
+                                                DateTimeFormatter.ofPattern(
+                                                    "MM-dd"
+                                                )
+                                            )
+
+                                            else -> date!!.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                        },
+                                    )
+                                },
+                                leadingIcon = {
+                                    Icon(
+                                        Icons.Filled.Today,
+                                        contentDescription = "Select Date",
+                                        Modifier.size(AssistChipDefaults.IconSize)
+                                    )
+                                }
+                            )
+                            AssistChip(
                                 shape = MaterialTheme.shapes.medium,
                                 onClick = {
                                     timeSelected = beginTime
@@ -356,11 +357,14 @@ fun AddEditScheduleDialog(
                                 },
                                 label = {
                                     Text(
+                                        modifier = Modifier.padding(vertical = 10.dp),
+                                        text =
                                         if (beginTime.value == null)
-                                            "请选择开始时间"
+                                            "开始时间"
                                         else
                                             beginTime.value!!.format(DateTimeFormatter.ofPattern("HH:mm")),
-                                        Modifier.padding(vertical = 10.dp)
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 },
                                 leadingIcon = {
@@ -373,7 +377,6 @@ fun AddEditScheduleDialog(
                                 enabled = date != null
                             )
                             AssistChip(
-                                modifier = Modifier.weight(1f),
                                 shape = MaterialTheme.shapes.medium,
                                 onClick = {
                                     timeSelected = endTime
@@ -381,11 +384,14 @@ fun AddEditScheduleDialog(
                                 },
                                 label = {
                                     Text(
+                                        modifier = Modifier.padding(vertical = 10.dp),
+                                        text =
                                         if (endTime.value == null)
-                                            "请选择结束时间"
+                                            "结束时间"
                                         else
                                             endTime.value!!.format(DateTimeFormatter.ofPattern("HH:mm")),
-                                        Modifier.padding(vertical = 10.dp)
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
                                     )
                                 },
                                 leadingIcon = {

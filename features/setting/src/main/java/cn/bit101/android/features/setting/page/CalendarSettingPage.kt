@@ -438,9 +438,18 @@ internal fun CalendarSettingPage(
     }
 
     DisposableEffect(getExamsState) {
-        if(getExamsState is SimpleState.Success) {
-            onSnackBar("获取成功")
-        } else if(getExamsState is SimpleState.Fail) {
+        if(getExamsState is SimpleDataState.Success) {
+            val updateCount = (getExamsState as SimpleDataState.Success).data
+
+            onSnackBar(
+                "获取成功, ${
+                    if (updateCount > 0)
+                        "更新了 $updateCount 条考试安排"
+                    else
+                        "没有更新"
+                }"
+            )
+        } else if(getExamsState is SimpleDataState.Fail) {
             onSnackBar("获取失败")
         }
         onDispose { }
@@ -463,7 +472,7 @@ internal fun CalendarSettingPage(
 
         isGettingFirstDay = getFirstDayState is SimpleState.Loading || setCurrentTermState is SimpleState.Loading,
         isGettingCourses = getCoursesState is SimpleState.Loading || setCurrentTermState is SimpleState.Loading,
-        isGettingExams = getExamsState is SimpleState.Loading || setCurrentTermState is SimpleState.Loading,
+        isGettingExams = getExamsState is SimpleDataState.Loading || setCurrentTermState is SimpleState.Loading,
 
         onOpenTermListDialog = { showTermListDialog = true },
         onGetFirstDay = vm::getFirstDay,

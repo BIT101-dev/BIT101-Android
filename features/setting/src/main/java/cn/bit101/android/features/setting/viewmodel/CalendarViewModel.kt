@@ -7,6 +7,7 @@ import cn.bit101.android.config.setting.base.CourseScheduleSettings
 import cn.bit101.android.config.setting.base.toTimeTable
 import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.data.repo.base.CoursesRepo
+import cn.bit101.android.data.repo.base.LoginRepo
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withScope
@@ -45,6 +46,7 @@ internal data class SettingData(
 @HiltViewModel
 internal class CalendarViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
+    private val loginRepo: LoginRepo,
     private val courseScheduleSettings: CourseScheduleSettings
 ) : ViewModel() {
 
@@ -86,7 +88,8 @@ internal class CalendarViewModel @Inject constructor(
     val getCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
 
     // 考试安排获取状态
-    val getExamsStateLiveData = MutableLiveData<SimpleState?>(null)
+    // 数据表示更新的条数
+    val getExamsStateLiveData = MutableLiveData<SimpleDataState<Int>?>(null)
 
     // 设置当前学期的状态
     val setCurrentTermStateLiveData = MutableLiveData<SimpleState?>(null)
@@ -184,7 +187,7 @@ internal class CalendarViewModel @Inject constructor(
     }
 
     fun getFirstDay() = withSimpleStateLiveData(getFirstDayStateLiveData) {
-        getFirstDayWithoutState()
+        getAndAutoCheckLoginRetry(this::getFirstDayWithoutState)
     }
 
     private suspend fun getCoursesWithoutState() {
@@ -194,7 +197,7 @@ internal class CalendarViewModel @Inject constructor(
     }
 
     fun getCourses() = withSimpleStateLiveData(getCoursesStateLiveData) {
-        getCoursesWithoutState()
+        getAndAutoCheckLoginRetry(this::getCoursesWithoutState)
     }
 
     private suspend fun getExamsWithoutState() {
@@ -204,11 +207,42 @@ internal class CalendarViewModel @Inject constructor(
         coursesRepo.saveExams(exams)
     }
 
-    fun getExams() = withSimpleStateLiveData(getExamsStateLiveData) {
-        getExamsWithoutState()
+    fun getExams() = withSimpleDataStateLiveData(getExamsStateLiveData) {
+        // 额外统计这次更新实际更新了几条考试信息 (我是急急国王.jpg)
+        val previousExams = coursesRepo.getExamsFromLocal().first()
+
+        getAndAutoCheckLoginRetry(this::getExamsWithoutState)
+
+        val nowExams = coursesRepo.getExamsFromLocal().first()
+
+        val updateCount = nowExams.count { nowExam ->
+            previousExams.none { prevExam ->
+                nowExam.copy(id = prevExam.id) == prevExam
+            }
+        }
+
+        updateCount
     }
 
     fun setTimeTable(timeTableStr: String) = withSimpleStateLiveData(setTimeTableStateLiveData) {
         courseScheduleSettings.timeTable.set(timeTableStr.toTimeTable())
+    }
+
+    // 从网络获取(课程, 考试信息等), 在第一次失败时自动检查登录状态并再次尝试
+    // 检查登录状态失败或第二次获取失败时抛出异常
+    private suspend fun getAndAutoCheckLoginRetry(onGet: suspend () -> Unit) {
+        try {
+            onGet()
+        } catch (e: Exception) {
+            e.printStackTrace()
+
+            val checkLoginSuccess = loginRepo.checkLogin()
+
+            if (checkLoginSuccess) {
+                onGet()
+            } else {
+                throw e
+            }
+        }
     }
 }
