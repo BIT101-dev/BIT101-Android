@@ -8,20 +8,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.features.common.MainController
+import cn.bit101.android.features.common.component.schedule.AddEditScheduleDialog
+import cn.bit101.android.features.common.component.schedule.CustomScheduleDetailDialog
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.nav.NavDest
 
@@ -86,9 +82,19 @@ internal fun CourseSchedule(
 
     val showExamDetailState by vm.showExamDetail.collectAsState()
 
+    val showCustomScheduleState by vm.showCustomScheduleDetail.collectAsState()
+
+    var showAddScheduleDialog by remember { mutableStateOf(false) }
+
+    var nowEditCustomSchedule by remember { mutableStateOf<CustomScheduleEntity?>(null) }
+
     val refreshCoursesState by vm.refreshCoursesStateLiveData.observeAsState()
 
     val forceRefreshCoursesState by vm.forceRefreshCoursesStateLiveData.observeAsState()
+
+    val addCustomScheduleState by vm.addEditCustomScheduleStateLiveData.observeAsState()
+
+    val deleteCustomScheduleState by vm.deleteCustomScheduleStateLiveData.observeAsState()
 
     // 强制刷新的状态在这里管理
     DisposableEffect(forceRefreshCoursesState) {
@@ -100,10 +106,42 @@ internal fun CourseSchedule(
         onDispose {}
     }
 
+    LaunchedEffect(addCustomScheduleState) {
+        if(addCustomScheduleState == SimpleState.Success) {
+            if(nowEditCustomSchedule == null) {
+                mainController.snackbar("添加成功OvO")
+            } else {
+                mainController.snackbar("修改成功OvO")
+            }
+
+            showAddScheduleDialog = false
+            vm.clearCustomScheduleDetail()
+        } else if(addCustomScheduleState == SimpleState.Fail) {
+            if(nowEditCustomSchedule == null) {
+                mainController.snackbar("添加失败Orz")
+            } else {
+                mainController.snackbar("修改失败Orz")
+            }
+        }
+
+        vm.addEditCustomScheduleStateLiveData.value = null  // 不清空的话, 连续操作时很可能只有第一次有提示 (因为速度很快, 状态更新不过来)
+    }
+
+    LaunchedEffect(deleteCustomScheduleState) {
+        if(deleteCustomScheduleState == SimpleState.Success) {
+            mainController.snackbar("删除成功OvO")
+            vm._showCustomScheduleDetail.value = null
+        } else if(deleteCustomScheduleState == SimpleState.Fail) {
+            mainController.snackbar("删除失败Orz")
+        }
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             vm.forceRefreshCoursesStateLiveData.value = null
             vm.refreshCoursesStateLiveData.value = null
+            vm.addEditCustomScheduleStateLiveData.value = null
+            vm.deleteCustomScheduleStateLiveData.value = null
         }
     }
 
@@ -159,7 +197,7 @@ internal fun CourseSchedule(
             Column(
                 modifier = Modifier.fillMaxSize()
             ) {
-                // 课程表 (考试安排也显示在里面)
+                // 日程表
                 CourseScheduleCalendar(
                     schedules = schedules,
                     week = week,
@@ -168,7 +206,11 @@ internal fun CourseSchedule(
                     settingData = settingData,
 
                     onConfig = { mainController.navigate(NavDest.Setting("calendar")) },
-                    onChangeWeek = { vm.changeWeek(it) }
+                    onChangeWeek = { vm.changeWeek(it) },
+                    onAddSchedule = {
+                        nowEditCustomSchedule = null
+                        showAddScheduleDialog = true
+                    },
                 )
                 if(showCourseDetailState != null) {
                     // 课程详情对话框
@@ -182,6 +224,32 @@ internal fun CourseSchedule(
                     ExamScheduleDetailDialog(
                         exam = showExamDetailState!!,
                         onDismiss = vm::clearShowExamDetail
+                    )
+                }
+                if(showCustomScheduleState != null) {
+                    // 自定义日程详情对话框
+                    CustomScheduleDetailDialog(
+                        schedule = showCustomScheduleState!!,
+                        onDismiss = vm::clearCustomScheduleDetail,
+                        onEdit = {
+                            nowEditCustomSchedule = showCustomScheduleState!!
+                            showAddScheduleDialog = true
+                        },
+                        onDelete = vm::deleteCustomSchedule,
+                    )
+                }
+                if(showAddScheduleDialog) {
+                    // 添加 / 修改自定义日程对话框
+                    AddEditScheduleDialog(
+                        schedule = nowEditCustomSchedule,
+                        onAddEditSchedule = {
+                            if (nowEditCustomSchedule == null) {
+                                vm.addCustomSchedule(it)
+                            } else {
+                                vm.updateCustomSchedule(nowEditCustomSchedule!!, it)
+                            }
+                        },
+                        onDismiss = { showAddScheduleDialog = false },
                     )
                 }
             }

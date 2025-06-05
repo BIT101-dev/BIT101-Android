@@ -1,14 +1,18 @@
 package cn.bit101.android.features.schedule.course
 
+import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import cn.bit101.android.config.setting.base.CourseScheduleSettings
+import cn.bit101.android.config.setting.base.TimeTable
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.data.database.entity.ExamScheduleEntity
 import cn.bit101.android.data.repo.base.CoursesRepo
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withScope
 import cn.bit101.android.features.common.helper.withSimpleStateLiveData
+import cn.bit101.android.features.common.utils.ScheduleCreateInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -16,9 +20,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 import javax.inject.Inject
-import kotlin.math.max
 
 /**
  * @author flwfdd
@@ -50,15 +54,6 @@ internal class CourseScheduleViewModel @Inject constructor(
     val weekFlow: StateFlow<Int> = _weekFlow.asStateFlow()
 
 
-    // 课表相关信息
-    val currentTermFlow = courseScheduleSettings.term.flow
-    val timeTableStringFlow = courseScheduleSettings.timeTable.flow
-
-    private val coursesFlow = coursesRepo.getCoursesFromLocal()
-
-    private val examsFlow = coursesRepo.getExamsFromLocal()
-
-
     // 显示相关配置
     val showSaturdayFlow = courseScheduleSettings.showSaturday.flow
     val showSundayFlow = courseScheduleSettings.showSunday.flow
@@ -68,8 +63,31 @@ internal class CourseScheduleViewModel @Inject constructor(
     val showCurrentTimeFlow = courseScheduleSettings.showCurrentTime.flow
     val showExamInfoFlow = courseScheduleSettings.showExamInfo.flow
 
+
+    // 课表相关信息
+    val currentTermFlow = courseScheduleSettings.term.flow
+    val timeTableStringFlow = courseScheduleSettings.timeTable.flow
+
+    private val coursesFlow = coursesRepo.getCoursesFromLocal()
+
+    private val examsFlow = combine(
+        coursesRepo.getExamsFromLocal(),
+        showExamInfoFlow
+    ) { exams, showExamInfo ->
+        if(showExamInfo)
+            exams
+        else
+            emptyList()
+    }
+
+    private val customSchedulesFlow = coursesRepo.getCustomSchedules()
+
+
     val refreshCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
     val forceRefreshCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
+
+    val addEditCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
+    val deleteCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
 
     // 课程详情数据，如果为 null 就不显示该对话框
     val _showCourseDetail = MutableStateFlow<CourseScheduleEntity?>(null)
@@ -87,6 +105,20 @@ internal class CourseScheduleViewModel @Inject constructor(
         _showExamDetail.value = null
     }
 
+    // 自定义日程数据, 如果为 null 就不显示该对话框
+    val _showCustomScheduleDetail = MutableStateFlow<CustomScheduleEntity?>(null)
+    val showCustomScheduleDetail = _showCustomScheduleDetail.asStateFlow()
+
+    fun clearCustomScheduleDetail() {
+        _showCustomScheduleDetail.value = null
+    }
+    fun showCustomScheduleDetail(scheduleEntity: CustomScheduleEntity) {
+        _showCustomScheduleDetail.value = scheduleEntity
+    }
+    fun deleteCustomSchedule(scheduleEntity: CustomScheduleEntity) = withSimpleStateLiveData(deleteCustomScheduleStateLiveData) {
+        coursesRepo.deleteCustomSchedule(scheduleEntity)
+    }
+
     init {
         // 学期开始日期改变
         withScope {
@@ -96,55 +128,41 @@ internal class CourseScheduleViewModel @Inject constructor(
             }
         }
 
-        // 课表、考试安排、周数、学期开始日期、时间表改变
+        // 课表、考试安排、周数、学期开始日期、时间表、自定义日程改变
         withScope {
             combine(
-                coursesFlow,
-                examsFlow,
+                // combine 至多比较方便地组合 5 个参数, 所以额外打包一次
+                combine(
+                    coursesFlow,
+                    examsFlow,
+                    customSchedulesFlow
+                ) { courses, exams, schedules ->
+                    Triple(courses, exams, schedules)
+                },
                 weekFlow,
                 firstDayFlow,
-                timeTableStringFlow
-            ) { courses, exams, week, firstDay, timeTable ->
+                timeTableStringFlow,
+            ) { schedules, week, firstDay, timeTable ->
+                val courses = schedules.first
+                val exams = schedules.second
+                val customSchedules = schedules.third
+
                 val weekFirstDate = firstDay?.plusWeeks((week - 1).toLong()) ?: LocalDate.MAX
                 val weekExams = exams.filter {
                     (weekFirstDate <= it.date) && (it.date < weekFirstDate.plusWeeks(1))
                 }
 
-                // 遍历一天的考试安排
-                // 考试安排里记录的是精确的时间, 所以这里要额外做一步转换
                 val weekExamSchedules = weekExams.map { exam ->
-                    val beginSection = timeTable.withIndex().find {
-                        exam.beginTime <= it.value.endTime
-                    } ?: timeTable.withIndex().last()
-                    val endSection = timeTable.withIndex().find {
-                        exam.endTime <= it.value.endTime
-                    } ?: timeTable.withIndex().last()
-
-                    // 极端情况下, 考试的开始 / 结束时间可能对应时间表的课间, 此时应当让边界保持在中间线上, 也就是下一节课的开始位置
-                    val beginSectionIndex = beginSection.index +
-                            max(
-                                0.0f,
-                                exam.beginTime.until(beginSection.value.startTime, ChronoUnit.SECONDS).toFloat() /
-                                        beginSection.value.endTime.until(
-                                            beginSection.value.startTime,
-                                            ChronoUnit.SECONDS
-                                        )
-                            )
-
-                    val endSectionIndex = endSection.index +
-                            max(
-                                0.0f,
-                                exam.endTime.until(endSection.value.startTime, ChronoUnit.SECONDS).toFloat() /
-                                        endSection.value.endTime.until(
-                                            endSection.value.startTime,
-                                            ChronoUnit.SECONDS
-                                        )
-                            )
-
                     ScheduleItem(
                         dayOfWeek = exam.date.dayOfWeek.value,
-                        startSection = beginSectionIndex,
-                        endSection = endSectionIndex,
+                        startSection = convertTimeToSection(
+                            time = exam.beginTime,
+                            timeTable = timeTable,
+                        ),
+                        endSection = convertTimeToSection(
+                            time = exam.endTime,
+                            timeTable = timeTable,
+                        ),
                         title = "(考试)\n${exam.name}",
                         subtitle = exam.classroom,
                         onClick = { _showExamDetail.value = exam },
@@ -168,7 +186,29 @@ internal class CourseScheduleViewModel @Inject constructor(
                     )
                 }
 
-                _schedules.value = convertWeekSchedules(weekExamSchedules + weekCourseSchedules)
+                val weekCustomSchedules = customSchedules.filter {
+                    (weekFirstDate <= it.date) && (it.date < weekFirstDate.plusWeeks(1))
+                }.map { schedule ->
+                    ScheduleItem(
+                        dayOfWeek = schedule.date.dayOfWeek.value,
+                        startSection = convertTimeToSection(
+                            time = schedule.beginTime,
+                            timeTable = timeTable,
+                        ),
+                        endSection = convertTimeToSection(
+                            time = schedule.endTime,
+                            timeTable = timeTable,
+                        ),
+                        title = schedule.title,
+                        subtitle = schedule.subtitle,
+                        onClick = { showCustomScheduleDetail(schedule) },
+                        color = ScheduleColorEnum.Custom
+                    )
+                }
+
+                _schedules.value = convertWeekSchedules(
+                    weekExamSchedules + weekCourseSchedules + weekCustomSchedules
+                )
             }.collect()
         }
     }
@@ -204,8 +244,30 @@ internal class CourseScheduleViewModel @Inject constructor(
         courseScheduleSettings.firstDay.set(firstDay)
     }
 
+    /**
+     * 添加自定义日程
+     */
+    fun addCustomSchedule(scheduleCreateInfo: ScheduleCreateInfo) = withSimpleStateLiveData(addEditCustomScheduleStateLiveData) {
+        coursesRepo.addCustomSchedule(scheduleCreateInfo.toEntity())
+    }
+
+    /**
+     * 更新自定义日程
+     */
+    fun updateCustomSchedule(
+        scheduleEntity: CustomScheduleEntity,
+        scheduleCreateInfo: ScheduleCreateInfo
+    ) = withSimpleStateLiveData(addEditCustomScheduleStateLiveData) {
+        coursesRepo.updateCustomSchedule(
+            scheduleCreateInfo.toEntity().copy(
+                id = scheduleEntity.id,
+            )
+        )
+    }
+
 
     // 将日程按照周一到周日分组排列
+    // 同时修改日程开始和结束时间 (必要时删除日程) 以保证日程间不会相互重叠
     private fun convertWeekSchedules(courses: List<ScheduleItem>): List<List<ScheduleItem>> {
         val finalSchedules = courses.sortedBy { it.startSection }
         val weekSchedules = mutableListOf<List<ScheduleItem>>()
@@ -213,11 +275,45 @@ internal class CourseScheduleViewModel @Inject constructor(
             val daySchedules = mutableListOf<ScheduleItem>()
             for (schedule in finalSchedules) {
                 if (schedule.dayOfWeek == i) {
-                    daySchedules.add(schedule)
+                    if (daySchedules.isNotEmpty()
+                        && daySchedules.last().endSection > schedule.startSection
+                    ) {
+                        if (daySchedules.last().endSection < schedule.endSection) {
+                            daySchedules.add(
+                                schedule.copy(
+                                    startSection = daySchedules.last().endSection,
+                                )
+                            )
+                        }
+                        // 否则说明日程完全被覆盖, 直接删掉 (不加进去)
+                        // 但正常使用场景下这其实是不该发生的......
+                    } else {
+                        daySchedules.add(schedule)
+                    }
                 }
             }
             weekSchedules.add(daySchedules)
         }
         return weekSchedules
+    }
+
+    // 将精确时间对应到课程表上的节次, 返回浮点数
+    // 0 对应一天开始, 1 对应第一节课刚好上完, 第二节课刚刚开始 (因为时间表数据不连续, 课间是不会体现出来的)
+    private fun convertTimeToSection(time: LocalTime, timeTable: TimeTable): Float {
+        val section = timeTable.withIndex().find {
+            time <= it.value.endTime
+        } ?: timeTable.withIndex().last()
+
+        // 时间点可能过早或过晚或位于课间, 此时无法表达在课表上, 规约到最接近的位置
+        return section.index +
+                clamp(
+                    time.until(section.value.startTime, ChronoUnit.SECONDS).toFloat() /
+                            section.value.endTime.until(
+                                section.value.startTime,
+                                ChronoUnit.SECONDS
+                            ),
+                    0.0f,
+                    1.0f
+                )
     }
 }

@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.CourseScheduleSettings
 import cn.bit101.android.config.setting.base.toTimeTable
+import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.data.repo.base.CoursesRepo
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withScope
 import cn.bit101.android.features.common.helper.withSimpleDataStateLiveData
 import cn.bit101.android.features.common.helper.withSimpleStateLiveData
+import cn.bit101.android.features.common.utils.ScheduleCreateInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -83,11 +85,21 @@ internal class CalendarViewModel @Inject constructor(
     // 课程获取状态
     val getCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
 
+    // 考试安排获取状态
+    val getExamsStateLiveData = MutableLiveData<SimpleState?>(null)
+
     // 设置当前学期的状态
     val setCurrentTermStateLiveData = MutableLiveData<SimpleState?>(null)
 
     // 设置时间表的状态
     val setTimeTableStateLiveData = MutableLiveData<SimpleState?>(null)
+
+    // 自定义日程获取状态
+    val getCustomScheduleStateLiveData = MutableLiveData<SimpleDataState<List<CustomScheduleEntity>>?>(null)
+    // 自定义日程删除状态
+    val deleteCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
+    // 自定义日程编辑状态
+    val editCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
 
     fun getTermList() = withSimpleDataStateLiveData(getTermListStateLiveData) {
         coursesRepo.getTermListFromNet()
@@ -106,7 +118,10 @@ internal class CalendarViewModel @Inject constructor(
                 getFirstDayWithoutState()
 
                 // 重新获取课程
-                getSchedulesWithoutState()
+                getCoursesWithoutState()
+
+                // 重新获取考试安排
+                getExamsWithoutState()
 
                 setCurrentTermStateLiveData.postValue(SimpleState.Success)
             } catch (e: Exception) {
@@ -117,7 +132,10 @@ internal class CalendarViewModel @Inject constructor(
                     getFirstDayWithoutState()
 
                     // 重新获取课程
-                    getSchedulesWithoutState()
+                    getCoursesWithoutState()
+
+                    // 重新获取考试安排
+                    getExamsWithoutState()
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
@@ -127,6 +145,27 @@ internal class CalendarViewModel @Inject constructor(
         }
     }
 
+    fun getCustomSchedules() = withSimpleDataStateLiveData(getCustomScheduleStateLiveData) {
+        coursesRepo
+            .getCustomSchedules()
+            .first()
+            .sortedBy { it.date.atTime(it.beginTime) }
+    }
+
+    fun deleteCustomSchedule(scheduleEntity: CustomScheduleEntity) = withSimpleStateLiveData(deleteCustomScheduleStateLiveData) {
+        coursesRepo.deleteCustomSchedule(scheduleEntity)
+    }
+
+    fun updateCustomSchedule(
+        scheduleEntity: CustomScheduleEntity,
+        scheduleCreateInfo: ScheduleCreateInfo
+    ) = withSimpleStateLiveData(editCustomScheduleStateLiveData) {
+        coursesRepo.updateCustomSchedule(
+            scheduleCreateInfo.toEntity().copy(
+                id = scheduleEntity.id,
+            )
+        )
+    }
 
     fun setSettingData(settingData: SettingData) = withScope {
         courseScheduleSettings.showDivider.set(settingData.showDivider)
@@ -148,18 +187,25 @@ internal class CalendarViewModel @Inject constructor(
         getFirstDayWithoutState()
     }
 
-    private suspend fun getSchedulesWithoutState() {
+    private suspend fun getCoursesWithoutState() {
         val term = currentTermFlow.first() ?: throw Exception("no term")
-
         val courses = coursesRepo.getCoursesFromNet(term)
         coursesRepo.saveCourses(courses)
+    }
+
+    fun getCourses() = withSimpleStateLiveData(getCoursesStateLiveData) {
+        getCoursesWithoutState()
+    }
+
+    private suspend fun getExamsWithoutState() {
+        val term = currentTermFlow.first() ?: throw Exception("no term")
 
         val exams = coursesRepo.getExamsFromNet(term)
         coursesRepo.saveExams(exams)
     }
 
-    fun getSchedules() = withSimpleStateLiveData(getCoursesStateLiveData) {
-        getSchedulesWithoutState()
+    fun getExams() = withSimpleStateLiveData(getExamsStateLiveData) {
+        getExamsWithoutState()
     }
 
     fun setTimeTable(timeTableStr: String) = withSimpleStateLiveData(setTimeTableStateLiveData) {

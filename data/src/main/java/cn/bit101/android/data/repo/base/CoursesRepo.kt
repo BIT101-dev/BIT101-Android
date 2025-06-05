@@ -1,6 +1,7 @@
 package cn.bit101.android.data.repo.base
 
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.data.database.entity.ExamScheduleEntity
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
@@ -76,4 +77,24 @@ interface CoursesRepo {
      * 更新数据库中某学期的考试安排
      */
     suspend fun saveExams(exams: List<ExamScheduleEntity>)
+
+    /**
+     * 添加自定义日程
+     */
+    suspend fun addCustomSchedule(schedule: CustomScheduleEntity)
+
+    /**
+     * 获取自定义日程
+     */
+    fun getCustomSchedules(): Flow<List<CustomScheduleEntity>>
+
+    /**
+     * 删除自定义日程
+     */
+    suspend fun deleteCustomSchedule(scheduleEntity: CustomScheduleEntity)
+
+    /**
+     * 更新自定义日程
+     */
+    suspend fun updateCustomSchedule(scheduleEntity: CustomScheduleEntity)
 }

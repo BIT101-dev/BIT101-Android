@@ -1,35 +1,17 @@
 package cn.bit101.android.features.setting.page
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,6 +22,9 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.config.setting.base.TimeTable
 import cn.bit101.android.config.setting.base.toTimeTableString
+import cn.bit101.android.data.database.entity.CustomScheduleEntity
+import cn.bit101.android.features.common.component.schedule.AddEditScheduleDialog
+import cn.bit101.android.features.common.component.schedule.CustomScheduleDetailDialog
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.setting.component.SettingItemData
@@ -47,6 +32,7 @@ import cn.bit101.android.features.setting.component.SettingsColumn
 import cn.bit101.android.features.setting.component.SettingsGroup
 import cn.bit101.android.features.setting.viewmodel.CalendarViewModel
 import cn.bit101.android.features.setting.viewmodel.SettingData
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 
@@ -58,11 +44,14 @@ private fun CalendarSettingPageContent(
 
     isGettingFirstDay: Boolean,
     isGettingCourses: Boolean,
+    isGettingExams: Boolean,
 
     onOpenTermListDialog: () -> Unit,
     onGetFirstDay: () -> Unit,
     onGetCourses: () -> Unit,
+    onGetExams: () -> Unit,
     onOpenTimeTable: () -> Unit,
+    onOpenCustomSchedules: () -> Unit,
     onSettingChange: (SettingData) -> Unit,
 ) {
     val dataSettings = listOf(
@@ -88,11 +77,23 @@ private fun CalendarSettingPageContent(
         ),
 
         SettingItemData.Button(
+            enable = !isGettingExams,
+            title = "考试安排数据",
+            subTitle = "点击重新获取当前学期的考试安排",
+            onClick = onGetExams,
+        ),
+
+        SettingItemData.Button(
             title = "时间表",
             subTitle = "每节课的上课和下课时间\n不建议乱改, 很多模块高度依赖此表格",
             onClick = onOpenTimeTable,
-        )
+        ),
 
+        SettingItemData.Button(
+            title = "自定义日程",
+            subTitle = "点击查看所有自定义日程",
+            onClick = onOpenCustomSchedules,
+        ),
     )
 
     val displaySettings = listOf(
@@ -270,6 +271,108 @@ private fun TimeTableDialog(
     )
 }
 
+// 查看所有自定义日程对话框
+// 也包含编辑、删除等子对话框
+@Composable
+private fun CustomScheduleDialog(
+    scheduleList: List<CustomScheduleEntity>,
+    isGettingScheduleList: Boolean,
+
+    onSelect: (CustomScheduleEntity) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        modifier = Modifier.fillMaxSize(0.9f),
+        onDismissRequest = onDismiss,
+        title = { Text(text = "自定义日程列表") },
+        text = {
+            if(isGettingScheduleList) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            } else {
+                val scrollState = rememberScrollState()
+                Column(
+                    Modifier
+                        .fillMaxSize()
+                        .verticalScroll(scrollState)
+                ) {
+                    scheduleList.forEach { schedule ->
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(10.dp, 5.dp)
+                                .clip(MaterialTheme.shapes.medium)
+                                .clickable { onSelect(schedule) },
+                            color = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(15.dp, 15.dp, 5.dp, 15.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                ) {
+                                    Text(
+                                        text = schedule.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                    Text(
+                                        text = schedule.subtitle,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+
+                                Column(
+                                    horizontalAlignment = Alignment.End,
+                                ) {
+                                    Text(
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        text =
+                                        if (schedule.date.year == LocalDate.now().year)
+                                            schedule.date.format(DateTimeFormatter.ofPattern("MM-dd"))
+                                        else
+                                            schedule.date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                    )
+                                    Text(
+                                        style = MaterialTheme.typography.bodySmall,
+                                        text =
+                                        "${
+                                            schedule.beginTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+                                        } ~ ${
+                                            schedule.endTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+                                        }",
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("返回")
+            }
+        },
+    )
+}
+
 @Composable
 internal fun CalendarSettingPage(
     onSnackBar: (String) -> Unit
@@ -285,6 +388,8 @@ internal fun CalendarSettingPage(
 
     val getCoursesState by vm.getCoursesStateLiveData.observeAsState()
 
+    val getExamsState by vm.getExamsStateLiveData.observeAsState()
+
 
     var showTermListDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -297,6 +402,13 @@ internal fun CalendarSettingPage(
     val timeTable by vm.timeTableFlow.collectAsState(initial = emptyList())
 
     val setTimeTableState by vm.setTimeTableStateLiveData.observeAsState()
+
+    var showCustomSchedulesDialog by rememberSaveable { mutableStateOf(false) }
+
+    val getCustomScheduleState by vm.getCustomScheduleStateLiveData.observeAsState()
+    val deleteCustomScheduleState by vm.deleteCustomScheduleStateLiveData.observeAsState()
+    val editCustomScheduleState by vm.editCustomScheduleStateLiveData.observeAsState()
+
 
     DisposableEffect(setCurrentTermState) {
         if(setCurrentTermState is SimpleState.Success) {
@@ -325,6 +437,15 @@ internal fun CalendarSettingPage(
         onDispose { }
     }
 
+    DisposableEffect(getExamsState) {
+        if(getExamsState is SimpleState.Success) {
+            onSnackBar("获取成功")
+        } else if(getExamsState is SimpleState.Fail) {
+            onSnackBar("获取失败")
+        }
+        onDispose { }
+    }
+
     DisposableEffect(setTimeTableState) {
         if(setTimeTableState is SimpleState.Success) {
             onSnackBar("设置成功")
@@ -342,11 +463,14 @@ internal fun CalendarSettingPage(
 
         isGettingFirstDay = getFirstDayState is SimpleState.Loading || setCurrentTermState is SimpleState.Loading,
         isGettingCourses = getCoursesState is SimpleState.Loading || setCurrentTermState is SimpleState.Loading,
+        isGettingExams = getExamsState is SimpleState.Loading || setCurrentTermState is SimpleState.Loading,
 
         onOpenTermListDialog = { showTermListDialog = true },
         onGetFirstDay = vm::getFirstDay,
-        onGetCourses = vm::getSchedules,
+        onGetCourses = vm::getCourses,
+        onGetExams = vm::getExams,
         onOpenTimeTable = { showTimeTableDialog = true },
+        onOpenCustomSchedules = { showCustomSchedulesDialog = true },
         onSettingChange = vm::setSettingData
     )
 
@@ -374,6 +498,72 @@ internal fun CalendarSettingPage(
             errorMessage = if(setTimeTableState is SimpleState.Fail) "格式错误" else "",
             onSetTimeTable = vm::setTimeTable,
             onDismiss = { showTimeTableDialog = false }
+        )
+    }
+
+    if(showCustomSchedulesDialog) {
+        // 当前显示详情的日程, 为 null 则不显示
+        var showDetail by remember { mutableStateOf<CustomScheduleEntity?>(null) }
+        var editNowSchedule by remember { mutableStateOf(false) }   // 是否修改当前显示详情的日程 (这块逻辑小就不单开变量了)
+
+        LaunchedEffect(getCustomScheduleState) {
+            if(getCustomScheduleState is SimpleDataState.Fail || getCustomScheduleState == null) {
+                vm.getCustomSchedules()
+            }
+        }
+
+        LaunchedEffect(deleteCustomScheduleState) {
+            if(deleteCustomScheduleState is SimpleState.Success) {
+                onSnackBar("删除成功OvO")
+                showDetail = null
+                vm.getCustomSchedules()
+            } else if (deleteCustomScheduleState is SimpleState.Fail) {
+                onSnackBar("删除失败Orz")
+            }
+            vm.deleteCustomScheduleStateLiveData.value = null
+        }
+
+        LaunchedEffect(editCustomScheduleState) {
+            if(editCustomScheduleState is SimpleState.Success) {
+                onSnackBar("修改成功OvO")
+                editNowSchedule = false
+                showDetail = null
+                vm.getCustomSchedules()
+            } else if (editCustomScheduleState is SimpleState.Fail) {
+                onSnackBar("修改失败Orz")
+            }
+            vm.editCustomScheduleStateLiveData.value = null
+        }
+
+        if(editNowSchedule) {
+            AddEditScheduleDialog(
+                schedule = showDetail!!,
+                onAddEditSchedule = {
+                    vm.updateCustomSchedule(
+                        scheduleEntity = showDetail!!,
+                        scheduleCreateInfo = it
+                    )
+                },
+                onDismiss = { editNowSchedule = false }
+            )
+        }
+
+        if(showDetail != null) {
+            CustomScheduleDetailDialog(
+                schedule = showDetail!!,
+                onDismiss = { showDetail = null },
+                onEdit = { editNowSchedule = true },
+                onDelete = vm::deleteCustomSchedule
+            )
+        }
+
+        val scheduleList = (getCustomScheduleState as? SimpleDataState.Success)?.data ?: emptyList()
+
+        CustomScheduleDialog(
+            scheduleList = scheduleList,
+            isGettingScheduleList = getCustomScheduleState is SimpleDataState.Loading,
+            onSelect = { showDetail = it },
+            onDismiss = { showCustomSchedulesDialog = false },
         )
     }
 }

@@ -20,9 +20,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material.icons.rounded.Add
-import androidx.compose.material.icons.rounded.Remove
+import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.FloatingActionButton
@@ -71,6 +71,7 @@ internal fun CourseScheduleCalendar(
 
     onConfig: () -> Unit,
     onChangeWeek: (Int) -> Unit,
+    onAddSchedule: () -> Unit,
 ) {
     /**
      * 一天的节数
@@ -82,7 +83,7 @@ internal fun CourseScheduleCalendar(
     // 配色方案, 为支持可变配色方案, 写在 Compose 层 (其实是因为不让写在 ViewModel 层 XP)
     val colorScheme = MaterialTheme.colorScheme
     val scheduleItemColors = rememberSaveable(colorScheme) {
-        listOf(
+        arrayOf(
             // 此处顺序和枚举顺序对应
             // 课程
             ScheduleItemColor(
@@ -101,6 +102,20 @@ internal fun CourseScheduleCalendar(
                 contextColor = mixColor(
                     colorScheme.onSecondaryContainer,
                     colorScheme.onErrorContainer,
+                    0.75f
+                ),
+            ),
+            // 自定义
+            ScheduleItemColor(
+                boarderColor = colorScheme.secondary.copy(alpha = 0.25f),
+                containerColor = mixColor(
+                    colorScheme.secondaryContainer,
+                    colorScheme.primaryContainer,
+                    0.75f
+                ),
+                contextColor = mixColor(
+                    colorScheme.onSecondaryContainer,
+                    colorScheme.onPrimaryContainer,
                     0.75f
                 ),
             ),
@@ -276,7 +291,10 @@ internal fun CourseScheduleCalendar(
                         // 遍历一天的每一节课
                         var i = 0.0f // 节次游标, 精确值
                         schedules.forEach {
-                            if (it.startSection >= i && it.endSection <= courseNumOfDay) {
+                            if (it.startSection >= i
+                                && it.endSection <= courseNumOfDay
+                                && it.endSection > it.startSection + 0.05    // 少数情况下日程会被夹扁 (特别是自定义日程), 此时就干脆不显示了
+                            ) {
                                 if (it.startSection > i) {
                                     Spacer(modifier = Modifier.weight(it.startSection - i))
                                 }
@@ -355,7 +373,7 @@ internal fun CourseScheduleCalendar(
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.Add,
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                     contentDescription = "next week",
                 )
             }
@@ -368,8 +386,21 @@ internal fun CourseScheduleCalendar(
                 elevation = FloatingActionButtonDefaults.elevation(0.dp),
             ) {
                 Icon(
-                    imageVector = Icons.Rounded.Remove,
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
                     contentDescription = "last week",
+                )
+            }
+            FloatingActionButton(
+                modifier = Modifier
+                    .size(fabSize),
+                onClick = onAddSchedule,
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                contentColor = MaterialTheme.colorScheme.primary,
+                elevation = FloatingActionButtonDefaults.elevation(0.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Add,
+                    contentDescription = "add schedule",
                 )
             }
             FloatingActionButton(

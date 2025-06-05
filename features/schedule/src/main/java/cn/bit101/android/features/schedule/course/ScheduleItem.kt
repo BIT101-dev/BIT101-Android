@@ -1,7 +1,5 @@
 package cn.bit101.android.features.schedule.course
 
-import androidx.compose.ui.graphics.Color
-
 /**
  * 显示在日程表上的物体
  * 主要充当排版时的占位符, 便于扩展
@@ -50,5 +48,6 @@ data class ScheduleItem(
 enum class ScheduleColorEnum {
     // 这里的顺序不能乱动, 它们会被用作数组下标
     Course,
-    Exam
+    Exam,
+    Custom,
 }

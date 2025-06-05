@@ -5,9 +5,11 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import cn.bit101.android.data.database.dao.CoursesDao
+import cn.bit101.android.data.database.dao.CustomScheduleDao
 import cn.bit101.android.data.database.dao.DDLScheduleDao
 import cn.bit101.android.data.database.dao.ExamsDao
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
 import cn.bit101.android.data.database.entity.ExamScheduleEntity
 
@@ -21,6 +23,7 @@ import cn.bit101.android.data.database.entity.ExamScheduleEntity
     entities = [
         CourseScheduleEntity::class,
         ExamScheduleEntity::class,
+        CustomScheduleEntity::class,
         DDLScheduleEntity::class,
     ],
     version = 2,
@@ -33,5 +36,6 @@ import cn.bit101.android.data.database.entity.ExamScheduleEntity
 internal abstract class BIT101Database : RoomDatabase() {
     abstract fun coursesDao(): CoursesDao
     abstract fun examsDao(): ExamsDao
+    abstract fun customScheduleDao(): CustomScheduleDao
     abstract fun DDLScheduleDao(): DDLScheduleDao
 }

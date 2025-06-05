@@ -10,33 +10,9 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 /**
- * 将日期、时间转换为 String 以便数据库存储
- */
-internal class DateTimeStringConverter {
-    @TypeConverter
-    fun toLocalDate(str: String?): LocalDate? {
-        return LocalDate.parse(str, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    }
-    @TypeConverter
-    fun fromLocalDate(localDate: LocalDate): String? {
-        return localDate.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-    }
-
-    @TypeConverter
-    fun toLocalTime(str: String?): LocalTime? {
-        return LocalTime.parse(str, DateTimeFormatter.ofPattern("HH:mm:ss"))
-    }
-    @TypeConverter
-    fun fromLocalTime(localTime: LocalTime): String? {
-        return localTime.format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-    }
-}
-
-/**
  * 考试安排
  */
 @Entity(tableName = "exam_schedule")
-@TypeConverters(DateTimeStringConverter::class)
 data class ExamScheduleEntity (
     @PrimaryKey(autoGenerate = true)
     val id: Int,

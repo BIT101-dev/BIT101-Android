@@ -4,6 +4,7 @@ import android.util.Log
 import cn.bit101.android.config.setting.base.CourseScheduleSettings
 import cn.bit101.android.data.database.BIT101Database
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.data.database.entity.ExamScheduleEntity
 import cn.bit101.android.data.database.entity.toEntity
 import cn.bit101.android.data.net.base.APIManager
@@ -83,6 +84,22 @@ internal class DefaultCoursesRepo @Inject constructor(
     ) = database.examsDao().getExamsByTerm(term)
 
     override fun getExamsFromLocal() = database.examsDao().getAllExams()
+
+    override suspend fun addCustomSchedule(
+        schedule: CustomScheduleEntity,
+    ) = withContext(Dispatchers.IO) {
+        database.customScheduleDao().insertSchedule(schedule)
+    }
+
+    override fun getCustomSchedules() = database.customScheduleDao().getAllSchedules()
+
+    override suspend fun deleteCustomSchedule(scheduleEntity: CustomScheduleEntity) = withContext(Dispatchers.IO) {
+        database.customScheduleDao().deleteSchedule(scheduleEntity)
+    }
+
+    override suspend fun updateCustomSchedule(scheduleEntity: CustomScheduleEntity) = withContext(Dispatchers.IO) {
+        database.customScheduleDao().updateSchedule(scheduleEntity)
+    }
 
     override suspend fun getTermListFromNet() = withContext(Dispatchers.IO) {
         api.schoolJxzxehallapp.getAppConfig()

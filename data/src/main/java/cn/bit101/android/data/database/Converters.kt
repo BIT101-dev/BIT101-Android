@@ -1,10 +1,8 @@
 package cn.bit101.android.data.database
 
 import androidx.room.TypeConverter
-import java.time.Instant
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneOffset
+import java.time.*
+import java.time.format.DateTimeFormatter
 
 /**
  * 时间、日期数据格式转换器
@@ -28,5 +26,14 @@ internal class Converters {
     @TypeConverter
     fun toLocalData(value: Long?): LocalDate? {
         return value?.let { LocalDate.ofEpochDay(value) }
+    }
+
+    @TypeConverter
+    fun toLocalTime(value: Long?): LocalTime? {
+        return value?.let { LocalTime.ofNanoOfDay(value) }
+    }
+    @TypeConverter
+    fun fromLocalTime(value: LocalTime?): Long? {
+        return value?.toNanoOfDay()
     }
 }
