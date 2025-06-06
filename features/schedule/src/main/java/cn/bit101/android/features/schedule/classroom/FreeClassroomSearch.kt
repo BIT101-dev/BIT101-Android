@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -296,9 +295,11 @@ internal fun FreeClassroomSearch(
 ) {
     val getBuildingTypeStatus by vm.getBuildingTypeStatusLiveData.observeAsState()
 
-    val allBuildings = (getBuildingTypeStatus as? SimpleDataState.Success)?.data ?: emptyList()
+    val currentBuildings = (getBuildingTypeStatus as? SimpleDataState.Success)?.data ?: emptyList()
 
-    val currentCampus by vm.nowCampusFlow.collectAsState(initial = null)
+    val currentCampusCode by vm.nowCampusFlow.collectAsState(initial = null)
+
+    val currentCampusName by vm.nowCampusNameFlow.collectAsState(initial = null)
 
     val getClassroomStatusMap = vm.getClassroomsStatesMap
 
@@ -314,21 +315,20 @@ internal fun FreeClassroomSearch(
 
     val coroutineScope = rememberCoroutineScope()
 
-    var noExitAnimation by remember { mutableStateOf(false) }
-    // 非常 dirty 的解决方式, 但好歹是做到了在切换校区时不显示动画地自动折叠所有项
-    var lastCampus by rememberSaveable { mutableStateOf(currentCampus) }
-    LaunchedEffect(currentCampus) {
+    // 非常 dirty 的解决方式
+    var lastCampus by rememberSaveable { mutableStateOf(currentCampusCode) }
+    LaunchedEffect(currentCampusCode) {
         // nowCampus 不可能为空, 所以为 null 的情况只能是 initial, 此时不用管
-        if(currentCampus != null && currentCampus != lastCampus) {
+        if(currentCampusCode != null && currentCampusCode != lastCampus) {
             // 否则说明校区发生了切换
-            lastCampus = currentCampus
-            noExitAnimation = true
+            lastCampus = currentCampusCode
+
+            vm.loadBuildingTypes()
 
             vm.clearSelectState()
             listState.scrollToItem(0)
         }
     }
-    SideEffect { noExitAnimation = false }
 
     LaunchedEffect(getBuildingTypeStatus) {
         if (getBuildingTypeStatus is SimpleDataState.Fail) {
@@ -340,6 +340,21 @@ internal fun FreeClassroomSearch(
     LaunchedEffect(getClassroomLastStatus) {
         if (getClassroomLastStatus is SimpleState.Fail) {
             mainController.snackbar("拉取教室信息失败 Orz...")
+        }
+    }
+
+    DisposableEffect(Unit) {
+        if(getBuildingTypeStatus !is SimpleDataState.Success) {
+            vm.loadBuildingTypes()
+        }
+
+        onDispose {
+            if(getBuildingTypeStatus !is SimpleDataState.Success) {
+                vm.getBuildingTypeStatusLiveData.value = null
+            }
+            if(getClassroomLastStatus !is SimpleState.Success) {
+                vm.getClassroomLastStatusLiveData.value = null
+            }
         }
     }
 
@@ -362,82 +377,94 @@ internal fun FreeClassroomSearch(
             if (getBuildingTypeStatus is SimpleDataState.Loading) {
                 item { LoadingTip("正在拉取教学楼列表...") }
             } else {
-                val validBuildings = allBuildings.filter {
-                    // currentCampus 会时不时为 null (实则为 initial), 导致列表滚动位置出现奇怪的偏移
-                    // 所以这里用 lastCampus. 实际上 lastCampus 几乎总等价于当前校区 (变量名起得不好导致的)
-                    lastCampus.orEmpty() == "" || it.campusName == lastCampus
-                }
-
-                itemsIndexed(validBuildings) { index, item ->
-                    val nowExpanded by remember { derivedStateOf { selectedIndices.contains(index) } }
-
-                    BuildingItem(
-                        buildingInfo = item,
-                        expanded = nowExpanded,
-                        onSwitchActive = {
-                            if(!nowExpanded) {
-                                vm.loadClassroomInfos(item.buildingIndex)
-                            }
-
-                            vm.switchSelectState(index)
+                if(currentBuildings.isEmpty()) {
+                    if(!currentCampusName.isNullOrEmpty()) {
+                        item {
+                            Text(
+                                text = "没有获取到${
+                                    if (currentCampusName!!.endsWith("校区"))
+                                        currentCampusName
+                                    else
+                                        "${currentCampusName}校区"
+                                }的教学楼QwQ\n(请尝试在设置中切换校区)",
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(10.dp, 5.dp)
+                                    .clip(MaterialTheme.shapes.medium)
+                                    .background(MaterialTheme.colorScheme.secondaryContainer)
+                                    .padding(10.dp, 5.dp),
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            )
                         }
-                    )
+                    }
+                } else {
+                    itemsIndexed(currentBuildings) { index, item ->
+                        val nowExpanded by remember { derivedStateOf { selectedIndices.contains(index) } }
 
-                    AnimatedVisibility(
-                        visible = nowExpanded,
-                        enter = fadeIn()
-                                + expandVertically(),
-                        exit =
-                        if(noExitAnimation)
-                            ExitTransition.None
-                        else
-                            fadeOut() + shrinkVertically()
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(start = 25.dp)
+                        BuildingItem(
+                            buildingInfo = item,
+                            expanded = nowExpanded,
+                            onSwitchActive = {
+                                if(!nowExpanded) {
+                                    vm.loadClassroomInfos(item.buildingIndex)
+                                }
+
+                                vm.switchSelectState(index)
+                            }
+                        )
+
+                        AnimatedVisibility(
+                            visible = nowExpanded,
+                            enter = fadeIn() + expandVertically(),
+                            exit = fadeOut() + shrinkVertically()
                         ) {
-                            if (getClassroomStatusMap[item.buildingIndex] is SimpleState.Loading) {
-                                LoadingTip("正在获取教室列表...")
-                            } else {
-                                if (currentClassroomData.containsKey(item.buildingIndex)) {
-                                    vm.refreshClassroomInfoIfInvalid(item.buildingIndex)
-                                }
-
-                                val currentClassrooms =
-                                    currentClassroomData[item.buildingIndex]
-                                        .orEmpty()
-                                        .filter {
-                                            !hideBusyClassroom.value || vm.isFreeNow(
-                                                it,
-                                                nowTime,
-                                                freeMinutesThreshold ?: 0
-                                            )
-                                        }
-
-                                if (currentClassrooms.isEmpty()) {
-                                    Text(
-                                        text = "未找到教室 :(",
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(10.dp, 5.dp)
-                                            .clip(MaterialTheme.shapes.medium)
-                                            .background(MaterialTheme.colorScheme.secondaryContainer)
-                                            .padding(10.dp, 5.dp),
-                                        textAlign = TextAlign.Center,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(start = 25.dp)
+                            ) {
+                                if (getClassroomStatusMap[item.buildingIndex] is SimpleState.Loading) {
+                                    LoadingTip("正在获取教室列表...")
                                 } else {
-                                    ClassroomList(
-                                        currentClassrooms = currentClassrooms,
-                                        nowTime = nowTime,
-                                        isFreeNow = { vm.isFreeNow(it, nowTime, freeMinutesThreshold ?: 0) },
-                                    )
+                                    if (currentClassroomData.containsKey(item.buildingIndex)) {
+                                        vm.refreshClassroomInfoIfInvalid(item.buildingIndex)
+                                    }
+
+                                    val currentClassrooms =
+                                        currentClassroomData[item.buildingIndex]
+                                            .orEmpty()
+                                            .filter {
+                                                !hideBusyClassroom.value || vm.isFreeNow(
+                                                    it,
+                                                    nowTime,
+                                                    freeMinutesThreshold ?: 0
+                                                )
+                                            }
+
+                                    if (currentClassrooms.isEmpty()) {
+                                        Text(
+                                            text = "未找到教室 :(",
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(10.dp, 5.dp)
+                                                .clip(MaterialTheme.shapes.medium)
+                                                .background(MaterialTheme.colorScheme.secondaryContainer)
+                                                .padding(10.dp, 5.dp),
+                                            textAlign = TextAlign.Center,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        )
+                                    } else {
+                                        ClassroomList(
+                                            currentClassrooms = currentClassrooms,
+                                            nowTime = nowTime,
+                                            isFreeNow = { vm.isFreeNow(it, nowTime, freeMinutesThreshold ?: 0) },
+                                        )
+                                    }
                                 }
                             }
-                        }
 
+                        }
                     }
                 }
             }

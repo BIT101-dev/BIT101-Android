@@ -3,7 +3,8 @@ package cn.bit101.android.config.setting.base
 import cn.bit101.android.config.common.SettingItem
 
 interface FreeClassroomSettings {
-    val currentCampus: SettingItem<String>
+    val currentCampusDisplayName : SettingItem<String>  // 只影响前端显示
+    val currentCampusCode: SettingItem<String>
 
     val hideBusyClassroom: SettingItem<Boolean>
 

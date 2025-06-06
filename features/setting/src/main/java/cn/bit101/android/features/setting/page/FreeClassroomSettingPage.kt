@@ -26,32 +26,36 @@ import cn.bit101.android.features.setting.component.SettingsColumn
 import cn.bit101.android.features.setting.component.SettingsGroup
 import cn.bit101.android.features.setting.viewmodel.FreeClassroomSettingData
 import cn.bit101.android.features.setting.viewmodel.FreeClassroomViewModel
+import cn.bit101.api.model.common.CampusInfo
 
 @Composable
 internal fun CampusSelectDialog(
-    campusList: List<String>,
-    campusSelect: String,
+    campusList: List<CampusInfo>,
+    campusSelected: CampusInfo,
     loading: Boolean,
 
-    onSetCampus: (String) -> Unit,
+    onSetCampus: (CampusInfo) -> Unit,
     onDismiss: () -> Unit,
 ){
-    val selectedOption = if(campusList.contains(campusSelect)) campusSelect
-    else campusList.firstOrNull() ?: ""
+    val selectedCode =
+        if (campusList.any { it.code == campusSelected.code })
+            campusSelected.code
+        else
+            campusList.firstOrNull()?.code ?: ""
 
     AlertDialog(
         modifier = Modifier.fillMaxHeight(0.9f),
         onDismissRequest = onDismiss,
         title = { Text(text = "切换校区") },
         text = {
-            if(loading){
+            if (loading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
                 }
-            }else{
+            } else {
                 val scrollState = rememberScrollState()
                 Column(
                     Modifier
@@ -65,7 +69,7 @@ internal fun CampusSelectDialog(
                                 .fillMaxWidth()
                                 .clip(MaterialTheme.shapes.medium)
                                 .selectable(
-                                    selected = (campus == selectedOption),
+                                    selected = (campus.code == selectedCode),
                                     onClick = {
                                         onSetCampus(campus)
                                         onDismiss()
@@ -76,11 +80,11 @@ internal fun CampusSelectDialog(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             RadioButton(
-                                selected = (campus == selectedOption),
+                                selected = (campus.code == selectedCode),
                                 onClick = null
                             )
                             Text(
-                                text = campus,
+                                text = campus.displayName,
                                 modifier = Modifier.padding(start = 10.dp),
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -170,7 +174,7 @@ private fun FreeClassroomSettingPageContent(
     val hideSettings = listOf(
         SettingItemData.Button(
             title = "当前校区",
-            text = settingData.currentCampus,
+            text = settingData.currentCampus.displayName,
             onClick = onOpenEditCampusDialog,
         ),
         SettingItemData.Switch(
@@ -221,16 +225,16 @@ internal fun FreeClassroomSettingPage(
 
     if (showCampusSelectDialog) {
         LaunchedEffect(getBuildingTypeStatus){
-            if(getBuildingTypeStatus is SimpleDataState.Fail || getBuildingTypeStatus==null){
-                vm.loadBuildingTypes()
+            if (getBuildingTypeStatus is SimpleDataState.Fail || getBuildingTypeStatus == null) {
+                vm.loadCampusInfos()
             }
         }
 
-        val campusList=(getBuildingTypeStatus as? SimpleDataState.Success)?.data ?: emptyList()
+        val campusList = (getBuildingTypeStatus as? SimpleDataState.Success)?.data ?: emptyList()
 
         CampusSelectDialog(
             campusList = campusList,
-            campusSelect = settingData.currentCampus,
+            campusSelected = settingData.currentCampus,
             loading = getBuildingTypeStatus is SimpleDataState.Loading,
 
             onSetCampus = { campus ->

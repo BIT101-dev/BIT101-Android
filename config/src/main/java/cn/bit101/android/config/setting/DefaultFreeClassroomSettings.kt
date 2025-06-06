@@ -9,7 +9,8 @@ import javax.inject.Inject
 internal class DefaultFreeClassroomSettings @Inject constructor(
     settingDataStore: SettingDataStore
 ) : FreeClassroomSettings{
-    override val currentCampus: SettingItem<String> = settingDataStore.freeClassroomCurrentCampus.toSettingItem()
+    override val currentCampusDisplayName: SettingItem<String> = settingDataStore.freeClassroomCurrentCampusName.toSettingItem()
+    override val currentCampusCode: SettingItem<String> = settingDataStore.freeClassroomCurrentCampusCode.toSettingItem()
 
     override val hideBusyClassroom: SettingItem<Boolean> = settingDataStore.freeClassroomHideBusyClassroom.toSettingItem()
 

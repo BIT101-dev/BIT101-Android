@@ -5,6 +5,7 @@ import cn.bit101.android.config.setting.base.FreeClassroomSettings
 import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.android.data.repo.base.FreeClassroomRepo
 import cn.bit101.api.model.common.BuildingInfo
+import cn.bit101.api.model.common.CampusInfo
 import cn.bit101.api.model.common.ClassroomInfo
 import kotlinx.coroutines.flow.Flow
 import java.io.IOException
@@ -17,11 +18,20 @@ internal class DefaultFreeClassroomRepo @Inject constructor(
 ): FreeClassroomRepo{
     val api = apiManager.api
 
-    override suspend fun getBuildingInfos(campusId: Int?): List<BuildingInfo> {
+    override suspend fun getCampusInfos(): List<CampusInfo> {
         api.schoolJxzxehallapp.getAppConfig()   // 不加这个会出奇怪的错误
         api.schoolJxzxehallapp.switchLang()
 
-        val responseBody = api.schoolJxzxehallapp.getBuildingTypes(campusId).body() ?: throw IOException("get buildingTypes error")
+        val responseBody = api.schoolJxzxehallapp.getCampusInfos().body() ?: throw IOException("get campusInfos error")
+
+        return responseBody.datas.ggzdpx.rows
+    }
+
+    override suspend fun getBuildingInfos(campusCode: String?): List<BuildingInfo> {
+        api.schoolJxzxehallapp.getAppConfig()
+        api.schoolJxzxehallapp.switchLang()
+
+        val responseBody = api.schoolJxzxehallapp.getBuildingTypes(campusCode).body() ?: throw IOException("get buildingTypes error")
 
         return responseBody.datas.cxjxl.rows
     }
@@ -40,5 +50,6 @@ internal class DefaultFreeClassroomRepo @Inject constructor(
         return responseBody.datas.cxkxjasqk.rows
     }
 
-    override fun getCurrentCampus(): Flow<String> = freeClassroomSettings.currentCampus.flow
+    override fun getCurrentCampusName(): Flow<String> = freeClassroomSettings.currentCampusDisplayName.flow
+    override fun getCurrentCampusCode(): Flow<String> = freeClassroomSettings.currentCampusCode.flow
 }

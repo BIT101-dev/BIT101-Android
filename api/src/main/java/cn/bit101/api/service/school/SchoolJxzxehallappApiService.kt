@@ -50,9 +50,16 @@ interface SchoolJxzxehallappApiService : ApiService {
         @Field("requestParamStr") requestParamStr: String,
     ): Response<PostGetWeekAndDateDataModel.Response>
 
+    @GET("/jwapp/sys/kxjasbyMobile/modules/jxllb/ggzdpx.do")
+    suspend fun getCampusInfos(
+        @Query("dicCode") dicCode: Int = 48682,     // 不明来源, 不明意义, 但似乎不会变而且不加不行
+        @Query("SFSY") sfsy: String = "1",          // 同上
+        @Query("order") order: String = "+DM",
+    ): Response<GetCampusNameDataModel.Response>
+
     @GET("/jwapp/sys/kxjasbyMobile/modules/jxllb/cxjxl.do")
     suspend fun getBuildingTypes(
-        @Query("XXXQDM") campusId: Int? = null,     // null 则不添加参数, 此时返回全部教学楼
+        @Query("XXXQDM") campusId: String? = null,     // null 则不添加参数, 此时返回全部教学楼
     ): Response<GetBuildingTypeDataModel.Response>
 
     @FormUrlEncoded

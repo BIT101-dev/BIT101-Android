@@ -65,6 +65,20 @@ class PostGetScheduleDataModel private constructor() {
     )
 }
 
+class GetCampusNameDataModel private constructor() {
+    data class GGZDPX(
+        val rows: List<CampusInfo>
+    )
+
+    data class Datas(
+        val ggzdpx: GGZDPX,
+    )
+
+    data class Response(
+        val datas: Datas
+    )
+}
+
 class GetBuildingTypeDataModel private constructor() {
     data class CXJXL(
         val rows: List<BuildingInfo>,

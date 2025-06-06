@@ -18,6 +18,7 @@ import cn.bit101.api.model.common.BuildingInfo
 import cn.bit101.api.model.common.ClassroomInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -30,7 +31,8 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
     private val settingData: FreeClassroomSettings,
     private val scheduleSettings: CourseScheduleSettings
 ) : ViewModel() {
-    val nowCampusFlow = freeClassroomRepo.getCurrentCampus()
+    val nowCampusFlow = freeClassroomRepo.getCurrentCampusCode()
+    val nowCampusNameFlow = freeClassroomRepo.getCurrentCampusName()
 
     val hideBusyClassroomFlow = settingData.hideBusyClassroom.flow
 
@@ -48,7 +50,12 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
     )
 
     fun loadBuildingTypes() = withSimpleDataStateLiveData(getBuildingTypeStatusLiveData) {
-        freeClassroomRepo.getBuildingInfos()
+        val nowCampusCode = nowCampusFlow.first()
+
+        if(nowCampusCode.isEmpty())
+            freeClassroomRepo.getBuildingInfos()
+        else
+            freeClassroomRepo.getBuildingInfos(nowCampusCode)
     }
 
     val getClassroomsStatesMap = mutableStateMapOf<String,SimpleState>()
@@ -269,9 +276,5 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
     }
     fun clearSelectState() {
         selectedIndices.clear()
-    }
-
-    init {
-        loadBuildingTypes()
     }
 }

@@ -114,8 +114,12 @@ internal class SettingDataStore @Inject constructor(
 
     // 空教室检索设置
     // 当前校区名
-    private val FREE_CLASSROOM_CURRENT_CAMPUS = stringPreferencesKey("free_classroom_campus")
-    val freeClassroomCurrentCampus = PreferencesDataStoreItem(FREE_CLASSROOM_CURRENT_CAMPUS, "", preferences.SETTING_DATASTORE)
+    private val FREE_CLASSROOM_CURRENT_CAMPUS_NAME = stringPreferencesKey("free_classroom_campus_name")
+    val freeClassroomCurrentCampusName = PreferencesDataStoreItem(FREE_CLASSROOM_CURRENT_CAMPUS_NAME, "", preferences.SETTING_DATASTORE)
+
+    // 当前校区代码
+    private val FREE_CLASSROOM_CURRENT_CAMPUS_CODE = stringPreferencesKey("free_classroom_campus_code")
+    val freeClassroomCurrentCampusCode = PreferencesDataStoreItem(FREE_CLASSROOM_CURRENT_CAMPUS_CODE, "", preferences.SETTING_DATASTORE)
 
     // 是否隐藏不空闲的教室
     private val FREE_CLASSROOM_HIDE_BUSY_CLASSROOM = booleanPreferencesKey("free_classroom_hide_busy_classroom")
