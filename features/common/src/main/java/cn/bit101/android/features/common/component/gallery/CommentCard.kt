@@ -119,7 +119,7 @@ private fun CommentCardContent(
                                 Spacer(modifier = Modifier.padding(spacePadding))
                             }
 
-                            val time = DateTimeUtils.formatTime(comment.updateTime)
+                            val time = DateTimeUtils.formatTime(comment.createTime)
                             val diff = if(time == null) "未知"
                             else DateTimeUtils.calculateTimeDiff(time)
 

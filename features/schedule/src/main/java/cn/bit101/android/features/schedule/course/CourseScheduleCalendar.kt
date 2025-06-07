@@ -82,7 +82,7 @@ internal fun CourseScheduleCalendar(
 
     // 配色方案, 为支持可变配色方案, 写在 Compose 层 (其实是因为不让写在 ViewModel 层 XP)
     val colorScheme = MaterialTheme.colorScheme
-    val scheduleItemColors = rememberSaveable(colorScheme) {
+    val scheduleItemColors = remember(colorScheme) {
         arrayOf(
             // 此处顺序和枚举顺序对应
             // 课程
