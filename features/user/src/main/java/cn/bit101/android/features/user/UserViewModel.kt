@@ -3,7 +3,6 @@ package cn.bit101.android.features.user
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.config.setting.base.GallerySettings
 import cn.bit101.android.data.repo.base.PosterRepo
 import cn.bit101.android.data.repo.base.UserRepo
 import cn.bit101.android.features.common.helper.RefreshAndLoadMoreStatesCombinedOne
@@ -21,22 +20,17 @@ import javax.inject.Inject
 internal class UserViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val posterRepo: PosterRepo,
-    gallerySettings: GallerySettings
 ) : ViewModel() {
 
     private val _getUserInfoStateFlow = MutableStateFlow<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
     val getUserInfoStateFlow = _getUserInfoStateFlow
 
-    private val newLoadMode = gallerySettings.hideBotPoster.flow
-
     private val _posterState = object : RefreshAndLoadMoreStatesCombinedOne<Long, GetPostersDataModel.ResponseItem>(viewModelScope) {
-        override fun refresh(data: Long) = refresh(
-            newLoadMode,
-            refresh = { posterRepo.getPostersOfUserByUid(data) },
-            loadMore = { posterRepo.getPostersOfUserByUid(data, it) }
-        )
+        override fun refresh(data: Long) = refresh {
+            posterRepo.getPostersOfUserByUid(data)
+        }
 
-        override fun loadMore(data: Long) = loadMore(newLoadMode) { page ->
+        override fun loadMore(data: Long) = loadMore { page ->
             posterRepo.getPostersOfUserByUid(data, page)
         }
     }

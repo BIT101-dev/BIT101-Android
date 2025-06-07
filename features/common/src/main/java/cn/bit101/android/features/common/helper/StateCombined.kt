@@ -3,7 +3,9 @@ package cn.bit101.android.features.common.helper
 import cn.bit101.api.model.UniqueData
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 
@@ -71,36 +73,18 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
     abstract fun export(): BasicRefreshAndLoadMoreStatesCombinedExportData<T>
 
     protected fun refresh(
-        newLoadMode: Flow<Boolean>,
-        refresh: suspend () -> List<T>,
-        loadMore: suspend (Long) -> List<T> = { refresh() }
+        refresh: suspend () -> List<T>
     ) {
         if(refreshStateFlow.value == SimpleState.Loading) return
         refreshStateFlow.value = SimpleState.Loading
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 pageFlow.value = 0
-
-                if(newLoadMode.first()) {
-                    var posters = refresh()
-
-                    var tryCount = 0
-
-                    while (posters.size < 15 && tryCount < 10) {
-                        tryCount++
-                        pageFlow.value++
-                        posters = posters.plus(loadMore(pageFlow.value.toLong()))
-                    }
-
-                    dataFlow.value = posters.toMutableList().distinctBy { it.id }
-                } else {
-                    val posters = refresh()
-                    dataFlow.value = posters.toMutableList().distinctBy { it.id }
-                    if(posters.isEmpty()) {
-                        pageFlow.value = -1
-                    }
+                val posters = refresh()
+                dataFlow.value = posters.toMutableList().distinctBy { it.id }
+                if(posters.isEmpty()) {
+                    pageFlow.value = -1
                 }
-
                 refreshStateFlow.value = SimpleState.Success
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -110,7 +94,6 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
     }
 
     protected fun loadMore(
-        newLoadMode: Flow<Boolean>,
         loadMore: suspend (Long) -> List<T>
     ) {
         if(loadMoreStateFlow.value == SimpleState.Loading) return
@@ -118,37 +101,15 @@ abstract class BasicRefreshAndLoadMoreStatesCombined <T : UniqueData>(
         viewModelScope.launch(Dispatchers.IO) {
             var page = pageFlow.value
             try {
-                if(newLoadMode.first()) {
-                    var tryCount = 0
-
-                    var posters = listOf<T>()
-
-                    while(page >= 0 && posters.size < 10 && tryCount < 10) {
-                        ++page
-
-                        val newPosters = loadMore(page.toLong())
-
-                        posters = posters.plus(newPosters)
-
-                        tryCount++
-                    }
-
-                    if(posters.isEmpty())
+                if(page >= 0) {
+                    ++page
+                    val posters = loadMore(page.toLong())
+                    if (posters.isEmpty()) {
+                        // 停止继续加载
                         page = -1
-
+                    }
                     val allPosters = dataFlow.value.plus(posters).distinctBy { it.id }
                     dataFlow.value = allPosters
-                } else {
-                    if(page >= 0) {
-                        ++page
-                        val posters = loadMore(page.toLong())
-                        if (posters.isEmpty()) {
-                            // 停止继续加载
-                            page = -1
-                        }
-                        val allPosters = dataFlow.value.plus(posters).distinctBy { it.id }
-                        dataFlow.value = allPosters
-                    }
                 }
                 loadMoreStateFlow.value = SimpleState.Success
             } catch (e: Exception) {

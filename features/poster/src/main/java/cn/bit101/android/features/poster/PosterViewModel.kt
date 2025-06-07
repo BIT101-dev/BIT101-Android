@@ -3,7 +3,6 @@ package cn.bit101.android.features.poster
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import cn.bit101.android.config.setting.base.GallerySettings
 import cn.bit101.android.data.repo.base.PosterRepo
 import cn.bit101.android.data.repo.base.ReactionRepo
 import cn.bit101.android.data.repo.base.UploadRepo
@@ -87,7 +86,6 @@ internal class PosterViewModel @Inject constructor(
     private val posterRepo: PosterRepo,
     private val reactionRepo: ReactionRepo,
     private val uploadRepo: UploadRepo,
-    gallerySettings: GallerySettings,
 ) : ViewModel() {
     private val _getPosterStateFlow = MutableStateFlow<SimpleDataState<GetPosterDataModel.Response>?>(null)
     val getPosterStateFlow = _getPosterStateFlow.asStateFlow()
@@ -99,15 +97,9 @@ internal class PosterViewModel @Inject constructor(
         _commentsOrderFlow.value = order
     }
 
-    private val newLoadMode = gallerySettings.hideBotPoster.flow
-
     private val _commentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-        override fun refresh(data: Long) = refresh(
-            newLoadMode,
-            refresh =  { posterRepo.getCommentsById(data, null, commentsOrderFlow.value.value) },
-            loadMore = { posterRepo.getCommentsById(data, it.toInt(), commentsOrderFlow.value.value) }
-        )
-        override fun loadMore(data: Long) = loadMore(newLoadMode) { posterRepo.getCommentsById(data, it.toInt(), commentsOrderFlow.value.value) }
+        override fun refresh(data: Long) = refresh { posterRepo.getCommentsById(data, null, commentsOrderFlow.value.value) }
+        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsById(data, it.toInt(), commentsOrderFlow.value.value) }
     }
     val commentStateExports = _commentState.export()
 
@@ -119,13 +111,8 @@ internal class PosterViewModel @Inject constructor(
     }
 
     private val _subCommentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-
-        override fun refresh(data: Long) = refresh(
-            newLoadMode,
-            refresh =  { posterRepo.getCommentsOfCommentById(data, null, subCommentsOrderFlow.value.value) },
-            loadMore = { posterRepo.getCommentsOfCommentById(data, it.toInt(), subCommentsOrderFlow.value.value) }
-        )
-        override fun loadMore(data: Long) = loadMore(newLoadMode) { posterRepo.getCommentsOfCommentById(data, it.toInt(), subCommentsOrderFlow.value.value) }
+        override fun refresh(data: Long) = refresh { posterRepo.getCommentsOfCommentById(data, null, subCommentsOrderFlow.value.value) }
+        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsOfCommentById(data, it.toInt(), subCommentsOrderFlow.value.value) }
     }
     val subCommentStateExports = _subCommentState.export()
 
@@ -229,8 +216,8 @@ internal class PosterViewModel @Inject constructor(
         val commentEditData = commentEditDataMap[commentType] ?: CommentEditData.empty()
 
         val images = if(commentEditData.uploadImageData.images.firstOrNull {
-            it.imageData is ImageData.Local && (it.imageData as ImageData.Local).uri == uri
-        } == null) {
+                it.imageData is ImageData.Local && (it.imageData as ImageData.Local).uri == uri
+            } == null) {
             commentEditData.uploadImageData.images.plus(
                 ImageDataWithUploadState(
                     imageData = ImageData.Local(uri),

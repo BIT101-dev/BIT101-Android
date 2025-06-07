@@ -17,7 +17,7 @@ private fun GallerySettingPageContent(
     val hideSettings = listOf(
         SettingItemData.Switch(
             title = "在话廊中隐藏机器人 Poster",
-            subTitle = "搜索栏、关注列表中的不受影响.\n会导致刷新 / 加载变慢",
+            subTitle = "搜索栏、关注列表中的不受影响",
             onClick = { onSettingChange(settingData.copy(hideBotPoster = it)) },
             checked = settingData.hideBotPoster,
         ),

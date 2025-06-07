@@ -19,6 +19,7 @@ interface PostersApiService : ApiService {
         @Query("page") page: Long? = null,
         @Query("search") search: String? = null,
         @Query("uid") uid: Int? = null,
+        @Query("hide_bot") hideBot: Boolean? = null,
     ): Response<GetPostersDataModel.Response>
 
     @GET("/posters/{id}")
