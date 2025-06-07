@@ -138,7 +138,6 @@ private fun CalendarSettingPageContent(
     SettingsColumn {
         SettingsGroup(
             title = "数据设置",
-            subTitle = "如果获取失败可以尝试在账号设置中“检查登录状态”哦",
             items = dataSettings,
         )
         SettingsGroup(

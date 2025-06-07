@@ -150,4 +150,20 @@ internal class DefaultLoginRepo @Inject constructor(
     override suspend fun logout() {
         loginStatus.clear()
     }
+
+    override suspend fun <T> doOperationRequiresLogin(operation: suspend () -> T): T {
+        return try {
+            operation()
+        } catch (e: Exception) {
+            e.printStackTrace()
+
+            val checkLoginSuccess = checkLogin()
+
+            if (checkLoginSuccess) {
+                operation()
+            } else {
+                throw Exception("check login failed")
+            }
+        }
+    }
 }

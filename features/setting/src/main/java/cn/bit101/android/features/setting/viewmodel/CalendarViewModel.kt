@@ -105,7 +105,7 @@ internal class CalendarViewModel @Inject constructor(
     val editCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
 
     fun getTermList() = withSimpleDataStateLiveData(getTermListStateLiveData) {
-        coursesRepo.getTermListFromNet()
+        loginRepo.doOperationRequiresLogin(coursesRepo::getTermListFromNet)
     }
 
     fun setCurrentTerm(term: String) {
@@ -187,7 +187,7 @@ internal class CalendarViewModel @Inject constructor(
     }
 
     fun getFirstDay() = withSimpleStateLiveData(getFirstDayStateLiveData) {
-        getAndAutoCheckLoginRetry(this::getFirstDayWithoutState)
+        loginRepo.doOperationRequiresLogin(this::getFirstDayWithoutState)
     }
 
     private suspend fun getCoursesWithoutState() {
@@ -197,7 +197,7 @@ internal class CalendarViewModel @Inject constructor(
     }
 
     fun getCourses() = withSimpleStateLiveData(getCoursesStateLiveData) {
-        getAndAutoCheckLoginRetry(this::getCoursesWithoutState)
+        loginRepo.doOperationRequiresLogin(this::getCoursesWithoutState)
     }
 
     private suspend fun getExamsWithoutState() {
@@ -211,7 +211,7 @@ internal class CalendarViewModel @Inject constructor(
         // 额外统计这次更新实际更新了几条考试信息 (我是急急国王.jpg)
         val previousExams = coursesRepo.getExamsFromLocal().first()
 
-        getAndAutoCheckLoginRetry(this::getExamsWithoutState)
+        loginRepo.doOperationRequiresLogin(this::getExamsWithoutState)
 
         val nowExams = coursesRepo.getExamsFromLocal().first()
 
@@ -226,23 +226,5 @@ internal class CalendarViewModel @Inject constructor(
 
     fun setTimeTable(timeTableStr: String) = withSimpleStateLiveData(setTimeTableStateLiveData) {
         courseScheduleSettings.timeTable.set(timeTableStr.toTimeTable())
-    }
-
-    // 从网络获取(课程, 考试信息等), 在第一次失败时自动检查登录状态并再次尝试
-    // 检查登录状态失败或第二次获取失败时抛出异常
-    private suspend fun getAndAutoCheckLoginRetry(onGet: suspend () -> Unit) {
-        try {
-            onGet()
-        } catch (e: Exception) {
-            e.printStackTrace()
-
-            val checkLoginSuccess = loginRepo.checkLogin()
-
-            if (checkLoginSuccess) {
-                onGet()
-            } else {
-                throw e
-            }
-        }
     }
 }

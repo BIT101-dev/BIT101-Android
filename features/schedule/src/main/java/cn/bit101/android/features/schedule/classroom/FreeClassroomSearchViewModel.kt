@@ -11,6 +11,7 @@ import cn.bit101.android.config.setting.base.FreeClassroomSettings
 import cn.bit101.android.config.setting.base.TimeTable
 import cn.bit101.android.config.setting.base.TimeTableItem
 import cn.bit101.android.data.repo.base.FreeClassroomRepo
+import cn.bit101.android.data.repo.base.LoginRepo
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withSimpleDataStateLiveData
@@ -28,8 +29,9 @@ import javax.inject.Inject
 @HiltViewModel
 internal class FreeClassroomSearchViewModel @Inject constructor(
     private val freeClassroomRepo: FreeClassroomRepo,
+    private val loginRepo: LoginRepo,
     private val settingData: FreeClassroomSettings,
-    private val scheduleSettings: CourseScheduleSettings
+    private val scheduleSettings: CourseScheduleSettings,
 ) : ViewModel() {
     val nowCampusFlow = freeClassroomRepo.getCurrentCampusCode()
     val nowCampusNameFlow = freeClassroomRepo.getCurrentCampusName()
@@ -49,13 +51,17 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
         val nextFreeTime: LocalTime? = null,    // 只在 busy 时有值, 记录还有多久才会迎来下一个 (长于阈值的) 空闲时间
     )
 
-    fun loadBuildingTypes() = withSimpleDataStateLiveData(getBuildingTypeStatusLiveData) {
+    private suspend fun getBuildingTypesWithoutState(): List<BuildingInfo> {
         val nowCampusCode = nowCampusFlow.first()
 
-        if(nowCampusCode.isEmpty())
+        return if (nowCampusCode.isEmpty())
             freeClassroomRepo.getBuildingInfos()
         else
             freeClassroomRepo.getBuildingInfos(nowCampusCode)
+    }
+
+    fun loadBuildingTypes() = withSimpleDataStateLiveData(getBuildingTypeStatusLiveData) {
+        loginRepo.doOperationRequiresLogin(this::getBuildingTypesWithoutState)
     }
 
     val getClassroomsStatesMap = mutableStateMapOf<String,SimpleState>()
@@ -111,35 +117,33 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
 
         return prettyFreeTime
     }
-    // 获取对应教学楼的全部教室及其空闲情况
-    fun loadClassroomInfos(buildingId:String) = viewModelScope.launch(Dispatchers.IO) {
+    private suspend fun loadClassroomInfosWithoutState(buildingId: String) {
         getClassroomsStatesMap[buildingId] = SimpleState.Loading
         getClassroomLastStatusLiveData.value = SimpleState.Loading
 
-        runCatching{
+        runCatching {
             val allClassrooms: List<ClassroomInfo>
 
             // 从 Web 上拉取下来的值理论上在同一天内都应该相同, 所以缓存失效了也能复用 (不如说本来最需要缓存的就是 Web 请求)
-            if(classroomDataCache.containsKey(buildingId)) {
+            if (classroomDataCache.containsKey(buildingId)) {
                 val cacheValidUntil = classroomDataCache[buildingId]!!.cacheValidUntil
 
-                if(cacheValidUntil < LocalDateTime.now()) {
+                if (cacheValidUntil < LocalDateTime.now()) {
                     // 换日期了就没办法了
-                    if(cacheValidUntil.toLocalDate() != LocalDate.now()) {
+                    if (cacheValidUntil.toLocalDate() != LocalDate.now()) {
                         allClassrooms = freeClassroomRepo.getClassroomInfos(buildingId = buildingId)
                     } else {
                         allClassrooms = classroomDataCache[buildingId]!!.data.map { it.classroom }
                     }
                     classroomDataCache.remove(buildingId)
-                }
-                else {
+                } else {
                     allClassrooms = emptyList()     // 这个情况下用不到 allClassrooms, 随便给个值就行
                 }
             } else {
                 allClassrooms = freeClassroomRepo.getClassroomInfos(buildingId = buildingId)
             }
 
-            if(!classroomDataCache.containsKey(buildingId)) {
+            if (!classroomDataCache.containsKey(buildingId)) {
                 classroomDataMap.remove(buildingId)
 
                 val timeTable = scheduleSettings.timeTable.get()
@@ -171,7 +175,7 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
                     val nextBusyTime: LocalTime
 
                     // 先计算下一个开始不空闲的时间, 为 LocalTime.MIN 说明在计算时就已经不空闲了, 为 LocalTime.MAX 则说明直到今天结束都保持空闲
-                    if(nextClassIndex < timeTable.size) {
+                    if (nextClassIndex < timeTable.size) {
                         val nextBusyTimeIndex = sortedBusyTimes.find { it - 1 >= nextClassIndex }?.minus(1)
 
                         nextBusyTime =
@@ -186,7 +190,7 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
                                     timeTable[nextBusyTimeIndex].startTime
                     } else {
                         nextBusyTime =
-                            if(sortedBusyTimes.isNotEmpty() && timeTable[sortedBusyTimes.last() - 1].endTime >= LocalTime.now())
+                            if (sortedBusyTimes.isNotEmpty() && timeTable[sortedBusyTimes.last() - 1].endTime >= LocalTime.now())
                                 LocalTime.MIN
                             else
                                 LocalTime.MAX
@@ -196,37 +200,38 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
                     // 会考虑阈值
                     var nextFreeTime: LocalTime? = null
 
-                    if(nextBusyTime == LocalTime.MIN) {
+                    if (nextBusyTime == LocalTime.MIN) {
                         var findIndex = 0
-                        val sortedBusyTimeIndices = sortedBusyTimes.map{ it - 1 }
+                        val sortedBusyTimeIndices = sortedBusyTimes.map { it - 1 }
 
-                        while(findIndex < sortedBusyTimeIndices.size - 1) {
+                        while (findIndex < sortedBusyTimeIndices.size - 1) {
                             val nowIndex = sortedBusyTimeIndices[findIndex]
                             val nextIndex = sortedBusyTimeIndices[findIndex + 1]
 
-                            if(timeTable[nowIndex].endTime >= LocalTime.now()
+                            if (timeTable[nowIndex].endTime >= LocalTime.now()
                                 && timeTable[nextIndex].startTime.toSecondOfDay()
                                 - timeTable[nowIndex].endTime.toSecondOfDay()
-                                > settingData.freeMinutesThreshold.get() * 60) {
+                                > settingData.freeMinutesThreshold.get() * 60
+                            ) {
                                 nextFreeTime = timeTable[nowIndex].endTime
                                 break
                             }
                             findIndex++
                         }
                         // 无论如何, 所有课上完后教室一定会空闲下来
-                        if(nextFreeTime == null)
+                        if (nextFreeTime == null)
                             nextFreeTime = timeTable[sortedBusyTimeIndices.last()].endTime
                     }
 
                     ClassroomBusyData(
                         classroom = classroom,
-                        prettyFreeTimes = getPrettyFreeTimeStr(sortedBusyTimes,timeTable.size),
+                        prettyFreeTimes = getPrettyFreeTimeStr(sortedBusyTimes, timeTable.size),
                         nextBusyTime = nextBusyTime,
                         nextFreeTime = nextFreeTime,
                     )
                 }.sortedWith(
                     compareByDescending<ClassroomBusyData> {
-                        if(it.nextBusyTime == LocalTime.MIN)
+                        if (it.nextBusyTime == LocalTime.MIN)
                             -it.nextFreeTime!!.toSecondOfDay()  // 负数既可以反转排序顺序, 也能保证目前空闲的教室一定排在目前不空闲的前面
                         else
                             it.nextBusyTime.toSecondOfDay()
@@ -239,7 +244,7 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
                 )
             }
 
-            if(classroomDataCache[buildingId]!!.data != classroomDataMap[buildingId])
+            if (classroomDataCache[buildingId]!!.data != classroomDataMap[buildingId])
                 classroomDataMap[buildingId] = classroomDataCache[buildingId]!!.data
 
             getClassroomsStatesMap[buildingId] = SimpleState.Success
@@ -250,6 +255,11 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
             getClassroomsStatesMap[buildingId] = SimpleState.Fail
             getClassroomLastStatusLiveData.value = SimpleState.Fail
         }
+    }
+
+    // 获取对应教学楼的全部教室及其空闲情况
+    fun loadClassroomInfos(buildingId: String) = viewModelScope.launch(Dispatchers.IO) {
+        loginRepo.doOperationRequiresLogin { loadClassroomInfosWithoutState(buildingId) }
     }
     fun refreshAllClassroomInfo() {
         classroomDataCache.forEach { classroomDataCache[it.key] = it.value.copy(cacheValidUntil = LocalDateTime.now()) }

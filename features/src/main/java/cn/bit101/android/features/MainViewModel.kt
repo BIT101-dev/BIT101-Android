@@ -15,6 +15,7 @@ import cn.bit101.android.config.setting.base.toPageData
 import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.repo.base.LoginRepo
 import cn.bit101.android.features.common.helper.withScope
+import cn.bit101.android.features.poster.ImageDownloader
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -30,6 +31,9 @@ internal class MainViewModel @Inject constructor(
     val loginStatusFlow = loginStatus.status.flow
     val lastVersionFlow = aboutSettings.lastVersion.flow
     val autoDetectUpgradeFlow = aboutSettings.autoDetectUpgrade.flow
+
+    // 图片保存工具类
+    val imageDownloader = ImageDownloader()
 
     fun logout() = withScope {
         loginRepo.logout()

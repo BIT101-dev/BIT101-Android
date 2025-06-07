@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,11 +13,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import cn.bit101.android.features.common.component.dialog.InputNumberDialog
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.setting.component.SettingItemData
@@ -98,70 +96,6 @@ internal fun CampusSelectDialog(
     )
 }
 
-// 输入数字对话框 (也是从 DDL 那边 copy 来的)
-@Composable
-private fun InputNumberDialog(
-    title: String,
-    text: String,
-    initValue: Int,
-    onChange: (Int) -> Unit,
-    onDismiss: () -> Unit,
-    onSnackBar: (String) -> Unit,
-) {
-    var editValue by remember { mutableStateOf(TextFieldValue(initValue.toString())) }
-    var errorMessage by remember { mutableStateOf("") }
-
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        title = {
-            Text(text = title)
-        },
-        text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                OutlinedTextField(
-                    value = editValue,
-                    onValueChange = { editValue = it },
-                    modifier = Modifier
-                        .fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                )
-                Spacer(modifier = Modifier.height(5.dp))
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    if (editValue.text.toIntOrNull() != null && editValue.text.toInt() >= 0) {
-                        onChange(editValue.text.toInt())
-                        onSnackBar("设置成功OvO")
-                        onDismiss()
-                    } else {
-                        errorMessage = "格式校验失败Orz"
-                    }
-                }
-            ) {
-                Text("确定")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("取消")
-            }
-        }
-    )
-}
-
 @Composable
 private fun FreeClassroomSettingPageContent(
     settingData: FreeClassroomSettingData,
@@ -193,7 +127,6 @@ private fun FreeClassroomSettingPageContent(
     SettingsColumn {
         SettingsGroup(
             title = "空教室查询设置",
-            subTitle = "如果获取失败可以尝试在账号设置中“检查登录状态”哦",
             items = hideSettings
         )
     }

@@ -38,7 +38,6 @@ import cn.bit101.android.features.common.utils.ColorUtils
 import cn.bit101.android.features.index.IndexScreen
 import cn.bit101.android.features.login.LoginOrLogoutScreen
 import cn.bit101.android.features.postedit.PostEditScreen
-import cn.bit101.android.features.poster.ImageDownloader
 import cn.bit101.android.features.poster.PosterScreen
 import cn.bit101.android.features.report.ReportScreen
 import cn.bit101.android.features.setting.SettingScreen
@@ -96,9 +95,6 @@ internal fun MainApp() {
     if (autoDetectUpgrade) {
         UpdateDialog()
     }
-
-    // 图片保存工具类
-    val imageDownloader = remember { ImageDownloader() }
 
     NavHost(
         modifier = Modifier.fillMaxSize(),
@@ -163,7 +159,7 @@ internal fun MainApp() {
         modifier = Modifier.fillMaxSize(),
         state = mainController.imageHostState,
         onDownloadImage = { str: String, callback: () -> Unit ->
-            imageDownloader.downloadAndAddImage(str, ctx, mainController, callback)
+            vm.imageDownloader.downloadAndAddImage(str, ctx, mainController, callback)
         },
     )
 
