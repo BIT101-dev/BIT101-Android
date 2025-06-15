@@ -1,6 +1,5 @@
 package cn.bit101.android.features.common.component
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
@@ -19,7 +18,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import cn.bit101.android.features.common.R
 import cn.bit101.android.features.common.helper.getImageLoader
 import cn.bit101.api.model.common.User
 import coil.compose.AsyncImage
@@ -49,7 +47,6 @@ fun Avatar(
             var modifier = Modifier
                 .size(size)
                 .clip(CircleShape)
-                .background(Color(ctx.getColor(R.color.ic_launcher_background)))
 
             if(onClick != null) {
                 modifier = modifier.pointerInput(Unit) {
