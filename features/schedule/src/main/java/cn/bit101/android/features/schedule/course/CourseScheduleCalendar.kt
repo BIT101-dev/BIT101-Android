@@ -253,7 +253,7 @@ internal fun CourseScheduleCalendar(
                         containerColor =
                             MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0f)
                         columnModifier = columnModifier.background(
-                            MaterialTheme.colorScheme.secondaryContainer.copy(0.25f)
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                         )
                     }
 
