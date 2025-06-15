@@ -15,6 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -404,10 +405,6 @@ internal fun CalendarSettingPage(
 
     var showCustomSchedulesDialog by rememberSaveable { mutableStateOf(false) }
 
-    val getCustomScheduleState by vm.getCustomScheduleStateLiveData.observeAsState()
-    val deleteCustomScheduleState by vm.deleteCustomScheduleStateLiveData.observeAsState()
-    val editCustomScheduleState by vm.editCustomScheduleStateLiveData.observeAsState()
-
 
     DisposableEffect(setCurrentTermState) {
         if(setCurrentTermState is SimpleState.Success) {
@@ -510,6 +507,14 @@ internal fun CalendarSettingPage(
     }
 
     if(showCustomSchedulesDialog) {
+        val getCustomScheduleState by vm.getCustomScheduleStateLiveData.observeAsState()
+        val deleteCustomScheduleState by vm.deleteCustomScheduleStateLiveData.observeAsState()
+        val editCustomScheduleState by vm.editCustomScheduleStateLiveData.observeAsState()
+
+        val addScheduleToSysCalendarState by vm.addScheduleToSysCalendarStateLiveData.observeAsState()
+
+        val context = LocalContext.current
+
         // 当前显示详情的日程, 为 null 则不显示
         var showDetail by remember { mutableStateOf<CustomScheduleEntity?>(null) }
         var editNowSchedule by remember { mutableStateOf(false) }   // 是否修改当前显示详情的日程 (这块逻辑小就不单开变量了)
@@ -543,6 +548,13 @@ internal fun CalendarSettingPage(
             vm.editCustomScheduleStateLiveData.value = null
         }
 
+        LaunchedEffect(addScheduleToSysCalendarState) {
+            if(addScheduleToSysCalendarState == SimpleState.Fail) {
+                onSnackBar("添加失败Orz")
+            }
+            vm.addScheduleToSysCalendarStateLiveData.value = null
+        }
+
         if(editNowSchedule) {
             AddEditScheduleDialog(
                 schedule = showDetail!!,
@@ -561,7 +573,8 @@ internal fun CalendarSettingPage(
                 schedule = showDetail!!,
                 onDismiss = { showDetail = null },
                 onEdit = { editNowSchedule = true },
-                onDelete = vm::deleteCustomSchedule
+                onDelete = vm::deleteCustomSchedule,
+                onAddToCalendar = { vm.addScheduleToSysCalendar(context, it) }
             )
         }
 

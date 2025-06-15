@@ -1,16 +1,12 @@
 package cn.bit101.android.features.common.component.schedule
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.Schedule
-import androidx.compose.material.icons.filled.Today
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,9 +28,12 @@ import java.time.temporal.ChronoUnit
 @Composable
 fun CustomScheduleDetailDialog(
     schedule: CustomScheduleEntity,
+
     onDismiss: () -> Unit,
+
     onEdit: (CustomScheduleEntity) -> Unit,
     onDelete: (CustomScheduleEntity) -> Unit,
+    onAddToCalendar: (CustomScheduleEntity) -> Unit,
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     if (showDeleteDialog)
@@ -83,7 +82,7 @@ fun CustomScheduleDetailDialog(
                         .verticalScroll(scrollState)
                 ) {
                     Item(title = "标题：", content = schedule.title)
-                    Item("副标题：", schedule.subtitle)
+                    Item("副标题 (通常为地点)：", schedule.subtitle)
                     Item("描述：", schedule.description)
                     Item("日期：", schedule.date.toString())
                     Item(
@@ -155,6 +154,31 @@ fun CustomScheduleDetailDialog(
                             }
                         )
                     }
+
+                    AssistChip(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        shape = MaterialTheme.shapes.medium,
+                        border = null,
+                        colors = AssistChipDefaults.assistChipColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(
+                                alpha = 0.5f
+                            )
+                        ),
+                        onClick = { onAddToCalendar(schedule) },
+                        label = {
+                            Text(
+                                "添加到系统日历",
+                                Modifier.padding(vertical = 10.dp)
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Filled.CalendarToday,
+                                contentDescription = "Add to system calendar",
+                                Modifier.size(AssistChipDefaults.IconSize)
+                            )
+                        }
+                    )
                 }
             }
         },
@@ -300,7 +324,7 @@ fun AddEditScheduleDialog(
                         onValueChange = { titleEdit = it }
                     )
                     EditItem(
-                        text = "副标题",
+                        text = "副标题 (通常为地点)",
                         value = subtitleEdit,
                         onValueChange = { subtitleEdit = it }
                     )

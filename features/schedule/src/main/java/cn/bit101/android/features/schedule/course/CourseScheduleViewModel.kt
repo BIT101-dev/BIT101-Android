@@ -1,5 +1,6 @@
 package cn.bit101.android.features.schedule.course
 
+import android.content.Context
 import androidx.core.math.MathUtils.clamp
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,7 @@ import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withScope
 import cn.bit101.android.features.common.helper.withSimpleStateLiveData
 import cn.bit101.android.features.common.utils.ScheduleCreateInfo
+import cn.bit101.android.features.common.utils.addScheduleToSystemCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -89,6 +91,8 @@ internal class CourseScheduleViewModel @Inject constructor(
     val addEditCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
     val deleteCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
 
+    val addScheduleToSysCalendarStateLiveData = MutableLiveData<SimpleState?>(null)
+
     // 课程详情数据，如果为 null 就不显示该对话框
     val _showCourseDetail = MutableStateFlow<CourseScheduleEntity?>(null)
     val showCourseDetail = _showCourseDetail.asStateFlow()
@@ -117,6 +121,14 @@ internal class CourseScheduleViewModel @Inject constructor(
     }
     fun deleteCustomSchedule(scheduleEntity: CustomScheduleEntity) = withSimpleStateLiveData(deleteCustomScheduleStateLiveData) {
         coursesRepo.deleteCustomSchedule(scheduleEntity)
+    }
+
+    // 把日程添加到系统日历中
+    fun addScheduleToSysCalendar(context: Context, schedule: CustomScheduleEntity) = withSimpleStateLiveData(addScheduleToSysCalendarStateLiveData) {
+        addScheduleToSystemCalendar(context, schedule)
+    }
+    fun addScheduleToSysCalendar(context: Context, schedule: ExamScheduleEntity) = withSimpleStateLiveData(addScheduleToSysCalendarStateLiveData) {
+        addScheduleToSystemCalendar(context, schedule)
     }
 
     init {

@@ -12,6 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.data.database.entity.CustomScheduleEntity
@@ -96,6 +97,10 @@ internal fun CourseSchedule(
 
     val deleteCustomScheduleState by vm.deleteCustomScheduleStateLiveData.observeAsState()
 
+    val addScheduleToSysCalendarState by vm.addScheduleToSysCalendarStateLiveData.observeAsState()
+
+    val context = LocalContext.current
+
     // 强制刷新的状态在这里管理
     DisposableEffect(forceRefreshCoursesState) {
         if(forceRefreshCoursesState == SimpleState.Success) {
@@ -136,12 +141,20 @@ internal fun CourseSchedule(
         }
     }
 
+    LaunchedEffect(addScheduleToSysCalendarState) {
+        if(addScheduleToSysCalendarState == SimpleState.Fail) {
+            mainController.snackbar("添加失败Orz")
+        }
+        vm.addScheduleToSysCalendarStateLiveData.value = null
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             vm.forceRefreshCoursesStateLiveData.value = null
             vm.refreshCoursesStateLiveData.value = null
             vm.addEditCustomScheduleStateLiveData.value = null
             vm.deleteCustomScheduleStateLiveData.value = null
+            vm.addScheduleToSysCalendarStateLiveData.value = null
         }
     }
 
@@ -223,7 +236,8 @@ internal fun CourseSchedule(
                     // 考试详情对话框
                     ExamScheduleDetailDialog(
                         exam = showExamDetailState!!,
-                        onDismiss = vm::clearShowExamDetail
+                        onDismiss = vm::clearShowExamDetail,
+                        onAddToCalendar = { vm.addScheduleToSysCalendar(context, it) }
                     )
                 }
                 if(showCustomScheduleState != null) {
@@ -236,6 +250,7 @@ internal fun CourseSchedule(
                             showAddScheduleDialog = true
                         },
                         onDelete = vm::deleteCustomSchedule,
+                        onAddToCalendar = { vm.addScheduleToSysCalendar(context, it) }
                     )
                 }
                 if(showAddScheduleDialog) {

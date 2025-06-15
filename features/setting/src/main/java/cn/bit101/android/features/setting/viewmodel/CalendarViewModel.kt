@@ -1,5 +1,6 @@
 package cn.bit101.android.features.setting.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,6 +15,7 @@ import cn.bit101.android.features.common.helper.withScope
 import cn.bit101.android.features.common.helper.withSimpleDataStateLiveData
 import cn.bit101.android.features.common.helper.withSimpleStateLiveData
 import cn.bit101.android.features.common.utils.ScheduleCreateInfo
+import cn.bit101.android.features.common.utils.addScheduleToSystemCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
@@ -104,6 +106,8 @@ internal class CalendarViewModel @Inject constructor(
     // 自定义日程编辑状态
     val editCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
 
+    val addScheduleToSysCalendarStateLiveData = MutableLiveData<SimpleState?>(null)
+
     fun getTermList() = withSimpleDataStateLiveData(getTermListStateLiveData) {
         loginRepo.doOperationRequiresLogin(coursesRepo::getTermListFromNet)
     }
@@ -157,6 +161,10 @@ internal class CalendarViewModel @Inject constructor(
 
     fun deleteCustomSchedule(scheduleEntity: CustomScheduleEntity) = withSimpleStateLiveData(deleteCustomScheduleStateLiveData) {
         coursesRepo.deleteCustomSchedule(scheduleEntity)
+    }
+
+    fun addScheduleToSysCalendar(context: Context, schedule: CustomScheduleEntity) = withSimpleStateLiveData(addScheduleToSysCalendarStateLiveData) {
+        addScheduleToSystemCalendar(context, schedule)
     }
 
     fun updateCustomSchedule(
