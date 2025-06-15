@@ -32,54 +32,13 @@ import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.nav.NavDest
+import cn.bit101.android.features.common.utils.getCurrentTime
 import cn.bit101.android.features.common.utils.mixColor
 import cn.bit101.android.features.schedule.classroom.FreeClassroomSearchViewModel.ClassroomBusyData
 import cn.bit101.api.model.common.BuildingInfo
 import kotlinx.coroutines.launch
 import java.time.LocalTime
 import java.util.*
-
-@Composable
-internal fun GetCurrentTime(): LocalTime {
-    var currentTime by remember { mutableStateOf(LocalTime.now()) }
-
-    val lifecycleOwner = LocalLifecycleOwner.current
-
-    class UpdateTask : TimerTask() {
-        override fun run() {
-            currentTime = LocalTime.now()
-        }
-    }
-
-    DisposableEffect(lifecycleOwner) {
-        val timer = Timer()
-
-        var updateTime = UpdateTask()
-
-        val observer = LifecycleEventObserver { _, event ->
-            when (event) {
-                Lifecycle.Event.ON_RESUME -> {
-                    updateTime.run()    // 考虑到用户可能离开了比较久 (或者出去改时间了 XD), 直接更新一次
-                    timer.schedule(updateTime, (60 - LocalTime.now().second)  * 1000L, 60 * 1000)
-                }
-                Lifecycle.Event.ON_PAUSE -> {
-                    updateTime.cancel()
-                    updateTime = UpdateTask()   // 取消后的任务不能再次使用, 只能新建一次
-                }
-                else -> {}
-            }
-        }
-
-        lifecycleOwner.lifecycle.addObserver(observer)
-
-        onDispose {
-            timer.cancel()
-            lifecycleOwner.lifecycle.removeObserver(observer)
-        }
-    }
-
-    return currentTime
-}
 
 private fun formatSecondToString(second: Int): String {
     return when (second) {
@@ -371,7 +330,7 @@ internal fun FreeClassroomSearch(
             .fillMaxSize(),
         contentAlignment = Alignment.BottomEnd
     ) {
-        val nowTime = GetCurrentTime()
+        val nowTime = getCurrentTime()
 
         LazyColumn(modifier = Modifier.fillMaxSize(), state = listState) {
             if (getBuildingTypeStatus is SimpleDataState.Loading) {

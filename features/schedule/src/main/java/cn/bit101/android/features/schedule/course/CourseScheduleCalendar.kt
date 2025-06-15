@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.config.setting.base.TimeTable
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
+import cn.bit101.android.features.common.utils.getCurrentTime
 import cn.bit101.android.features.common.utils.mixColor
 import java.time.LocalDate
 import java.time.LocalTime
@@ -147,7 +148,7 @@ internal fun CourseScheduleCalendar(
         }
 
         if (settingData.showCurrentTime) {
-            val now = LocalTime.now()
+            val now = getCurrentTime()
             var topWeight = 0f // 上半部分所占比重
             timeTable.forEach {
                 if (it.startTime.isBefore(now)) {
