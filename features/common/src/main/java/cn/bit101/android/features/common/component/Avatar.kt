@@ -20,6 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.R
+import cn.bit101.android.features.common.helper.getImageLoader
 import cn.bit101.api.model.common.User
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -64,6 +65,7 @@ fun Avatar(
                     .crossfade(true)
                     .dispatcher(Dispatchers.IO)
                     .build(),
+                imageLoader = getImageLoader(ctx),
                 placeholder = painter,
                 error = painter,
                 fallback = painter,

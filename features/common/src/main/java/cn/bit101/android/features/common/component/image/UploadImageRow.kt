@@ -26,6 +26,7 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.helper.ImageDataWithUploadState
 import cn.bit101.android.features.common.helper.UploadImageState
+import cn.bit101.android.features.common.helper.getImageLoader
 import cn.bit101.android.features.common.helper.lowModel
 import cn.bit101.api.model.common.Image
 import coil.compose.AsyncImage
@@ -93,6 +94,7 @@ fun UploadImageRow(
                         .crossfade(true)
                         .dispatcher(Dispatchers.IO)
                         .build(),
+                    imageLoader = getImageLoader(LocalContext.current),
                     contentDescription = "image",
                 )
 

@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntSize
@@ -48,6 +49,7 @@ import cn.bit101.android.features.common.component.ImageWrapper
 import cn.bit101.android.features.common.component.bottomsheet.CoreBottomSheetDefaults
 import cn.bit101.android.features.common.component.bottomsheet.DialogSheetBehaviors
 import cn.bit101.android.features.common.helper.ImageData
+import cn.bit101.android.features.common.helper.getImageLoader
 import cn.bit101.android.features.common.helper.highModel
 import coil.compose.AsyncImagePainter
 import coil.compose.SubcomposeAsyncImage
@@ -186,6 +188,7 @@ internal fun ImageWithModel(
                 size = it.size
             },
         model = image.image.highModel(),
+        imageLoader = getImageLoader(LocalContext.current),
         contentDescription = "image",
         contentScale = ContentScale.FillBounds,
         filterQuality = FilterQuality.High,
