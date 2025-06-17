@@ -37,7 +37,7 @@ internal class ReportViewModel @Inject constructor(
     }
 
     fun loadReportType() = withSimpleDataStateFlow(_loadReportTypeStateFlow) {
-        manageRepo.getReportTypes()
+        manageRepo.getReportTypes().ifEmpty { throw Exception("Empty reportTypes!") }
     }
 
 

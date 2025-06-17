@@ -270,7 +270,9 @@ fun ReportScreen(
     val text by vm.textFlow.collectAsState()
 
     LaunchedEffect(loadReportTypeState) {
-        if(loadReportTypeState == null) {
+        if(loadReportTypeState is SimpleDataState.Fail) {
+            mainController.snackbar("出错了Orz")
+        } else if(loadReportTypeState == null) {
             vm.loadReportType()
         }
     }
