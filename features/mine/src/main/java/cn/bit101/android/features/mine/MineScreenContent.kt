@@ -219,6 +219,7 @@ internal fun MineScreenContent(
                         onShowImage = { mainController.showImage(it) },
                         onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
                         onOpenUser = { mainController.navigate(NavDest.User(it)) },
+                        onOpenUrlInternal = { mainController.navigate(NavDest.Web(it)) },
                     )
                     Spacer(modifier = Modifier.padding(12.dp))
                 }

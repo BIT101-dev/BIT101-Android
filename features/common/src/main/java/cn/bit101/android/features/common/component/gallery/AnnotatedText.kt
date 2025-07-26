@@ -72,6 +72,7 @@ fun AnnotatedText(
     maxLines: Int = Int.MAX_VALUE,
     onOpenPoster: (Long) -> Unit = {},
     onOpenUser: (Long) -> Unit = {},
+    onOpenUrlInternal: (String) -> Unit,
 ) {
     val ctx = LocalContext.current
 
@@ -141,6 +142,8 @@ fun AnnotatedText(
                                 if (url.startsWith("https://bit101.cn/gallery/")) {
                                     val id = url.substring("https://bit101.cn/gallery/".length).toLongOrNull()
                                     if (id != null) { onOpenPoster(id) }
+                                } else if(url.startsWith("https://bit101.cn")) {
+                                    onOpenUrlInternal(url)  // fixed #18
                                 } else {
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
                                     ctx.startActivity(intent)

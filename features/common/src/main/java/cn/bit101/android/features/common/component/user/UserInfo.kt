@@ -368,6 +368,7 @@ fun UserInfoContent(
     onCopyText: (String) -> Unit,
     onOpenPoster: (Long) -> Unit,
     onOpenUser: (Long) -> Unit,
+    onOpenUrlInternal: (String) -> Unit,
 ) {
     val button: @Composable RowScope.() -> Unit =  {
         val text = if (!data.following) "关注" else if (data.follower) "已互粉" else "已关注"
@@ -408,6 +409,7 @@ fun UserInfoContent(
                 ),
                 onOpenPoster = onOpenPoster,
                 onOpenUser = onOpenUser,
+                onOpenUrlInternal = onOpenUrlInternal,
             )
         }
         Spacer(modifier = Modifier.padding(4.dp))
@@ -431,6 +433,7 @@ fun UserInfoContentForMe(
     onCopyText: (String) -> Unit,
     onOpenPoster: (Long) -> Unit,
     onOpenUser: (Long) -> Unit,
+    onOpenUrlInternal: (String) -> Unit,
 ) {
     val button: @Composable RowScope.() -> Unit =  {
         val text = "我的主页"
@@ -464,7 +467,8 @@ fun UserInfoContentForMe(
                         color = MaterialTheme.colorScheme.onBackground
                     ),
                     onOpenPoster = onOpenPoster,
-                    onOpenUser = onOpenUser
+                    onOpenUser = onOpenUser,
+                    onOpenUrlInternal = onOpenUrlInternal,
                 )
             }
             Spacer(modifier = Modifier.padding(4.dp))
@@ -484,7 +488,8 @@ fun UserInfoContentForMe(
                     color = MaterialTheme.colorScheme.onBackground
                 ),
                 onOpenPoster = onOpenPoster,
-                onOpenUser = onOpenUser
+                onOpenUser = onOpenUser,
+                onOpenUrlInternal = onOpenUrlInternal,
             )
             Spacer(modifier = Modifier.padding(4.dp))
             FollowInfoWithPoster(

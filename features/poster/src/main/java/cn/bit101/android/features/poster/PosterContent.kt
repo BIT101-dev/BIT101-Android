@@ -375,7 +375,8 @@ internal fun PosterContent(
                                         color = MaterialTheme.colorScheme.onSurface
                                     ),
                                     onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
-                                    onOpenUser = { mainController.navigate(NavDest.User(it)) }
+                                    onOpenUser = { mainController.navigate(NavDest.User(it)) },
+                                    onOpenUrlInternal = { mainController.navigate(NavDest.Web(it)) },
                                 )
                             }
                         }
