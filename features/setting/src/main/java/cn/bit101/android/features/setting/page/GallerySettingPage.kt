@@ -69,6 +69,12 @@ private fun GallerySettingPageContent(
             onClick = { onHideAnonymousChange() },
             checked = hideAnonymous,
         ),
+        SettingItemData.Switch(
+            title = "严格模式",
+            subTitle = "额外隐藏其他人对被隐藏用户的回复.",
+            onClick = { onSettingChange(settingData.copy(hideStrictMode = it)) },
+            checked = settingData.hideStrictMode,
+        ),
     )
 
     val viewSettings = listOf(

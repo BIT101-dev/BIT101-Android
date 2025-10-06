@@ -28,7 +28,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -90,9 +90,15 @@ internal class PosterViewModel @Inject constructor(
     private val uploadRepo: UploadRepo,
     gallerySettings: GallerySettings,
 ) : ViewModel() {
-    private fun filterer(comment: Comment, hideUids: Set<Int>): Boolean =
-        !hideUids.contains(comment.user.id)
-    private val filterDataFlow = gallerySettings.hideUserUids.flow.map { it.toSet() }
+    private fun filterer(comment: Comment, uidStrictPair: Pair<Set<Int>, Boolean>): Boolean =
+        !uidStrictPair.first.contains(comment.user.id)
+                && (!uidStrictPair.second || !uidStrictPair.first.contains(comment.replyUser.id))
+    private val filterDataFlow = combine(
+        gallerySettings.hideUserUids.flow,
+        gallerySettings.hideStrictMode.flow
+    ) { uids, strictMode ->
+        Pair(uids.toSet(), strictMode)
+    }
 
     private val _getPosterStateFlow = MutableStateFlow<SimpleDataState<GetPosterDataModel.Response>?>(null)
     val getPosterStateFlow = _getPosterStateFlow.asStateFlow()
@@ -104,7 +110,7 @@ internal class PosterViewModel @Inject constructor(
         _commentsOrderFlow.value = order
     }
 
-    private val _commentState = FilteredStateOne<Long, Comment, Set<Int>>(
+    private val _commentState = FilteredStateOne<Long, Comment, Pair<Set<Int>, Boolean>>(
         viewModelScope,
         { data, page -> posterRepo.getCommentsById(data, page?.toInt(), commentsOrderFlow.value.value) },
         ::filterer,
@@ -120,7 +126,7 @@ internal class PosterViewModel @Inject constructor(
         _subCommentsOrderFlow.value = order
     }
 
-    private val _subCommentState = FilteredStateOne<Long, Comment, Set<Int>>(
+    private val _subCommentState = FilteredStateOne<Long, Comment, Pair<Set<Int>, Boolean>>(
         viewModelScope,
         { data, page -> posterRepo.getCommentsOfCommentById(data, page?.toInt(), subCommentsOrderFlow.value.value) },
         ::filterer,
