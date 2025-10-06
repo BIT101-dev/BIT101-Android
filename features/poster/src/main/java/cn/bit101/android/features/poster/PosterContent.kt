@@ -419,10 +419,10 @@ internal fun PosterContent(
                     CustomDivider()
                 }
 
-                if(data.commentNum > 0) {
+                if(comments.isNotEmpty()) {
                     item(8) {
                         CommentHeader(
-                            title = "评论 ${data.commentNum}",
+                            title = "评论 ${comments.size}",
                             commentsOrder = commentsOrder,
                             onSelectCommentsOrder = onSelectCommentsOrder,
                         )

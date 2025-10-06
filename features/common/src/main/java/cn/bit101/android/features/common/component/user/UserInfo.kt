@@ -16,19 +16,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.DateRange
+import androidx.compose.material.icons.rounded.NoAccounts
 import androidx.compose.material.icons.rounded.Numbers
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -362,8 +359,11 @@ private fun UserInfoButton(
 @Composable
 fun UserInfoContent(
     data: GetUserInfoDataModel.Response,
+    hide: Boolean,
     following: Boolean,
+    hiding: Boolean,
     onFollow: () -> Unit,
+    onHide: () -> Unit,
     onShowImage: (Image) -> Unit,
     onCopyText: (String) -> Unit,
     onOpenPoster: (Long) -> Unit,
@@ -371,25 +371,43 @@ fun UserInfoContent(
     onOpenUrlInternal: (String) -> Unit,
 ) {
     val button: @Composable RowScope.() -> Unit =  {
-        val text = if (!data.following) "关注" else if (data.follower) "已互粉" else "已关注"
+        val followText = if (!data.following) "关注" else if (data.follower) "已互粉" else "已关注"
+        val hideText = if (!hide) "隐藏" else "已隐藏"
 
-        val icon = if (!data.following) Icons.Rounded.Add
+        val followIcon = if (!data.following) Icons.Rounded.Add
         else Icons.Rounded.Close
+        val hideIcon = if (!hide) Icons.Rounded.AccountCircle
+        else Icons.Rounded.NoAccounts
 
-        val color = if(!data.following) MaterialTheme.colorScheme.primary
+        val followColor = if(!data.following) MaterialTheme.colorScheme.primary
         else MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-        
-        val containerColor = if(!data.following) MaterialTheme.colorScheme.primaryContainer
+        val hideColor = if(!hide) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+
+        val followContainerColor = if(!data.following) MaterialTheme.colorScheme.primaryContainer
+        else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+        val hideContainerColor = if(!hide) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
 
-        UserInfoButton(
-            text = text,
-            icon = icon,
-            enable = !following,
-            color = color,
-            containerColor = containerColor,
-            onClick = onFollow
-        )
+        Row {
+            UserInfoButton(
+                text = followText,
+                icon = followIcon,
+                enable = !following,
+                color = followColor,
+                containerColor = followContainerColor,
+                onClick = onFollow
+            )
+            Spacer(modifier = Modifier.padding(3.dp))
+            UserInfoButton(
+                text = hideText,
+                icon = hideIcon,
+                enable = !hiding,
+                color = hideColor,
+                containerColor = hideContainerColor,
+                onClick = onHide
+            )
+        }
     }
 
 

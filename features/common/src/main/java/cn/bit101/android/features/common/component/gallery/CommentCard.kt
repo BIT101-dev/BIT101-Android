@@ -238,7 +238,7 @@ fun CommentCard(
                 onMoreAction = { onMoreAction(comment) },
             )
 
-            if (comment.sub.isNotEmpty() && showSubComments) {
+            if (comment.commentNum != 0 && showSubComments) {
                 Spacer(modifier = Modifier.padding(2.dp))
                 Column(Modifier.padding(start = 45.dp + 12.dp + 2.dp)) {
                     comment.sub.forEach { sub ->

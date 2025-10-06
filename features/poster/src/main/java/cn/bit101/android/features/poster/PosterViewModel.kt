@@ -3,12 +3,13 @@ package cn.bit101.android.features.poster
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cn.bit101.android.config.setting.base.GallerySettings
 import cn.bit101.android.data.repo.base.PosterRepo
 import cn.bit101.android.data.repo.base.ReactionRepo
 import cn.bit101.android.data.repo.base.UploadRepo
+import cn.bit101.android.features.common.helper.FilteredStateOne
 import cn.bit101.android.features.common.helper.ImageData
 import cn.bit101.android.features.common.helper.ImageDataWithUploadState
-import cn.bit101.android.features.common.helper.RefreshAndLoadMoreStatesCombinedOne
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.UploadImageData
@@ -27,6 +28,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -86,7 +88,12 @@ internal class PosterViewModel @Inject constructor(
     private val posterRepo: PosterRepo,
     private val reactionRepo: ReactionRepo,
     private val uploadRepo: UploadRepo,
+    gallerySettings: GallerySettings,
 ) : ViewModel() {
+    private fun filterer(comment: Comment, hideUids: Set<Int>): Boolean =
+        !hideUids.contains(comment.user.id)
+    private val filterDataFlow = gallerySettings.hideUserUids.flow.map { it.toSet() }
+
     private val _getPosterStateFlow = MutableStateFlow<SimpleDataState<GetPosterDataModel.Response>?>(null)
     val getPosterStateFlow = _getPosterStateFlow.asStateFlow()
 
@@ -97,10 +104,13 @@ internal class PosterViewModel @Inject constructor(
         _commentsOrderFlow.value = order
     }
 
-    private val _commentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-        override fun refresh(data: Long) = refresh { posterRepo.getCommentsById(data, null, commentsOrderFlow.value.value) }
-        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsById(data, it.toInt(), commentsOrderFlow.value.value) }
-    }
+    private val _commentState = FilteredStateOne<Long, Comment, Set<Int>>(
+        viewModelScope,
+        { data, page -> posterRepo.getCommentsById(data, page?.toInt(), commentsOrderFlow.value.value) },
+        ::filterer,
+        filterDataFlow,
+        { comment, hideUids -> comment.copy(sub = ArrayList(comment.sub.filter { filterer(it, hideUids) })) }
+    )
     val commentStateExports = _commentState.export()
 
     private val _subCommentsOrderFlow = MutableStateFlow(CommentsOrdersWithName.NEW)
@@ -110,10 +120,12 @@ internal class PosterViewModel @Inject constructor(
         _subCommentsOrderFlow.value = order
     }
 
-    private val _subCommentState = object : RefreshAndLoadMoreStatesCombinedOne<Long, Comment>(viewModelScope) {
-        override fun refresh(data: Long) = refresh { posterRepo.getCommentsOfCommentById(data, null, subCommentsOrderFlow.value.value) }
-        override fun loadMore(data: Long) = loadMore { posterRepo.getCommentsOfCommentById(data, it.toInt(), subCommentsOrderFlow.value.value) }
-    }
+    private val _subCommentState = FilteredStateOne<Long, Comment, Set<Int>>(
+        viewModelScope,
+        { data, page -> posterRepo.getCommentsOfCommentById(data, page?.toInt(), subCommentsOrderFlow.value.value) },
+        ::filterer,
+        filterDataFlow
+    )
     val subCommentStateExports = _subCommentState.export()
 
     private val _commentEditDataMapFlow = MutableStateFlow<Map<CommentType, CommentEditData?>>(emptyMap())

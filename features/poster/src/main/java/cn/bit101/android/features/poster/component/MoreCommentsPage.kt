@@ -127,7 +127,7 @@ private fun MoreCommentsContent(
 
             item("reply header") {
                 CommentHeader(
-                    title = "回复 ${comment.commentNum}",
+                    title = "回复 ${subComments.size}",
                     commentsOrder = subCommentsOrder,
                     onSelectCommentsOrder = onSelectCommentsOrder,
                 )

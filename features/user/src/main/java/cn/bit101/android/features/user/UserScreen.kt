@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,11 +23,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.features.common.MainController
@@ -54,10 +54,13 @@ private fun UserScreenContent(
     data: GetUserInfoDataModel.Response,
     posters: List<GetPostersDataModel.ResponseItem>,
     state: LoadableLazyColumnWithoutPullRequestState,
+    hide: Boolean,
     loadState: SimpleState?,
     followState: SimpleState?,
+    hideState: SimpleState?,
 
     onFollow: () -> Unit,
+    onHide: () -> Unit,
     onOpenPoster: (Long) -> Unit,
     onOpenImages: (Int, List<Image>) -> Unit,
 ) {
@@ -77,8 +80,11 @@ private fun UserScreenContent(
                         Spacer(modifier = Modifier.padding(4.dp))
                         UserInfoContent(
                             data = data,
+                            hide = hide,
                             following = followState is SimpleState.Loading,
+                            hiding = hideState is SimpleState.Loading,
                             onFollow = onFollow,
+                            onHide = onHide,
                             onCopyText = { mainController.copyText(cm, it) },
                             onShowImage = { mainController.showImage(it) },
                             onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
@@ -162,6 +168,9 @@ fun UserScreen(
     val postersLoadMoreState by vm.posterStateExport.loadMoreStateFlow.collectAsState()
 
     val followState by vm.followStateMutableLiveData.observeAsState()
+    val hideState by vm.hideStateMutableLiveData.observeAsState()
+
+    val hideUserUids by vm.hideUserUidsFlow.collectAsState(initial = emptyList())
 
     val uploadUserInfoState by vm.uploadUserInfoStateLiveData.observeAsState()
 
@@ -194,6 +203,7 @@ fun UserScreen(
     } else if(getUserInfoState is SimpleDataState.Loading || postersRefreshState is SimpleState.Loading) {
         CircularProgressIndicatorForPage()
     } else if(getUserInfoState is SimpleDataState.Success && postersRefreshState is SimpleState.Success) {
+        val hidden by remember(hideUserUids) { mutableStateOf(hideUserUids.contains(id.toInt())) }
         UserScreenContent(
             mainController = mainController,
             data = (getUserInfoState as SimpleDataState.Success).data,
@@ -202,12 +212,15 @@ fun UserScreen(
             state = rememberLoadableLazyColumnWithoutPullRequestState(
                 onLoadMore = { vm.posterStateExport.loadMore(id) }
             ),
+            hide = hidden,
             loadState = postersLoadMoreState,
             followState = followState,
+            hideState = hideState,
 
             onOpenImages = mainController::showImages,
             onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
             onFollow = { vm.follow(id) },
+            onHide = { vm.hide(id) },
         )
     } else {
         ErrorMessageForPage()

@@ -3,6 +3,7 @@ package cn.bit101.android.features.user
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cn.bit101.android.config.setting.base.GallerySettings
 import cn.bit101.android.data.repo.base.PosterRepo
 import cn.bit101.android.data.repo.base.UserRepo
 import cn.bit101.android.features.common.helper.RefreshAndLoadMoreStatesCombinedOne
@@ -20,6 +21,7 @@ import javax.inject.Inject
 internal class UserViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val posterRepo: PosterRepo,
+    private val gallerySettings: GallerySettings,
 ) : ViewModel() {
 
     private val _getUserInfoStateFlow = MutableStateFlow<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
@@ -37,6 +39,9 @@ internal class UserViewModel @Inject constructor(
     val posterStateExport = _posterState.export()
 
     val followStateMutableLiveData = MutableLiveData<SimpleState?>(null)
+    val hideStateMutableLiveData = MutableLiveData<SimpleState?>(null)
+
+    val hideUserUidsFlow = gallerySettings.hideUserUids.flow
 
     val uploadUserInfoStateLiveData = MutableLiveData<SimpleState?>(null)
 
@@ -53,5 +58,17 @@ internal class UserViewModel @Inject constructor(
             following = res.following,
             followingNum = res.followingNum
         ))
+    }
+
+    fun hide(uid: Long) = withSimpleStateLiveData(hideStateMutableLiveData) {
+        val uids = gallerySettings.hideUserUids.get()
+        val uidIndex = uids.indexOf(uid.toInt())
+        if(uidIndex == -1) {
+            gallerySettings.hideUserUids.set(uids.plus(uid.toInt()))
+        } else {
+            val mutableUids = uids.toMutableList()
+            mutableUids.removeAt(uidIndex)
+            gallerySettings.hideUserUids.set(mutableUids)
+        }
     }
 }

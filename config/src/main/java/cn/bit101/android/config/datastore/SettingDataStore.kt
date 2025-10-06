@@ -138,6 +138,10 @@ internal class SettingDataStore @Inject constructor(
     private val GALLERY_HIDE_BOT_POSTER_IN_SEARCH = booleanPreferencesKey("gallery_hide_bot_poster_in_search")
     val galleryHideBotPosterInSearch = PreferencesDataStoreItem(GALLERY_HIDE_BOT_POSTER_IN_SEARCH, false, preferences.SETTING_DATASTORE)
 
+    // 要隐藏的用户 UID 列表
+    private val GALLERY_HIDE_USER_UID_LIST = stringPreferencesKey("gallery_hide_user_uid_list")
+    val galleryHideUserUidList = PreferencesDataStoreItem(GALLERY_HIDE_USER_UID_LIST, "", preferences.SETTING_DATASTORE)
+
     // 是否允许横向滚动
     private val GALLERY_ALLOW_HORIZONAL_SCROLL = booleanPreferencesKey("gallery_allow_horizonal_scroll")
     val galleryAllowHorizonalScroll = PreferencesDataStoreItem(GALLERY_ALLOW_HORIZONAL_SCROLL, false, preferences.SETTING_DATASTORE)

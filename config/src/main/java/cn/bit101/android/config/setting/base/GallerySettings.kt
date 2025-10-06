@@ -6,5 +6,7 @@ interface GallerySettings {
     val hideBotPoster: SettingItem<Boolean>
     val hideBotPosterInSearch: SettingItem<Boolean>
 
+    val hideUserUids: SettingItem<List<Int>>
+
     val allowHorizontalScroll: SettingItem<Boolean>
 }

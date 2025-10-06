@@ -103,7 +103,7 @@ fun SettingScreen(
                 title = "话廊设置",
                 navController = navController,
             ) {
-                GallerySettingPage()
+                GallerySettingPage(onSnackBar = onSnackBar)
             }
         }
 
