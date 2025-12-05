@@ -442,6 +442,7 @@ fun AddEditScheduleDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
         confirmButton = {
             TextButton(
+                enabled = endTime.value != null,
                 onClick = {
                     onAddEditSchedule(
                         ScheduleCreateInfo(
