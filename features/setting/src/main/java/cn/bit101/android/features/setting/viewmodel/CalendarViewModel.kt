@@ -119,18 +119,20 @@ internal class CalendarViewModel @Inject constructor(
             val oldTerm = currentTermFlow.first() ?: ""
 
             try {
-                courseScheduleSettings.term.set(term)
+                loginRepo.doOperationRequiresLogin {
+                    courseScheduleSettings.term.set(term)
 
-                // 重新获取第一天
-                getFirstDayWithoutState()
+                    // 重新获取第一天
+                    getFirstDayWithoutState()
 
-                // 重新获取课程
-                getCoursesWithoutState()
+                    // 重新获取课程
+                    getCoursesWithoutState()
 
-                // 重新获取考试安排
-                getExamsWithoutState()
+                    // 重新获取考试安排
+                    getExamsWithoutState()
 
-                setCurrentTermStateLiveData.postValue(SimpleState.Success)
+                    setCurrentTermStateLiveData.postValue(SimpleState.Success)
+                }
             } catch (e: Exception) {
                 try {
                     courseScheduleSettings.term.set(oldTerm)

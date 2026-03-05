@@ -4,8 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
@@ -16,7 +14,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -153,67 +150,29 @@ private fun CalendarSettingPageContent(
 @Composable
 private fun TermListDialog(
     term: String,
-    termList: List<String>,
-    isGettingTermList: Boolean,
 
     onChangeTerm: (String) -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val selectedOption = if(termList.contains(term)) term
-    else termList.firstOrNull() ?: ""
+    var termEdit by rememberSaveable { mutableStateOf(term) }
 
     AlertDialog(
         modifier = Modifier.fillMaxHeight(0.9f),
         onDismissRequest = onDismiss,
         title = { Text(text = "切换学期") },
         text = {
-            if(isGettingTermList || termList.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                val scrollState = rememberScrollState()
-                Column(
-                    Modifier
-                        .fillMaxSize()
-                        .selectableGroup()
-                        .verticalScroll(scrollState)
-                ) {
-                    termList.forEach { text ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(MaterialTheme.shapes.medium)
-                                .selectable(
-                                    selected = (text == selectedOption),
-                                    onClick = {
-                                        onChangeTerm(text)
-                                        onDismiss()
-                                    },
-                                    role = Role.RadioButton
-                                )
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            RadioButton(
-                                selected = (text == selectedOption),
-                                onClick = null
-                            )
-                            Text(
-                                text = text,
-                                modifier = Modifier.padding(start = 10.dp),
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
-                }
+            TextField(
+                value = termEdit,
+                onValueChange = { termEdit = it },
+            )
+        },
+        confirmButton = {
+            TextButton(
+                onClick = { onChangeTerm(termEdit) }
+            ) {
+                Text("确定")
             }
         },
-        confirmButton = {},
     )
 }
 
@@ -480,19 +439,12 @@ internal fun CalendarSettingPage(
     )
 
     if(showTermListDialog) {
-        LaunchedEffect(getTermListState) {
-            if(getTermListState is SimpleDataState.Fail || getTermListState == null) {
-                vm.getTermList()
-            }
-        }
-
-        val termList = (getTermListState as? SimpleDataState.Success)?.data ?: emptyList()
-
         TermListDialog(
             term = currentTerm ?: "",
-            termList = termList,
-            isGettingTermList = getTermListState is SimpleDataState.Loading,
-            onChangeTerm = vm::setCurrentTerm,
+            onChangeTerm = {
+                vm.setCurrentTerm(it)
+                showTermListDialog = false
+            },
             onDismiss = { showTermListDialog = false }
         )
     }
