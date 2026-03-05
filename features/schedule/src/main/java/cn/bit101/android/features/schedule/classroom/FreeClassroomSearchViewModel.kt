@@ -267,7 +267,8 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
         tempKeys.forEach {loadClassroomInfos(it)}
     }
     fun refreshClassroomInfoIfInvalid(buildingId:String) {
-        if(classroomDataCache[buildingId]!!.cacheValidUntil < LocalDateTime.now())
+        val cacheValidUntil = classroomDataCache[buildingId]?.cacheValidUntil
+        if(cacheValidUntil == null || cacheValidUntil < LocalDateTime.now())
             loadClassroomInfos(buildingId)
     }
 
