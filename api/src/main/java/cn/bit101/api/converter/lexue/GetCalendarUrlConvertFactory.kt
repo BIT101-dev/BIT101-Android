@@ -19,7 +19,7 @@ internal class GetCalendarUrlConvertFactory(
         if(type != GetCalendarUrlDataModel.Response::class.java) return null
 
         return Converter<ResponseBody?, GetCalendarUrlDataModel.Response> {
-            val html = it.string()
+            val html = requireNotNull(it).string()
 
             val doc = Jsoup.parse(html)
             // 通过class查找日历订阅链接

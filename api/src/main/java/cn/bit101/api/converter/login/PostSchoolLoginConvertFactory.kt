@@ -18,7 +18,7 @@ internal class PostSchoolLoginConvertFactory(
         if(type != PostSchoolLoginDataModel.Response::class.java) return null
 
         return Converter<ResponseBody?, PostSchoolLoginDataModel.Response> {
-            val html = it.string()
+            val html = requireNotNull(it).string()
 
             val success = html.indexOf("用户名密码") == -1
 

@@ -18,7 +18,7 @@ internal class GetIndexConvertFactory(
         if(type != GetLexueIndexDataModel.Response::class.java) return null
 
         return Converter<ResponseBody?, GetLexueIndexDataModel.Response> {
-            val html = it.string()
+            val html = requireNotNull(it).string()
             val sesskey = Regex("[\"|']sesskey[\"|']:[\"|']([^\"|']+?)[\"|']").find(html)?.groupValues?.get(1)
 
             GetLexueIndexDataModel.Response(
