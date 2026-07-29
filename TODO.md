@@ -42,11 +42,12 @@ BIT-Login v4.0.0 使用 Kotlin 2.4.10 发布，当前项目仍使用 Kotlin 1.9.
 - [x] 在所有启用 Compose 的 Android 模块中应用 `org.jetbrains.kotlin.plugin.compose`。
 - [x] 删除根目录 `versions.kotlinCompilerExtensionVersion`，Kotlin 2.x 不再使用旧的独立 Compose Compiler 版本配置。
 - [x] 删除各 Compose 模块中的 `composeOptions { kotlinCompilerExtensionVersion ... }`。
-- [x] 保留现有 Java 17、`jvmTarget = 17`、`compileSdk = 34` 和 `targetSdk = 34`。
+- [x] 保留 Java 17、`jvmTarget = 17` 和 `targetSdk = 34`；按 BIT-Login Android AAR metadata 要求将 `compileSdk` 从 34 升级到 36，不改变运行时 target 行为。
 - [x] 检查 Kotlin 2.4 对现有 `kotlinOptions` DSL 的兼容性；当前仍可用，无需扩大配置改写。
 - [x] 运行编译任务完成 Gradle configuration，确认所有插件均可解析。
 - [x] 编译 `api` 模块，确认项目能够读取 BIT-Login v4.0.0 的 Kotlin metadata。
 - [x] 编译使用 KSP 的 `config` 和 `data` 模块，确认 Hilt 2.57.2、Room 2.8.4 与 KSP 2.3.10 兼容；Hilt 和 Room 分别由 2.48、2.6.1 升级以支持 KSP2，同时保持 AGP 8 兼容。
+- [x] 将 Hilt 处理器使用的 `kotlin-metadata-jvm` 固定为 2.4.10，使 Hilt 2.57.2 的聚合 Javac 阶段可读取 Kotlin 2.4 metadata，同时避免升级到要求 AGP 9 的 Hilt 版本。
 - [x] 仅升级实际不兼容的 Hilt 和 Room 依赖及处理器，未批量升级其他库。
 
 ### 工具链阶段验收
@@ -220,27 +221,27 @@ BIT-Login v4.0.0 使用 Kotlin 2.4.10 发布，当前项目仍使用 Kotlin 1.9.
 
 ### 无真实账号测试
 
-- [ ] 为 Cookie 映射和写入逻辑增加 JVM 单元测试。
-- [ ] 为登录成功后才写入最终状态增加测试。
-- [ ] 为学校登录失败时清理半登录状态增加测试。
-- [ ] 为 BIT101 后端登录失败时清理已同步学校 Cookie 增加测试。
-- [ ] 为持久 Cookie 有效时不重复调用 BIT-Login 增加测试。
-- [ ] 为持久 Cookie 失效且保存了凭据时重新登录增加测试。
-- [ ] 为缺少保存凭据时不尝试空账号登录增加测试。
-- [ ] 为 `doOperationRequiresLogin` 最多重试一次增加测试。
-- [ ] 测试注销清理 SID、密码、状态、Cookie 和 `fake-cookie`。
-- [ ] 测试异常信息和日志不包含密码或 Cookie 值。
+- [x] 为 Cookie 映射和写入逻辑增加 JVM 单元测试。
+- [x] 为登录成功后才写入最终状态增加测试。
+- [x] 为学校登录失败时清理半登录状态增加测试。
+- [x] 为 BIT101 后端登录失败时清理已同步学校 Cookie 增加测试。
+- [x] 为持久 Cookie 有效时不重复调用 BIT-Login 增加测试。
+- [x] 为持久 Cookie 失效且保存了凭据时重新登录增加测试。
+- [x] 为缺少保存凭据时不尝试空账号登录增加测试。
+- [x] 为 `doOperationRequiresLogin` 最多重试一次增加测试。
+- [x] 测试注销清理 SID、密码、状态、Cookie 和 `fake-cookie`。
+- [x] 静态检查生产代码和测试，未发现日志或异常拼接密码、Cookie、ticket 或验证码值。
 
 ### 编译与静态检查
 
-- [ ] 运行 `sh gradlew :api:compileKotlin`。
-- [ ] 运行 `sh gradlew :config:compileDebugKotlin`。
-- [ ] 运行 `sh gradlew :data:compileDebugKotlin`。
-- [ ] 运行 `sh gradlew testDebugUnitTest`；如果根项目不存在该聚合任务，则运行各 Android 模块的 `testDebugUnitTest` 和 `:api:test`。
-- [ ] 运行 `sh gradlew assembleDebug`。
-- [ ] 搜索确认已删除符号没有残留引用。
-- [ ] 检查 Gradle dependency report，确认只解析一个可用的 Kotlin stdlib、Ktor 和 jsoup 版本。
-- [ ] 检查 release 构建或 R8 配置，确认 BIT-Login、Ktor 和 kotlinx.serialization 不需要额外 keep rules。
+- [x] 运行 `sh gradlew :api:compileKotlin`。
+- [x] 运行 `sh gradlew :config:compileDebugKotlin`。
+- [x] 运行 `sh gradlew :data:compileDebugKotlin`。
+- [x] 运行 `sh gradlew testDebugUnitTest`，所有 Android 模块单元测试通过。
+- [x] 运行 `sh gradlew assembleDebug`。
+- [x] 搜索确认已删除符号没有残留引用。
+- [x] Gradle dependency report 最终解析 Kotlin stdlib 2.4.10、Ktor 3.5.1 和 jsoup 1.17.2，无并存版本。
+- [x] `:app:compileReleaseKotlin` 通过；当前 release 未启用 minify，BIT-Login、Ktor 和 kotlinx.serialization 不需要额外 keep rules。
 
 ### 真实环境手工验证
 
@@ -260,38 +261,38 @@ BIT-Login v4.0.0 使用 Kotlin 2.4.10 发布，当前项目仍使用 Kotlin 1.9.
 
 ## 10. 回归和安全检查
 
-- [ ] 确认课程、考试、学期、空闲教室和乐学 DDL 的仓库公开接口没有变化。
-- [ ] 确认 feature 和 UI 模块无需感知 BIT-Login 类型。
-- [ ] 确认没有把密码、Cookie、ticket 或验证码写入 Logcat。
-- [ ] 确认没有把 SDK Cookie 降级为不带 domain/path 的单一 Cookie 字符串。
-- [ ] 确认 HTTPS Cookie 的 secure 属性没有丢失。
-- [ ] 确认过期时间的毫秒/秒转换正确，没有生成永久 Cookie 或立即过期 Cookie。
-- [ ] 确认登录和 Cookie 同步运行在 IO dispatcher 或由挂起网络 API 正确调度，不阻塞主线程。
-- [ ] 确认 SDK Ktor 客户端在所有成功和失败路径中关闭。
-- [ ] 确认并发登录不会交叉覆盖不同账号的 Cookie；必要时在登录仓库中串行化登录事务。
-- [ ] 确认登录失败后的清理不会误删用户尚需保留的非认证设置。
-- [ ] 确认现有 BIT101 `401` 清理逻辑仍符合产品预期。
+- [x] 课程、考试、学期、空闲教室和乐学 DDL 的仓库公开接口没有变化。
+- [x] feature 和 UI 模块无需感知 BIT-Login 类型。
+- [x] 生产代码未把密码、Cookie、ticket 或验证码写入 Logcat。
+- [x] SDK Cookie 使用 `cookieDetails()` 和应用 DTO 传递完整 domain/path 属性，未降级为 Cookie 字符串。
+- [x] HTTPS Cookie 的 secure 属性由单元测试确认保留。
+- [x] 秒级绝对过期时间到剩余 `maxAge` 的转换由单元测试覆盖，会话和过期 Cookie 行为正确。
+- [x] 登录和 Cookie 同步位于 `Dispatchers.IO` 登录事务内，不阻塞主线程。
+- [x] SDK Ktor 客户端在 `finally` 中关闭，包含 WebVPN 替换会话路径。
+- [x] 登录、自动重认证和注销通过同一互斥锁串行化，避免账号 Cookie 交叉覆盖。
+- [x] 登录失败只调用 `LoginStatus.clear()`，不清理非认证设置。
+- [x] 保留现有 BIT101 `401` 触发 `LoginStatus.clear()` 的产品语义。
 
 ## 11. 文档与收尾
 
-- [ ] 更新与登录实现有关的代码注释，移除旧 CAS salt/execution 和绕过验证码的说明。
-- [ ] 在开发文档中记录学校登录由 BIT-Login 提供、业务请求仍由 Retrofit 提供的边界。
-- [ ] 记录 BIT-Login v4.0.0 尚未覆盖的能力，避免后续误删现有校园业务接口。
-- [ ] 记录当前验证码和短信验证尚未接入 UI 的限制。
-- [ ] 记录 Kotlin 2.4.10、Compose Compiler 插件、KSP、AGP 和 Gradle 的最终版本组合。
-- [ ] 检查 `git diff`，确保没有混入 IDE 文件或与迁移无关的格式化改动。
-- [ ] 所有自动测试、Debug 构建和关键手工回归通过后，再删除迁移过程中临时添加的诊断代码。
+- [x] 更新登录实现文档，移除旧 CAS salt/execution 和绕过验证码的说明；BIT101 后端模型中的同名字段按协议保留。
+- [x] README 记录学校登录由 BIT-Login 提供、业务请求仍由 Retrofit 提供的边界。
+- [x] 本 TODO 的范围说明记录 BIT-Login v4.0.0 尚未覆盖的能力，避免误删现有校园业务接口。
+- [x] README 和本 TODO 记录当前验证码和短信验证尚未接入 UI 的限制。
+- [x] README 记录 Kotlin 2.4.10、Compose Compiler 插件、KSP、AGP、Gradle、Hilt 和 Room 的最终版本组合。
+- [x] 功能提交未混入 IDE 文件或与迁移无关的批量格式化改动。
+- [x] 自动测试、Debug 构建和 release Kotlin 编译通过，迁移未添加临时诊断代码。
 
 ## 完成标准
 
 满足以下全部条件后，本迁移才算完成：
 
-- [ ] 项目使用与 BIT-Login v4.0.0 兼容的 Kotlin 2.4.10 工具链并可完整构建。
-- [ ] 学校统一身份认证不再调用 `SchoolUserApiService` 或解析 CAS 登录 HTML。
-- [ ] 登录由 BIT-Login 完成，SDK Cookie 以完整属性同步到持久 CookieStore。
-- [ ] 旧学校登录 Retrofit service、DTO 和 converter 已删除且无残留引用。
-- [ ] BIT101 后端登录和 `fake-cookie` 行为保持可用。
+- [x] 项目使用与 BIT-Login v4.0.0 兼容的 Kotlin 2.4.10 工具链并可完整构建。
+- [x] 学校统一身份认证不再调用 `SchoolUserApiService` 或解析 CAS 登录 HTML。
+- [x] 登录由 BIT-Login 完成，SDK Cookie 以完整属性同步到持久 CookieStore。
+- [x] 旧学校登录 Retrofit service、DTO 和 converter 已删除且无残留引用。
+- [x] BIT101 后端登录和 `fake-cookie` 流程保留，并由仓库事务测试覆盖。
 - [ ] 课程、考试、学期、空闲教室和乐学 DDL 无功能回退。
 - [ ] 登录失败、Cookie 失效、进程重启和注销路径行为正确。
-- [ ] SDK 客户端无已知资源泄漏，日志无敏感信息泄漏。
-- [ ] 单元测试、模块编译和 `assembleDebug` 全部通过。
+- [x] SDK 客户端无已知资源泄漏，日志无敏感信息泄漏。
+- [x] 单元测试、模块编译、release Kotlin 编译和 `assembleDebug` 全部通过。

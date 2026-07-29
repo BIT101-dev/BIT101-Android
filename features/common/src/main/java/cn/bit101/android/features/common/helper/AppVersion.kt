@@ -20,7 +20,7 @@ fun getAppVersion(context: Context): AppVersion {
         packageManager.getPackageInfo(packageName, 0)
     }
     return AppVersion(
-        versionName = packageInfo.versionName,
+        versionName = packageInfo.versionName.orEmpty(),
         versionNumber = PackageInfoCompat.getLongVersionCode(packageInfo),
     )
 }

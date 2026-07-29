@@ -70,11 +70,13 @@
 
 #### 统一身份认证流程
 
-首先访问登录页面，获取头中的`Set-Cookie`、页面中`id`分别为`pwdEncryptSalt`和`execution`的`input`的标签的`value`（注意页面中可能有多个相同`id`的，需要的这俩被包裹在`id`为`pwdFromId`的`form`中），几次密码错误后需要获取验证码，获取验证码和登录时使用同一个`Cookie`即可。
+学校统一身份认证由`BIT-Login v4.0.0`负责，包括服务回调以及校园网或`WebVPN`环境识别。登录成功后，应用会把 SDK 会话中的完整`Cookie`属性同步到持久`CookieStore`，随后关闭 SDK 的 Ktor 客户端。
 
-然后在前端将明文密码和`pwdEncryptSalt`传入`EncryptPassword.js`计算出加密后的密码，再将`Cookie`、加密后的密码、`execution`、验证码（如果需要的话）通过`POST`发送到登陆页面，然后会经历一大堆乱七八糟的`302`重定向，注意这一大堆重定向过程中需要一直携带`Cookie`。
+课程、考试、学期、空闲教室和乐学日历等业务请求仍由现有`Retrofit`服务负责，并通过同一个持久`CookieStore`保持学校会话。`BIT101`后端的登录和`fake-cookie`协议保持不变，相关密码加密仍由`AESUtils`完成。
 
-具体逻辑见 `AESUtils`
+当前登录界面尚未接入图形验证码和短信验证码交互；SDK 遇到这些流程时会通过现有错误通路向上报告，不会静默视为登录成功。
+
+当前构建工具链为 Kotlin 2.4.10、Compose Compiler Kotlin 插件 2.4.10、KSP 2.3.10、AGP 8.13.2、Gradle 8.13、Hilt 2.57.2 和 Room 2.8.4。BIT-Login 的 Android 依赖要求`compileSdk 36`，应用仍保持`targetSdk 34`。
 
 ### 密码管理
 
