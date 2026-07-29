@@ -15,11 +15,10 @@ internal class DefaultDDLScheduleRepo @Inject constructor(
     private val apiManager: APIManager,
 ) : DDLScheduleRepo {
 
-    private val api = apiManager.api
-
     override suspend fun getCalendarUrl(): String? {
         val url = try {
             withContext(Dispatchers.IO) {
+                val api = apiManager.api
                 val getResponse = api.schoolLexue.get()
                 val sesskey = getResponse.body()?.sesskey ?: throw Exception("get sesskey error")
 
@@ -37,6 +36,7 @@ internal class DefaultDDLScheduleRepo @Inject constructor(
     override suspend fun getCalendarFromNet(
         url: String
     ) = withContext(Dispatchers.IO) {
+        val api = apiManager.api
         val response = api.schoolLexue.getCalendar(url)
         response.body()?.calenders ?: throw Exception("get calendar error")
     }

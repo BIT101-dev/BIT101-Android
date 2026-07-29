@@ -7,5 +7,4 @@ data class ApiUrlOption(
     val jwcUrl: String,
     val jxzxehallappUrl: String,
     val lexueUrl: String,
-    val schoolLoginUrl: String,
 )

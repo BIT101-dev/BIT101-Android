@@ -21,6 +21,11 @@ interface LoginStatus {
     val status: SettingItem<Boolean>
 
     /**
+     * 学校会话是否使用 WebVPN
+     */
+    val webVpn: SettingItem<Boolean>
+
+    /**
      * Cookie管理器
      */
     val cookieManager: CookieManager

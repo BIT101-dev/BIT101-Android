@@ -60,12 +60,6 @@ object Bit101ApiFactory {
                 .baseUrl(urls.jxzxehallappUrl)
                 .build(),
 
-            schoolLoginRetrofit = Retrofit.Builder()
-                .client(option.schoolClient)
-                .addConverterFactory(converterFactory)
-                .baseUrl(urls.schoolLoginUrl)
-                .build(),
-
             lexueRetrofit = Retrofit.Builder()
                 .client(option.schoolClient)
                 .addConverterFactory(converterFactory)

@@ -24,6 +24,9 @@ internal class UserDataStore @Inject constructor(
     private val LOGIN_STATUS = booleanPreferencesKey("login_status")
     val loginStatus = PreferencesDataStoreItem(LOGIN_STATUS, false, preferences.SETTING_DATASTORE)
 
+    private val LOGIN_WEB_VPN = booleanPreferencesKey("login_web_vpn")
+    val loginWebVpn = PreferencesDataStoreItem(LOGIN_WEB_VPN, false, preferences.SETTING_DATASTORE)
+
     // 下面都是加密存储
     // 登陆学号
     private val LOGIN_SID = "login_sid"
