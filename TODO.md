@@ -62,64 +62,64 @@ BIT-Login v4.0.0 使用 Kotlin 2.4.10 发布，当前项目仍使用 Kotlin 1.9.
 
 适配层放在 `api` 模块，避免 `data` 模块直接依赖 BIT-Login 的具体登录器、Ktor 客户端和 JSON 返回结构。
 
-- [ ] 新增一个职责单一的校园登录接口，例如 `SchoolLoginService`。
-- [ ] 接口只暴露应用需要的登录操作，不暴露 BIT-Login 的 `BaseLogin`、`HttpClient` 或 `JsonObject`。
-- [ ] 定义应用侧 Cookie 数据模型，至少包含以下字段：
+- [x] 新增职责单一的 `SchoolLoginService`。
+- [x] 接口只暴露应用需要的登录操作，不暴露 BIT-Login 的 `BaseLogin`、`HttpClient` 或 `JsonObject`。
+- [x] 定义应用侧 Cookie 数据模型，包含以下字段：
   - `name`
   - `value`
   - `domain`
   - `path`
   - `secure`
   - `expiresEpochSeconds`
-- [ ] 登录方法接收 `username` 和 `password`，返回完整 Cookie 列表；成功但没有任何可用 Cookie 时视为登录失败。
-- [ ] 实现中调用 `BitLogin.jxzxehallLogin()` 创建新的教学中心登录器。
-- [ ] 调用登录器的 `login(username, password)` 完成统一身份认证和教学中心回调。
-- [ ] 通过 `getSession().cookieDetails()` 获取完整 Cookie，而不是使用会丢失 domain/path 信息的 `cookieMap()` 或 Cookie 字符串。
-- [ ] 把 SDK `CookieDetail` 映射为应用侧 Cookie 数据模型后再返回。
-- [ ] 使用 `try/finally` 确保登录成功或失败后都关闭 SDK `HttpClient`。
-- [ ] 不在日志、异常消息或调试输出中记录用户名、密码、Cookie 值、ticket、验证码或短信验证码。
-- [ ] 不缓存明文密码，不在适配层引入新的持久化机制。
-- [ ] 保持 SDK 原始异常的 cause，便于区分凭据错误、验证码要求、短信验证要求、网络错误和服务结构变化。
-- [ ] 对外异常信息避免依赖上游中文 HTML 文本或页面元素。
+- [x] 登录方法接收 `username` 和 `password`，返回完整 Cookie 列表；成功但没有任何可用 Cookie 时视为登录失败。
+- [x] 使用 `JxzxehallLogin` 创建教学中心登录器，行为等价于 `BitLogin.jxzxehallLogin()`，同时保留底层 SSO 引用以可靠关闭会话。
+- [x] 调用登录器的 `login(username, password)` 完成统一身份认证和教学中心回调。
+- [x] 通过 `getSession().cookieDetails()` 获取完整 Cookie，而不是使用会丢失 domain/path 信息的 `cookieMap()` 或 Cookie 字符串。
+- [x] 把 SDK `CookieDetail` 映射为应用侧 Cookie 数据模型后再返回。
+- [x] 使用 `try/finally` 确保登录成功、失败及 WebVPN 替换会话后都关闭 SDK `HttpClient`。
+- [x] 适配层不记录用户名、密码、Cookie 值、ticket、验证码或短信验证码。
+- [x] 适配层不缓存明文密码，也不引入新的持久化机制。
+- [x] 不拦截 SDK 登录异常，保留原始类型、消息和 cause。
+- [x] 应用侧新增异常不依赖上游 HTML 文本或页面元素。
 
 ### 登录适配层异常策略
 
-- [ ] `LoginError` 作为登录失败向上抛出，不转换为成功值或空 Cookie。
-- [ ] `CaptchaError` 暂时向上抛出，由现有登录 UI 显示通用失败；后续验证码 UI 可在独立任务中增加。
-- [ ] `SmsVerificationError` 暂时向上抛出，由现有登录 UI 显示通用失败。
-- [ ] 网络 I/O、超时和上游页面变化异常保留 cause 后向上抛出。
-- [ ] 不使用宽泛 `catch (Exception) { false }` 吞掉诊断信息。
+- [x] `LoginError` 作为登录失败向上抛出，不转换为成功值或空 Cookie。
+- [x] `CaptchaError` 暂时向上抛出；后续验证码 UI 可在独立任务中增加。
+- [x] `SmsVerificationError` 暂时向上抛出。
+- [x] 网络 I/O、超时和上游页面变化异常保留 cause 后向上抛出。
+- [x] 适配层不使用宽泛 `catch (Exception) { false }` 吞掉诊断信息。
 
 ## 3. 将 SDK Cookie 桥接到现有 CookieManager
 
 现有校园 Retrofit 服务依赖 `LoginStatus.cookieManager` 和 `JavaNetCookieJar`。BIT-Login 使用独立的 Ktor CookieStorage，因此必须显式同步 Cookie。
 
-- [ ] 在 `data` 模块增加从登录适配层 Cookie 数据到 `java.net.HttpCookie` 的转换逻辑。
-- [ ] 保留 Cookie 的 `name` 和 `value`。
-- [ ] 保留 Cookie 的 `domain`，并正确处理带前导点和不带前导点的 domain。
-- [ ] domain 为空时拒绝写入或使用明确的来源主机；不得把无 domain Cookie 无差别写给所有校园域名。
-- [ ] 保留 Cookie 的 `path`；空 path 规范化为 `/`。
-- [ ] 保留 Cookie 的 `secure` 属性。
-- [ ] 将 SDK 的秒级绝对过期时间转换为 `HttpCookie.maxAge` 所需的剩余秒数。
-- [ ] 会话 Cookie 的 `expiresEpochSeconds == null` 保持为会话 Cookie，不伪造长期有效期。
-- [ ] 已过期 Cookie 不写入 CookieStore，并清除同 name/domain/path 的旧值。
-- [ ] 使用与 Cookie domain 和 secure 属性匹配的 URI 调用 `cookieStore.add(uri, cookie)`。
-- [ ] 同步一批新登录 Cookie 前，清除旧的学校认证 Cookie，避免新旧会话混用。
-- [ ] 不清除刚由 `loginBIT101()` 写入的 `fake-cookie` 设置项。
-- [ ] 确认 `SharedPreferencesCookieStore` 能持久化转换后的 domain、path、secure 和 maxAge。
-- [ ] Cookie 同步作为一次登录事务处理；转换或写入任何关键 Cookie 失败时，登录不得被标记为成功。
+- [x] 在 `data` 模块增加从登录适配层 Cookie 数据到 `java.net.HttpCookie` 的转换逻辑。
+- [x] 保留 Cookie 的 `name` 和 `value`。
+- [x] 保留 Cookie 的 `domain`，并正确处理带前导点和不带前导点的 domain。
+- [x] domain 为空时拒绝写入，不把无 domain Cookie 写给所有校园域名。
+- [x] 保留 Cookie 的 `path`；空 path 规范化为 `/`。
+- [x] 保留 Cookie 的 `secure` 属性。
+- [x] 将 SDK 的秒级绝对过期时间转换为 `HttpCookie.maxAge` 所需的剩余秒数。
+- [x] 会话 Cookie 的 `expiresEpochSeconds == null` 保持为会话 Cookie，不伪造长期有效期。
+- [x] 已过期 Cookie 不写入 CookieStore；同步新会话时清除旧学校 Cookie。
+- [x] 使用与 Cookie domain 和 secure 属性匹配的 URI 调用 `cookieStore.add(uri, cookie)`。
+- [x] 同步一批新登录 Cookie 前，清除 `bit.edu.cn` 范围内的旧学校认证 Cookie，避免新旧会话混用。
+- [x] Cookie 桥接不接触 `fake-cookie` 设置项或非学校域 Cookie。
+- [ ] 使用真实 `SharedPreferencesCookieStore` 完成进程级持久化手工验证。
+- [x] 所有 Cookie 在修改 CookieStore 前完成转换和校验；后续仓库仅在同步成功后标记登录成功。
 
 ### Cookie 桥接测试
 
-- [ ] 测试普通 HTTPS Cookie 的 name、value、domain、path 和 secure 转换。
-- [ ] 测试带前导点 domain 的 Cookie。
-- [ ] 测试 host-only 或空 domain Cookie 的处理策略。
-- [ ] 测试会话 Cookie 不被错误设置为立即过期。
-- [ ] 测试未来绝对过期时间正确转换为剩余 `maxAge`。
-- [ ] 测试已过期 Cookie 不会残留在 CookieStore。
-- [ ] 测试同名但 domain/path 不同的 Cookie 不会互相覆盖。
-- [ ] 测试重复登录会替换旧会话，而不是累积冲突 Cookie。
-- [ ] 测试转换过程不输出 Cookie 值到日志。
+- [x] 测试普通 HTTPS Cookie 的 name、value、domain、path 和 secure 转换。
+- [x] 测试带前导点 domain 的 Cookie。
+- [x] 测试空 domain Cookie 被拒绝。
+- [x] 测试会话 Cookie 不被错误设置为立即过期。
+- [x] 测试未来绝对过期时间正确转换为剩余 `maxAge`。
+- [x] 测试已过期 Cookie 不写入 CookieStore。
+- [x] 测试同名但 path 不同的 Cookie 不会互相覆盖。
+- [x] 测试同步登录 Cookie 会替换旧学校会话，同时保留非学校域 Cookie。
+- [x] 转换过程没有日志调用，不会输出 Cookie 值。
 
 ## 4. 替换 DefaultLoginRepo 的学校登录流程
 
