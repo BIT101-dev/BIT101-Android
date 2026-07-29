@@ -8,3 +8,8 @@ data class SchoolCookie(
     val secure: Boolean,
     val expiresEpochSeconds: Long?,
 )
+
+data class SchoolLoginResult(
+    val cookies: List<SchoolCookie>,
+    val webVpn: Boolean,
+)

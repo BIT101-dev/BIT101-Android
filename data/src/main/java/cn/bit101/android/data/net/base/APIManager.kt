@@ -12,17 +12,16 @@ internal interface APIManager {
     /**
      * 切换是否使用 WebVPN
      */
-    fun switch(webVpn: Boolean)
+    suspend fun switch(webVpn: Boolean)
 
     /**
      * 切换到 WebVPN
      */
-    fun switchToWebVpn() = switch(true)
+    suspend fun switchToWebVpn() = switch(true)
 
     /**
      * 切换到校园网
      */
-    fun switchToLocal() = switch(false)
+    suspend fun switchToLocal() = switch(false)
 
 }
-

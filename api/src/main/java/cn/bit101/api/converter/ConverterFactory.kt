@@ -3,14 +3,10 @@ package cn.bit101.api.converter
 import cn.bit101.api.converter.lexue.GetCalendarConvertFactory
 import cn.bit101.api.converter.lexue.GetCalendarUrlConvertFactory
 import cn.bit101.api.converter.lexue.GetIndexConvertFactory
-import cn.bit101.api.converter.login.GetSchoolInitLoginConvertFactory
-import cn.bit101.api.converter.login.PostSchoolLoginConvertFactory
 import cn.bit101.api.helper.Logger
 import cn.bit101.api.model.http.school.GetCalendarDataModel
 import cn.bit101.api.model.http.school.GetCalendarUrlDataModel
 import cn.bit101.api.model.http.school.GetLexueIndexDataModel
-import cn.bit101.api.model.http.school.GetSchoolInitLoginDataModel
-import cn.bit101.api.model.http.school.PostSchoolLoginDataModel
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
 import retrofit2.Converter
@@ -35,12 +31,6 @@ internal class ConverterFactory(
 
         // 获取课程表
         GetCalendarDataModel.Response::class.java to GetCalendarConvertFactory(logger),
-
-        // 初始化登录
-        GetSchoolInitLoginDataModel.Response::class.java to GetSchoolInitLoginConvertFactory(logger),
-
-        // 登录
-        PostSchoolLoginDataModel.Response::class.java to PostSchoolLoginConvertFactory(logger),
     )
 
     override fun responseBodyConverter(

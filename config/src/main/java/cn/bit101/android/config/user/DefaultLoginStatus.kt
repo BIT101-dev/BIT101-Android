@@ -13,6 +13,7 @@ internal class DefaultLoginStatus @Inject constructor(
     override val sid = userDataStore.loginSid.toSettingItem()
     override val password = userDataStore.loginPassword.toSettingItem()
     override val status = userDataStore.loginStatus.toSettingItem()
+    override val webVpn = userDataStore.loginWebVpn.toSettingItem()
 
 
     override val fakeCookie = userDataStore.fakeCookie.toSettingItem()
@@ -23,6 +24,7 @@ internal class DefaultLoginStatus @Inject constructor(
 
     override suspend fun clear() {
         status.set(false)
+        webVpn.set(false)
         sid.set("")
         password.set("")
         fakeCookie.set("")

@@ -125,94 +125,96 @@ BIT-Login v4.0.0 使用 Kotlin 2.4.10 发布，当前项目仍使用 Kotlin 1.9.
 
 修改 `data/src/main/java/cn/bit101/android/data/repo/DefaultLoginRepo.kt`，移除旧 CAS HTML 初始化、salt/execution 提取和本地加密提交逻辑。
 
-- [ ] 通过构造函数注入新的 `SchoolLoginService` 或等价适配层。
-- [ ] 删除 `loginSchool()` 的 `salt` 和 `execution` 参数。
-- [ ] 删除学校登录中对 `api.schoolUser.initLogin()` 的调用。
-- [ ] 删除学校登录中对 `api.schoolUser.login()` 的调用。
-- [ ] 删除学校登录密码的 `AESUtils.encryptPassword()` 调用。
-- [ ] 删除旧 `captchaPayload` 生成逻辑及依赖旧漏洞行为的长注释。
-- [ ] 新 `loginSchool(username, password)` 调用 BIT-Login 适配层获取 Cookie。
-- [ ] 将 Cookie 同步到 `loginStatus.cookieManager` 后才返回成功。
-- [ ] 保留 `loginBIT101()` 中的 `AESUtils.encryptPassword()`，该流程仍依赖 BIT101 后端返回的 salt。
-- [ ] 保留 BIT101 后端 `webVpnVerifyInit`、`webVpnVerify`、`register` 和 `fake-cookie` 写入流程。
-- [ ] 确认 `login()` 仍先清理旧状态，再完成学校登录和 BIT101 后端登录。
-- [ ] 仅当学校登录、Cookie 同步和 BIT101 后端登录全部成功后，保存 SID、密码和 `status = true`。
-- [ ] 任一阶段失败时保持 `status = false`，不留下半登录状态。
-- [ ] 任一阶段失败时清理新写入的学校 Cookie 和可能写入的 `fake-cookie`。
-- [ ] 不改变 SID 和密码当前通过 `EncryptedSharedPreferences` 保存的机制。
+- [x] 通过 `Bit101Api.schoolLogin` 向仓库提供新的 `SchoolLoginService` 等价适配边界。
+- [x] 删除 `loginSchool()` 的 `salt` 和 `execution` 参数。
+- [x] 删除学校登录中对 `api.schoolUser.initLogin()` 的调用。
+- [x] 删除学校登录中对 `api.schoolUser.login()` 的调用。
+- [x] 删除学校登录密码的 `AESUtils.encryptPassword()` 调用。
+- [x] 删除旧 `captchaPayload` 生成逻辑及依赖旧漏洞行为的长注释。
+- [x] 新 `loginSchool(username, password)` 调用 BIT-Login 适配层获取 Cookie 和网络模式。
+- [x] 将 Cookie 同步到 `loginStatus.cookieManager` 并切换 Retrofit 网络模式后才返回成功。
+- [x] 保留 `loginBIT101()` 中的 `AESUtils.encryptPassword()`，该流程仍依赖 BIT101 后端返回的 salt。
+- [x] 保留 BIT101 后端 `webVpnVerifyInit`、`webVpnVerify`、`register` 和 `fake-cookie` 写入流程。
+- [x] `login()` 仍先清理旧状态，再完成学校登录和 BIT101 后端登录。
+- [x] 仅当学校登录、Cookie 同步和 BIT101 后端登录全部成功后，保存 SID、密码和 `status = true`。
+- [x] 任一阶段失败时保持 `status = false`，不留下半登录状态。
+- [x] 任一阶段失败时调用 `loginStatus.clear()`，清理学校 Cookie 和可能写入的 `fake-cookie`。
+- [x] 不改变 SID 和密码当前通过 `EncryptedSharedPreferences` 保存的机制。
 
 ### checkLogin 行为
 
-- [ ] `checkBit101Login()` 继续通过 `api.user.check()` 验证 BIT101 后端会话。
-- [ ] `checkSchoolLogin()` 不再通过解析 `/cas/login` HTML 判断是否已登录。
-- [ ] 优先使用一个低成本、确实需要教学中心认证的现有接口检查持久 Cookie 是否有效，避免每次检查都重新提交密码。
-- [ ] 如果学校 Cookie 有效，直接返回成功。
-- [ ] 如果学校 Cookie 失效且已保存 SID/密码，通过 BIT-Login 重新登录并覆盖学校 Cookie。
-- [ ] 如果学校 Cookie 失效且没有保存凭据，返回失败。
-- [ ] `checkLogin()` 任一侧失败时执行统一清理，保持现有“BIT101 后端和学校会话均有效才算登录”的语义。
-- [ ] 区分“认证失效”和普通业务接口异常；服务临时不可用时不要误删用户凭据，除非确认现有产品语义要求如此。
+- [x] `checkBit101Login()` 继续通过 `api.user.check()` 验证 BIT101 后端会话。
+- [x] `checkSchoolLogin()` 不再通过解析 `/cas/login` HTML 判断是否已登录。
+- [x] 使用教学中心 app config 和当前学期接口检查持久 Cookie，避免会话有效时重复提交密码。
+- [x] 如果学校 Cookie 有效，直接返回成功。
+- [x] 如果学校 Cookie 失效且已保存 SID/密码，通过 BIT-Login 重新登录并覆盖学校 Cookie。
+- [x] 如果学校 Cookie 失效且没有保存凭据，返回失败。
+- [x] `checkLogin()` 任一侧失败时执行统一清理，保持现有“BIT101 后端和学校会话均有效才算登录”的语义。
+- [x] 保留现有 `checkLogin()` 失败即清理的产品语义；业务重试入口已排除取消、参数和数据库异常，不对这些错误触发认证检查。
 
 ### doOperationRequiresLogin 行为
 
-- [ ] 保持业务操作首次失败后检查登录并最多重试一次的整体行为。
-- [ ] 避免对所有异常都无条件重新登录；至少不要因本地解析、数据库或参数错误触发登录请求。
-- [ ] 登录恢复失败时保留原始异常或登录异常作为 cause，而不是只抛出无上下文的 `Exception("check login failed")`。
-- [ ] 确认一次失败最多触发一次重新认证和一次业务重试，避免循环登录。
+- [x] 保持业务操作首次失败后检查登录并最多重试一次的整体行为。
+- [x] 取消、参数和数据库异常直接向上传递，不触发登录请求。
+- [x] 登录恢复失败时以原始业务异常作为 cause。
+- [x] 一次失败最多触发一次重新认证和一次业务重试，不循环登录。
 
 ### logout 行为
 
-- [ ] `logout()` 继续调用 `loginStatus.clear()`。
-- [ ] 确认注销会清除持久学校 Cookie、SID、密码、登录状态和 BIT101 `fake-cookie`。
-- [ ] 由于 SDK 会话在每次登录后已关闭，不需要维护额外的全局 SDK logout 状态。
+- [x] `logout()` 继续调用 `loginStatus.clear()`。
+- [x] `LoginStatus.clear()` 会清除持久学校 Cookie、SID、密码、登录状态和 BIT101 `fake-cookie`。
+- [x] SDK 会话在每次登录后关闭，不维护额外的全局 SDK logout 状态。
+- [x] 使用互斥锁串行化登录和自动重新认证事务，避免并发覆盖账号状态。
+- [x] 注销参与同一互斥事务，取消登录时在不可取消上下文完成清理。
 
 ## 5. 从 API 聚合对象移除旧 SchoolUser Retrofit 服务
 
-- [ ] 从 `api/src/main/java/cn/bit101/api/Bit101Api.kt` 删除 `SchoolUserApiService` import。
-- [ ] 从 `Bit101Api` 构造函数删除 `schoolLoginRetrofit` 参数。
-- [ ] 从 `Bit101Api` 删除 `schoolUser` 属性。
-- [ ] 从 `api/src/main/java/cn/bit101/api/Bit101ApiFactory.kt` 删除学校登录 Retrofit 的构建代码。
-- [ ] 如果新的登录适配层由 `Bit101Api` 暴露，在 `Bit101Api` 中提供明确命名的登录属性；否则通过 Hilt 单独提供，避免把它伪装成 Retrofit 服务。
-- [ ] 保留 `jxzxehallappRetrofit` 和 `lexueRetrofit`。
-- [ ] 保留当前业务服务继续使用 `option.schoolClient`，确保它们读取同步后的持久 Cookie。
-- [ ] 不处理与本次任务无关的 `jwmsRetrofit`、`jwcRetrofit` 清理，除非它们因构造函数调整导致编译问题。
+- [x] 从 `api/src/main/java/cn/bit101/api/Bit101Api.kt` 删除 `SchoolUserApiService` import。
+- [x] 从 `Bit101Api` 构造函数删除 `schoolLoginRetrofit` 参数。
+- [x] 从 `Bit101Api` 删除 `schoolUser` 属性。
+- [x] 从 `api/src/main/java/cn/bit101/api/Bit101ApiFactory.kt` 删除学校登录 Retrofit 的构建代码。
+- [x] 在 `Bit101Api` 中以明确命名的 `schoolLogin` 属性暴露无状态适配层。
+- [x] 保留 `jxzxehallappRetrofit` 和 `lexueRetrofit`。
+- [x] 保留当前业务服务继续使用 `option.schoolClient`，确保它们读取同步后的持久 Cookie。
+- [x] 未处理与本次任务无关的 `jwmsRetrofit`、`jwcRetrofit` 清理。
 
 ## 6. 清理旧统一认证实现
 
-- [ ] 删除 `api/src/main/java/cn/bit101/api/service/school/SchoolUserApiService.kt`。
-- [ ] 删除 `api/src/main/java/cn/bit101/api/model/http/school/SchoolUser.kt`。
-- [ ] 删除 `api/src/main/java/cn/bit101/api/converter/login/GetSchoolInitLoginConvertFactory.kt`。
-- [ ] 删除 `api/src/main/java/cn/bit101/api/converter/login/PostSchoolLoginConvertFactory.kt`。
-- [ ] 从 `api/src/main/java/cn/bit101/api/converter/ConverterFactory.kt` 删除旧登录 model import。
-- [ ] 从 `ConverterFactory` 删除两个旧登录 converter import。
-- [ ] 从 `ConverterFactory` 的 converter map 删除旧登录响应类型注册。
-- [ ] 如果 `api/converter/login/` 清空，删除空目录。
-- [ ] 搜索并移除所有 `schoolUser` 引用。
-- [ ] 搜索并移除所有 `SchoolUserApiService` 引用。
-- [ ] 搜索并移除所有 `GetSchoolInitLoginDataModel` 引用。
-- [ ] 搜索并移除所有 `PostSchoolLoginDataModel` 引用。
-- [ ] 搜索并移除所有 `GetCheckNeedCaptchaDataModel` 引用。
-- [ ] 确认 `AESUtils` 仍被 BIT101 后端登录使用，因此本次不得删除。
+- [x] 删除 `api/src/main/java/cn/bit101/api/service/school/SchoolUserApiService.kt`。
+- [x] 删除 `api/src/main/java/cn/bit101/api/model/http/school/SchoolUser.kt`。
+- [x] 删除 `api/src/main/java/cn/bit101/api/converter/login/GetSchoolInitLoginConvertFactory.kt`。
+- [x] 删除 `api/src/main/java/cn/bit101/api/converter/login/PostSchoolLoginConvertFactory.kt`。
+- [x] 从 `api/src/main/java/cn/bit101/api/converter/ConverterFactory.kt` 删除旧登录 model import。
+- [x] 从 `ConverterFactory` 删除两个旧登录 converter import。
+- [x] 从 `ConverterFactory` 的 converter map 删除旧登录响应类型注册。
+- [x] `api/converter/login/` 已清空，不会保留在 Git 中。
+- [x] 搜索并移除所有 `schoolUser` 引用。
+- [x] 搜索并移除所有 `SchoolUserApiService` 引用。
+- [x] 搜索并移除所有 `GetSchoolInitLoginDataModel` 引用。
+- [x] 搜索并移除所有 `PostSchoolLoginDataModel` 引用。
+- [x] 搜索并移除所有 `GetCheckNeedCaptchaDataModel` 引用。
+- [x] `AESUtils` 仍被 BIT101 后端登录使用，本次未删除。
 
 ## 7. 清理不再使用的学校登录 URL 配置
 
 只有确认没有其他 Retrofit 或业务代码使用这些字段后再删除。
 
-- [ ] 从 `ApiUrlOption` 删除 `schoolLoginUrl`。
-- [ ] 从本地、WebVPN 和开发环境 URL 配置中删除对应 `schoolLoginUrl` 参数。
-- [ ] 调整所有 `ApiUrlOption` 构造调用，保证字段顺序和命名参数正确。
-- [ ] 保留教学中心和乐学 URL。
-- [ ] 保留 BIT101 后端仍使用的 WebVPN 相关 URL。
-- [ ] 确认 BIT-Login 自己通过 `NetworkEnv` 和 `Config.Urls.active` 管理其登录 URL，应用不再向 SDK 注入旧 `schoolLoginUrl`。
+- [x] 从 `ApiUrlOption` 删除 `schoolLoginUrl`。
+- [x] 从本地、WebVPN 和开发环境 URL 配置中删除对应 `schoolLoginUrl` 参数。
+- [x] 调整所有 `ApiUrlOption` 构造调用，字段均使用命名参数。
+- [x] 保留教学中心和乐学 URL。
+- [x] 保留 BIT101 后端仍使用的 WebVPN 相关 URL。
+- [x] BIT-Login 通过 `NetworkEnv` 和 `Config.Urls.active` 管理登录 URL，应用不再注入旧 `schoolLoginUrl`。
 
 ## 8. Hilt 和依赖边界
 
-- [ ] 确定登录适配层的实例创建位置。
-- [ ] 如果适配层无状态，使用 Hilt 单例或直接由 `Bit101Api` 持有。
-- [ ] 如果通过 Hilt 提供，在 `NetModule` 或专用模块中绑定接口与实现。
-- [ ] 不把 BIT-Login `BaseLogin` 或 `HttpClient` 注册成全局单例。
-- [ ] 不让 ViewModel 或 feature 模块直接依赖 `cn.bit101.bitlogin`。
-- [ ] 保持 `LoginRepo` 作为 UI 的登录边界，除非验证码/SMS UI 在后续任务中单独设计。
-- [ ] 检查 `api/build.gradle` 中 BIT-Login 依赖的可见性；仅当 `data` 必须直接引用适配层返回类型时才调整为 `api` 依赖，优先让公开类型属于本项目包。
+- [x] 登录适配层由 `Bit101Api` 创建并持有。
+- [x] 适配层无状态，直接由 `Bit101Api` 持有，无需增加 Hilt 绑定。
+- [x] 未增加不必要的 Hilt 模块或绑定。
+- [x] 不把 BIT-Login `BaseLogin` 或 `HttpClient` 注册成全局单例。
+- [x] ViewModel 和 feature 模块不直接依赖 `cn.bit101.bitlogin`。
+- [x] 保持 `LoginRepo` 作为 UI 的登录边界。
+- [x] BIT-Login 保持为 `api` 模块内部 implementation 依赖，对外只暴露本项目 DTO。
 
 ## 9. 单元测试和集成验证
 

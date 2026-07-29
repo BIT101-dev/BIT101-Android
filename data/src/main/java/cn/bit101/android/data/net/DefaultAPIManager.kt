@@ -57,7 +57,7 @@ internal class DefaultAPIManager @Inject constructor(
         }
         .build()
 
-    private var webVpn = false
+    private var webVpn = runBlocking { loginStatus.webVpn.get() }
 
     private val localUrls = if(BuildConfig.DEBUG) DEV_URLS else PROD_URLS
     private val webVpnUrls = if(BuildConfig.DEBUG) DEV_URLS else DEFAULT_WEB_VPN_URLS
@@ -75,12 +75,14 @@ internal class DefaultAPIManager @Inject constructor(
         logger = androidLogger,
     )
 
-    override fun switch(webVpn: Boolean) {
+    override suspend fun switch(webVpn: Boolean) {
         if(webVpn != this.webVpn) {
             this.webVpn = webVpn
             _api = createApi(webVpn)
         }
+        loginStatus.webVpn.set(webVpn)
     }
 
-    override val api = _api
+    override val api
+        get() = _api
 }

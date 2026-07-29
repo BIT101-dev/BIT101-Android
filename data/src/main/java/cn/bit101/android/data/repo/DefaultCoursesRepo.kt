@@ -20,11 +20,10 @@ internal class DefaultCoursesRepo @Inject constructor(
     private val apiManager: APIManager,
     private val courseScheduleSettings: CourseScheduleSettings
 ) : CoursesRepo {
-    private val api = apiManager.api
-
     override suspend fun getCoursesFromNet(
         term: String
     ) = withContext(Dispatchers.IO) {
+        val api = apiManager.api
         api.schoolJxzxehallapp.getAppConfig()
         api.schoolJxzxehallapp.switchLang()
 
@@ -39,6 +38,7 @@ internal class DefaultCoursesRepo @Inject constructor(
     override suspend fun getExamsFromNet(
         term: String
     ) = withContext(Dispatchers.IO) {
+        val api = apiManager.api
         api.schoolJxzxehallapp.getAppConfig()
         api.schoolJxzxehallapp.switchLang()
 
@@ -102,6 +102,7 @@ internal class DefaultCoursesRepo @Inject constructor(
     }
 
     override suspend fun getTermListFromNet() = withContext(Dispatchers.IO) {
+        val api = apiManager.api
         api.schoolJxzxehallapp.getAppConfig()
         val terms = api.schoolJxzxehallapp.getTerms().body()?.datas?.xnxqcx?.rows?.map { it.DM }
             ?: throw Exception("Get Term List Error")
@@ -110,6 +111,7 @@ internal class DefaultCoursesRepo @Inject constructor(
     }
 
     override suspend fun getCurrentTermFromNet() = withContext(Dispatchers.IO) {
+        val api = apiManager.api
         api.schoolJxzxehallapp.getAppConfig()
 
         api.schoolJxzxehallapp.getCurrentTerm().body()?.datas?.dqxnxq?.rows?.get(0)?.DM
@@ -121,6 +123,7 @@ internal class DefaultCoursesRepo @Inject constructor(
     override suspend fun getFirstDayFromNet(
         term: String
     ) = withContext(Dispatchers.IO) {
+        val api = apiManager.api
         api.schoolJxzxehallapp.getAppConfig()
 
         val res = api.schoolJxzxehallapp.getWeekAndDate(

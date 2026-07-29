@@ -12,13 +12,12 @@ import java.io.IOException
 import javax.inject.Inject
 
 internal class DefaultFreeClassroomRepo @Inject constructor(
-    apiManager: APIManager,
+    private val apiManager: APIManager,
     private val freeClassroomSettings: FreeClassroomSettings,
     private val scheduleSettings: CourseScheduleSettings
 ): FreeClassroomRepo{
-    val api = apiManager.api
-
     override suspend fun getCampusInfos(): List<CampusInfo> {
+        val api = apiManager.api
         api.schoolJxzxehallapp.getAppConfig()   // 不加这个会出奇怪的错误
         api.schoolJxzxehallapp.switchLang()
 
@@ -28,6 +27,7 @@ internal class DefaultFreeClassroomRepo @Inject constructor(
     }
 
     override suspend fun getBuildingInfos(campusCode: String?): List<BuildingInfo> {
+        val api = apiManager.api
         api.schoolJxzxehallapp.getAppConfig()
         api.schoolJxzxehallapp.switchLang()
 
@@ -37,6 +37,7 @@ internal class DefaultFreeClassroomRepo @Inject constructor(
     }
 
     override suspend fun getClassroomInfos(buildingId: String): List<ClassroomInfo> {
+        val api = apiManager.api
         api.schoolJxzxehallapp.getAppConfig()
         api.schoolJxzxehallapp.switchLang()
 
