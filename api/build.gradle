@@ -26,4 +26,6 @@ dependencies {
         exclude group: 'org.codehaus.groovy', module: 'groovy'
         exclude group: 'org.codehaus.groovy', module: 'groovy-dateutil'
     }
+
+    implementation 'com.github.BIT101-dev.BIT-Login:bit-login:v4.0.0'
 }

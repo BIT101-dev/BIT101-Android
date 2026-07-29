@@ -19,7 +19,7 @@ internal class GetSchoolInitLoginConvertFactory(
         if(type != GetSchoolInitLoginDataModel.Response::class.java) return null
 
         return Converter<ResponseBody?, GetSchoolInitLoginDataModel.Response> {
-            val html = it.string()
+            val html = requireNotNull(it).string()
             val ifLogin = html.indexOf("用户名密码") == -1
 
             try {

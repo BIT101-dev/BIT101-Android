@@ -26,7 +26,7 @@ internal class GetCalendarConvertFactory(
         if(type != GetCalendarDataModel.Response::class.java) return null
 
         return Converter<ResponseBody?, GetCalendarDataModel.Response> {
-            val html = it.string()
+            val html = requireNotNull(it).string()
 
             val list = mutableListOf<GetCalendarDataModel.CalendarEvent>()
             val cal = CalendarBuilder().build(html.byteInputStream())
