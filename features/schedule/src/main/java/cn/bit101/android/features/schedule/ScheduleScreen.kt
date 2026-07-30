@@ -1,10 +1,13 @@
 package cn.bit101.android.features.schedule
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.schedule.classroom.FreeClassroomSearch
 import cn.bit101.android.features.schedule.component.TabPager
@@ -23,7 +26,9 @@ fun ScheduleScreen(mainController: MainController) {
     })
 
     Scaffold {
-        Box(modifier = Modifier.padding(it)) {
+        Box(
+            modifier = Modifier.padding(top = it.calculateTopPadding())
+        ) {
             TabPager(items)
         }
     }
