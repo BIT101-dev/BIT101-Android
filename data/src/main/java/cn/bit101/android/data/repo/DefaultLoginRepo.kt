@@ -7,6 +7,7 @@ import cn.bit101.android.data.common.HashUtils
 import cn.bit101.android.data.net.SchoolCookieStore
 import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.api.model.common.SmsCodeHandler
 import cn.bit101.api.model.http.bit101.PostRegisterDataModel
 import cn.bit101.api.model.http.bit101.PostWebvpnVerifyDataModel
 import cn.bit101.api.model.http.bit101.PostWebvpnVerifyInitDataModel
@@ -75,8 +76,9 @@ internal class DefaultLoginRepo @Inject constructor(
     private suspend fun loginSchool(
         username: String,
         password: String,
+        smsCodeHandler: SmsCodeHandler? = null,
     ) = withContext(Dispatchers.IO) {
-        val result = api.schoolLogin.login(username, password)
+        val result = api.schoolLogin.login(username, password, smsCodeHandler)
         SchoolCookieStore.replace(loginStatus.cookieManager.cookieStore, result.cookies)
         apiManager.switch(result.webVpn)
         true
@@ -122,11 +124,15 @@ internal class DefaultLoginRepo @Inject constructor(
         true
     }
 
-    override suspend fun login(username: String, password: String) = withContext(Dispatchers.IO) {
+    override suspend fun login(
+        username: String,
+        password: String,
+        smsCodeHandler: SmsCodeHandler?,
+    ) = withContext(Dispatchers.IO) {
         loginMutex.withLock {
             loginStatus.clear()
             try {
-                loginSchool(username, password)
+                loginSchool(username, password, smsCodeHandler)
                 loginBIT101(username, password)
                 loginStatus.sid.set(username)
                 loginStatus.password.set(password)

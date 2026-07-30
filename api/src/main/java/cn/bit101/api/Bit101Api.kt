@@ -14,6 +14,8 @@ import cn.bit101.api.service.bit101.VariablesApiService
 import cn.bit101.api.service.school.SchoolJxzxehallappApiService
 import cn.bit101.api.service.school.SchoolLexueApiService
 import cn.bit101.api.service.school.SchoolLoginService
+import cn.bit101.api.helper.Logger
+import cn.bit101.api.helper.emptyLogger
 import retrofit2.Retrofit
 import retrofit2.create
 
@@ -24,6 +26,7 @@ class Bit101Api internal constructor(
     jwcRetrofit: Retrofit,
     jxzxehallappRetrofit: Retrofit,
     lexueRetrofit: Retrofit,
+    logger: Logger = emptyLogger,
 ) {
     val courses: CoursesApiService = bit101Retrofit.create()
     val manage: ManageApiService = bit101Retrofit.create()
@@ -38,7 +41,7 @@ class Bit101Api internal constructor(
 
     val app: AppApiService = appRetrofit.create()
 
-    val schoolLogin = SchoolLoginService()
+    val schoolLogin = SchoolLoginService(logger)
 
     val schoolJxzxehallapp: SchoolJxzxehallappApiService = jxzxehallappRetrofit.create()
 
