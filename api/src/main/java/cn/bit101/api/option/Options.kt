@@ -21,7 +21,7 @@ val PROD_URLS = ApiUrlOption(
 )
 
 val DEV_URLS = ApiUrlOption(
-    bit101Url = "https://dev.bit101.flwfdd.xyz",
+    bit101Url = "https://bit101.flwfdd.xyz",
     jwmsUrl = "http://jwms.bit.edu.cn",
     jwcUrl = "https://jwc.bit.edu.cn",
     jxzxehallappUrl = "https://jxzxehallapp.bit.edu.cn",

@@ -13,3 +13,13 @@ data class SchoolLoginResult(
     val cookies: List<SchoolCookie>,
     val webVpn: Boolean,
 )
+
+data class SmsCodeRequest(
+    val phone: String,
+    val maskedPhone: String,
+    val purpose: String,
+)
+
+fun interface SmsCodeHandler {
+    suspend fun onSmsCode(request: SmsCodeRequest): String
+}

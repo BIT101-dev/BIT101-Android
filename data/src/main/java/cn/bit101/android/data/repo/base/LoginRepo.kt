@@ -1,5 +1,7 @@
 package cn.bit101.android.data.repo.base
 
+import cn.bit101.api.model.common.SmsCodeHandler
+
 interface LoginRepo {
 
     /**
@@ -9,8 +11,13 @@ interface LoginRepo {
 
     /**
      * 登录，并保存登录状态
+     * 若学校统一身份认证要求短信二次验证，将通过 [smsCodeHandler] 请求验证码
      */
-    suspend fun login(username: String, password: String): Boolean
+    suspend fun login(
+        username: String,
+        password: String,
+        smsCodeHandler: SmsCodeHandler? = null,
+    ): Boolean
 
     /**
      * 登出，并清除登录状态

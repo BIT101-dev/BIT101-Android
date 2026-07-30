@@ -65,6 +65,8 @@ object Bit101ApiFactory {
                 .addConverterFactory(converterFactory)
                 .baseUrl(urls.lexueUrl)
                 .build(),
+
+            logger = logger,
         )
     }
 }
