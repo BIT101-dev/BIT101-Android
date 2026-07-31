@@ -27,5 +27,5 @@ dependencies {
         exclude group: 'org.codehaus.groovy', module: 'groovy-dateutil'
     }
 
-    implementation 'com.github.BIT101-dev.BIT-Login:bit-login:main-SNAPSHOT'
+    api 'com.github.BIT101-dev.BIT-Login:bit-login:main-SNAPSHOT'
 }
