@@ -17,6 +17,9 @@ enum class LoginRefreshResult {
 
     /** 确定性认证失败（密码错误、账号锁定、风控拒绝、无保存凭据），应清除登录状态 */
     FAILED,
+
+    /** 互斥锁被占用（正处于 checkLogin/login/refreshLogin 流程），无法在此刷新；调用方不应清理登录态，交由外层持锁流程处理 */
+    BUSY,
 }
 
 interface LoginRepo {
@@ -36,6 +39,12 @@ interface LoginRepo {
      * @param allowInteractive 是否允许弹窗请求短信验证码；OkHttp 拦截器等后台场景应传 false。
      */
     suspend fun refreshLogin(allowInteractive: Boolean = false): LoginRefreshResult
+
+    /**
+     * 非阻塞式静默刷新：互斥锁空闲时刷新整个会话，锁被占用时立即返回 [LoginRefreshResult.BUSY]。
+     * 供 OkHttp 401 拦截器等无法承受阻塞等待锁的场景使用，避免与持锁流程重入死锁。
+     */
+    suspend fun tryRefreshLogin(): LoginRefreshResult
 
     /**
      * 登录，并保存登录状态
