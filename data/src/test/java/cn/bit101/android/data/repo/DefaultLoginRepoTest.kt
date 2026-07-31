@@ -18,6 +18,9 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
@@ -220,6 +223,49 @@ class DefaultLoginRepoTest {
         assertEquals("112233", loginStatus.sid.get())
         assertEquals("password", loginStatus.password.get())
         assertEquals("fake-cookie", loginStatus.fakeCookie.get())
+    }
+
+    @Test
+    fun `tryRefreshLogin returns BUSY while checkLogin holds the lock`() = runBlocking {
+        loginStatus.seedLoggedIn()
+        val checkStarted = CompletableDeferred<Unit>()
+        val checkGate = CompletableDeferred<Response<Unit>>()
+        coEvery { api.user.check() } coAnswers {
+            checkStarted.complete(Unit)
+            checkGate.await()
+        }
+        coEvery { api.schoolJxzxehall.getCurrentTerm(any(), any()) } returns "2025-2026-1"
+
+        val job = async(Dispatchers.IO) { repo.checkLogin() }
+        checkStarted.await()
+
+        // 锁已被 checkLogin 持有，非阻塞刷新应立即返回 BUSY，不发起学校登录
+        assertEquals(LoginRefreshResult.BUSY, repo.tryRefreshLogin())
+        coVerify(exactly = 0) { api.schoolLogin.login(any(), any(), any()) }
+
+        checkGate.complete(Response.success(Unit))
+        assertTrue(job.await())
+    }
+
+    @Test
+    fun `tryRefreshLogin refreshes school and bit101 sessions when idle`() = runBlocking {
+        loginStatus.seedLoggedIn()
+        stubSuccessfulSchoolLogin(webVpn = true)
+        stubSuccessfulBackendLogin()
+
+        assertEquals(LoginRefreshResult.SUCCESS, repo.tryRefreshLogin())
+
+        assertTrue(loginStatus.status.get())
+        assertTrue(loginStatus.webVpn.get())
+        assertEquals("fake-cookie", loginStatus.fakeCookie.get())
+        coVerify(exactly = 1) { api.schoolLogin.login("112233", "password", any()) }
+    }
+
+    @Test
+    fun `tryRefreshLogin without saved credentials returns FAILED`() = runBlocking {
+        assertEquals(LoginRefreshResult.FAILED, repo.tryRefreshLogin())
+
+        coVerify(exactly = 0) { api.schoolLogin.login(any(), any(), any()) }
     }
 
     private fun stubSuccessfulSchoolLogin(webVpn: Boolean = false) {
