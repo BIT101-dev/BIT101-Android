@@ -83,6 +83,8 @@ internal class DefaultLoginRepo @Inject constructor(
                     withContext(NonCancellable) { loginStatus.clear() }
                     false
                 }
+                // checkLogin 已持有 loginMutex，refreshLoginLocked 不可能返回 BUSY，保守按不清理处理
+                LoginRefreshResult.BUSY -> false
             }
         }
     }
@@ -91,6 +93,21 @@ internal class DefaultLoginRepo @Inject constructor(
         withContext(Dispatchers.IO) {
             loginMutex.withLock {
                 refreshLoginLocked(allowInteractive)
+            }
+        }
+
+    // 非阻塞式刷新：互斥锁空闲时刷新，被持锁流程（checkLogin/login/refreshLogin）占用时立即返回 BUSY，
+    // 供 OkHttp 401 拦截器调用，避免在持锁流程内重入同一把非重入锁而死锁
+    override suspend fun tryRefreshLogin(): LoginRefreshResult =
+        withContext(Dispatchers.IO) {
+            if (loginMutex.tryLock()) {
+                try {
+                    refreshLoginLocked(allowInteractive = false)
+                } finally {
+                    loginMutex.unlock()
+                }
+            } else {
+                LoginRefreshResult.BUSY
             }
         }
 
