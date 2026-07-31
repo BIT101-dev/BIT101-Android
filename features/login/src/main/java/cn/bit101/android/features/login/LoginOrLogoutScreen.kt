@@ -15,7 +15,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.features.common.MainController
-import cn.bit101.android.features.common.component.dialog.VerificationCodeDialog
 import cn.bit101.android.features.common.helper.SimpleState
 
 // 主界面 根据登陆状态显示登陆界面或者退出登陆界面
@@ -30,18 +29,6 @@ fun LoginOrLogoutScreen(
     val postLoginState by vm.postLoginStateLiveData.observeAsState()
 
     val sid by vm.sidFlow.collectAsState("")
-
-    // 学校登录要求短信二次验证时弹出验证码输入框
-    val pendingSmsCodeRequest by vm.pendingSmsCodeRequestLiveData.observeAsState()
-    pendingSmsCodeRequest?.let { request ->
-        VerificationCodeDialog(
-            title = "输入短信验证码",
-            message = "学校统一身份认证要求二次验证，验证码已发送至 ${request.maskedPhone}",
-            onConfirm = { request.submit(it) },
-            onDismiss = { request.cancel() }
-        )
-    }
-
 
     // 根据检查登录的情况显示不同的内容
     when (checkLoginStatusState) {

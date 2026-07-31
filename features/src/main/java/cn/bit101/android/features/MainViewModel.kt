@@ -13,6 +13,7 @@ import cn.bit101.android.config.setting.base.PageSettings
 import cn.bit101.android.config.setting.base.PageShowOnNav
 import cn.bit101.android.config.setting.base.toPageData
 import cn.bit101.android.config.user.base.LoginStatus
+import cn.bit101.android.data.common.SmsCodeRequestHub
 import cn.bit101.android.data.repo.base.LoginRepo
 import cn.bit101.android.features.common.helper.withScope
 import cn.bit101.android.features.poster.ImageDownloader
@@ -25,7 +26,8 @@ internal class MainViewModel @Inject constructor(
     private val loginRepo: LoginRepo,
     private val aboutSettings: AboutSettings,
     private val pageSettings: PageSettings,
-    private val loginStatus: LoginStatus
+    private val loginStatus: LoginStatus,
+    val smsCodeRequestHub: SmsCodeRequestHub,
 ) : ViewModel() {
 
     val loginStatusFlow = loginStatus.status.flow
