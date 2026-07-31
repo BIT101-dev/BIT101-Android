@@ -1,10 +1,12 @@
 package cn.bit101.android.data.repo
 
-import android.util.Log
+import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.database.BIT101Database
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
+import cn.bit101.android.data.net.SchoolCookieStore
 import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.android.data.repo.base.DDLScheduleRepo
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
@@ -13,32 +15,37 @@ import javax.inject.Inject
 internal class DefaultDDLScheduleRepo @Inject constructor(
     private val database: BIT101Database,
     private val apiManager: APIManager,
+    private val loginStatus: LoginStatus,
 ) : DDLScheduleRepo {
 
     override suspend fun getCalendarUrl(): String? {
         val url = try {
             withContext(Dispatchers.IO) {
-                val api = apiManager.api
-                val getResponse = api.schoolLexue.get()
-                val sesskey = getResponse.body()?.sesskey ?: throw Exception("get sesskey error")
-
-                val response = api.schoolLexue.getCalendarUrl(sesskey)
-                response.body()?.url ?: throw Exception("get url error")
+                logApiCall(TAG, "获取乐学日历订阅链接", result = { "成功: $it" }) {
+                    apiManager.api.schoolLexue.getCalendarUrl(
+                        cookies = SchoolCookieStore.snapshot(loginStatus.cookieManager.cookieStore),
+                        webVpn = loginStatus.webVpn.get(),
+                    )
+                }
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (e: Exception) {
-            Log.e("Lexue", e.toString())
             return null
         }
-        Log.i("Lexue", "getCalendarUrl: $url")
         return url
     }
 
     override suspend fun getCalendarFromNet(
         url: String
     ) = withContext(Dispatchers.IO) {
-        val api = apiManager.api
-        val response = api.schoolLexue.getCalendar(url)
-        response.body()?.calenders ?: throw Exception("get calendar error")
+        logApiCall(TAG, "获取乐学日历", result = { "成功, 共 ${it.size} 个事件" }) {
+            apiManager.api.schoolLexue.getCalendar(
+                cookies = SchoolCookieStore.snapshot(loginStatus.cookieManager.cookieStore),
+                webVpn = loginStatus.webVpn.get(),
+                url = url,
+            )
+        }
     }
 
     override suspend fun getCalendarFromLocal(
@@ -73,6 +80,10 @@ internal class DefaultDDLScheduleRepo @Inject constructor(
         uids: List<String>
     ) = withContext(Dispatchers.IO) {
         database.DDLScheduleDao().getUIDs(uids)
+    }
+
+    private companion object {
+        const val TAG = "DDLScheduleRepo"
     }
 
 }

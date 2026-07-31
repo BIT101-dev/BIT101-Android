@@ -31,11 +31,13 @@ internal class DefaultLoginRepo @Inject constructor(
     private val loginMutex = Mutex()
 
     private suspend fun checkSchoolLogin() = withContext(Dispatchers.IO) {
-        val currentApi = api
         val sessionValid = try {
-            currentApi.schoolJxzxehallapp.getAppConfig().isSuccessful &&
-                currentApi.schoolJxzxehallapp.getCurrentTerm().body()
-                    ?.datas?.dqxnxq?.rows?.isNotEmpty() == true
+            logApiCall(TAG, "校验学校登录态", result = { "成功, 当前学期: $it" }) {
+                api.schoolJxzxehall.getCurrentTerm(
+                    cookies = SchoolCookieStore.snapshot(loginStatus.cookieManager.cookieStore),
+                    webVpn = loginStatus.webVpn.get(),
+                )
+            }.isNotBlank()
         } catch (e: CancellationException) {
             throw e
         } catch (_: Exception) {
@@ -78,7 +80,9 @@ internal class DefaultLoginRepo @Inject constructor(
         password: String,
         smsCodeHandler: SmsCodeHandler? = null,
     ) = withContext(Dispatchers.IO) {
-        val result = api.schoolLogin.login(username, password, smsCodeHandler)
+        val result = logApiCall(TAG, "学校统一身份认证登录(sid=$username)", result = { "成功, webVpn=${it.webVpn}" }) {
+            api.schoolLogin.login(username, password, smsCodeHandler)
+        }
         SchoolCookieStore.replace(loginStatus.cookieManager.cookieStore, result.cookies)
         apiManager.switch(result.webVpn)
         true
@@ -174,5 +178,9 @@ internal class DefaultLoginRepo @Inject constructor(
                 throw IllegalStateException("check login failed", e)
             }
         }
+    }
+
+    private companion object {
+        const val TAG = "LoginRepo"
     }
 }

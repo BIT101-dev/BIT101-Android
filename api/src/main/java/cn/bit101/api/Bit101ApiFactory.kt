@@ -27,7 +27,6 @@ object Bit101ApiFactory {
         val converterFactory = ConverterFactory(
             stringConverterFactory = ScalarsConverterFactory.create(),
             gsonConverterFactory = GsonConverterFactory.create(gson),
-            logger = logger,
         )
 
         return Bit101Api(
@@ -52,18 +51,6 @@ object Bit101ApiFactory {
                 .client(option.schoolClient)
                 .addConverterFactory(converterFactory)
                 .baseUrl(urls.jwcUrl)
-                .build(),
-
-            jxzxehallappRetrofit = Retrofit.Builder()
-                .client(option.schoolClient)
-                .addConverterFactory(converterFactory)
-                .baseUrl(urls.jxzxehallappUrl)
-                .build(),
-
-            lexueRetrofit = Retrofit.Builder()
-                .client(option.schoolClient)
-                .addConverterFactory(converterFactory)
-                .baseUrl(urls.lexueUrl)
                 .build(),
 
             logger = logger,

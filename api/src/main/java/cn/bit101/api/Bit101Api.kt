@@ -11,8 +11,9 @@ import cn.bit101.api.service.bit101.ScoreApiService
 import cn.bit101.api.service.bit101.UploadApiService
 import cn.bit101.api.service.bit101.UserApiService
 import cn.bit101.api.service.bit101.VariablesApiService
-import cn.bit101.api.service.school.SchoolJxzxehallappApiService
-import cn.bit101.api.service.school.SchoolLexueApiService
+import cn.bit101.api.service.school.SchoolClassroomService
+import cn.bit101.api.service.school.SchoolJxzxehallService
+import cn.bit101.api.service.school.SchoolLexueService
 import cn.bit101.api.service.school.SchoolLoginService
 import cn.bit101.api.helper.Logger
 import cn.bit101.api.helper.emptyLogger
@@ -24,8 +25,6 @@ class Bit101Api internal constructor(
     appRetrofit: Retrofit,
     jwmsRetrofit: Retrofit,
     jwcRetrofit: Retrofit,
-    jxzxehallappRetrofit: Retrofit,
-    lexueRetrofit: Retrofit,
     logger: Logger = emptyLogger,
 ) {
     val courses: CoursesApiService = bit101Retrofit.create()
@@ -43,7 +42,9 @@ class Bit101Api internal constructor(
 
     val schoolLogin = SchoolLoginService(logger)
 
-    val schoolJxzxehallapp: SchoolJxzxehallappApiService = jxzxehallappRetrofit.create()
+    val schoolClassroom = SchoolClassroomService(logger)
 
-    val schoolLexue: SchoolLexueApiService = lexueRetrofit.create()
+    val schoolJxzxehall = SchoolJxzxehallService(logger)
+
+    val schoolLexue = SchoolLexueService(logger)
 }

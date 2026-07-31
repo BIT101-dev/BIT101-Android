@@ -4,10 +4,10 @@ import okhttp3.OkHttpClient
 
 val DEFAULT_WEB_VPN_URLS = ApiUrlOption(
     bit101Url = "https://bit101.flwfdd.xyz",
-    jwmsUrl = "https://webvpn.bit.edu.cn/http/77726476706e69737468656265737421fae04c8f69326144300d8db9d6562d",
-    jwcUrl = "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421fae042d225397c1e7b0c9ce29b5b",
-    jxzxehallappUrl = "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421faef5b842238695c720999bcd6572a216b231105adc27d",
-    lexueUrl = "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421fcf25989227e6a596a468ca88d1b203b",
+    jwmsUrl = "https://webvpn.bit.edu.cn/http/77726476706e69737468656265737421fae04c8f69326144300d8db9d6562d/",
+    jwcUrl = "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421fae042d225397c1e7b0c9ce29b5b/",
+    jxzxehallappUrl = "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421faef5b842238695c720999bcd6572a216b231105adc27d/",
+    lexueUrl = "https://webvpn.bit.edu.cn/https/77726476706e69737468656265737421fcf25989227e6a596a468ca88d1b203b/",
     androidUrl = "http://android.bit101.cn",
 )
 
