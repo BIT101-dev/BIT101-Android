@@ -2,12 +2,40 @@ package cn.bit101.android.data.repo.base
 
 import cn.bit101.api.model.common.SmsCodeHandler
 
+/**
+ * 静默刷新登录的结果分类
+ */
+enum class LoginRefreshResult {
+    /** 学校会话与 bit101 fakeCookie 均已刷新 */
+    SUCCESS,
+
+    /** 需要用户交互（短信验证码被取消、图形验证码），会话未刷新 */
+    NEEDS_INTERACTIVE,
+
+    /** 临时性失败（网络 I/O、429、5xx），不应登出 */
+    TRANSIENT,
+
+    /** 确定性认证失败（密码错误、账号锁定、风控拒绝、无保存凭据），应清除登录状态 */
+    FAILED,
+}
+
 interface LoginRepo {
 
     /**
-     * 检查登录状态，如果登录状态异常则清除登录状态
+     * 检查登录状态。
+     *
+     * 若任意一端会话失效，会用已保存的学号密码静默刷新整个会话（学校 Cookie + bit101 fakeCookie）；
+     * 学校要求短信二次验证时通过共享总线弹出验证码弹窗，输入完成后继续刷新。
+     * 仅确定性认证失败才清除登录状态（学号密码一并清除）。
      */
     suspend fun checkLogin(): Boolean
+
+    /**
+     * 静默刷新登录状态，使用已保存的学号密码重新建立学校会话与 bit101 fakeCookie。
+     *
+     * @param allowInteractive 是否允许弹窗请求短信验证码；OkHttp 拦截器等后台场景应传 false。
+     */
+    suspend fun refreshLogin(allowInteractive: Boolean = false): LoginRefreshResult
 
     /**
      * 登录，并保存登录状态

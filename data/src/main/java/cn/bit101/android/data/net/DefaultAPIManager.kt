@@ -4,6 +4,8 @@ import cn.bit101.android.data.BuildConfig
 import android.util.Log
 import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.net.base.APIManager
+import cn.bit101.android.data.repo.base.LoginRefreshResult
+import cn.bit101.android.data.repo.base.LoginRepo
 import cn.bit101.api.Bit101ApiFactory
 import cn.bit101.api.helper.Logger
 import cn.bit101.api.option.DEFAULT_API_OPTION
@@ -14,6 +16,7 @@ import kotlinx.coroutines.runBlocking
 import net.gotev.cookiestore.okhttp.JavaNetCookieJar
 import okhttp3.OkHttpClient
 import javax.inject.Inject
+import javax.inject.Provider
 
 /**
  * Android 的 Logger，用于在 API 模块使用 Android 的 Log
@@ -26,7 +29,8 @@ private val androidLogger = object : Logger {
 }
 
 internal class DefaultAPIManager @Inject constructor(
-    private val loginStatus: LoginStatus
+    private val loginStatus: LoginStatus,
+    private val loginRepoProvider: Provider<LoginRepo>,
 ) : APIManager {
     private val cookiesJar = JavaNetCookieJar(loginStatus.cookieManager)
 
@@ -36,20 +40,41 @@ internal class DefaultAPIManager @Inject constructor(
 
     private val bit101Client = OkHttpClient.Builder()
         .cookieJar(cookiesJar)
-        .addInterceptor {
+        .addInterceptor { chain ->
             val fakeCookie = runBlocking {
                 loginStatus.fakeCookie.get()
             }
 
-            val request = it.request().newBuilder()
+            val request = chain.request().newBuilder()
                 .addHeader("fake-cookie", fakeCookie)
                 .build()
 
-            val response = it.proceed(request)
+            val response = chain.proceed(request)
 
-            if(response.code == 401) {
-                runBlocking {
-                    loginStatus.clear()
+            if (response.code == 401) {
+                // 已重试过，不再重试
+                if (chain.request().header(AUTH_RETRIED_HEADER) != null) {
+                    runBlocking {
+                        loginStatus.clear()
+                    }
+                } else {
+                    // 静默刷新整个会话（不弹短信验证码），成功后携带新 fake-cookie 重试一次
+                    val refreshed = runBlocking {
+                        loginRepoProvider.get().refreshLogin(allowInteractive = false)
+                    }
+                    if (refreshed == LoginRefreshResult.SUCCESS) {
+                        val newFakeCookie = runBlocking {
+                            loginStatus.fakeCookie.get()
+                        }
+                        val retryRequest = chain.request().newBuilder()
+                            .addHeader("fake-cookie", newFakeCookie)
+                            .addHeader(AUTH_RETRIED_HEADER, "1")
+                            .build()
+                        return@addInterceptor chain.proceed(retryRequest)
+                    }
+                    runBlocking {
+                        loginStatus.clear()
+                    }
                 }
             }
 
@@ -85,4 +110,8 @@ internal class DefaultAPIManager @Inject constructor(
 
     override val api
         get() = _api
+
+    private companion object {
+        const val AUTH_RETRIED_HEADER = "X-BIT101-AUTH-RETRIED"
+    }
 }

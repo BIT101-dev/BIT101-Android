@@ -4,25 +4,33 @@ import android.database.sqlite.SQLiteException
 import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.common.AESUtils
 import cn.bit101.android.data.common.HashUtils
+import cn.bit101.android.data.common.SmsCodeRequestHub
 import cn.bit101.android.data.net.SchoolCookieStore
 import cn.bit101.android.data.net.base.APIManager
+import cn.bit101.android.data.repo.base.LoginRefreshResult
 import cn.bit101.android.data.repo.base.LoginRepo
 import cn.bit101.api.model.common.SmsCodeHandler
 import cn.bit101.api.model.http.bit101.PostRegisterDataModel
 import cn.bit101.api.model.http.bit101.PostWebvpnVerifyDataModel
 import cn.bit101.api.model.http.bit101.PostWebvpnVerifyInitDataModel
-import kotlinx.coroutines.Dispatchers
+import cn.bit101.bitlogin.sso.CaptchaError
+import cn.bit101.bitlogin.sso.LoginError as SsoLoginError
+import cn.bit101.bitlogin.sso.SmsVerificationError
+import cn.bit101.bitlogin.sso.SsoHttpException
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import javax.inject.Inject
 
 
 internal class DefaultLoginRepo @Inject constructor(
     private val apiManager: APIManager,
-    private val loginStatus: LoginStatus
+    private val loginStatus: LoginStatus,
+    private val smsCodeRequestHub: SmsCodeRequestHub,
 ) : LoginRepo {
 
     private val api
@@ -30,8 +38,9 @@ internal class DefaultLoginRepo @Inject constructor(
 
     private val loginMutex = Mutex()
 
+    // 纯校验：学校会话是否有效，不再承担自动重登职责
     private suspend fun checkSchoolLogin() = withContext(Dispatchers.IO) {
-        val sessionValid = try {
+        try {
             logApiCall(TAG, "校验学校登录态", result = { "成功, 当前学期: $it" }) {
                 api.schoolJxzxehall.getCurrentTerm(
                     cookies = SchoolCookieStore.snapshot(loginStatus.cookieManager.cookieStore),
@@ -43,16 +52,6 @@ internal class DefaultLoginRepo @Inject constructor(
         } catch (_: Exception) {
             false
         }
-
-        if (sessionValid) {
-            true
-        } else {
-            val sid = loginStatus.sid.get()
-            val password = loginStatus.password.get()
-
-            if (sid.isEmpty() || password.isEmpty()) return@withContext false
-            loginSchool(sid, password)
-        }
     }
 
     private suspend fun checkBit101Login() = withContext(Dispatchers.IO) {
@@ -61,18 +60,87 @@ internal class DefaultLoginRepo @Inject constructor(
 
     override suspend fun checkLogin() = withContext(Dispatchers.IO) {
         loginMutex.withLock {
-            val res = try {
+            val valid = try {
                 checkBit101Login() && checkSchoolLogin()
             } catch (e: CancellationException) {
                 throw e
             } catch (_: Exception) {
                 false
             }
-            if(!res) {
-                withContext(NonCancellable) { loginStatus.clear() }
+
+            if (valid) {
+                return@withLock true
             }
-            res
+
+            when (refreshLoginLocked(allowInteractive = true)) {
+                LoginRefreshResult.SUCCESS -> true
+                LoginRefreshResult.NEEDS_INTERACTIVE -> {
+                    loginStatus.status.set(false)
+                    false
+                }
+                LoginRefreshResult.TRANSIENT -> false
+                LoginRefreshResult.FAILED -> {
+                    withContext(NonCancellable) { loginStatus.clear() }
+                    false
+                }
+            }
         }
+    }
+
+    override suspend fun refreshLogin(allowInteractive: Boolean): LoginRefreshResult =
+        withContext(Dispatchers.IO) {
+            loginMutex.withLock {
+                refreshLoginLocked(allowInteractive)
+            }
+        }
+
+    // 调用方需持有 loginMutex，避免 checkLogin 中重复加锁导致死锁
+    private suspend fun refreshLoginLocked(allowInteractive: Boolean): LoginRefreshResult {
+        val sid = loginStatus.sid.get()
+        val password = loginStatus.password.get()
+        if (sid.isEmpty() || password.isEmpty()) {
+            return LoginRefreshResult.FAILED
+        }
+
+        val smsCodeHandler = if (allowInteractive) smsCodeRequestHub.createSmsCodeHandler() else null
+
+        return try {
+            loginSchool(sid, password, smsCodeHandler)
+            loginBIT101(sid, password)
+            LoginRefreshResult.SUCCESS
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            e.classifyRefreshFailure()
+        }
+    }
+
+    // 依据 BIT-Login SDK 异常类型对刷新失败分类，遍历 cause 链以便穿透 SDK 的包装
+    private fun Throwable.classifyRefreshFailure(): LoginRefreshResult {
+        var current: Throwable? = this
+        val visited = mutableSetOf<Throwable>()
+        while (current != null && visited.add(current)) {
+            when (current) {
+                is CancellationException, is SmsVerificationError, is CaptchaError -> {
+                    return LoginRefreshResult.NEEDS_INTERACTIVE
+                }
+                is SsoHttpException -> {
+                    if (current.statusCode == 429 || current.statusCode in 500..599) {
+                        return LoginRefreshResult.TRANSIENT
+                    }
+                    return LoginRefreshResult.FAILED
+                }
+                is SsoLoginError -> {
+                    if (current.statusCode == 429 || current.statusCode in 500..599) {
+                        return LoginRefreshResult.TRANSIENT
+                    }
+                    return LoginRefreshResult.FAILED
+                }
+                is IOException -> return LoginRefreshResult.TRANSIENT
+            }
+            current = current.cause
+        }
+        return LoginRefreshResult.FAILED
     }
 
     private suspend fun loginSchool(
