@@ -13,6 +13,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.features.common.MainController
+import cn.bit101.android.features.common.component.dialog.SmsCodeDialogHost
 import cn.bit101.android.features.common.component.image.ImageHost
 import cn.bit101.android.features.common.component.image.rememberImageHostState
 import cn.bit101.android.features.common.component.snackbar.SnackbarHost
@@ -165,6 +166,10 @@ internal fun MainApp() {
 
     SnackbarHost(
         state = mainController.snackbarHostState
+    )
+
+    SmsCodeDialogHost(
+        smsCodeRequestHub = vm.smsCodeRequestHub
     )
 }
 
