@@ -6,11 +6,9 @@ import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.api.Bit101Api
 import cn.bit101.api.model.common.SchoolCookie
 import cn.bit101.api.model.common.SchoolLoginResult
-import cn.bit101.api.model.common.TermForSchedule
 import cn.bit101.api.model.http.bit101.PostRegisterDataModel
 import cn.bit101.api.model.http.bit101.PostWebvpnVerifyDataModel
 import cn.bit101.api.model.http.bit101.PostWebvpnVerifyInitDataModel
-import cn.bit101.api.model.http.school.GetCurrentTermDataModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -97,10 +95,7 @@ class DefaultLoginRepoTest {
     fun `invalid school session reauthenticates with saved credentials`() = runBlocking {
         loginStatus.seedLoggedIn()
         coEvery { api.user.check() } returns Response.success(Unit)
-        coEvery { api.schoolJxzxehallapp.getAppConfig() } returns Response.error(
-            401,
-            okhttp3.ResponseBody.create(null, "unauthorized"),
-        )
+        coEvery { api.schoolJxzxehall.getCurrentTerm(any(), any()) } throws IllegalStateException("unauthorized")
         stubSuccessfulSchoolLogin()
 
         assertTrue(repo.checkLogin())
@@ -111,10 +106,7 @@ class DefaultLoginRepoTest {
     @Test
     fun `missing credentials does not attempt school login`() = runBlocking {
         coEvery { api.user.check() } returns Response.success(Unit)
-        coEvery { api.schoolJxzxehallapp.getAppConfig() } returns Response.error(
-            401,
-            okhttp3.ResponseBody.create(null, "unauthorized"),
-        )
+        coEvery { api.schoolJxzxehall.getCurrentTerm(any(), any()) } throws IllegalStateException("unauthorized")
 
         assertFalse(repo.checkLogin())
 
@@ -181,19 +173,7 @@ class DefaultLoginRepoTest {
 
     private fun stubValidChecks() {
         coEvery { api.user.check() } returns Response.success(Unit)
-        coEvery { api.schoolJxzxehallapp.getAppConfig() } returns Response.success("config")
-        coEvery { api.schoolJxzxehallapp.getCurrentTerm() } returns Response.success(
-            GetCurrentTermDataModel.Response(
-                datas = GetCurrentTermDataModel.Datas(
-                    dqxnxq = GetCurrentTermDataModel.DQXNXQ(
-                        totalSize = 1,
-                        pageSize = 1,
-                        rows = listOf(TermForSchedule("2025-2026-1")),
-                    ),
-                ),
-                code = "0",
-            ),
-        )
+        coEvery { api.schoolJxzxehall.getCurrentTerm(any(), any()) } returns "2025-2026-1"
     }
 
     private fun assertLoggedOut() = runBlocking {

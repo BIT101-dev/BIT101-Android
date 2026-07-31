@@ -1,53 +1,58 @@
 package cn.bit101.android.data.repo
 
-import android.util.Log
 import cn.bit101.android.config.setting.base.CourseScheduleSettings
+import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.database.BIT101Database
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
 import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.data.database.entity.ExamScheduleEntity
 import cn.bit101.android.data.database.entity.toEntity
+import cn.bit101.android.data.net.SchoolCookieStore
 import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.android.data.repo.base.CoursesRepo
+import cn.bit101.api.model.common.SchoolCookie
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 internal class DefaultCoursesRepo @Inject constructor(
     private val database: BIT101Database,
     private val apiManager: APIManager,
-    private val courseScheduleSettings: CourseScheduleSettings
+    private val courseScheduleSettings: CourseScheduleSettings,
+    private val loginStatus: LoginStatus,
 ) : CoursesRepo {
+    private suspend fun schoolCookies(): List<SchoolCookie> =
+        SchoolCookieStore.snapshot(loginStatus.cookieManager.cookieStore)
+
+    private suspend fun webVpn(): Boolean = loginStatus.webVpn.get()
+
     override suspend fun getCoursesFromNet(
         term: String
     ) = withContext(Dispatchers.IO) {
-        val api = apiManager.api
-        api.schoolJxzxehallapp.getAppConfig()
-        api.schoolJxzxehallapp.switchLang()
-
         if(term.isBlank()) throw Exception("term is empty error")
 
-        val courseList = api.schoolJxzxehallapp.getSchedule(term).body()?.datas?.cxxszhxqkb?.rows
-            ?: throw Exception("get course list error")
-
-        courseList.map { it.toEntity() }
+        logApiCall(TAG, "获取课程表(term=$term)", result = { "成功, 共 ${it.size} 条课程" }) {
+            apiManager.api.schoolJxzxehall.getCourseSchedule(
+                cookies = schoolCookies(),
+                webVpn = webVpn(),
+                term = term,
+            ).map { it.toEntity() }
+        }
     }
 
     override suspend fun getExamsFromNet(
         term: String
     ) = withContext(Dispatchers.IO) {
-        val api = apiManager.api
-        api.schoolJxzxehallapp.getAppConfig()
-        api.schoolJxzxehallapp.switchLang()
-
         if(term.isBlank()) throw Exception("term is empty error")
 
-        val examList = api.schoolJxzxehallapp.getExamsData(term).body()?.datas?.cxxsksap?.rows
-            ?: throw Exception("get exam list error")
-
-        examList.map { it.toEntity() }
+        logApiCall(TAG, "获取考试安排(term=$term)", result = { "成功, 共 ${it.size} 场考试" }) {
+            apiManager.api.schoolJxzxehall.getExamList(
+                cookies = schoolCookies(),
+                webVpn = webVpn(),
+                term = term,
+            ).map { it.toEntity() }
+        }
     }
 
     override suspend fun saveCourses(
@@ -102,20 +107,21 @@ internal class DefaultCoursesRepo @Inject constructor(
     }
 
     override suspend fun getTermListFromNet() = withContext(Dispatchers.IO) {
-        val api = apiManager.api
-        api.schoolJxzxehallapp.getAppConfig()
-        val terms = api.schoolJxzxehallapp.getTerms().body()?.datas?.xnxqcx?.rows?.map { it.DM }
-            ?: throw Exception("Get Term List Error")
-        Log.i("SchoolSchedule", "Get Term List Success: $terms")
-        terms
+        logApiCall(TAG, "获取学期列表", result = { "成功: $it" }) {
+            apiManager.api.schoolJxzxehall.getTermList(
+                cookies = schoolCookies(),
+                webVpn = webVpn(),
+            )
+        }
     }
 
     override suspend fun getCurrentTermFromNet() = withContext(Dispatchers.IO) {
-        val api = apiManager.api
-        api.schoolJxzxehallapp.getAppConfig()
-
-        api.schoolJxzxehallapp.getCurrentTerm().body()?.datas?.dqxnxq?.rows?.get(0)?.DM
-            ?: throw Exception("get current term error")
+        logApiCall(TAG, "获取当前学期", result = { "成功: $it" }) {
+            apiManager.api.schoolJxzxehall.getCurrentTerm(
+                cookies = schoolCookies(),
+                webVpn = webVpn(),
+            )
+        }
     }
 
     override fun getCurrentTermFromLocal() = courseScheduleSettings.term.flow
@@ -123,27 +129,20 @@ internal class DefaultCoursesRepo @Inject constructor(
     override suspend fun getFirstDayFromNet(
         term: String
     ) = withContext(Dispatchers.IO) {
-        val api = apiManager.api
-        api.schoolJxzxehallapp.getAppConfig()
-
-        val res = api.schoolJxzxehallapp.getWeekAndDate(
-            requestParamStr = "{\"XNXQDM\":\"$term\",\"ZC\":\"1\"}"
-        )
-
-        val data = res.body()?.data ?: throw Exception("get first day response error")
-
-        var firstDay: LocalDate? = null
-
-        data.forEach {
-            if(it.week == 1) {
-                firstDay = LocalDate.parse(it.date, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                return@forEach
-            }
+        val firstDay = logApiCall(TAG, "获取学期开始日期(term=$term)", result = { "成功: $it" }) {
+            apiManager.api.schoolJxzxehall.getFirstDay(
+                cookies = schoolCookies(),
+                webVpn = webVpn(),
+                term = term,
+            )
         }
-
-        firstDay!!
+        LocalDate.parse(firstDay)
     }
 
     override fun getFirstDayFromLocal() =
         courseScheduleSettings.firstDay.flow
+
+    private companion object {
+        const val TAG = "CoursesRepo"
+    }
 }

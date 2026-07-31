@@ -22,6 +22,25 @@ internal object SchoolCookieStore {
         converted.forEach { cookieStore.add(it.uri(), it) }
     }
 
+    fun snapshot(
+        cookieStore: CookieStore,
+        nowEpochSeconds: Long = Instant.now().epochSecond,
+    ): List<SchoolCookie> =
+        cookieStore.cookies
+            .filter { it.domain.isSchoolDomain() && !it.hasExpired() }
+            .map { it.toSchoolCookie(nowEpochSeconds) }
+
+    internal fun HttpCookie.toSchoolCookie(nowEpochSeconds: Long): SchoolCookie {
+        return SchoolCookie(
+            name = name,
+            value = value,
+            domain = requireNotNull(domain) { "Cookie domain 不能为空" },
+            path = path ?: "/",
+            secure = secure,
+            expiresEpochSeconds = if (maxAge >= 0) nowEpochSeconds + maxAge else null,
+        )
+    }
+
     internal fun SchoolCookie.toHttpCookie(nowEpochSeconds: Long): HttpCookie? {
         require(name.isNotBlank()) { "Cookie name 不能为空" }
         require(domain.isNotBlank()) { "Cookie domain 不能为空" }
