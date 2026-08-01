@@ -264,3 +264,21 @@ fun NavGraphBuilder.composableWeb(
         content(it, url)
     }
 }
+
+typealias FollowListType = String
+
+fun NavGraphBuilder.composableFollowList(
+    navAnimation: NavAnimation = NavAnimation.none,
+    navController: NavHostController,
+    content: @Composable AnimatedVisibilityScope.(NavBackStackEntry, FollowListType) -> Unit
+) {
+    animatedComposable(
+        route = NavDestConfig.FollowList.route,
+        arguments = NavDestConfig.FollowList.arguments,
+        navAnimation = navAnimation,
+        navController = navController,
+    ) {
+        val type = it.arguments?.getString("type") ?: ""
+        content(it, type)
+    }
+}

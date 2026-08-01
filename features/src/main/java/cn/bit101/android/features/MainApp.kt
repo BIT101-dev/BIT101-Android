@@ -23,6 +23,7 @@ import cn.bit101.android.features.common.helper.getAppVersion
 import cn.bit101.android.features.common.nav.NavAnimation
 import cn.bit101.android.features.common.nav.NavDestConfig
 import cn.bit101.android.features.common.nav.composableEdit
+import cn.bit101.android.features.common.nav.composableFollowList
 import cn.bit101.android.features.common.nav.composableIndex
 import cn.bit101.android.features.common.nav.composableLogin
 import cn.bit101.android.features.common.nav.composableMessage
@@ -43,6 +44,7 @@ import cn.bit101.android.features.postedit.PostEditScreen
 import cn.bit101.android.features.poster.PosterScreen
 import cn.bit101.android.features.report.ReportScreen
 import cn.bit101.android.features.setting.SettingScreen
+import cn.bit101.android.features.user.MyFollowListScreen
 import cn.bit101.android.features.user.UserScreen
 import cn.bit101.android.features.versions.UpdateDialog
 import cn.bit101.android.features.versions.VersionDialog
@@ -158,6 +160,12 @@ internal fun MainApp() {
         composableMessage(navAnim, navController) {
             Box(modifier = Modifier.navigationBarsPadding()) {
                 WebScreen(mainController, MessageUrl)
+            }
+        }
+
+        composableFollowList(navAnim, navController) { _, type ->
+            Box(modifier = Modifier.navigationBarsPadding()) {
+                MyFollowListScreen(mainController, type)
             }
         }
     }
