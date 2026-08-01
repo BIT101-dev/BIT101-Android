@@ -171,7 +171,7 @@ private fun FollowPage(
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Box(modifier = Modifier.padding(top = paddingValues.calculateTopPadding())) {
             if(refreshState is SimpleState.Fail) ErrorMessageForPage()
             else if(refreshState is SimpleState.Success) {
                 LoadableLazyColumnWithoutPullRequest(
