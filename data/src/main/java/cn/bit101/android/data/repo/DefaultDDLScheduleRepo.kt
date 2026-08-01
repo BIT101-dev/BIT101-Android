@@ -1,6 +1,7 @@
 package cn.bit101.android.data.repo
 
 import cn.bit101.android.config.user.base.LoginStatus
+import cn.bit101.android.data.common.SmsCodeRequestHub
 import cn.bit101.android.data.database.BIT101Database
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
 import cn.bit101.android.data.net.SchoolCookieStore
@@ -16,6 +17,7 @@ internal class DefaultDDLScheduleRepo @Inject constructor(
     private val database: BIT101Database,
     private val apiManager: APIManager,
     private val loginStatus: LoginStatus,
+    private val smsCodeRequestHub: SmsCodeRequestHub,
 ) : DDLScheduleRepo {
 
     override suspend fun getCalendarUrl(): String? {
@@ -23,8 +25,10 @@ internal class DefaultDDLScheduleRepo @Inject constructor(
             withContext(Dispatchers.IO) {
                 logApiCall(TAG, "获取乐学日历订阅链接", result = { "成功: $it" }) {
                     apiManager.api.schoolLexue.getCalendarUrl(
-                        cookies = SchoolCookieStore.snapshot(loginStatus.cookieManager.cookieStore),
+                        username = loginStatus.sid.get(),
+                        password = loginStatus.password.get(),
                         webVpn = loginStatus.webVpn.get(),
+                        smsCodeHandler = smsCodeRequestHub.createSmsCodeHandler(),
                     )
                 }
             }

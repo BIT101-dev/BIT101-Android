@@ -4,6 +4,7 @@ import cn.bit101.api.model.common.SchoolCookie
 import cn.bit101.bitlogin.Config
 import cn.bit101.bitlogin.NetworkEnv
 import cn.bit101.bitlogin.http.HttpClient
+import cn.bit101.bitlogin.sso.BitSsoClient
 import java.time.Instant
 
 private const val WEBVPN_HOST = "webvpn.bit.edu.cn"
@@ -21,7 +22,12 @@ internal suspend fun openSchoolSession(
     urls["jxzxehall_app"]?.let { Config.Urls.active["jxzxehall_app"] = it }
     urls["lexue"]?.let { Config.Urls.active["lexue"] = it }
 
-    val session = HttpClient()
+    // 与 SDK SsoLogin 保持一致: 会话必须携带浏览器默认请求头。
+    // 乐学的统一身份认证 gateway 静默重登依赖该 UA 指纹, 否则
+    // CAS/authserver 会返回非预期页面, 导致 Moodle 会话建立失败
+    val session = HttpClient().apply {
+        BitSsoClient.BROWSER_DEFAULT_HEADERS.forEach { (k, v) -> headers[k] = v }
+    }
     val nowEpochSeconds = Instant.now().epochSecond
     cookies.forEach { cookie ->
         val expires = cookie.expiresEpochSeconds
