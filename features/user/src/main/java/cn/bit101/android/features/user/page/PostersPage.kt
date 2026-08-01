@@ -1,4 +1,4 @@
-package cn.bit101.android.features.mine.page
+package cn.bit101.android.features.user.page
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize

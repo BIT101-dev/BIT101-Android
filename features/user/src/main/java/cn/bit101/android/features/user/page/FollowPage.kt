@@ -1,4 +1,4 @@
-package cn.bit101.android.features.mine.page
+package cn.bit101.android.features.user.page
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box

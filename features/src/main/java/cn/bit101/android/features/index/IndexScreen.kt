@@ -25,8 +25,8 @@ import cn.bit101.android.features.common.motion.materialSharedAxisZOut
 import cn.bit101.android.features.component.WithLoginStatus
 import cn.bit101.android.features.gallery.GalleryScreen
 import cn.bit101.android.features.map.MapScreen
-import cn.bit101.android.features.mine.MineScreen
 import cn.bit101.android.features.schedule.ScheduleScreen
+import cn.bit101.android.features.user.UserScreen
 import cn.bit101.android.features.web.WebScreen
 
 
@@ -118,7 +118,7 @@ internal fun IndexScreen(
                 MapScreen()
             }
             composable(route = PageShowOnNav.Mine.toString()) {
-                MineScreen(mainController)
+                UserScreen(mainController, id = 0)
             }
             composable(route = PageShowOnNav.Schedule.toString()) {
                 WithLoginStatus(mainController, loginStatus) {

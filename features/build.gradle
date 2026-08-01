@@ -51,7 +51,6 @@ dependencies {
     implementation project(':features:login')
     implementation project(':features:map')
     implementation project(':features:message')
-    implementation project(':features:mine')
     implementation project(':features:postedit')
     implementation project(':features:poster')
     implementation project(':features:report')
