@@ -126,7 +126,7 @@ fun LikeIcon(
         imageVector = if(like) Icons.Outlined.Favorite else Icons.Outlined.FavoriteBorder,
         contentDescription = "点赞",
         tint = if(liking) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-        else if(like) MaterialTheme.colorScheme.tertiary
+        else if(like) MaterialTheme.colorScheme.primary
         else MaterialTheme.colorScheme.onSurface
     )
 
