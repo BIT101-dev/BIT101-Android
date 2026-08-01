@@ -82,6 +82,20 @@ sealed interface NavDest {
         override val route = config.route
             .replace("{url}", Uri.encode(url))
     }
+
+    data class FollowList(
+        val type: String
+    ) : NavDest {
+        override val config = NavDestConfig.FollowList
+        override val route = config.route
+            .replace("{type}", type)
+
+        companion object {
+            const val FOLLOWING = "following"
+            const val FOLLOWER = "follower"
+            const val POSTERS = "posters"
+        }
+    }
 }
 
 fun NavHostController.navigate(dest: NavDest) {
