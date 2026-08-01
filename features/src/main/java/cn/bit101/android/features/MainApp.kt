@@ -78,6 +78,7 @@ internal fun MainApp() {
 
         systemUiController.setNavigationBarColor(
             color = Color.Transparent,
+            darkIcons = !darkTheme
         )
     }
 
