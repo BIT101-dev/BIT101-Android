@@ -8,10 +8,15 @@ import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -34,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
@@ -44,6 +50,8 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import cn.bit101.android.features.common.component.DialogLayout
 import cn.bit101.android.features.common.component.ImageWrapper
 import cn.bit101.android.features.common.component.bottomsheet.CoreBottomSheetDefaults
@@ -183,6 +191,8 @@ internal fun ImageWithModel(
 
     SubcomposeAsyncImage(
         modifier = modifier
+            .statusBarsPadding()
+            .navigationBarsPadding()
             .onGloballyPositioned {
                 // 获取组件的长和宽
                 size = it.size
@@ -252,6 +262,13 @@ private fun BasicImageScreen(
                     color = MaterialTheme.colorScheme.scrim,
                 ) {
                     Box(modifier = Modifier.fillMaxSize()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .windowInsetsPadding(WindowInsets.navigationBars)
+                                .background(Color.Black.copy(alpha = 0.4f))
+                        )
                         imageContent()
                         controller()
                     }
@@ -263,6 +280,10 @@ private fun BasicImageScreen(
     LaunchedEffect(dialog.isShowing) {
         if (!dialog.isShowing) {
             dialog.show()
+        }
+        dialog.window?.let { window ->
+            WindowCompat.getInsetsController(window, window.decorView)
+                .hide(WindowInsetsCompat.Type.statusBars())
         }
     }
 
@@ -298,6 +319,10 @@ internal fun ImageScreen(
     )
     BasicImageScreen(
         state = state,
+        behaviors = CoreBottomSheetDefaults.dialogSheetBehaviors(
+            navigationBarColor = Color.Transparent,
+            lightNavigationBar = false,
+        ),
         controller = {
             ImageController(
                 modifier = Modifier
@@ -338,6 +363,10 @@ internal fun ImageScreen(
 
     BasicImageScreen(
         state = state,
+        behaviors = CoreBottomSheetDefaults.dialogSheetBehaviors(
+            navigationBarColor = Color.Transparent,
+            lightNavigationBar = false,
+        ),
         controller = {
             ImageController(
                 modifier = Modifier
