@@ -11,6 +11,7 @@ import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withSimpleDataStateFlow
 import cn.bit101.android.features.common.helper.withSimpleStateLiveData
+import cn.bit101.android.features.common.helper.withScope
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -47,6 +48,11 @@ internal class UserViewModel @Inject constructor(
 
     fun getUserInfo(id: Long) = withSimpleDataStateFlow(_getUserInfoStateFlow) {
         userRepo.getUserInfo(id)
+    }
+
+    fun refreshUserInfo(id: Long) = withScope {
+        val res = userRepo.getUserInfo(id)
+        _getUserInfoStateFlow.value = SimpleDataState.Success(res)
     }
 
     fun follow(uid: Long) = withSimpleStateLiveData(followStateMutableLiveData) {

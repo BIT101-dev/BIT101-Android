@@ -7,8 +7,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -27,11 +31,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.features.common.MainController
+import cn.bit101.android.features.common.component.Avatar
 import cn.bit101.android.features.common.component.CircularProgressIndicatorForPage
 import cn.bit101.android.features.common.component.ErrorMessageForPage
 import cn.bit101.android.features.common.component.gallery.PosterCard
@@ -39,6 +45,7 @@ import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWi
 import cn.bit101.android.features.common.component.loadable.LoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.features.common.component.loadable.rememberLoadableLazyColumnWithoutPullRequestState
 import cn.bit101.android.features.common.component.user.UserInfoContent
+import cn.bit101.android.features.common.component.user.UserInfoContentForMe
 import cn.bit101.android.features.common.component.user.UserInfoTopAppBar
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
@@ -46,6 +53,7 @@ import cn.bit101.android.features.common.nav.NavDest
 import cn.bit101.api.model.common.Image
 import cn.bit101.api.model.http.bit101.GetPostersDataModel
 import cn.bit101.api.model.http.bit101.GetUserInfoDataModel
+import androidx.core.graphics.toColorInt
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,9 +66,14 @@ private fun UserScreenContent(
     loadState: SimpleState?,
     followState: SimpleState?,
     hideState: SimpleState?,
+    showBack: Boolean,
 
     onFollow: () -> Unit,
     onHide: () -> Unit,
+    onRefresh: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenFollowerPage: () -> Unit,
+    onOpenFollowingPage: () -> Unit,
     onOpenPoster: (Long) -> Unit,
     onOpenImages: (Int, List<Image>) -> Unit,
 ) {
@@ -78,49 +91,88 @@ private fun UserScreenContent(
                 title = {
                     Column {
                         Spacer(modifier = Modifier.padding(4.dp))
-                        UserInfoContent(
-                            data = data,
-                            hide = hide,
-                            following = followState is SimpleState.Loading,
-                            hiding = hideState is SimpleState.Loading,
-                            onFollow = onFollow,
-                            onHide = onHide,
-                            onCopyText = { mainController.copyText(cm, it) },
-                            onShowImage = { mainController.showImage(it) },
-                            onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
-                            onOpenUser = { mainController.navigate(NavDest.User(it)) },
-                            onOpenUrlInternal = { mainController.navigate(NavDest.Web(it)) },
-                        )
+                        if (data.own) {
+                            UserInfoContentForMe(
+                                data = data,
+                                onOpenFollowerDialog = onOpenFollowerPage,
+                                onOpenFollowingDialog = onOpenFollowingPage,
+                                onCopyText = { mainController.copyText(cm, it) },
+                                onShowImage = { mainController.showImage(it) },
+                                onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
+                                onOpenUser = { mainController.navigate(NavDest.User(it)) },
+                                onOpenUrlInternal = { mainController.navigate(NavDest.Web(it)) },
+                            )
+                        } else {
+                            UserInfoContent(
+                                data = data,
+                                hide = hide,
+                                following = followState is SimpleState.Loading,
+                                hiding = hideState is SimpleState.Loading,
+                                onFollow = onFollow,
+                                onHide = onHide,
+                                onCopyText = { mainController.copyText(cm, it) },
+                                onShowImage = { mainController.showImage(it) },
+                                onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
+                                onOpenUser = { mainController.navigate(NavDest.User(it)) },
+                                onOpenUrlInternal = { mainController.navigate(NavDest.Web(it)) },
+                            )
+                        }
                         Spacer(modifier = Modifier.padding(8.dp))
                     }
                 },
                 scrollBehavior = topAppBarBehavior,
                 smallTitle = {
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.wrapContentSize(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = data.user.nickname,
-                            style = MaterialTheme.typography.titleMedium
+                        Avatar(
+                            user = data.user,
+                            low = true,
+                            size = 32.dp,
                         )
+                        Column(
+                            modifier = Modifier
+                                .padding(start = 12.dp)
+                                .align(Alignment.CenterVertically)
+                        ) {
+                            Text(
+                                text = data.user.nickname,
+                                style = MaterialTheme.typography.titleSmall,
+                            )
+                            Text(
+                                text = data.user.identity.text,
+                                style = MaterialTheme.typography.labelSmall.copy(
+                                    color = if(data.user.identity.id == 0) {
+                                        MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                                    }
+                                    else {
+                                        Color(data.user.identity.color.toColorInt())
+                                    }
+                                ),
+                            )
+                        }
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { mainController.popBackStack() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
-                            contentDescription = "back"
-                        )
+                    if (showBack) {
+                        IconButton(onClick = { mainController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                                contentDescription = "back"
+                            )
+                        }
                     }
                 },
                 actions = {
-//                    IconButton(onClick = {}) {
-//                        Icon(
-//                            imageVector = Icons.Rounded.MoreVert,
-//                            contentDescription = "more action"
-//                        )
-//                    }
+                    if (data.own) {
+                        IconButton(onClick = onRefresh) {
+                            Icon(imageVector = Icons.Outlined.Refresh, contentDescription = "刷新")
+                        }
+                        IconButton(onClick = onOpenSettings) {
+                            Icon(imageVector = Icons.Outlined.Settings, contentDescription = "设置")
+                        }
+                    }
                 }
             )
         }
@@ -128,7 +180,7 @@ private fun UserScreenContent(
         LoadableLazyColumnWithoutPullRequest(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
+                .padding(top = paddingValues.calculateTopPadding()),
             contentPadding = PaddingValues(bottom = 16.dp),
             state = state,
             loading = loadState == SimpleState.Loading,
@@ -185,7 +237,6 @@ fun UserScreen(
         onDispose { }
     }
 
-
     LaunchedEffect(getUserInfoState) {
         if (getUserInfoState == null) {
             vm.getUserInfo(id)
@@ -203,10 +254,11 @@ fun UserScreen(
     } else if(getUserInfoState is SimpleDataState.Loading || postersRefreshState is SimpleState.Loading) {
         CircularProgressIndicatorForPage()
     } else if(getUserInfoState is SimpleDataState.Success && postersRefreshState is SimpleState.Success) {
+        val data = (getUserInfoState as SimpleDataState.Success).data
         val hidden by remember(hideUserUids) { mutableStateOf(hideUserUids.contains(id.toInt())) }
         UserScreenContent(
             mainController = mainController,
-            data = (getUserInfoState as SimpleDataState.Success).data,
+            data = data,
             posters = posters,
 
             state = rememberLoadableLazyColumnWithoutPullRequestState(
@@ -216,11 +268,16 @@ fun UserScreen(
             loadState = postersLoadMoreState,
             followState = followState,
             hideState = hideState,
+            showBack = id != 0L,
 
             onOpenImages = mainController::showImages,
             onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
             onFollow = { vm.follow(id) },
             onHide = { vm.hide(id) },
+            onRefresh = { vm.refreshUserInfo(id) },
+            onOpenSettings = { mainController.navigate(NavDest.Setting()) },
+            onOpenFollowerPage = { mainController.navigate(NavDest.FollowList(NavDest.FollowList.FOLLOWER)) },
+            onOpenFollowingPage = { mainController.navigate(NavDest.FollowList(NavDest.FollowList.FOLLOWING)) },
         )
     } else {
         ErrorMessageForPage()
