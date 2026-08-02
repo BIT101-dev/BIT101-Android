@@ -25,7 +25,7 @@ internal data class GallerySettingData(
             hideBotPoster = false,
             hideBotPosterInSearch = false,
             hideStrictMode = false,
-            allowHorizontalScroll = false
+            allowHorizontalScroll = true
         )
     }
 }
