@@ -64,7 +64,6 @@ internal class SheetLayout(
     }
 }
 
-@Suppress("deprecation")
 internal open class BasicWrapper(
     private var onDismissRequest: () -> Unit,
     private var behaviors: DialogSheetBehaviors,
@@ -89,9 +88,7 @@ internal open class BasicWrapper(
             ViewGroup.LayoutParams.MATCH_PARENT
         )
 
-        val edgeToEdgeFlags = View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION or
-                View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        window.decorView.systemUiVisibility = edgeToEdgeFlags
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 
         sheetLayout = SheetLayout(context, window).apply {
             // Set unique id for AbstractComposeView. This allows state restoration for the state
