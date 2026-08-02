@@ -4,6 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.GallerySettings
+import cn.bit101.android.data.repo.base.MessageRepo
 import cn.bit101.android.data.repo.base.PosterRepo
 import cn.bit101.android.data.repo.base.UserRepo
 import cn.bit101.android.features.common.helper.RefreshAndLoadMoreStatesCombinedOne
@@ -22,11 +23,15 @@ import javax.inject.Inject
 internal class UserViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val posterRepo: PosterRepo,
+    private val messageRepo: MessageRepo,
     private val gallerySettings: GallerySettings,
 ) : ViewModel() {
 
     private val _getUserInfoStateFlow = MutableStateFlow<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
     val getUserInfoStateFlow = _getUserInfoStateFlow
+
+    private val _unreadMessageCountFlow = MutableStateFlow<SimpleDataState<Int>?>(null)
+    val unreadMessageCountFlow = _unreadMessageCountFlow
 
     private val _posterState = object : RefreshAndLoadMoreStatesCombinedOne<Long, GetPostersDataModel.ResponseItem>(viewModelScope) {
         override fun refresh(data: Long) = refresh {
@@ -47,12 +52,22 @@ internal class UserViewModel @Inject constructor(
     val uploadUserInfoStateLiveData = MutableLiveData<SimpleState?>(null)
 
     fun getUserInfo(id: Long) = withSimpleDataStateFlow(_getUserInfoStateFlow) {
+        if (id == 0L) {
+            getUnreadMessageCount()
+        }
         userRepo.getUserInfo(id)
     }
 
     fun refreshUserInfo(id: Long) = withScope {
+        if (id == 0L) {
+            getUnreadMessageCount()
+        }
         val res = userRepo.getUserInfo(id)
         _getUserInfoStateFlow.value = SimpleDataState.Success(res)
+    }
+
+    fun getUnreadMessageCount() = withSimpleDataStateFlow(_unreadMessageCountFlow) {
+        messageRepo.getUnreadMessageCount()
     }
 
     fun follow(uid: Long) = withSimpleStateLiveData(followStateMutableLiveData) {

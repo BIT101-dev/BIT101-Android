@@ -11,8 +11,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -67,11 +70,13 @@ private fun UserScreenContent(
     followState: SimpleState?,
     hideState: SimpleState?,
     showBack: Boolean,
+    unreadMessageCount: Int,
 
     onFollow: () -> Unit,
     onHide: () -> Unit,
     onRefresh: () -> Unit,
     onOpenSettings: () -> Unit,
+    onOpenMessage: () -> Unit,
     onOpenFollowerPage: () -> Unit,
     onOpenFollowingPage: () -> Unit,
     onOpenPoster: (Long) -> Unit,
@@ -169,6 +174,20 @@ private fun UserScreenContent(
                         IconButton(onClick = onRefresh) {
                             Icon(imageVector = Icons.Outlined.Refresh, contentDescription = "刷新")
                         }
+                        IconButton(onClick = onOpenMessage) {
+                            BadgedBox(
+                                badge = {
+                                    if (unreadMessageCount > 0) {
+                                        Badge { Text(text = unreadMessageCount.toString()) }
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Notifications,
+                                    contentDescription = "消息",
+                                )
+                            }
+                        }
                         IconButton(onClick = onOpenSettings) {
                             Icon(imageVector = Icons.Outlined.Settings, contentDescription = "设置")
                         }
@@ -214,6 +233,8 @@ fun UserScreen(
     val vm: UserViewModel = hiltViewModel()
 
     val getUserInfoState by vm.getUserInfoStateFlow.collectAsState()
+
+    val unreadMessageCount by vm.unreadMessageCountFlow.collectAsState()
 
     val posters by vm.posterStateExport.dataFlow.collectAsState()
     val postersRefreshState by vm.posterStateExport.refreshStateFlow.collectAsState()
@@ -269,6 +290,7 @@ fun UserScreen(
             followState = followState,
             hideState = hideState,
             showBack = id != 0L,
+            unreadMessageCount = (unreadMessageCount as? SimpleDataState.Success)?.data ?: 0,
 
             onOpenImages = mainController::showImages,
             onOpenPoster = { mainController.navigate(NavDest.Poster(it)) },
@@ -276,6 +298,7 @@ fun UserScreen(
             onHide = { vm.hide(id) },
             onRefresh = { vm.refreshUserInfo(id) },
             onOpenSettings = { mainController.navigate(NavDest.Setting()) },
+            onOpenMessage = { mainController.navigate(NavDest.Message) },
             onOpenFollowerPage = { mainController.navigate(NavDest.FollowList(NavDest.FollowList.FOLLOWER)) },
             onOpenFollowingPage = { mainController.navigate(NavDest.FollowList(NavDest.FollowList.FOLLOWING)) },
         )
