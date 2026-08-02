@@ -18,7 +18,6 @@ import cn.bit101.android.features.common.component.image.ImageHost
 import cn.bit101.android.features.common.component.image.rememberImageHostState
 import cn.bit101.android.features.common.component.snackbar.SnackbarHost
 import cn.bit101.android.features.common.component.snackbar.rememberSnackbarState
-import cn.bit101.android.features.common.helper.MessageUrl
 import cn.bit101.android.features.common.helper.getAppVersion
 import cn.bit101.android.features.common.nav.NavAnimation
 import cn.bit101.android.features.common.nav.NavDestConfig
@@ -40,6 +39,7 @@ import cn.bit101.android.features.common.nav.popExitTransition
 import cn.bit101.android.features.common.utils.ColorUtils
 import cn.bit101.android.features.index.IndexScreen
 import cn.bit101.android.features.login.LoginOrLogoutScreen
+import cn.bit101.android.features.message.MessageScreen
 import cn.bit101.android.features.postedit.PostEditScreen
 import cn.bit101.android.features.poster.PosterScreen
 import cn.bit101.android.features.report.ReportScreen
@@ -159,7 +159,7 @@ internal fun MainApp() {
 
         composableMessage(navAnim, navController) {
             Box(modifier = Modifier.navigationBarsPadding()) {
-                WebScreen(mainController, MessageUrl)
+                MessageScreen(mainController)
             }
         }
 
