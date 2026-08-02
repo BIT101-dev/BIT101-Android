@@ -224,7 +224,10 @@ private fun MessageTypePage(
                     )
                 }
             } else {
-                LazyColumn(state = listState) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    state = listState,
+                ) {
                     items(messages.size) { index ->
                         val message = messages[index]
                         MessageItem(
