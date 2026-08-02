@@ -1,5 +1,6 @@
 package cn.bit101.android.features.message
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,7 +11,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.automirrored.outlined.KeyboardArrowRight
@@ -38,6 +42,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +61,7 @@ import cn.bit101.android.features.common.utils.DateTimeUtils
 import cn.bit101.api.model.common.MessageType
 import cn.bit101.api.model.http.bit101.GetMessagesDataModel
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
 private val messageTypes = listOf(
     MessageType.SYSTEM to "系统",
@@ -184,26 +190,15 @@ private fun MessageItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MessageScreen(mainController: MainController) {
-    val vm: MessageViewModel = hiltViewModel()
-
-    val unreadCount by vm.unreadCountStateFlow.collectAsState()
-    val separateUnreadCount by vm.separateUnreadCountStateFlow.collectAsState()
-    val selectedType by vm.selectedTypeFlow.collectAsState()
-    val messagesStateByType by vm.messagesStateByTypeFlow.collectAsState()
-    val loadMoreStateByType by vm.loadMoreStateByTypeFlow.collectAsState()
-
-    val messagesState = messagesStateByType[selectedType]
-    val loadMoreState = loadMoreStateByType[selectedType]
-
+private fun MessageTypePage(
+    type: String,
+    state: SimpleDataState<List<GetMessagesDataModel.ResponseItem>>?,
+    loadMoreState: SimpleState?,
+    onLoadMore: () -> Unit,
+    onItemClick: (GetMessagesDataModel.ResponseItem) -> Unit,
+) {
     val listState = rememberLazyListState()
-
-    LaunchedEffect(Unit) {
-        vm.loadUnreadCounts()
-        vm.refreshMessages()
-    }
 
     LaunchedEffect(listState) {
         snapshotFlow {
@@ -213,16 +208,74 @@ fun MessageScreen(mainController: MainController) {
             lastVisible >= total - 3
         }
             .distinctUntilChanged()
-            .collect { nearEnd ->
-                if (nearEnd) {
-                    val type = vm.selectedTypeFlow.value
-                    if (vm.messagesStateByTypeFlow.value[type] is SimpleDataState.Success &&
-                        vm.loadMoreStateByTypeFlow.value[type] !is SimpleState.Loading
-                    ) {
-                        vm.loadMoreMessages()
+            .collect { nearEnd -> if (nearEnd) onLoadMore() }
+    }
+
+    when (state) {
+        is SimpleDataState.Loading -> CircularProgressIndicatorForPage()
+        is SimpleDataState.Fail -> ErrorMessageForPage()
+        is SimpleDataState.Success -> {
+            val messages = state.data
+            if (messages.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = "暂无消息",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            } else {
+                LazyColumn(state = listState) {
+                    items(messages.size) { index ->
+                        val message = messages[index]
+                        MessageItem(
+                            type = type,
+                            message = message,
+                            onClick = { onItemClick(message) },
+                        )
+                        Divider(
+                            color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                            thickness = 0.5.dp,
+                        )
+                    }
+                    if (loadMoreState is SimpleState.Loading) {
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
                 }
             }
+        }
+        null -> CircularProgressIndicatorForPage()
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun MessageScreen(mainController: MainController) {
+    val vm: MessageViewModel = hiltViewModel()
+
+    val unreadCount by vm.unreadCountStateFlow.collectAsState()
+    val separateUnreadCount by vm.separateUnreadCountStateFlow.collectAsState()
+    val messagesStateByType by vm.messagesStateByTypeFlow.collectAsState()
+    val loadMoreStateByType by vm.loadMoreStateByTypeFlow.collectAsState()
+
+    val pagerState = rememberPagerState(pageCount = { messageTypes.size })
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        vm.loadUnreadCounts()
+        vm.refreshMessages()
+    }
+
+    LaunchedEffect(pagerState.settledPage) {
+        vm.selectType(messageTypes[pagerState.settledPage].first)
     }
 
     val separateCount = (separateUnreadCount as? SimpleDataState.Success)?.data
@@ -263,8 +316,8 @@ fun MessageScreen(mainController: MainController) {
                 .fillMaxSize()
                 .padding(top = paddingValues.calculateTopPadding())
         ) {
-            TabRow(selectedTabIndex = messageTypes.indexOfFirst { it.first == selectedType }) {
-                messageTypes.forEachIndexed { _, (type, label) ->
+            TabRow(selectedTabIndex = pagerState.currentPage) {
+                messageTypes.forEachIndexed { index, (type, label) ->
                     val unread = separateCount?.let {
                         when (type) {
                             MessageType.SYSTEM -> it.system
@@ -274,8 +327,10 @@ fun MessageScreen(mainController: MainController) {
                         }
                     }
                     Tab(
-                        selected = selectedType == type,
-                        onClick = { vm.selectType(type) },
+                        selected = pagerState.currentPage == index,
+                        onClick = {
+                            scope.launch { pagerState.scrollToPage(index) }
+                        },
                         text = {
                             BadgedBox(
                                 badge = {
@@ -291,52 +346,20 @@ fun MessageScreen(mainController: MainController) {
                 }
             }
 
-            when (messagesState) {
-                is SimpleDataState.Loading -> CircularProgressIndicatorForPage()
-                is SimpleDataState.Fail -> ErrorMessageForPage()
-                is SimpleDataState.Success -> {
-                    val messages = (messagesState as SimpleDataState.Success).data
-                    if (messages.isEmpty()) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(
-                                text = "暂无消息",
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                        }
-                    } else {
-                        LazyColumn(state = listState) {
-                            items(messages.size) { index ->
-                                val message = messages[index]
-                                MessageItem(
-                                    type = selectedType,
-                                    message = message,
-                                    onClick = {
-                                        messageNavDest(selectedType, message)?.let {
-                                            mainController.navigate(it)
-                                        }
-                                    },
-                                )
-                                Divider(
-                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                                    thickness = 0.5.dp,
-                                )
-                            }
-                            if (loadMoreState is SimpleState.Loading) {
-                                item {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        contentAlignment = Alignment.Center,
-                                    ) {
-                                        CircularProgressIndicator()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                null -> CircularProgressIndicatorForPage()
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+            ) { index ->
+                val type = messageTypes[index].first
+                MessageTypePage(
+                    type = type,
+                    state = messagesStateByType[type],
+                    loadMoreState = loadMoreStateByType[type],
+                    onLoadMore = vm::loadMoreMessages,
+                    onItemClick = { message ->
+                        messageNavDest(type, message)?.let { mainController.navigate(it) }
+                    },
+                )
             }
         }
     }
