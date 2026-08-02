@@ -50,8 +50,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import cn.bit101.android.features.common.component.DialogLayout
 import cn.bit101.android.features.common.component.ImageWrapper
 import cn.bit101.android.features.common.component.bottomsheet.CoreBottomSheetDefaults
@@ -281,10 +279,6 @@ private fun BasicImageScreen(
         if (!dialog.isShowing) {
             dialog.show()
         }
-        dialog.window?.let { window ->
-            WindowCompat.getInsetsController(window, window.decorView)
-                .hide(WindowInsetsCompat.Type.statusBars())
-        }
     }
 
     DisposableEffect(state) {
@@ -320,6 +314,7 @@ internal fun ImageScreen(
     BasicImageScreen(
         state = state,
         behaviors = CoreBottomSheetDefaults.dialogSheetBehaviors(
+            statusBarColor = Color.Transparent,
             navigationBarColor = Color.Transparent,
             lightNavigationBar = false,
         ),
@@ -364,6 +359,7 @@ internal fun ImageScreen(
     BasicImageScreen(
         state = state,
         behaviors = CoreBottomSheetDefaults.dialogSheetBehaviors(
+            statusBarColor = Color.Transparent,
             navigationBarColor = Color.Transparent,
             lightNavigationBar = false,
         ),
