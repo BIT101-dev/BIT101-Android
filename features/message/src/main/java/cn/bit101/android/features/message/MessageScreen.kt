@@ -64,10 +64,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 private val messageTypes = listOf(
-    MessageType.SYSTEM to "系统",
-    MessageType.COMMENT to "评论",
     MessageType.LIKE to "点赞",
+    MessageType.COMMENT to "评论",
     MessageType.FOLLOW to "关注",
+    MessageType.SYSTEM to "系统",
 )
 
 private val messageTypeIcons = mapOf(
