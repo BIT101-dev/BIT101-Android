@@ -1,5 +1,6 @@
 package cn.bit101.android.features.user
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -38,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.component.Avatar
@@ -174,20 +176,21 @@ private fun UserScreenContent(
                         IconButton(onClick = onRefresh) {
                             Icon(imageVector = Icons.Outlined.Refresh, contentDescription = "刷新")
                         }
-                        IconButton(onClick = onOpenMessage) {
-                            BadgedBox(
-                                badge = {
-                                    if (unreadMessageCount > 0) {
-                                        Badge { Text(text = unreadMessageCount.toString()) }
-                                    }
-                                }
-                            ) {
+                        Box {
+                            IconButton(onClick = onOpenMessage) {
                                 Icon(
                                     imageVector = Icons.Outlined.Notifications,
                                     contentDescription = "消息",
                                 )
                             }
+                            Badge(
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                            ) {
+                                Text(text = unreadMessageCount.toString())
+                            }
                         }
+
                         IconButton(onClick = onOpenSettings) {
                             Icon(imageVector = Icons.Outlined.Settings, contentDescription = "设置")
                         }
