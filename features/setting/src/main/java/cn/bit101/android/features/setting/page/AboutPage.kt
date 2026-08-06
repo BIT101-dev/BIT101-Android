@@ -1,6 +1,7 @@
 package cn.bit101.android.features.setting.page
 
 import android.content.Intent
+import android.content.pm.ApplicationInfo
 import android.net.Uri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -41,12 +42,14 @@ import cn.bit101.android.features.common.helper.getAppVersion
 import cn.bit101.android.features.setting.component.SettingItemData
 import cn.bit101.android.features.setting.component.SettingsColumn
 import cn.bit101.android.features.setting.component.SettingsGroup
+import cn.bit101.android.features.setting.utils.LogExporter
 import cn.bit101.android.features.setting.viewmodel.AboutViewModel
 import cn.bit101.android.features.versions.UpdateDialog
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @Composable
@@ -60,6 +63,7 @@ private fun AboutPageContent(
 
     onOpenAboutDialog: () -> Unit,
     onOpenLicenseDialog: () -> Unit,
+    onExportLog: () -> Unit,
 ) {
     val context = LocalContext.current
 
@@ -127,6 +131,14 @@ private fun AboutPageContent(
         ),
     )
 
+    val debugItems = listOf(
+        SettingItemData.Button(
+            title = "导出日志",
+            subTitle = "导出 logcat 日志用于问题排查",
+            onClick = onExportLog,
+        ),
+    )
+
     SettingsColumn {
         Column(modifier = Modifier.fillMaxWidth()) {
             Image(
@@ -163,6 +175,14 @@ private fun AboutPageContent(
             title = "关于本APP",
             items = aboutAppItems,
         )
+
+        val isDebug = context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE != 0
+        if (isDebug) {
+            SettingsGroup(
+                title = "调试",
+                items = debugItems,
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -410,6 +430,18 @@ internal fun AboutPage(
         onDetectUpgrade = vm::checkUpdate,
         onOpenAboutDialog = { showAboutDialog = true },
         onOpenLicenseDialog = { showLicensesDialog = true },
+        onExportLog = {
+            MainScope().launch(Dispatchers.IO) {
+                val file = LogExporter.export(context)
+                withContext(Dispatchers.Main) {
+                    if (file != null) {
+                        LogExporter.share(context, file)
+                    } else {
+                        onSnackBar("导出日志失败")
+                    }
+                }
+            }
+        },
     )
 
     if (showAboutDialog) {
