@@ -1,5 +1,9 @@
 # BIT101-Android
 
+<!-- hy-mt2-i18n:start -->
+**中文** · [English](./README_en.md) · [日本語](./README_ja.md) · [Español](./README_es.md)
+<!-- hy-mt2-i18n:end -->
+
 * 网站主页：[android.bit101.cn](http://android.bit101.cn/)
 * 主项目链接：[BIT101](https://github.com/flwfdd/BIT101)
 * 服务端链接：[BIT101-GO](https://github.com/flwfdd/BIT101-GO)
