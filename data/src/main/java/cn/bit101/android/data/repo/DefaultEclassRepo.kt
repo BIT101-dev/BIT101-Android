@@ -29,10 +29,26 @@ internal class DefaultEclassRepo @Inject constructor(
         const val ECLASS_BASE = "https://zy-eclass.bit.edu.cn"
     }
 
-    override suspend fun isSessionAlive(): Boolean =
-        runCatching { apiManager.api.eclass.getVisitedCourses() }
-            .map { it.isSuccessful }
-            .getOrDefault(false)
+    /**
+     * 会话是否可用。
+     *
+     * ⚠️ **失败不等于未登录**：这是一次真实网络请求，超时 / 服务器 5xx /
+     * 校园网抖动都会让它失败 —— 只试一次的话，「检查登录」会把瞬时网络故障
+     * 误报成「未登录」（且调用方往往把结果缓存住，用户只能重启恢复）。
+     * 所以这里：① 先把 WebView 的 cookie 同步过来（登录刚完成时 OkHttp 的
+     * cookie jar 里可能还是旧会话，与 [fetchHomework] 的取数路径保持一致）；
+     * ② 失败再试一次，两次都失败才报告未登录。
+     */
+    override suspend fun isSessionAlive(): Boolean {
+        syncCookies()
+        repeat(2) {
+            val ok = runCatching { apiManager.api.eclass.getVisitedCourses() }
+                .map { it.isSuccessful }
+                .getOrDefault(false)
+            if (ok) return true
+        }
+        return false
+    }
 
     override suspend fun fetchHomework(now: LocalDateTime): List<EclassDdlItem> {
         syncCookies()
