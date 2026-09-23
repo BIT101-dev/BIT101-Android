@@ -5,9 +5,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.DDLSettings
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
-import cn.bit101.android.data.eclass.EclassDdlLogic
+import cn.bit101.android.data.repo.EclassDdlSyncer
 import cn.bit101.android.data.repo.base.DDLScheduleRepo
-import cn.bit101.android.data.repo.base.EclassRepo
 import cn.bit101.android.features.common.helper.withScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -30,12 +29,12 @@ internal class DDLScheduleViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
     private val ddlSettings: DDLSettings,
     /**
-     * 课程中心（eclass）—— 学校 2026 年起用它替代乐学下发作业。
+     * 课程中心（eclass）作业同步器 —— 学校 2026 年起用它替代乐学下发作业。
      *
      * 两个来源**并存**：乐学虽已停用，但已同步下来的历史数据仍然有用，
      * 所以不删旧源，只是新增这一条（见 docs/ddl-migration-plan.md）。
      */
-    private val eclassRepo: EclassRepo,
+    private val eclassDdlSyncer: EclassDdlSyncer,
 ) : ViewModel() {
     val lexueCalendarUrlFlow = ddlSettings.url.flow
     var beforeDay = 7
@@ -241,36 +240,5 @@ internal class DDLScheduleViewModel @Inject constructor(
      *
      * @return 是否成功拉到数据
      */
-    suspend fun updateEclassDdl(): Boolean {
-        return try {
-            val items = eclassRepo.fetchHomework()
-            if (items.isEmpty()) return false
-
-            val existItems = HashMap<String, DDLScheduleEntity>()
-            ddlScheduleRepo.getDDLByUIDs(items.map { it.uid }).forEach { existItems[it.uid] = it }
-
-            items.forEach { item ->
-                val entity = DDLScheduleEntity(
-                    id = 0,
-                    uid = item.uid,
-                    group = EclassDdlLogic.GROUP,
-                    title = item.title,
-                    text = item.text,
-                    time = item.time,
-                    done = false,
-                )
-                val old = existItems[item.uid]
-                if (old == null) {
-                    ddlScheduleRepo.insertDDL(entity)
-                } else {
-                    // 保留 id 与完成状态
-                    ddlScheduleRepo.updateDDL(entity.copy(id = old.id, done = old.done))
-                }
-            }
-            true
-        } catch (e: Exception) {
-            Log.e("DDLScheduleViewModel", "update eclass ddl error", e)
-            false
-        }
-    }
+    suspend fun updateEclassDdl(): Boolean = eclassDdlSyncer.sync()
 }
