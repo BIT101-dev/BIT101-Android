@@ -9,6 +9,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.hilt.navigation.compose.hiltViewModel
+import cn.bit101.android.data.eclass.EclassDdlLogic
+import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.component.dialog.InputNumberDialog
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.setting.component.SettingItemData
@@ -24,9 +26,14 @@ private fun DDLSettingPageContent(
 
     isUpdatingLexueCalendarUrl: Boolean,
     isUpdatingLexueCalendar: Boolean,
+    isUpdatingEclassDdl: Boolean,
+    eclassSessionAlive: Boolean?,
 
     onUpdateLexueCalendarUrl: () -> Unit,
     onUpdateLexueCalendar: () -> Unit,
+    onUpdateEclassDdl: () -> Unit,
+    onCheckEclassSession: () -> Unit,
+    onOpenEclass: () -> Unit,
 
     onOpenAfterDayDialog: () -> Unit,
     onOpenBeforeDayDialog: () -> Unit,
@@ -43,6 +50,21 @@ private fun DDLSettingPageContent(
             subTitle = "请先获取订阅链接哦",
             onClick = onUpdateLexueCalendar,
             enable = !isUpdatingLexueCalendar,
+        ),
+    )
+
+    val eclassItems = listOf(
+        SettingItemData.Button(
+            title = "重新拉取延河课堂作业",
+            subTitle = "从延河课堂重新同步作业（已完成状态会保留）",
+            onClick = onUpdateEclassDdl,
+            enable = !isUpdatingEclassDdl,
+        ),
+        SettingItemData.Button(
+            title = "延河课堂",
+            subTitle = eclassSessionText(eclassSessionAlive),
+            text = if (eclassSessionAlive == true) "重新检查" else "打开登录页",
+            onClick = if (eclassSessionAlive == true) onCheckEclassSession else onOpenEclass,
         ),
     )
 
@@ -68,14 +90,28 @@ private fun DDLSettingPageContent(
         )
 
         SettingsGroup(
+            title = "延河课堂",
+            subTitle = "学校 2026 年起用它下发作业（与乐学并存）",
+            items = eclassItems,
+        )
+
+        SettingsGroup(
             title = "显示设置",
             items = displayItems,
         )
     }
 }
 
+/** 延河课堂会话状态文案 —— `null`（还没检查完）也要能显示。 */
+private fun eclassSessionText(alive: Boolean?): String = when (alive) {
+    null -> "会话状态：检查中…"
+    true -> "会话状态：已登录"
+    false -> "会话状态：未登录，点右侧去登录"
+}
+
 @Composable
 internal fun DDLSettingPage(
+    mainController: MainController,
     onSnackBar: (String) -> Unit,
 ) {
     val vm: DDLViewModel = hiltViewModel()
@@ -87,6 +123,10 @@ internal fun DDLSettingPage(
     val updateCalendarUrlState by vm.updateLexueCalendarUrlStateLiveData.observeAsState()
 
     val updateCalendarState by vm.updateLexueCalendarLiveData.observeAsState()
+
+    val updateEclassState by vm.updateEclassDdlStateLiveData.observeAsState()
+
+    val eclassSessionAlive by vm.eclassSessionAlive.collectAsState()
 
     var showAfterDayDialog by remember { mutableStateOf(false) }
 
@@ -110,6 +150,15 @@ internal fun DDLSettingPage(
         onDispose { }
     }
 
+    DisposableEffect(updateEclassState) {
+        if(updateEclassState is SimpleState.Success) {
+            onSnackBar("延河课堂作业同步成功")
+        } else if(updateEclassState is SimpleState.Fail) {
+            onSnackBar("同步失败（未登录或没有新作业）")
+        }
+        onDispose { }
+    }
+
 
     DDLSettingPageContent(
         afterDay = afterDay?.toString() ?: "未设置",
@@ -117,9 +166,14 @@ internal fun DDLSettingPage(
 
         isUpdatingLexueCalendarUrl = updateCalendarUrlState is SimpleState.Loading,
         isUpdatingLexueCalendar = updateCalendarState is SimpleState.Loading,
+        isUpdatingEclassDdl = updateEclassState is SimpleState.Loading,
+        eclassSessionAlive = eclassSessionAlive,
 
         onUpdateLexueCalendarUrl = vm::updateLexueCalendarUrl,
         onUpdateLexueCalendar = vm::updateLexueCalendar,
+        onUpdateEclassDdl = vm::updateEclassDdl,
+        onCheckEclassSession = vm::checkEclassSession,
+        onOpenEclass = { mainController.openWebPage(EclassDdlLogic.LOGIN_URL) },
 
         onOpenAfterDayDialog = { showAfterDayDialog = true },
         onOpenBeforeDayDialog = { showBeforeDayDialog = true },

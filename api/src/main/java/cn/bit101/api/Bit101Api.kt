@@ -11,6 +11,7 @@ import cn.bit101.api.service.bit101.ScoreApiService
 import cn.bit101.api.service.bit101.UploadApiService
 import cn.bit101.api.service.bit101.UserApiService
 import cn.bit101.api.service.bit101.VariablesApiService
+import cn.bit101.api.service.eclass.EclassApiService
 import cn.bit101.api.service.school.SchoolClassroomService
 import cn.bit101.api.service.school.SchoolJxzxehallService
 import cn.bit101.api.service.school.SchoolLexueService
@@ -25,6 +26,7 @@ class Bit101Api internal constructor(
     appRetrofit: Retrofit,
     jwmsRetrofit: Retrofit,
     jwcRetrofit: Retrofit,
+    eclassRetrofit: Retrofit,
     logger: Logger = emptyLogger,
 ) {
     val courses: CoursesApiService = bit101Retrofit.create()
@@ -47,4 +49,12 @@ class Bit101Api internal constructor(
     val schoolJxzxehall = SchoolJxzxehallService(logger)
 
     val schoolLexue = SchoolLexueService(logger)
+
+    /**
+     * 课程中心（eclass / 延河课堂）—— 学校 2026 年起用它替代乐学下发作业与学习资料。
+     *
+     * 与 `schoolLexue` 不同，它不是 BIT-Login SDK 的服务类，而是标准 Retrofit 接口：
+     * 会话是纯 cookie（用户 WebView 登录后同步过来），走 `schoolClient` 即可。
+     */
+    val eclass: EclassApiService = eclassRetrofit.create()
 }
