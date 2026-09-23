@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.DDLSettings
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
+import cn.bit101.android.data.eclass.EclassDdlLogic
 import cn.bit101.android.data.repo.base.DDLScheduleRepo
+import cn.bit101.android.data.repo.base.EclassRepo
 import cn.bit101.android.features.common.helper.withScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -26,7 +28,14 @@ import javax.inject.Inject
 @HiltViewModel
 internal class DDLScheduleViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
-    private val ddlSettings: DDLSettings
+    private val ddlSettings: DDLSettings,
+    /**
+     * 课程中心（eclass）—— 学校 2026 年起用它替代乐学下发作业。
+     *
+     * 两个来源**并存**：乐学虽已停用，但已同步下来的历史数据仍然有用，
+     * 所以不删旧源，只是新增这一条（见 docs/ddl-migration-plan.md）。
+     */
+    private val eclassRepo: EclassRepo,
 ) : ViewModel() {
     val lexueCalendarUrlFlow = ddlSettings.url.flow
     var beforeDay = 7
@@ -52,6 +61,12 @@ internal class DDLScheduleViewModel @Inject constructor(
         // 更新日程
         withScope {
             updateLexueCalendar()
+        }
+
+        // 更新课程中心（eclass）的作业 —— 学校 2026 年起用它替代乐学。
+        // 与乐学源互不影响：未登录 / 网络不通时静默返回，不打扰用户。
+        withScope {
+            updateEclassDdl()
         }
     }
 
@@ -211,6 +226,51 @@ internal class DDLScheduleViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e("DDLScheduleViewModel", "get lexue calendar error", e)
             return false
+        }
+    }
+
+    /**
+     * 从课程中心（eclass）同步作业。
+     *
+     * 沿用与 [updateLexueCalendar] 相同的「不存在则插入、存在则更新」策略 ——
+     * 关键是**保留 `done`**：用户手动勾掉的完成状态不能被一次同步冲掉。
+     *
+     * ⚠️ **未登录不是错误**：用户可能还没登录课程中心，或者压根不打算用。
+     * 所以拉不到就静默返回 false（不弹窗、不刷日志）—— 这条源是"有就更好"，
+     * 不该因为它没配好就打断使用。
+     *
+     * @return 是否成功拉到数据
+     */
+    suspend fun updateEclassDdl(): Boolean {
+        return try {
+            val items = eclassRepo.fetchHomework()
+            if (items.isEmpty()) return false
+
+            val existItems = HashMap<String, DDLScheduleEntity>()
+            ddlScheduleRepo.getDDLByUIDs(items.map { it.uid }).forEach { existItems[it.uid] = it }
+
+            items.forEach { item ->
+                val entity = DDLScheduleEntity(
+                    id = 0,
+                    uid = item.uid,
+                    group = EclassDdlLogic.GROUP,
+                    title = item.title,
+                    text = item.text,
+                    time = item.time,
+                    done = false,
+                )
+                val old = existItems[item.uid]
+                if (old == null) {
+                    ddlScheduleRepo.insertDDL(entity)
+                } else {
+                    // 保留 id 与完成状态
+                    ddlScheduleRepo.updateDDL(entity.copy(id = old.id, done = old.done))
+                }
+            }
+            true
+        } catch (e: Exception) {
+            Log.e("DDLScheduleViewModel", "update eclass ddl error", e)
+            false
         }
     }
 }

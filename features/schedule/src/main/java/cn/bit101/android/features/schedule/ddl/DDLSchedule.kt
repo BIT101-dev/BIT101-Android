@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.School
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Button
@@ -36,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
+import cn.bit101.android.data.eclass.EclassDdlLogic
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.nav.NavDest
 import kotlinx.coroutines.MainScope
@@ -168,6 +170,23 @@ internal fun DDLSchedule(
                     Icon(
                         imageVector = Icons.Rounded.Add,
                         contentDescription = "next week",
+                    )
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                // 课程中心（eclass）—— 学校 2026 年起用它替代乐学下发作业。
+                // ⚠️ 必须用 **App 内 WebView** 打开：只有它和我们共用的 CookieManager 互通，
+                //    换成系统浏览器登录的话，App 这边拿不到会话（见 WebViewCookieSync）
+                FloatingActionButton(
+                    modifier = Modifier
+                        .size(fabSize),
+                    onClick = { mainController.openWebPage(EclassDdlLogic.LOGIN_URL) },
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(0.8f),
+                    contentColor = MaterialTheme.colorScheme.primary,
+                    elevation = FloatingActionButtonDefaults.elevation(0.dp),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.School,
+                        contentDescription = "课程中心",
                     )
                 }
                 Spacer(modifier = Modifier.height(10.dp))
