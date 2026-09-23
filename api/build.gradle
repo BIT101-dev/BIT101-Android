@@ -3,6 +3,16 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 
+// ⚠️ 不写 kotlinOptions.jvmTarget 的话，Kotlin 编译默认跟随运行 Gradle 的 JDK
+//（装了 JDK 21/25 的机器上就是 21/25），与 java 插件的 targetCompatibility（17）
+// 不一致，直接报「Inconsistent JVM Target Compatibility」编译失败。
+// 显式钉到与全仓其它模块一致的 versions.jvmTarget：
+tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+    kotlinOptions {
+        jvmTarget = versions.jvmTarget
+    }
+}
+
 java {
     sourceCompatibility = versions.sourceCompatibility
     targetCompatibility = versions.targetCompatibility
