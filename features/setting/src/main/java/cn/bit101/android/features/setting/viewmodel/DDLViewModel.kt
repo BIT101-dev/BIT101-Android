@@ -23,7 +23,7 @@ internal class DDLViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
     private val loginRepo: LoginRepo,
     private val ddlSettings: DDLSettings,
-    /** 课程中心（eclass）作业同步器 —— 与 DDL 页共用同一份合并规则。 */
+    /** 课程中心作业同步器。 */
     private val eclassDdlSyncer: EclassDdlSyncer,
     private val eclassRepo: EclassRepo,
 ) : ViewModel() {
@@ -38,7 +38,7 @@ internal class DDLViewModel @Inject constructor(
 
     val updateEclassDdlStateLiveData = MutableLiveData<SimpleState?>()
 
-    /** 课程中心（eclass）会话是否可用：`null` = 还在检查。 */
+    /** 课程中心会话状态，null 表示正在检查。 */
     private val _eclassSessionAlive = MutableStateFlow<Boolean?>(null)
     val eclassSessionAlive: StateFlow<Boolean?> = _eclassSessionAlive.asStateFlow()
 
@@ -46,7 +46,7 @@ internal class DDLViewModel @Inject constructor(
         checkEclassSession()
     }
 
-    /** 重新检查课程中心会话 —— 用户可能刚在 WebView 里登录完回来。 */
+    /** 重新检查课程中心会话。 */
     fun checkEclassSession() {
         viewModelScope.launch {
             _eclassSessionAlive.value = null
@@ -55,11 +55,7 @@ internal class DDLViewModel @Inject constructor(
         }
     }
 
-    /**
-     * 重新拉取课程中心（eclass）作业（设置页动作项）。
-     *
-     * 同步直接写 Room，DDL 页的 `events` 是 Room 流 —— 写库后那边自动刷新。
-     */
+    /** 重新拉取课程中心作业。 */
     fun updateEclassDdl() = withSimpleStateLiveData(updateEclassDdlStateLiveData) {
         eclassDdlSyncer.sync()
     }

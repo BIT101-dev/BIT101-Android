@@ -28,12 +28,7 @@ import javax.inject.Inject
 internal class DDLScheduleViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
     private val ddlSettings: DDLSettings,
-    /**
-     * 课程中心（eclass）作业同步器 —— 学校 2026 年起用它替代乐学下发作业。
-     *
-     * 两个来源**并存**：乐学虽已停用，但已同步下来的历史数据仍然有用，
-     * 所以不删旧源，只是新增这一条（见 docs/ddl-migration-plan.md）。
-     */
+    /** 课程中心作业同步器。 */
     private val eclassDdlSyncer: EclassDdlSyncer,
 ) : ViewModel() {
     val lexueCalendarUrlFlow = ddlSettings.url.flow
@@ -62,8 +57,7 @@ internal class DDLScheduleViewModel @Inject constructor(
             updateLexueCalendar()
         }
 
-        // 更新课程中心（eclass）的作业 —— 学校 2026 年起用它替代乐学。
-        // 与乐学源互不影响：未登录 / 网络不通时静默返回，不打扰用户。
+        // 更新课程中心作业，不影响乐学数据。
         withScope {
             updateEclassDdl()
         }
@@ -228,17 +222,6 @@ internal class DDLScheduleViewModel @Inject constructor(
         }
     }
 
-    /**
-     * 从课程中心（eclass）同步作业。
-     *
-     * 沿用与 [updateLexueCalendar] 相同的「不存在则插入、存在则更新」策略 ——
-     * 关键是**保留 `done`**：用户手动勾掉的完成状态不能被一次同步冲掉。
-     *
-     * ⚠️ **未登录不是错误**：用户可能还没登录课程中心，或者压根不打算用。
-     * 所以拉不到就静默返回 false（不弹窗、不刷日志）—— 这条源是"有就更好"，
-     * 不该因为它没配好就打断使用。
-     *
-     * @return 是否成功拉到数据
-     */
+    /** 同步课程中心作业。 */
     suspend fun updateEclassDdl(): Boolean = eclassDdlSyncer.sync()
 }

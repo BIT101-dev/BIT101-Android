@@ -8,23 +8,14 @@ import cn.bit101.android.data.repo.base.EclassRepo
 import javax.inject.Inject
 import javax.inject.Singleton
 
-/**
- * 把课程中心（eclass）的作业同步进本地 DDL 表 —— **唯一实现**。
- *
- * 以前这段逻辑只写在 `DDLScheduleViewModel` 里，DDL 设置页想做
- * 「重新拉取延河课堂作业」时够不着它（页面级 VM，设置页是另一个 VM）。
- * 抽成单例后两边共用，合并规则只此一份。
- *
- * 合并规则：按 `uid` 做「不存在插入 / 存在更新」；已存在的**保留
- * `id` 与 `done`** —— 用户勾过的「已完成」不能被同步冲掉。
- */
+/** 同步课程中心作业，并保留已有条目的完成状态。 */
 @Singleton
 class EclassDdlSyncer @Inject constructor(
     private val eclassRepo: EclassRepo,
     private val ddlScheduleRepo: DDLScheduleRepo,
 ) {
 
-    /** @return 是否成功拉到数据（空列表 / 异常都算失败）。 */
+    /** 返回同步是否成功。 */
     suspend fun sync(): Boolean {
         return try {
             val items = eclassRepo.fetchHomework()

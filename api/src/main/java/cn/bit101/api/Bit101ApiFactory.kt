@@ -53,8 +53,7 @@ object Bit101ApiFactory {
                 .baseUrl(urls.jwcUrl)
                 .build(),
 
-            // 课程中心（eclass）。同样挂 schoolClient —— 它的会话是**纯 cookie**，
-            // 与学校其它站点共用同一个 cookie store，不需要额外拦截器。
+            // 课程中心复用学校 Cookie 客户端。
             eclassRetrofit = Retrofit.Builder()
                 .client(option.schoolClient)
                 .addConverterFactory(converterFactory)

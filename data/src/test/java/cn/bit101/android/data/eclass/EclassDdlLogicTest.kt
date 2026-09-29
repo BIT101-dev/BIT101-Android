@@ -8,14 +8,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDateTime
 
-/**
- * `EclassDdlLogic` 的单测。
- *
- * 重点锁两件事：
- * 1. **作业判定** —— 它直接决定 DDL 列表里有什么，判错就是「要么一条没有、
- *    要么全是资料」，而这在真机上很难一眼看出是判定错还是接口没数据；
- * 2. **时间解析** —— 接口的时间格式在不同字段上不统一，解析失败会让作业静默消失。
- */
+/** 课程中心 DDL 映射测试。 */
 class EclassDdlLogicTest {
 
     private val now: LocalDateTime = LocalDateTime.of(2026, 9, 23, 10, 0)
@@ -23,7 +16,7 @@ class EclassDdlLogicTest {
     private fun activity(
         id: Int = 1,
         title: String = "第三次作业",
-        type: String? = "homework",
+        type: String? = null,
         endTime: String? = "2026-09-30 23:59:59",
         visibleEndAt: String? = null,
         submitTimes: Int? = 1,
@@ -40,14 +33,13 @@ class EclassDdlLogicTest {
         isReviewHomework = isReviewHomework,
     )
 
-    // ── 作业判定 ─────────────────────────────────────────────
+    // 作业判定
 
     @Test
     fun `带截止时间与提交次数的活动判定为作业`() {
         assertTrue(EclassDdlLogic.isHomework(activity()))
     }
 
-    /** 资料是唯一已知 type 取值的类型，必须排除。 */
     @Test
     fun `资料不算作业`() {
         val material = activity(type = "material")
@@ -55,7 +47,6 @@ class EclassDdlLogicTest {
         assertFalse(EclassDdlLogic.isHomework(material))
     }
 
-    /** 资料哪怕带了这些字段（接口对资料的返回值未经确认）也不该进 DDL。 */
     @Test
     fun `资料即使带提交字段也不算作业`() {
         val material = activity(type = "material", submitTimes = 0, isReviewHomework = false)
@@ -63,7 +54,6 @@ class EclassDdlLogicTest {
         assertFalse(EclassDdlLogic.isHomework(material))
     }
 
-    /** 没有截止时间的活动不需要提醒。 */
     @Test
     fun `没有截止时间的不算作业`() {
         assertFalse(EclassDdlLogic.isHomework(activity(endTime = null)))
@@ -74,7 +64,6 @@ class EclassDdlLogicTest {
         assertFalse(EclassDdlLogic.isHomework(activity(endTime = "不是时间")))
     }
 
-    /** 三个作业特有字段任一存在即可（不枚举 type 的核心）。 */
     @Test
     fun `只有 submitTimes 也能判定为作业`() {
         val a = activity(submitTimes = 3, isReviewHomework = null, lateSubmissionCount = null)
@@ -89,7 +78,13 @@ class EclassDdlLogicTest {
         assertTrue(EclassDdlLogic.isHomework(a))
     }
 
-    /** 一个作业特有字段都没有 → 是资料一类，不进 DDL。 */
+    @Test
+    fun `只有 lateSubmissionCount 也能判定为作业`() {
+        val a = activity(submitTimes = null, isReviewHomework = null, lateSubmissionCount = 0)
+
+        assertTrue(EclassDdlLogic.isHomework(a))
+    }
+
     @Test
     fun `无任何作业字段的活动不算作业`() {
         val a = activity(submitTimes = null, isReviewHomework = null, lateSubmissionCount = null)
@@ -97,7 +92,7 @@ class EclassDdlLogicTest {
         assertFalse(EclassDdlLogic.isHomework(a))
     }
 
-    // ── 时间解析 ─────────────────────────────────────────────
+    // 时间解析
 
     @Test
     fun `解析标准格式`() {
@@ -124,6 +119,22 @@ class EclassDdlLogicTest {
     }
 
     @Test
+    fun `带 UTC 时区的时间换算为北京时间`() {
+        assertEquals(
+            LocalDateTime.of(2026, 10, 1, 7, 59),
+            EclassDdlLogic.parseTime("2026-09-30T23:59:00Z"),
+        )
+    }
+
+    @Test
+    fun `带北京时间偏移的时间保留当地时间`() {
+        assertEquals(
+            LocalDateTime.of(2026, 9, 30, 23, 59),
+            EclassDdlLogic.parseTime("2026-09-30T23:59:00+08:00"),
+        )
+    }
+
+    @Test
     fun `解析斜杠格式`() {
         assertEquals(
             LocalDateTime.of(2026, 9, 30, 23, 59),
@@ -139,7 +150,7 @@ class EclassDdlLogicTest {
         assertNull(EclassDdlLogic.parseTime("null"))
     }
 
-    // ── 映射 ─────────────────────────────────────────────────
+    // DDL 映射
 
     @Test
     fun `映射出稳定的去重键`() {

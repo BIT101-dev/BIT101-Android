@@ -50,11 +50,6 @@ class Bit101Api internal constructor(
 
     val schoolLexue = SchoolLexueService(logger)
 
-    /**
-     * 课程中心（eclass / 延河课堂）—— 学校 2026 年起用它替代乐学下发作业与学习资料。
-     *
-     * 与 `schoolLexue` 不同，它不是 BIT-Login SDK 的服务类，而是标准 Retrofit 接口：
-     * 会话是纯 cookie（用户 WebView 登录后同步过来），走 `schoolClient` 即可。
-     */
+    /** 课程中心接口，使用学校站点的 Cookie 客户端。 */
     val eclass: EclassApiService = eclassRetrofit.create()
 }
