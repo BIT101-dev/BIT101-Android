@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.DDLSettings
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
+import cn.bit101.android.data.repo.EclassDdlSyncer
 import cn.bit101.android.data.repo.base.DDLScheduleRepo
 import cn.bit101.android.features.common.helper.withScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +27,9 @@ import javax.inject.Inject
 @HiltViewModel
 internal class DDLScheduleViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
-    private val ddlSettings: DDLSettings
+    private val ddlSettings: DDLSettings,
+    /** 课程中心作业同步器。 */
+    private val eclassDdlSyncer: EclassDdlSyncer,
 ) : ViewModel() {
     val lexueCalendarUrlFlow = ddlSettings.url.flow
     var beforeDay = 7
@@ -52,6 +55,11 @@ internal class DDLScheduleViewModel @Inject constructor(
         // 更新日程
         withScope {
             updateLexueCalendar()
+        }
+
+        // 更新课程中心作业，不影响乐学数据。
+        withScope {
+            updateEclassDdl()
         }
     }
 
@@ -213,4 +221,7 @@ internal class DDLScheduleViewModel @Inject constructor(
             return false
         }
     }
+
+    /** 同步课程中心作业。 */
+    suspend fun updateEclassDdl(): Boolean = eclassDdlSyncer.sync()
 }

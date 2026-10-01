@@ -20,6 +20,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import cn.bit101.android.data.ddl.DdlSource
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -105,11 +106,12 @@ internal fun DDLScheduleDetailDialog(
                     )
                     Item(
                         title = "分组：",
-                        content = (if (event.group == "lexue") "乐学" else "自定义")
+                        content = DdlSource.displayName(event.group)
                     )
                     Item(title = "详情：", content = event.text)
 
-                    if (event.group != "lexue")
+                    // 只有自定义条目能改：同步来的（乐学 / 课程中心）改了会被下次同步覆盖
+                    if (DdlSource.isEditable(event.group))
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()

@@ -53,6 +53,13 @@ object Bit101ApiFactory {
                 .baseUrl(urls.jwcUrl)
                 .build(),
 
+            // 课程中心复用学校 Cookie 客户端。
+            eclassRetrofit = Retrofit.Builder()
+                .client(option.schoolClient)
+                .addConverterFactory(converterFactory)
+                .baseUrl(urls.eclassUrl)
+                .build(),
+
             logger = logger,
         )
     }

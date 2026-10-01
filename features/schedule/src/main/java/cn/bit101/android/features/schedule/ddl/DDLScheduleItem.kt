@@ -16,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
+import cn.bit101.android.data.ddl.DdlSource
 import cn.bit101.android.features.common.utils.mixColor
 
 /**
@@ -59,7 +60,7 @@ internal fun DDLScheduleItem(modifier: Modifier, item: DDLScheduleEntity, vm: DD
                     modifier = Modifier.fillMaxWidth()
                 )
                 Text(
-                    text = item.text,
+                    text = "${DdlSource.displayName(item.group)} · ${item.text}",
                     style = MaterialTheme.typography.bodySmall,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

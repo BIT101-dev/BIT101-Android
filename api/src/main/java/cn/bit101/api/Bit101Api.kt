@@ -11,6 +11,7 @@ import cn.bit101.api.service.bit101.ScoreApiService
 import cn.bit101.api.service.bit101.UploadApiService
 import cn.bit101.api.service.bit101.UserApiService
 import cn.bit101.api.service.bit101.VariablesApiService
+import cn.bit101.api.service.eclass.EclassApiService
 import cn.bit101.api.service.school.SchoolClassroomService
 import cn.bit101.api.service.school.SchoolJxzxehallService
 import cn.bit101.api.service.school.SchoolLexueService
@@ -25,6 +26,7 @@ class Bit101Api internal constructor(
     appRetrofit: Retrofit,
     jwmsRetrofit: Retrofit,
     jwcRetrofit: Retrofit,
+    eclassRetrofit: Retrofit,
     logger: Logger = emptyLogger,
 ) {
     val courses: CoursesApiService = bit101Retrofit.create()
@@ -47,4 +49,7 @@ class Bit101Api internal constructor(
     val schoolJxzxehall = SchoolJxzxehallService(logger)
 
     val schoolLexue = SchoolLexueService(logger)
+
+    /** 课程中心接口，使用学校站点的 Cookie 客户端。 */
+    val eclass: EclassApiService = eclassRetrofit.create()
 }

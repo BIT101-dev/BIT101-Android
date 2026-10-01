@@ -5,11 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.DDLSettings
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
+import cn.bit101.android.data.repo.EclassDdlSyncer
 import cn.bit101.android.data.repo.base.DDLScheduleRepo
+import cn.bit101.android.data.repo.base.EclassRepo
 import cn.bit101.android.data.repo.base.LoginRepo
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withSimpleStateLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -17,7 +22,10 @@ import javax.inject.Inject
 internal class DDLViewModel @Inject constructor(
     private val ddlScheduleRepo: DDLScheduleRepo,
     private val loginRepo: LoginRepo,
-    private val ddlSettings: DDLSettings
+    private val ddlSettings: DDLSettings,
+    /** 课程中心作业同步器。 */
+    private val eclassDdlSyncer: EclassDdlSyncer,
+    private val eclassRepo: EclassRepo,
 ) : ViewModel() {
 
     val beforeDayFlow = ddlSettings.beforeDay.flow
@@ -27,6 +35,30 @@ internal class DDLViewModel @Inject constructor(
     val updateLexueCalendarUrlStateLiveData = MutableLiveData<SimpleState?>()
 
     val updateLexueCalendarLiveData = MutableLiveData<SimpleState?>()
+
+    val updateEclassDdlStateLiveData = MutableLiveData<SimpleState?>()
+
+    /** 课程中心会话状态，null 表示正在检查。 */
+    private val _eclassSessionAlive = MutableStateFlow<Boolean?>(null)
+    val eclassSessionAlive: StateFlow<Boolean?> = _eclassSessionAlive.asStateFlow()
+
+    init {
+        checkEclassSession()
+    }
+
+    /** 重新检查课程中心会话。 */
+    fun checkEclassSession() {
+        viewModelScope.launch {
+            _eclassSessionAlive.value = null
+            _eclassSessionAlive.value =
+                runCatching { eclassRepo.isSessionAlive() }.getOrDefault(false)
+        }
+    }
+
+    /** 重新拉取课程中心作业。 */
+    fun updateEclassDdl() = withSimpleStateLiveData(updateEclassDdlStateLiveData) {
+        eclassDdlSyncer.sync()
+    }
 
     fun setBeforeDay(day: Long) {
         viewModelScope.launch {

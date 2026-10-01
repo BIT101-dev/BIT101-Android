@@ -7,4 +7,6 @@ data class ApiUrlOption(
     val jwcUrl: String,
     val jxzxehallappUrl: String,
     val lexueUrl: String,
+    /** 课程中心 API 地址。 */
+    val eclassUrl: String = "https://zy-eclass.bit.edu.cn",
 )
