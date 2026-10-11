@@ -28,6 +28,7 @@ import cn.bit101.android.features.map.MapScreen
 import cn.bit101.android.features.schedule.ScheduleScreen
 import cn.bit101.android.features.user.UserScreen
 import cn.bit101.android.features.web.WebScreen
+import java.time.LocalDate
 
 
 /**
@@ -60,6 +61,8 @@ private fun IndexScreenNavBar(
 @Composable
 internal fun IndexScreen(
     mainController: MainController,
+    requestedScheduleDate: LocalDate?,
+    onScheduleDateHandled: () -> Unit,
 ) {
     val vm: IndexViewModel = hiltViewModel()
     val indexScreenConfig = vm.indexScreenConfigFlow.collectAsState(initial = null).value ?: return
@@ -76,6 +79,15 @@ internal fun IndexScreen(
     val startRoute = PageShowOnNav.Schedule.toString()
     val navEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navEntry?.destination?.route ?: startRoute
+
+    LaunchedEffect(requestedScheduleDate) {
+        if (requestedScheduleDate != null) {
+            navController.navigate(startRoute) {
+                popUpTo(startRoute)
+                launchSingleTop = true
+            }
+        }
+    }
 
     LaunchedEffect(indexScreenConfig) {
         if (state.currentPage >= indexScreenConfig.pages.size) {
@@ -122,7 +134,7 @@ internal fun IndexScreen(
             }
             composable(route = PageShowOnNav.Schedule.toString()) {
                 WithLoginStatus(mainController, loginStatus) {
-                    ScheduleScreen(mainController)
+                    ScheduleScreen(mainController, requestedScheduleDate, onScheduleDateHandled)
                 }
             }
         }

@@ -1,5 +1,6 @@
 package cn.bit101.android.features.setting.page
 
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -25,6 +26,7 @@ import cn.bit101.android.features.common.component.schedule.AddEditScheduleDialo
 import cn.bit101.android.features.common.component.schedule.CustomScheduleDetailDialog
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
+import cn.bit101.android.features.schedule.widget.CourseScheduleWidget
 import cn.bit101.android.features.setting.component.SettingItemData
 import cn.bit101.android.features.setting.component.SettingsColumn
 import cn.bit101.android.features.setting.component.SettingsGroup
@@ -50,6 +52,7 @@ private fun CalendarSettingPageContent(
     onGetExams: () -> Unit,
     onOpenTimeTable: () -> Unit,
     onOpenCustomSchedules: () -> Unit,
+    onAddWidget: () -> Unit,
     onSettingChange: (SettingData) -> Unit,
 ) {
     val dataSettings = listOf(
@@ -95,6 +98,11 @@ private fun CalendarSettingPageContent(
     )
 
     val displaySettings = listOf(
+        SettingItemData.Button(
+            title = "桌面课表小组件",
+            subTitle = "添加到桌面，查看今天或明天的安排",
+            onClick = onAddWidget,
+        ),
         SettingItemData.Switch(
             title = "显示周六",
             onClick = { onSettingChange(settingData.copy(showSaturday = it)) },
@@ -337,6 +345,7 @@ internal fun CalendarSettingPage(
     onSnackBar: (String) -> Unit
 ) {
     val vm: CalendarViewModel = hiltViewModel()
+    val context = LocalContext.current
 
     val currentTerm by vm.currentTermFlow.collectAsState(initial = null)
     val firstDay by vm.firstDayFlow.collectAsState(initial = null)
@@ -363,6 +372,7 @@ internal fun CalendarSettingPage(
     val setTimeTableState by vm.setTimeTableStateLiveData.observeAsState()
 
     var showCustomSchedulesDialog by rememberSaveable { mutableStateOf(false) }
+    var widgetPinRequested by rememberSaveable { mutableStateOf<Boolean?>(null) }
 
 
     DisposableEffect(setCurrentTermState) {
@@ -435,8 +445,39 @@ internal fun CalendarSettingPage(
         onGetExams = vm::getExams,
         onOpenTimeTable = { showTimeTableDialog = true },
         onOpenCustomSchedules = { showCustomSchedulesDialog = true },
+        onAddWidget = {
+            widgetPinRequested = CourseScheduleWidget.requestPin(context)
+        },
         onSettingChange = vm::setSettingData
     )
+
+    widgetPinRequested?.let { requested ->
+        AlertDialog(
+            onDismissRequest = { widgetPinRequested = null },
+            title = { Text("添加课表小组件") },
+            text = {
+                Column {
+                    Text(
+                        if (requested) "请在系统弹窗中确认添加。若没有弹窗，可以从桌面手动添加。"
+                        else "请从桌面手动添加课表小组件。",
+                    )
+                    Spacer(Modifier.height(12.dp))
+                    Text("长按桌面空白处，在小组件列表中选择「BIT101 课表」，添加到桌面。")
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    widgetPinRequested = null
+                    context.startActivity(Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME))
+                }) {
+                    Text("去桌面添加")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { widgetPinRequested = null }) { Text("关闭") }
+            },
+        )
+    }
 
     if(showTermListDialog) {
         TermListDialog(

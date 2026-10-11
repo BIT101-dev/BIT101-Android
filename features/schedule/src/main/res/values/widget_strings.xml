@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="course_widget_name">BIT101 课表</string>
+    <string name="course_widget_description">查看今天或明天的课程、考试和日程</string>
+    <string name="course_widget_today">今天</string>
+    <string name="course_widget_tomorrow">明天</string>
+    <string name="course_widget_show_today">切换到今天的课表</string>
+    <string name="course_widget_show_tomorrow">切换到明天的课表</string>
+    <string name="course_widget_summary">%1$s %2$d项</string>
+    <string name="course_widget_remaining_summary">%1$s 剩%2$d项</string>
+    <string name="course_widget_refresh">刷新小组件</string>
+    <string name="course_widget_loading">加载中…</string>
+    <string name="course_widget_sync_required">请先打开课表并同步数据</string>
+    <string name="course_widget_free_day">暂无安排</string>
+    <string name="course_widget_finished_day">今日安排已结束</string>
+    <string name="course_widget_read_failed">课表加载失败\n点刷新按钮重试</string>
+    <string name="course_widget_unknown_time">时间未知</string>
+    <string name="course_widget_exam_title">考试：%1$s</string>
+    <string name="course_widget_preview_summary">周一 3项</string>
+    <string name="course_widget_preview_first">大学物理 AII</string>
+    <string name="course_widget_preview_first_detail">08:00–09:35　理教 201</string>
+    <string name="course_widget_preview_second">概率论与数理统计</string>
+    <string name="course_widget_preview_second_detail">09:55–11:30　综教 302</string>
+    <string name="course_widget_preview_third">项目讨论</string>
+    <string name="course_widget_preview_third_detail">13:20–14:55　图书馆</string>
+    <string-array name="course_widget_weekdays">
+        <item>周一</item>
+        <item>周二</item>
+        <item>周三</item>
+        <item>周四</item>
+        <item>周五</item>
+        <item>周六</item>
+        <item>周日</item>
+    </string-array>
+</resources>

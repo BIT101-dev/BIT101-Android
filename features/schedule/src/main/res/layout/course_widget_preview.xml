@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@android:id/background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/course_widget_background"
+    android:orientation="vertical"
+    android:padding="8dp">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="32dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="28dp"
+            android:background="@drawable/course_widget_chip_background"
+            android:gravity="center"
+            android:paddingStart="6dp"
+            android:paddingEnd="6dp"
+            android:text="@string/course_widget_today"
+            android:textColor="@color/course_widget_accent"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:paddingStart="6dp"
+            android:text="@string/course_widget_preview_summary"
+            android:textColor="@color/course_widget_secondary"
+            android:textSize="11sp" />
+        <ImageView
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:contentDescription="@string/course_widget_refresh"
+            android:padding="5dp"
+            android:src="@drawable/course_widget_refresh" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:background="@drawable/course_widget_course_background"
+        android:orientation="vertical"
+        android:padding="8dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:maxLines="1" android:ellipsize="end" android:textSize="14sp" android:textStyle="bold"
+            android:textColor="@color/course_widget_text" android:text="@string/course_widget_preview_first" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="11sp" android:textColor="@color/course_widget_secondary"
+            android:text="@string/course_widget_preview_first_detail" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/course_widget_course_background"
+        android:orientation="vertical"
+        android:padding="8dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:maxLines="1" android:ellipsize="end" android:textSize="14sp" android:textStyle="bold"
+            android:textColor="@color/course_widget_text" android:text="@string/course_widget_preview_second" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="11sp" android:textColor="@color/course_widget_secondary"
+            android:text="@string/course_widget_preview_second_detail" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:background="@drawable/course_widget_custom_background"
+        android:orientation="vertical"
+        android:padding="8dp">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:maxLines="1" android:ellipsize="end" android:textSize="14sp" android:textStyle="bold"
+            android:textColor="@color/course_widget_text" android:text="@string/course_widget_preview_third" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="11sp" android:textColor="@color/course_widget_secondary"
+            android:text="@string/course_widget_preview_third_detail" />
+    </LinearLayout>
+</LinearLayout>
