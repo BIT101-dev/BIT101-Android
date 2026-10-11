@@ -4,6 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@drawable/course_widget_course_background"
+    android:gravity="center_vertical"
+    android:minHeight="48dp"
     android:orientation="vertical"
     android:padding="8dp">
     <TextView
@@ -18,15 +20,6 @@
         android:textStyle="bold" />
     <TextView
         android:id="@+id/course_widget_time"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:includeFontPadding="false"
-        android:maxLines="1"
-        android:textColor="@color/course_widget_secondary"
-        android:textSize="11sp" />
-    <TextView
-        android:id="@+id/course_widget_location"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"

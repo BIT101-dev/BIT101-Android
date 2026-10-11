@@ -10,7 +10,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.util.SizeF
 import android.view.View
 import android.widget.RemoteViews
 import android.widget.RemoteViewsService
@@ -42,13 +41,12 @@ private data class WidgetEntry(
     val title: String,
     val location: String,
     val time: String,
-    val sortTime: LocalTime,
+    val startTime: LocalTime?,
     val endTime: LocalTime?,
     val background: Int,
 )
 
 private data class WidgetSchedule(
-    val date: LocalDate,
     val needsSync: Boolean,
     val entries: List<WidgetEntry>,
     val finished: Boolean,
@@ -63,6 +61,7 @@ class CourseScheduleWidget @Inject constructor(
     private val updateMutex = Mutex()
     private val manager get() = AppWidgetManager.getInstance(context)
     private val provider get() = ComponentName(context, CourseScheduleWidgetProvider::class.java)
+    private val wideProvider get() = ComponentName(context, CourseScheduleWideWidgetProvider::class.java)
     private val alarms get() = context.getSystemService(AlarmManager::class.java)
     private val refreshIntent
         get() = PendingIntent.getBroadcast(
@@ -114,7 +113,7 @@ class CourseScheduleWidget @Inject constructor(
                         title = course.name,
                         location = course.classroom,
                         time = time,
-                        sortTime = start ?: LocalTime.MAX,
+                        startTime = start,
                         endTime = end.takeIf { course.start_section > 0 && course.end_section >= course.start_section },
                         background = R.drawable.course_widget_course_background,
                     )
@@ -130,7 +129,7 @@ class CourseScheduleWidget @Inject constructor(
                         title = context.getString(R.string.course_widget_exam_title, exam.name),
                         location = exam.classroom,
                         time = timeRange(exam.beginTime, exam.endTime),
-                        sortTime = exam.beginTime,
+                        startTime = exam.beginTime,
                         endTime = exam.endTime,
                         background = R.drawable.course_widget_exam_background,
                     )
@@ -145,7 +144,7 @@ class CourseScheduleWidget @Inject constructor(
                     title = schedule.title,
                     location = schedule.subtitle,
                     time = timeRange(schedule.beginTime, schedule.endTime),
-                    sortTime = schedule.beginTime,
+                    startTime = schedule.beginTime,
                     endTime = schedule.endTime,
                     background = R.drawable.course_widget_custom_background,
                 )
@@ -157,14 +156,15 @@ class CourseScheduleWidget @Inject constructor(
         } else entries
 
         return WidgetSchedule(
-            date, needsSync, remaining.sortedBy { it.sortTime },
+            needsSync = needsSync,
+            entries = remaining.sortedBy { it.startTime ?: LocalTime.MAX },
             finished = entries.isNotEmpty() && remaining.isEmpty(),
         )
     }
 
     internal suspend fun update(appWidgetIds: IntArray? = null) = withContext(Dispatchers.IO) {
         updateMutex.withLock {
-            val installedIds = manager.getAppWidgetIds(provider)
+            val installedIds = manager.getAppWidgetIds(provider) + manager.getAppWidgetIds(wideProvider)
             if (installedIds.isEmpty()) {
                 alarms.cancel(refreshIntent)
                 return@withLock
@@ -189,20 +189,8 @@ class CourseScheduleWidget @Inject constructor(
                     ) load(today.plusDays(1), now) else null
                     val dayOffset = selectedOffset ?: if (tomorrowSchedule?.entries?.isNotEmpty() == true) 1 else 0
                     val schedule = if (dayOffset == 1) checkNotNull(tomorrowSchedule) else todaySchedule
-                    val views = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                        RemoteViews(
-                            mapOf(
-                                SizeF(130f, 110f) to createViews(id, dayOffset, schedule, compact = true),
-                                SizeF(240f, 110f) to createViews(id, dayOffset, schedule, compact = false),
-                            )
-                        )
-                    } else {
-                        createViews(
-                            id, dayOffset, schedule,
-                            compact = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH) < 240,
-                        )
-                    }
-                    manager.updateAppWidget(id, views)
+                    val wide = manager.getAppWidgetInfo(id)?.provider == wideProvider
+                    manager.updateAppWidget(id, createViews(id, dayOffset, schedule, wide))
                     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
                         @Suppress("DEPRECATION")
                         manager.notifyAppWidgetViewDataChanged(id, R.id.course_widget_list)
@@ -227,66 +215,94 @@ class CourseScheduleWidget @Inject constructor(
         id: Int,
         dayOffset: Int,
         schedule: WidgetSchedule,
-        compact: Boolean,
-    ): RemoteViews = baseViews(id, dayOffset).apply {
-        val weekdays = context.resources.getStringArray(R.array.course_widget_weekdays)
-        setTextViewText(
-            R.id.course_widget_summary,
-            context.getString(
-                if (dayOffset == 0) R.string.course_widget_remaining_summary else R.string.course_widget_summary,
-                weekdays[schedule.date.dayOfWeek.value - 1], schedule.entries.size,
-            ),
+        wide: Boolean,
+    ): RemoteViews {
+        val summary = context.getString(
+            if (dayOffset == 0) R.string.course_widget_remaining_summary else R.string.course_widget_summary,
+            schedule.entries.size,
         )
-        setTextViewText(
-            R.id.course_widget_empty,
-            context.getString(
-                when {
-                    schedule.needsSync -> R.string.course_widget_sync_required
-                    schedule.finished -> R.string.course_widget_finished_day
-                    else -> R.string.course_widget_free_day
-                },
-            ),
-        )
-        setEmptyView(R.id.course_widget_list, R.id.course_widget_empty)
+        return baseViews(id, dayOffset, wide).apply {
+            setTextViewText(R.id.course_widget_summary, summary)
+            setTextViewText(
+                R.id.course_widget_empty,
+                context.getString(
+                    when {
+                        schedule.needsSync -> R.string.course_widget_sync_required
+                        schedule.finished -> R.string.course_widget_finished_day
+                        else -> R.string.course_widget_free_day
+                    },
+                ),
+            )
+            setEmptyView(R.id.course_widget_list, R.id.course_widget_empty)
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val items = RemoteViews.RemoteCollectionItems.Builder()
-                .setHasStableIds(true)
-                .setViewTypeCount(1)
-            schedule.entries.forEach { items.addItem(it.id, entryViews(it, compact)) }
-            setRemoteAdapter(R.id.course_widget_list, items.build())
-        } else {
-            val intent = Intent(context, CourseScheduleWidgetService::class.java).apply {
-                putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
-                putExtra(EXTRA_COMPACT, compact)
-                putExtra(CourseScheduleWidgetProvider.EXTRA_DAY_OFFSET, dayOffset)
-                data = Uri.parse("bit101-widget://list/$id/$dayOffset/$compact")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val items = RemoteViews.RemoteCollectionItems.Builder()
+                    .setHasStableIds(true)
+                    .setViewTypeCount(1)
+                schedule.entries.forEach { items.addItem(it.id, entryViews(it)) }
+                setRemoteAdapter(R.id.course_widget_list, items.build())
+            } else {
+                val intent = Intent(context, CourseScheduleWidgetService::class.java).apply {
+                    putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id)
+                    putExtra(CourseScheduleWidgetProvider.EXTRA_DAY_OFFSET, dayOffset)
+                    data = Uri.parse("bit101-widget://list/$id/$dayOffset")
+                }
+                @Suppress("DEPRECATION")
+                setRemoteAdapter(R.id.course_widget_list, intent)
             }
-            @Suppress("DEPRECATION")
-            setRemoteAdapter(R.id.course_widget_list, intent)
         }
     }
 
-    private fun baseViews(id: Int, dayOffset: Int): RemoteViews =
-        RemoteViews(context.packageName, R.layout.course_schedule_widget).apply {
-            val dayLabel = context.getString(
-                if (dayOffset == 0) R.string.course_widget_today else R.string.course_widget_tomorrow,
+    private fun baseViews(id: Int, dayOffset: Int, wide: Boolean): RemoteViews =
+        RemoteViews(
+            context.packageName,
+            if (wide) R.layout.course_schedule_widget_wide else R.layout.course_schedule_widget,
+        ).apply {
+            val receiver = if (wide) wideProvider else provider
+            val toggleDay = if (wide) null else broadcastIntent(
+                id, receiver, CourseScheduleWidgetProvider.ACTION_TOGGLE_DAY, dayOffset,
             )
-            setTextViewText(R.id.course_widget_day, dayLabel)
-            setContentDescription(
-                R.id.course_widget_day,
-                context.getString(
-                    if (dayOffset == 0) R.string.course_widget_show_tomorrow
-                    else R.string.course_widget_show_today,
-                ),
-            )
-            setOnClickPendingIntent(
-                R.id.course_widget_day,
-                broadcastIntent(id, CourseScheduleWidgetProvider.ACTION_TOGGLE_DAY, dayOffset),
-            )
+            if (wide) {
+                val buttons = listOf(R.id.course_widget_today_button to 0, R.id.course_widget_tomorrow_button to 1)
+                for ((viewId, offset) in buttons) {
+                    val selected = offset == dayOffset
+                    val dayLabel = context.getString(
+                        if (offset == 0) R.string.course_widget_today else R.string.course_widget_tomorrow,
+                    )
+                    setInt(
+                        viewId,
+                        "setBackgroundResource",
+                        if (selected) R.drawable.course_widget_chip_background else 0
+                    )
+                    setTextColor(
+                        viewId,
+                        context.getColor(if (selected) R.color.course_widget_accent else R.color.course_widget_secondary),
+                    )
+                    setContentDescription(
+                        viewId,
+                        if (selected) context.getString(R.string.course_widget_current_day, dayLabel)
+                        else context.getString(if (offset == 0) R.string.course_widget_show_today else R.string.course_widget_show_tomorrow),
+                    )
+                    setOnClickPendingIntent(
+                        viewId, broadcastIntent(id, receiver, CourseScheduleWidgetProvider.ACTION_SELECT_DAY, offset),
+                    )
+                }
+            } else {
+                setOnClickPendingIntent(R.id.course_widget_day_switch, toggleDay)
+                setContentDescription(
+                    R.id.course_widget_day_switch,
+                    context.getString(
+                        if (dayOffset == 0) R.string.course_widget_show_tomorrow else R.string.course_widget_show_today,
+                    ),
+                )
+                setTextViewText(
+                    R.id.course_widget_day,
+                    context.getString(if (dayOffset == 0) R.string.course_widget_today else R.string.course_widget_tomorrow),
+                )
+            }
             setOnClickPendingIntent(
                 R.id.course_widget_refresh,
-                broadcastIntent(id, CourseScheduleWidgetProvider.ACTION_REFRESH),
+                broadcastIntent(id, receiver, CourseScheduleWidgetProvider.ACTION_REFRESH),
             )
 
             val launch = checkNotNull(context.packageManager.getLaunchIntentForPackage(context.packageName))
@@ -298,7 +314,7 @@ class CourseScheduleWidget @Inject constructor(
                 context, id, launch,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             )
-            setOnClickPendingIntent(R.id.course_widget_summary, open)
+            setOnClickPendingIntent(R.id.course_widget_summary, toggleDay ?: open)
             setOnClickPendingIntent(R.id.course_widget_empty, open)
             val mutable = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_MUTABLE else 0
             setPendingIntentTemplate(
@@ -307,15 +323,14 @@ class CourseScheduleWidget @Inject constructor(
             )
         }
 
-    private fun entryViews(entry: WidgetEntry, compact: Boolean): RemoteViews =
-        RemoteViews(
-            context.packageName,
-            if (compact) R.layout.course_widget_row_compact else R.layout.course_widget_row_wide,
-        ).apply {
+    private fun entryViews(entry: WidgetEntry): RemoteViews =
+        RemoteViews(context.packageName, R.layout.course_widget_row).apply {
             setTextViewText(R.id.course_widget_title, entry.title)
-            setTextViewText(R.id.course_widget_time, if (compact) entry.time else entry.time.replace('–', '\n'))
-            setTextViewText(R.id.course_widget_location, entry.location)
-            setViewVisibility(R.id.course_widget_location, if (entry.location.isBlank()) View.GONE else View.VISIBLE)
+            setTextViewText(
+                R.id.course_widget_time,
+                listOf(entry.startTime?.format(TIME_FORMAT) ?: entry.time, entry.location)
+                    .filter { it.isNotBlank() }.joinToString(" "),
+            )
             setInt(R.id.course_widget_card, "setBackgroundResource", entry.background)
             setContentDescription(
                 R.id.course_widget_card,
@@ -325,8 +340,10 @@ class CourseScheduleWidget @Inject constructor(
         }
 
     private fun showReadFailure(id: Int) {
-        val dayOffset = manager.getAppWidgetOptions(id).getInt(OPTION_DAY_OFFSET).coerceIn(0, 1)
-        manager.updateAppWidget(id, baseViews(id, dayOffset).apply {
+        val options = manager.getAppWidgetOptions(id)
+        val dayOffset = options.getInt(OPTION_DAY_OFFSET).coerceIn(0, 1)
+        val wide = manager.getAppWidgetInfo(id)?.provider == wideProvider
+        manager.updateAppWidget(id, baseViews(id, dayOffset, wide).apply {
             setTextViewText(R.id.course_widget_summary, context.getString(R.string.course_widget_name))
             setViewVisibility(R.id.course_widget_list, View.GONE)
             setViewVisibility(R.id.course_widget_empty, View.VISIBLE)
@@ -336,7 +353,7 @@ class CourseScheduleWidget @Inject constructor(
 
     internal fun createFactory(intent: Intent): RemoteViewsService.RemoteViewsFactory {
         val id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
-        val compact = intent.getBooleanExtra(EXTRA_COMPACT, true)
+        val dayOffset = intent.getIntExtra(CourseScheduleWidgetProvider.EXTRA_DAY_OFFSET, 0).coerceIn(0, 1)
         return object : RemoteViewsService.RemoteViewsFactory {
             private var entries = emptyList<WidgetEntry>()
 
@@ -345,7 +362,6 @@ class CourseScheduleWidget @Inject constructor(
             override fun onDataSetChanged() {
                 try {
                     val now = LocalDateTime.now()
-                    val dayOffset = intent.getIntExtra(CourseScheduleWidgetProvider.EXTRA_DAY_OFFSET, 0).coerceIn(0, 1)
                     entries = runBlocking { load(now.toLocalDate().plusDays(dayOffset.toLong()), now).entries }
                 } catch (e: Exception) {
                     Log.e(TAG, "读取课表小组件 $id 失败", e)
@@ -360,7 +376,7 @@ class CourseScheduleWidget @Inject constructor(
 
             override fun getCount() = entries.size
             override fun getViewAt(position: Int): RemoteViews? =
-                entries.getOrNull(position)?.let { entryViews(it, compact) }
+                entries.getOrNull(position)?.let { entryViews(it) }
 
             override fun getLoadingView(): RemoteViews? = null
             override fun getViewTypeCount() = 1
@@ -369,12 +385,11 @@ class CourseScheduleWidget @Inject constructor(
         }
     }
 
-    private fun broadcastIntent(id: Int, action: String, dayOffset: Int = 0): PendingIntent =
+    private fun broadcastIntent(id: Int, receiver: ComponentName, action: String, dayOffset: Int = 0): PendingIntent =
         PendingIntent.getBroadcast(
             context, id,
-            Intent(context, CourseScheduleWidgetProvider::class.java)
-                .setAction(action)
-                .setData(Uri.parse("bit101-widget://action/$id"))
+            Intent(action).setComponent(receiver)
+                .setData(Uri.parse("bit101-widget://action/$id/$dayOffset"))
                 .putExtra(CourseScheduleWidgetProvider.EXTRA_DAY_OFFSET, dayOffset)
                 .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, id),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
@@ -386,7 +401,6 @@ class CourseScheduleWidget @Inject constructor(
     companion object {
         internal const val OPTION_DAY_OFFSET = "cn.bit101.android.widget.DAY_OFFSET"
         internal const val OPTION_SELECTION_DATE = "cn.bit101.android.widget.SELECTION_DATE"
-        private const val EXTRA_COMPACT = "cn.bit101.android.widget.COMPACT"
         private const val TAG = "CourseScheduleWidget"
         private val TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm")
 

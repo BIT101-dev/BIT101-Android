@@ -16,25 +16,28 @@ import java.time.LocalDate
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class CourseScheduleWidgetProvider : AppWidgetProvider() {
+open class CourseScheduleWidgetProvider : AppWidgetProvider() {
     @Inject
     lateinit var widget: CourseScheduleWidget
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         when (intent.action) {
-            ACTION_TOGGLE_DAY, ACTION_REFRESH -> {
+            ACTION_TOGGLE_DAY, ACTION_SELECT_DAY, ACTION_REFRESH -> {
                 val id = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
                 val manager = AppWidgetManager.getInstance(context)
                 if (manager.getAppWidgetInfo(id)?.provider != ComponentName(context, javaClass)) return
-                if (intent.action == ACTION_TOGGLE_DAY) {
+                if (intent.action == ACTION_REFRESH) {
+                    updateAsync(intArrayOf(id))
+                } else {
                     val options = manager.getAppWidgetOptions(id)
                     val offset = intent.getIntExtra(EXTRA_DAY_OFFSET, 0).coerceIn(0, 1)
-                    options.putInt(CourseScheduleWidget.OPTION_DAY_OFFSET, 1 - offset)
+                    options.putInt(
+                        CourseScheduleWidget.OPTION_DAY_OFFSET,
+                        if (intent.action == ACTION_TOGGLE_DAY) 1 - offset else offset,
+                    )
                     options.putString(CourseScheduleWidget.OPTION_SELECTION_DATE, LocalDate.now().toString())
                     manager.updateAppWidgetOptions(id, options)
-                } else {
-                    updateAsync(intArrayOf(id))
                 }
             }
 
@@ -77,9 +80,12 @@ class CourseScheduleWidgetProvider : AppWidgetProvider() {
 
     companion object {
         internal const val ACTION_TOGGLE_DAY = "cn.bit101.android.widget.TOGGLE_DAY"
+        internal const val ACTION_SELECT_DAY = "cn.bit101.android.widget.SELECT_DAY"
         internal const val ACTION_REFRESH = "cn.bit101.android.widget.REFRESH"
         internal const val ACTION_TIME_REFRESH = "cn.bit101.android.widget.TIME_REFRESH"
         const val ACTION_OPEN_SCHEDULE = "cn.bit101.android.widget.OPEN_SCHEDULE"
         const val EXTRA_DAY_OFFSET = "cn.bit101.android.widget.OPEN_DAY_OFFSET"
     }
 }
+
+class CourseScheduleWideWidgetProvider : CourseScheduleWidgetProvider()
