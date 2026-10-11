@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="course_widget_surface">#FAFCFB</color>
+    <color name="course_widget_text">#182B27</color>
+    <color name="course_widget_secondary">#576C64</color>
+    <color name="course_widget_accent">#276956</color>
+    <color name="course_widget_chip">#E3F1EB</color>
+    <color name="course_widget_course">#EAF5EF</color>
+    <color name="course_widget_exam">#FCECEF</color>
+    <color name="course_widget_custom">#F0EDF9</color>
+</resources>

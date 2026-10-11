@@ -21,6 +21,8 @@ import cn.bit101.android.features.common.component.schedule.AddEditScheduleDialo
 import cn.bit101.android.features.common.component.schedule.CustomScheduleDetailDialog
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.nav.NavDest
+import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 /**
  * @author flwfdd
@@ -33,6 +35,8 @@ import cn.bit101.android.features.common.nav.NavDest
 internal fun CourseSchedule(
     mainController: MainController,
     active: Boolean,
+    requestedDate: LocalDate? = null,
+    onDateHandled: () -> Unit = {},
     vm: CourseScheduleViewModel = hiltViewModel()
 ) {
     /**
@@ -54,6 +58,14 @@ internal fun CourseSchedule(
      * 学期开始日期
      */
     val firstDay by vm.firstDayFlow.collectAsState(initial = null)
+
+    LaunchedEffect(requestedDate, firstDay, active, week) {
+        val start = firstDay
+        if (requestedDate != null && start != null && active && week != Int.MAX_VALUE) {
+            vm.changeWeek((ChronoUnit.DAYS.between(start, requestedDate) / 7 + 1).toInt())
+            onDateHandled()
+        }
+    }
 
     /**
      * 课表相关配置

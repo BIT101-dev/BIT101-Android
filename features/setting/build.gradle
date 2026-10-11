@@ -52,8 +52,9 @@ dependencies {
 
     // 拖动排序
     implementation "org.burnoutcrew.composereorderable:reorderable:0.9.6"
-    
+
     implementation project(':features:common')
+    implementation project(':features:schedule')
 
     // 版本管理
     implementation project(':features:versions')

@@ -21,6 +21,8 @@ import cn.bit101.android.features.common.component.snackbar.rememberSnackbarStat
 import cn.bit101.android.features.common.helper.getAppVersion
 import cn.bit101.android.features.common.nav.NavAnimation
 import cn.bit101.android.features.common.nav.NavDestConfig
+import cn.bit101.android.features.common.nav.NavDest
+import cn.bit101.android.features.common.nav.navigate
 import cn.bit101.android.features.common.nav.composableEdit
 import cn.bit101.android.features.common.nav.composableFollowList
 import cn.bit101.android.features.common.nav.composableIndex
@@ -50,9 +52,13 @@ import cn.bit101.android.features.versions.UpdateDialog
 import cn.bit101.android.features.versions.VersionDialog
 import cn.bit101.android.features.web.WebScreen
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import java.time.LocalDate
 
 @Composable
-internal fun MainApp() {
+internal fun MainApp(
+    requestedScheduleDate: LocalDate?,
+    onScheduleDateHandled: () -> Unit,
+) {
     val vm: MainViewModel = hiltViewModel()
     val ctx = LocalContext.current
 
@@ -112,7 +118,7 @@ internal fun MainApp() {
         popExitTransition = { popExitTransition },
     ) {
         composableIndex(navAnim, navController = navController) {
-            IndexScreen(mainController)
+            IndexScreen(mainController, requestedScheduleDate, onScheduleDateHandled)
         }
 
         composableLogin(navAnim, navController = navController) {
@@ -166,6 +172,15 @@ internal fun MainApp() {
         composableFollowList(navAnim, navController) { _, type ->
             Box(modifier = Modifier.navigationBarsPadding()) {
                 MyFollowListScreen(mainController, type)
+            }
+        }
+    }
+
+    LaunchedEffect(requestedScheduleDate) {
+        if (requestedScheduleDate != null) {
+            navController.navigate(NavDest.Index) {
+                popUpTo(NavDestConfig.Index.route)
+                launchSingleTop = true
             }
         }
     }

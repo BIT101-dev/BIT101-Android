@@ -38,13 +38,16 @@ internal data class TabPagerItem(
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-internal fun TabPager(items: List<TabPagerItem>) {
+internal fun TabPager(items: List<TabPagerItem>, showFirstPage: Boolean = false) {
     val pagerSate = rememberPagerState(
         initialPage = 0,
         initialPageOffsetFraction = 0f,
         pageCount = { items.size },
     )
     val scope = rememberCoroutineScope() //供动画调用协程
+    LaunchedEffect(showFirstPage) {
+        if (showFirstPage) pagerSate.scrollToPage(0)
+    }
     val indicator = @Composable { tabPositions: List<TabPosition> ->
         FancyAnimatedIndicator(
             tabPositions = tabPositions,

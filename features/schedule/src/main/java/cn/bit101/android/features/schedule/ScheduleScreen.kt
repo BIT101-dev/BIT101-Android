@@ -14,11 +14,16 @@ import cn.bit101.android.features.schedule.component.TabPager
 import cn.bit101.android.features.schedule.component.TabPagerItem
 import cn.bit101.android.features.schedule.course.CourseSchedule
 import cn.bit101.android.features.schedule.ddl.DDLSchedule
+import java.time.LocalDate
 
 @Composable
-fun ScheduleScreen(mainController: MainController) {
+fun ScheduleScreen(
+    mainController: MainController,
+    requestedDate: LocalDate? = null,
+    onDateHandled: () -> Unit = {},
+) {
     val items = listOf(TabPagerItem("课表") {
-        CourseSchedule(mainController, it)
+        CourseSchedule(mainController, it, requestedDate, onDateHandled)
     }, TabPagerItem("DDL") {
         DDLSchedule(mainController, it)
     }, TabPagerItem("空教室") {
@@ -29,7 +34,7 @@ fun ScheduleScreen(mainController: MainController) {
         Box(
             modifier = Modifier.padding(top = it.calculateTopPadding())
         ) {
-            TabPager(items)
+            TabPager(items, showFirstPage = requestedDate != null)
         }
     }
 }

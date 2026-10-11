@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="180dp" android:height="180dp"
+    android:viewportWidth="180" android:viewportHeight="180">
+    <path android:fillColor="@color/course_widget_surface"
+        android:pathData="M24,0H156Q180,0 180,24V156Q180,180 156,180H24Q0,180 0,156V24Q0,0 24,0" />
+    <path android:fillColor="@color/course_widget_chip"
+        android:pathData="M16,12H42Q48,12 48,18V28Q48,34 42,34H16Q10,34 10,28V18Q10,12 16,12" />
+    <path android:fillColor="@color/course_widget_secondary"
+        android:pathData="M58,19H105V23H58zM112,19H134V23H112z" />
+    <path android:fillColor="@color/course_widget_course"
+        android:pathData="M20,42H160Q170,42 170,52V88Q170,98 160,98H20Q10,98 10,88V52Q10,42 20,42M20,104H160Q170,104 170,114V150Q170,160 160,160H20Q10,160 10,150V114Q10,104 20,104" />
+    <path android:fillColor="@color/course_widget_text"
+        android:pathData="M22,55H112V61H22zM22,117H145V123H22z" />
+    <path android:fillColor="@color/course_widget_secondary"
+        android:pathData="M22,76H78V80H22zM88,76H132V80H88zM22,138H78V142H22zM88,138H132V142H88z" />
+</vector>
