@@ -44,8 +44,8 @@ sealed interface NavDestConfig {
     }
 
     data object Login : NavDestConfig {
-        override val route: String = "login"
-        override val arguments: List<NamedNavArgument> = emptyList()
+        override val route: String = "login?community={community}"
+        override val arguments = listOf(navArgument("community") { type = NavType.BoolType; defaultValue = false })
     }
 
     data object User : NavDestConfig {

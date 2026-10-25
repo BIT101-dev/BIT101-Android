@@ -1,5 +1,7 @@
 package cn.bit101.android.features.login
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,17 +41,21 @@ import cn.bit101.android.features.common.helper.SimpleErrorDataState
 // 登录界面
 @Composable
 internal fun LoginPage(
-    loginState: SimpleErrorDataState<Unit>?,
+    loginState: SimpleErrorDataState<String>?,
+    title: String,
+    initialSid: String,
+    usernameEnabled: Boolean,
+    description: String,
 
     onLogin: (String, String) -> Unit,
-    onLoginSuccess: () -> Unit = {},
+    onLoginSuccess: (String) -> Unit = {},
     onLoginFailed: (String) -> Unit = {},
 ) {
     val loading = loginState is SimpleErrorDataState.Loading
 
     LaunchedEffect(loginState) {
         when (loginState) {
-            is SimpleErrorDataState.Success -> onLoginSuccess()
+            is SimpleErrorDataState.Success -> onLoginSuccess(loginState.data)
             is SimpleErrorDataState.Fail -> onLoginFailed(loginState.msg)
             else -> Unit
         }
@@ -57,11 +63,12 @@ internal fun LoginPage(
 
     Column(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var sid by rememberSaveable { mutableStateOf("") }
+        var sid by rememberSaveable { mutableStateOf(initialSid) }
         var password by rememberSaveable { mutableStateOf("") }
         var passwordHidden by rememberSaveable { mutableStateOf(true) }
         Column(
@@ -72,7 +79,7 @@ internal fun LoginPage(
         ) {
             val underlineColor = MaterialTheme.colorScheme.secondaryContainer
             Text(
-                "登录BIT101",
+                title,
                 style = MaterialTheme.typography.headlineLarge.copy(color = MaterialTheme.colorScheme.primary),
                 modifier = Modifier.drawBehind {
                     val strokeWidth = 10.dp.toPx()
@@ -88,6 +95,7 @@ internal fun LoginPage(
             )
             OutlinedTextField(
                 value = sid,
+                enabled = usernameEnabled && !loading,
                 onValueChange = { sid = it },
                 label = { Text("学号") },
                 modifier = Modifier.fillMaxWidth(),
@@ -104,6 +112,7 @@ internal fun LoginPage(
             )
             OutlinedTextField(
                 value = password,
+                enabled = !loading,
                 onValueChange = { password = it },
                 label = { Text("密码") },
                 modifier = Modifier.fillMaxWidth(),
@@ -141,7 +150,7 @@ internal fun LoginPage(
                 else Text(text = "登录")
             }
             Text(
-                text = "Tips：使用学校统一身份认证账号密码进行登录，若未注册过BIT101账号将会自动注册。BIT101尊重您的隐私，密码只会经不可逆加密后传输到服务器。",
+                text = description,
                 style = MaterialTheme.typography.bodyMedium.copy(
                     color = MaterialTheme.colorScheme.onSurface.copy(
                         alpha = 0.5f

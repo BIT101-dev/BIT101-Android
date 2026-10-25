@@ -1,41 +1,30 @@
 package cn.bit101.android.features
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.AccountCircle
-import androidx.compose.material.icons.rounded.Chat
-import androidx.compose.material.icons.rounded.Event
-import androidx.compose.material.icons.rounded.Explore
-import androidx.compose.material.icons.rounded.Map
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.lifecycle.ViewModel
 import cn.bit101.android.config.setting.base.AboutSettings
-import cn.bit101.android.config.setting.base.PageSettings
-import cn.bit101.android.config.setting.base.PageShowOnNav
-import cn.bit101.android.config.setting.base.toPageData
-import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.common.SmsCodeRequestHub
-import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.android.data.repo.base.SchoolLoginRepo
+import cn.bit101.android.data.repo.base.CommunityLoginRepo
 import cn.bit101.android.features.common.helper.withScope
 import cn.bit101.android.features.poster.ImageDownloader
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 
 @HiltViewModel
 internal class MainViewModel @Inject constructor(
-    private val loginRepo: LoginRepo,
+    private val communityLogin: CommunityLoginRepo,
+    private val loginRepo: SchoolLoginRepo,
     private val aboutSettings: AboutSettings,
-    private val pageSettings: PageSettings,
-    private val loginStatus: LoginStatus,
     val smsCodeRequestHub: SmsCodeRequestHub,
 ) : ViewModel() {
 
-    val loginStatusFlow = loginStatus.status.flow
     val lastVersionFlow = aboutSettings.lastVersion.flow
     val autoDetectUpgradeFlow = aboutSettings.autoDetectUpgrade.flow
 
     // 图片保存工具类
     val imageDownloader = ImageDownloader()
+
+    suspend fun autoLoginCommunity() = communityLogin.autoLogin()
 
     fun logout() = withScope {
         loginRepo.logout()

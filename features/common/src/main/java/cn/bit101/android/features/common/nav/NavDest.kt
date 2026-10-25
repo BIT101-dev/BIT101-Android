@@ -25,9 +25,9 @@ sealed interface NavDest {
             .replace("{route}", initialRoute ?: "")
     }
 
-    data object Login: NavDest {
+    data class Login(val community: Boolean = false): NavDest {
         override val config = NavDestConfig.Login
-        override val route = config.route
+        override val route = config.route.replace("{community}", community.toString())
     }
 
     data class User(

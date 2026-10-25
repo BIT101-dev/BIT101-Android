@@ -2,7 +2,9 @@ package cn.bit101.android.config.datastore.basic
 
 import android.content.SharedPreferences
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 internal class EncryptedPreferencesItem(
     private val sharedPreferences: SharedPreferences,
@@ -20,7 +22,14 @@ internal class EncryptedPreferencesItem(
     }
 
     override val flow: Flow<String>
-        get() = flowOf(sharedPreferences.getString(key, null) ?: "")
+        get() = callbackFlow {
+            val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, changedKey ->
+                if (changedKey == key || changedKey == null) trySend(sharedPreferences.getString(key, null) ?: "")
+            }
+            sharedPreferences.registerOnSharedPreferenceChangeListener(listener)
+            trySend(sharedPreferences.getString(key, null) ?: "")
+            awaitClose { sharedPreferences.unregisterOnSharedPreferenceChangeListener(listener) }
+        }.distinctUntilChanged()
 
     override suspend fun set(value: String) {
         with(sharedPreferences.edit()) {

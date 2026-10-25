@@ -2,7 +2,7 @@ package cn.bit101.android.features.setting.viewmodel
 
 import cn.bit101.android.config.setting.base.FreeClassroomSettings
 import cn.bit101.android.data.repo.base.FreeClassroomRepo
-import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.android.data.repo.base.SchoolLoginRepo
 import cn.bit101.android.features.common.helper.SimpleErrorDataState
 import cn.bit101.api.model.common.CampusInfo
 import io.mockk.*
@@ -28,8 +28,8 @@ class FreeClassroomViewModelTest {
         val settings = mockk<FreeClassroomSettings>()
         every { settings.currentCampusCode.flow } returns MutableStateFlow("")
         every { settings.currentCampusDisplayName.flow } returns MutableStateFlow("")
-        val loginRepo = mockk<LoginRepo>()
-        coEvery { loginRepo.doOperationRequiresLogin<List<CampusInfo>>(any()) } coAnswers {
+        val loginRepo = mockk<SchoolLoginRepo>()
+        coEvery { loginRepo.withSchoolSession<List<CampusInfo>>(any()) } coAnswers {
             firstArg<suspend () -> List<CampusInfo>>().invoke()
         }
         vm = FreeClassroomViewModel(settings, repo, loginRepo)

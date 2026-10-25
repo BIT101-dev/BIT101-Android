@@ -22,7 +22,9 @@ import cn.bit101.android.config.setting.base.PageShowOnNav
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.motion.materialSharedAxisZIn
 import cn.bit101.android.features.common.motion.materialSharedAxisZOut
-import cn.bit101.android.features.component.WithLoginStatus
+import cn.bit101.android.features.component.CommunityContent
+import cn.bit101.android.features.component.SchoolContent
+import cn.bit101.android.data.repo.base.CommunityState
 import cn.bit101.android.features.gallery.GalleryScreen
 import cn.bit101.android.features.map.MapScreen
 import cn.bit101.android.features.schedule.ScheduleScreen
@@ -64,7 +66,8 @@ internal fun IndexScreen(
     val vm: IndexViewModel = hiltViewModel()
     val indexScreenConfig = vm.indexScreenConfigFlow.collectAsState(initial = null).value ?: return
 
-    val loginStatus by vm.loginStatusFlow.collectAsState(initial = null)
+    val community by vm.communityState.collectAsState(initial = CommunityState())
+    val schoolConfigured by vm.schoolConfigured.collectAsState(initial = false)
 
     val state = rememberPagerState(
         initialPage = indexScreenConfig.initialPage,
@@ -110,7 +113,7 @@ internal fun IndexScreen(
                 WebScreen(mainController)
             }
             composable(route = PageShowOnNav.Gallery.toString()) {
-                WithLoginStatus(mainController, loginStatus) {
+                CommunityContent(mainController, community, vm::retryCommunity) {
                     GalleryScreen(mainController)
                 }
             }
@@ -118,10 +121,12 @@ internal fun IndexScreen(
                 MapScreen()
             }
             composable(route = PageShowOnNav.Mine.toString()) {
-                UserScreen(mainController, id = 0)
+                CommunityContent(mainController, community, vm::retryCommunity) {
+                    UserScreen(mainController, id = 0)
+                }
             }
             composable(route = PageShowOnNav.Schedule.toString()) {
-                WithLoginStatus(mainController, loginStatus) {
+                SchoolContent(mainController, schoolConfigured) {
                     ScheduleScreen(mainController)
                 }
             }

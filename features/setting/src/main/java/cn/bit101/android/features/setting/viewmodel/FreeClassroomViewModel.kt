@@ -4,7 +4,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import cn.bit101.android.config.setting.base.FreeClassroomSettings
 import cn.bit101.android.data.repo.base.FreeClassroomRepo
-import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.android.data.repo.base.SchoolLoginRepo
 import cn.bit101.android.features.common.helper.*
 import cn.bit101.api.model.common.CampusInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +31,7 @@ internal data class FreeClassroomSettingData(
 internal class FreeClassroomViewModel @Inject constructor(
     private val freeClassroomSettings: FreeClassroomSettings,
     private val freeClassroomRepo: FreeClassroomRepo,
-    private val loginRepo: LoginRepo,
+    private val loginRepo: SchoolLoginRepo,
 ) : ViewModel() {
     val settingDataFlow = combine(
         freeClassroomSettings.currentCampusCode.flow,
@@ -70,7 +70,7 @@ internal class FreeClassroomViewModel @Inject constructor(
     fun loadCampusInfos(retry: Boolean = false) {
         if (!retry && _campusState.value != null) return
         withSimpleErrorDataState(_campusState) {
-            loginRepo.doOperationRequiresLogin(freeClassroomRepo::getCampusInfos)
+            loginRepo.withSchoolSession(freeClassroomRepo::getCampusInfos)
         }
     }
 }

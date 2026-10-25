@@ -10,6 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.rememberNavController
 import cn.bit101.android.features.common.MainController
@@ -38,7 +41,7 @@ import cn.bit101.android.features.common.nav.popEnterTransition
 import cn.bit101.android.features.common.nav.popExitTransition
 import cn.bit101.android.features.common.utils.ColorUtils
 import cn.bit101.android.features.index.IndexScreen
-import cn.bit101.android.features.login.LoginOrLogoutScreen
+import cn.bit101.android.features.login.LoginScreen
 import cn.bit101.android.features.message.MessageScreen
 import cn.bit101.android.features.postedit.PostEditScreen
 import cn.bit101.android.features.poster.PosterScreen
@@ -55,6 +58,10 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 internal fun MainApp() {
     val vm: MainViewModel = hiltViewModel()
     val ctx = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    LaunchedEffect(vm, lifecycleOwner) {
+        lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) { vm.autoLoginCommunity() }
+    }
 
     // 控制器
     val navController = rememberNavController()
@@ -115,8 +122,8 @@ internal fun MainApp() {
             IndexScreen(mainController)
         }
 
-        composableLogin(navAnim, navController = navController) {
-            LoginOrLogoutScreen(mainController)
+        composableLogin(navAnim, navController = navController) { entry ->
+            LoginScreen(mainController, initialCommunity = entry.arguments?.getBoolean("community") == true)
         }
 
         composableWeb(navAnim, navController) { _, url ->

@@ -7,11 +7,15 @@ import cn.bit101.api.option.ApiOption
 import cn.bit101.api.option.DEFAULT_API_OPTION
 import com.google.gson.FieldNamingPolicy
 import com.google.gson.GsonBuilder
+import okhttp3.OkHttpClient
+import java.util.concurrent.TimeUnit
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.converter.scalars.ScalarsConverterFactory
 
 object Bit101ApiFactory {
+    // 认证不经过业务 401 拦截器，也不占用其 Dispatcher，避免并发 401 等待续期时死锁。
+    private val authClient = OkHttpClient.Builder().callTimeout(30, TimeUnit.SECONDS).build()
     private val gson = GsonBuilder()
         .setFieldNamingStrategy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES)
         .create()
@@ -30,6 +34,11 @@ object Bit101ApiFactory {
         )
 
         return Bit101Api(
+            authRetrofit = Retrofit.Builder()
+                .client(authClient)
+                .addConverterFactory(converterFactory)
+                .baseUrl(urls.bit101Url)
+                .build(),
             bit101Retrofit = Retrofit.Builder()
                 .client(option.bit101Client)
                 .addConverterFactory(converterFactory)

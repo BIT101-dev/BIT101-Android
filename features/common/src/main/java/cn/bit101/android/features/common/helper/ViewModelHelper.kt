@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import cn.bit101.android.data.repo.base.LoginException
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -17,10 +18,10 @@ fun <T> ViewModel.withSimpleErrorDataState(
     state: MutableStateFlow<SimpleErrorDataState<T>?>,
     cancelledState: SimpleErrorDataState<T>? = null,
     block: suspend () -> T,
-) {
-    if (state.value is SimpleErrorDataState.Loading) return
+): Job? {
+    if (state.value is SimpleErrorDataState.Loading) return null
     state.value = SimpleErrorDataState.Loading()
-    viewModelScope.launch {
+    return viewModelScope.launch {
         try {
             state.value = SimpleErrorDataState.Success(block())
         } catch (e: CancellationException) {

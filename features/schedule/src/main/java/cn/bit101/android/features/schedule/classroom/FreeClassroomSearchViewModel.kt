@@ -11,7 +11,7 @@ import cn.bit101.android.config.setting.base.FreeClassroomSettings
 import cn.bit101.android.config.setting.base.TimeTable
 import cn.bit101.android.config.setting.base.TimeTableItem
 import cn.bit101.android.data.repo.base.FreeClassroomRepo
-import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.android.data.repo.base.SchoolLoginRepo
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withSimpleDataStateLiveData
@@ -29,7 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 internal class FreeClassroomSearchViewModel @Inject constructor(
     private val freeClassroomRepo: FreeClassroomRepo,
-    private val loginRepo: LoginRepo,
+    private val loginRepo: SchoolLoginRepo,
     private val settingData: FreeClassroomSettings,
     private val scheduleSettings: CourseScheduleSettings,
 ) : ViewModel() {
@@ -61,7 +61,7 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
     }
 
     fun loadBuildingTypes() = withSimpleDataStateLiveData(getBuildingTypeStatusLiveData) {
-        loginRepo.doOperationRequiresLogin(this::getBuildingTypesWithoutState)
+        loginRepo.withSchoolSession(this::getBuildingTypesWithoutState)
     }
 
     val getClassroomsStatesMap = mutableStateMapOf<String,SimpleState>()
@@ -259,7 +259,7 @@ internal class FreeClassroomSearchViewModel @Inject constructor(
 
     // 获取对应教学楼的全部教室及其空闲情况
     fun loadClassroomInfos(buildingId: String) = viewModelScope.launch(Dispatchers.IO) {
-        loginRepo.doOperationRequiresLogin { loadClassroomInfosWithoutState(buildingId) }
+        loginRepo.withSchoolSession { loadClassroomInfosWithoutState(buildingId) }
     }
     fun refreshAllClassroomInfo() {
         classroomDataCache.forEach { classroomDataCache[it.key] = it.value.copy(cacheValidUntil = LocalDateTime.now()) }

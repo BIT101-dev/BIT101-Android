@@ -1,6 +1,7 @@
 package cn.bit101.api
 
 import cn.bit101.api.service.app.AppApiService
+import cn.bit101.api.service.bit101.AuthApiService
 import cn.bit101.api.service.bit101.CoursesApiService
 import cn.bit101.api.service.bit101.ManageApiService
 import cn.bit101.api.service.bit101.MessageApiService
@@ -22,11 +23,13 @@ import retrofit2.create
 
 class Bit101Api internal constructor(
     bit101Retrofit: Retrofit,
+    authRetrofit: Retrofit,
     appRetrofit: Retrofit,
     jwmsRetrofit: Retrofit,
     jwcRetrofit: Retrofit,
     logger: Logger = emptyLogger,
 ) {
+    val auth: AuthApiService = authRetrofit.create()
     val courses: CoursesApiService = bit101Retrofit.create()
     val manage: ManageApiService = bit101Retrofit.create()
     val message: MessageApiService = bit101Retrofit.create()

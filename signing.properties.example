@@ -1,0 +1,4 @@
+storeFile=/absolute/path/to/BIT101.jks
+storePassword=
+keyAlias=bit101
+keyPassword=

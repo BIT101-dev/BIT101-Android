@@ -15,7 +15,7 @@ class LoginExceptionTest {
             .protocol(Protocol.HTTP_1_1).code(429).message("limited").header("Retry-After", "120").build()
         val response = Response.error<String>("sensitive upstream body".toResponseBody(), raw)
         val failure = assertThrows(LoginException::class.java) { response.loginBody("verify") }
-        assertEquals(LoginRefreshResult.TRANSIENT, failure.result)
+        assertEquals(LoginFailure.TRANSIENT, failure.result)
         assertEquals("verify", failure.step)
         assertEquals(429, failure.statusCode)
         assertEquals("120", failure.retryAfter)
@@ -24,13 +24,13 @@ class LoginExceptionTest {
 
     @Test
     fun `HTTP forbidden is not evidence of wrong password`() {
-        assertEquals(LoginRefreshResult.ERROR, SsoHttpException(403, "test", "blocked").asLoginException("school").result)
+        assertEquals(LoginFailure.ERROR, SsoHttpException(403, "test", "blocked").asLoginException("school").result)
     }
 
     @Test
     fun `empty success is a protocol error`() {
         val failure = assertThrows(LoginException::class.java) { Response.success<String>(null).loginBody("register") }
-        assertEquals(LoginRefreshResult.ERROR, failure.result)
+        assertEquals(LoginFailure.ERROR, failure.result)
         assertEquals("register", failure.step)
     }
 }

@@ -1,8 +1,7 @@
 package cn.bit101.android.data.net
 
 import cn.bit101.android.config.user.base.LoginStatus
-import cn.bit101.android.data.repo.base.LoginRefreshResult
-import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.android.data.repo.base.CommunityLoginRepo
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -10,20 +9,21 @@ import javax.inject.Provider
 
 internal class Bit101AuthInterceptor(
     private val loginStatus: LoginStatus,
-    private val loginRepo: Provider<LoginRepo>,
+    private val loginRepo: Provider<CommunityLoginRepo>,
 ) : Interceptor {
     override fun intercept(chain: Interceptor.Chain): Response {
-        val request = chain.request().newBuilder()
-            .header("fake-cookie", runBlocking { loginStatus.fakeCookie.get() })
-            .build()
+        val original = chain.request()
+        val sid = runBlocking { loginStatus.sid.get() }
+        val token = runBlocking { loginStatus.fakeCookie.get() }
+        val request = original.newBuilder().header("fake-cookie", token).build()
         val response = chain.proceed(request)
         if (response.code != 401) return response
 
         val retry = try {
             runBlocking {
-                // 持锁认证流程返回 BUSY，避免从拦截器重入登录锁。
-                if (loginRepo.get().tryRefreshLogin() != LoginRefreshResult.SUCCESS) null
-                else request.newBuilder().header("fake-cookie", loginStatus.fakeCookie.get()).build()
+                val updatedToken = loginRepo.get().refresh(sid, token)
+                if (updatedToken == null || loginStatus.sid.get() != sid) null
+                else request.newBuilder().header("fake-cookie", updatedToken).build()
             }
         } catch (error: Exception) {
             response.close()

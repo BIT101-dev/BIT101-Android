@@ -8,8 +8,10 @@ import kotlinx.coroutines.CancellationException
 import retrofit2.Response
 import java.io.IOException
 
+enum class LoginFailure { NEEDS_INTERACTIVE, TRANSIENT, FAILED, ERROR }
+
 class LoginException internal constructor(
-    val result: LoginRefreshResult,
+    val result: LoginFailure,
     val step: String,
     message: String,
     val statusCode: Int? = null,
@@ -26,12 +28,12 @@ internal fun <T> Response<T>.loginBody(step: String): T {
 }
 
 internal fun invalidLoginResponse(step: String, cause: Throwable? = null) = LoginException(
-    LoginRefreshResult.ERROR, step, "认证服务返回了异常数据，请稍后重试。", cause = cause,
+    LoginFailure.ERROR, step, "认证服务返回了异常数据，请稍后重试。", cause = cause,
 )
 
 private fun httpLoginException(step: String, status: Int, retryAfter: String? = null, cause: Throwable? = null) =
     LoginException(
-        result = if (status == 429 || status in 500..599) LoginRefreshResult.TRANSIENT else LoginRefreshResult.ERROR,
+        result = if (status == 429 || status in 500..599) LoginFailure.TRANSIENT else LoginFailure.ERROR,
         step = step,
         message = when (status) {
             429 -> "认证请求过于频繁，请稍后重试。"
@@ -55,7 +57,7 @@ internal fun Throwable.asLoginException(step: String): LoginException {
     for (cause in causes) {
         when (cause) {
             is CaptchaError, is SmsVerificationError -> return LoginException(
-                LoginRefreshResult.NEEDS_INTERACTIVE, step, "需要完成验证码验证，请重新登录。", cause = this,
+                LoginFailure.NEEDS_INTERACTIVE, step, "需要完成验证码验证，请重新登录。", cause = this,
             )
             is SsoHttpException -> return httpLoginException(step, cause.statusCode, cause = this)
             is LoginError -> {
@@ -63,11 +65,11 @@ internal fun Throwable.asLoginException(step: String): LoginException {
                     return httpLoginException(step, cause.statusCode!!, cause = this)
                 }
                 if (cause.code in setOf("1030027", "1030028", "1030031", "1330001", "1410040", "1410041", "3910001")) {
-                    return LoginException(LoginRefreshResult.FAILED, step, "账号或密码未通过验证，请检查后重新登录。", cause = this)
+                    return LoginException(LoginFailure.FAILED, step, "账号或密码未通过验证，请检查后重新登录。", cause = this)
                 }
             }
             is IOException -> return LoginException(
-                LoginRefreshResult.TRANSIENT, step, "网络连接失败，请稍后重试。", cause = this,
+                LoginFailure.TRANSIENT, step, "网络连接失败，请稍后重试。", cause = this,
             )
         }
     }

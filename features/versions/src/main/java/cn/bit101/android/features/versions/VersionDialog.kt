@@ -43,5 +43,5 @@ fun VersionDialog(
 internal class VersionDialogViewModel @Inject constructor(
     private val loginStatus: LoginStatus
 ) : ViewModel() {
-    val statusFlow = loginStatus.status.flow
+    val statusFlow = loginStatus.schoolConnected.flow
 }

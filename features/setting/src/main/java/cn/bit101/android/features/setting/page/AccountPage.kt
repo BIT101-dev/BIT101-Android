@@ -15,6 +15,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import cn.bit101.android.data.repo.base.CommunityState
 import cn.bit101.android.features.common.component.Avatar
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
@@ -28,7 +29,9 @@ import cn.bit101.api.model.common.User
 
 @Composable
 private fun AccountPageContent(
-    ifLogin: Boolean,
+    schoolConnected: Boolean,
+    community: CommunityState,
+    onRetryCommunity: () -> Unit,
     checkingLogin: Boolean,
     updatingUserInfo: Boolean,
     user: User?,
@@ -36,7 +39,7 @@ private fun AccountPageContent(
     onOpenEditAvatarDialog: () -> Unit,
     onOpenEditNicknameDialog: () -> Unit,
     onOpenEditMottoDialog: () -> Unit,
-    onCheckLogin: () -> Unit,
+    onReconnectSchool: () -> Unit,
     onLogout: () -> Unit,
     onLogin: () -> Unit,
 ) {
@@ -75,31 +78,29 @@ private fun AccountPageContent(
         ),
     )
 
-    val loginItems = listOf(
-        SettingItemData.Button(
-            title = "登录状态检查",
-            subTitle = "登录分为两步，首先进行学校统一身份认证，然后登录BIT101。\n" +
-                    "点击检查二者登录状态，如果检查登录的结果为“未登录”，APP会根据之前自动加密保存的密码尝试重新登录。",
-            onClick = onCheckLogin,
-            enable = !checkingLogin,
-            text = if (ifLogin) "已登录" else "未登录",
-        ),
-
-        if(ifLogin) SettingItemData.Button(
-            title = "退出登录",
-            subTitle = "清除所有登录状态和保存的账号密码",
-            onClick = onLogout,
-        ) else SettingItemData.Button(
-            title = "登录",
-            onClick = onLogin,
-        ),
-    )
+    val loginItems = buildList {
+        add(SettingItemData.Button(
+            title = "校园账号",
+            subTitle = "校园功能由手机直连学校，BIT101 连接失败不影响使用。点击重新验证校园账号。",
+            onClick = onReconnectSchool,
+            enable = !checkingLogin && !sid.isNullOrBlank(),
+            text = if (schoolConnected) "已连接" else "未连接",
+        ))
+        add(SettingItemData.Card(title = "BIT101", text = community.message))
+        if (!community.connected) {
+            add(SettingItemData.Button(title = "立即重试 BIT101", enable = !community.connecting, onClick = onRetryCommunity))
+        }
+        add(SettingItemData.Button(title = "手动登录或切换账号", subTitle = "选择校园账号或 BIT101 登录", onClick = onLogin))
+        if (!sid.isNullOrBlank()) add(SettingItemData.Button(
+            title = "退出登录", subTitle = "清除校园和 BIT101 登录状态及保存的账号密码", onClick = onLogout,
+        ))
+    }
 
     SettingsColumn{
         SettingsGroup(
             title = "个人信息",
             items = infoItems,
-            visible = ifLogin && user != null,
+            visible = community.connected && user != null,
         )
         SettingsGroup(
             title = "登录状态",
@@ -153,9 +154,10 @@ internal fun AccountPage(
 
     val getUserInfoState by vm.getUserInfoStateFlow.collectAsState()
 
-    val ifLogin by vm.loginStatusFlow.collectAsState(initial = false)
+    val schoolConnected by vm.schoolConnected.collectAsState(initial = false)
+    val community by vm.communityState.collectAsState(initial = CommunityState())
 
-    val checkingLoginState by vm.checkLoginStateFlow.collectAsState()
+    val checkingLoginState by vm.reconnectSchoolStateFlow.collectAsState()
 
     val sid by vm.sidFlow.collectAsState(initial = null)
 
@@ -164,17 +166,15 @@ internal fun AccountPage(
     val updateUserInfoState by vm.updateUserInfoStateFlow.collectAsState()
 
 
-    LaunchedEffect(ifLogin, checkingLoginState) {
-        if (ifLogin && (getUserInfoState == null || getUserInfoState is SimpleDataState.Fail) && checkingLoginState !is SimpleState.Loading) {
-            vm.getUserInfo()
-        }
+    LaunchedEffect(community.connected, sid) {
+        if (community.connected) vm.getUserInfo() else vm.clearUserInfo()
     }
 
     LaunchedEffect(checkingLoginState) {
         if (checkingLoginState is SimpleState.Fail) {
-            onSnackBar("登录状态检查失败")
+            onSnackBar("校园账号验证失败")
         } else if (checkingLoginState is SimpleState.Success) {
-            onSnackBar("登录状态检查成功")
+            onSnackBar("校园账号验证成功")
         }
     }
 
@@ -204,13 +204,15 @@ internal fun AccountPage(
     AccountPageContent(
         user = user,
         sid = sid,
-        ifLogin = ifLogin,
+        schoolConnected = schoolConnected,
+        community = community,
+        onRetryCommunity = vm::retryCommunity,
         updatingUserInfo = updateAvatarState == SimpleState.Loading || updateUserInfoState == SimpleState.Loading,
         checkingLogin = checkingLoginState == SimpleState.Loading,
         onOpenEditAvatarDialog = imagePicker::pickImage,
         onOpenEditNicknameDialog = { showNicknameEditDialog = true },
         onOpenEditMottoDialog = { showMottoEditDialog = true },
-        onCheckLogin = vm::checkLogin,
+        onReconnectSchool = vm::reconnectSchool,
         onLogout = vm::logout,
         onLogin = onLogin
     )

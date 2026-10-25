@@ -66,9 +66,13 @@ internal abstract class RepoModule {
 
     @Binds
     @Singleton
-    abstract fun bindLoginRepo(
-        loginRepo: DefaultLoginRepo
-    ): LoginRepo
+    abstract fun bindSchoolLoginRepo(
+        loginRepo: DefaultSchoolLoginRepo
+    ): SchoolLoginRepo
+
+    @Binds
+    @Singleton
+    abstract fun bindCommunityLoginRepo(repo: DefaultCommunityLoginRepo): CommunityLoginRepo
 
     @Binds
     @Singleton

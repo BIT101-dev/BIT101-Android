@@ -4,7 +4,8 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.user.base.LoginStatus
-import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.android.data.repo.base.SchoolLoginRepo
+import cn.bit101.android.data.repo.base.CommunityLoginRepo
 import cn.bit101.android.data.repo.base.UploadRepo
 import cn.bit101.android.data.repo.base.UserRepo
 import cn.bit101.android.features.common.helper.SimpleDataState
@@ -21,17 +22,21 @@ import javax.inject.Inject
 @HiltViewModel
 internal class AccountViewModel @Inject constructor(
     private val userRepo: UserRepo,
-    private val loginRepo: LoginRepo,
+    private val communityLogin: CommunityLoginRepo,
+    private val loginRepo: SchoolLoginRepo,
     private val uploadRepo: UploadRepo,
     private val loginStatus: LoginStatus
 ) : ViewModel() {
     private val _getUserInfoStateFlow = MutableStateFlow<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
     val getUserInfoStateFlow = _getUserInfoStateFlow
 
-    private val _checkLoginStateFlow = MutableStateFlow<SimpleState?>(null)
-    val checkLoginStateFlow = _checkLoginStateFlow
+    private val _reconnectSchoolStateFlow = MutableStateFlow<SimpleState?>(null)
+    val reconnectSchoolStateFlow = _reconnectSchoolStateFlow
 
-    val loginStatusFlow = loginStatus.status.flow
+    val schoolConnected = loginStatus.schoolConnected.flow
+    val communityState = communityLogin.state
+    fun retryCommunity() { viewModelScope.launch { communityLogin.ensureConnected(force = true) } }
+    fun clearUserInfo() { _getUserInfoStateFlow.value = null }
 
     val sidFlow = loginStatus.sid.flow
 
@@ -43,7 +48,7 @@ internal class AccountViewModel @Inject constructor(
 
     fun clearStates() {
         _getUserInfoStateFlow.value = null
-        _checkLoginStateFlow.value = null
+        _reconnectSchoolStateFlow.value = null
         _updateUserInfoStateFlow.value = null
         _updateAvatarStateFlow.value = null
     }
@@ -52,8 +57,8 @@ internal class AccountViewModel @Inject constructor(
         userRepo.getUserInfo(0)
     }
 
-    fun checkLogin() = withSimpleStateFlow(_checkLoginStateFlow) {
-        loginRepo.checkLogin()
+    fun reconnectSchool() = withSimpleStateFlow(_reconnectSchoolStateFlow) {
+        loginRepo.reconnect()
     }
 
     fun logout() {

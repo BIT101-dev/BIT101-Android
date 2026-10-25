@@ -6,6 +6,15 @@ plugins {
     id 'com.jaredsburrows.license' version "0.9.3" //用于生成开源声明
 }
 
+def signingProperties = new Properties()
+def signingPropertiesFile = rootProject.file('signing.properties')
+if (signingPropertiesFile.exists()) {
+    signingPropertiesFile.withInputStream { signingProperties.load(it) }
+}
+def hasReleaseSigning = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword'].every {
+    signingProperties.getProperty(it)?.trim()
+}
+
 android {
     namespace 'cn.bit101.android'
     compileSdk versions.compileSdk
@@ -23,6 +32,17 @@ android {
         }
     }
 
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile rootProject.file(signingProperties.getProperty('storeFile'))
+                storePassword signingProperties.getProperty('storePassword')
+                keyAlias signingProperties.getProperty('keyAlias')
+                keyPassword signingProperties.getProperty('keyPassword')
+            }
+        }
+    }
+
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
@@ -31,7 +51,7 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
     compileOptions {
@@ -44,6 +64,14 @@ android {
     packagingOptions {
         resources {
             excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+tasks.matching { it.name == 'preReleaseBuild' }.configureEach {
+    doFirst {
+        if (!hasReleaseSigning) {
+            throw new GradleException('Release signing requires storeFile, storePassword, keyAlias and keyPassword in signing.properties.')
         }
     }
 }

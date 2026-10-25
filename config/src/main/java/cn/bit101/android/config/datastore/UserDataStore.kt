@@ -1,5 +1,7 @@
 package cn.bit101.android.config.datastore
 
+import androidx.datastore.preferences.core.longPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import cn.bit101.android.config.datastore.basic.EncryptedPreferencesItem
@@ -19,6 +21,14 @@ internal class UserDataStore @Inject constructor(
     // fake-cookie 存储
     private val FAKE_COOKIE = stringPreferencesKey("fake_cookie")
     val fakeCookie = PreferencesDataStoreItem(FAKE_COOKIE, "", preferences.SETTING_DATASTORE)
+
+    val communityRetryAt = PreferencesDataStoreItem(longPreferencesKey("community_retry_at"), 0L, preferences.SETTING_DATASTORE)
+    val communityAttempts = PreferencesDataStoreItem(intPreferencesKey("community_attempts"), 0, preferences.SETTING_DATASTORE)
+    val communityNeedsLogin = PreferencesDataStoreItem(booleanPreferencesKey("community_needs_login"), false, preferences.SETTING_DATASTORE)
+    val communityRenewalPending = PreferencesDataStoreItem(booleanPreferencesKey("community_renewal_pending"), false, preferences.SETTING_DATASTORE)
+    val communityIdentityRetryAt = PreferencesDataStoreItem(longPreferencesKey("community_identity_retry_at"), 0L, preferences.SETTING_DATASTORE)
+    val communityIdentityAttempts = PreferencesDataStoreItem(intPreferencesKey("community_identity_attempts"), 0, preferences.SETTING_DATASTORE)
+    val communityPasswordDigest = EncryptedPreferencesItem(preferences.ENCRYPTED_SHARED_PREFERENCES, "community_password_digest")
 
     // 登陆状态
     private val LOGIN_STATUS = booleanPreferencesKey("login_status")

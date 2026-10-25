@@ -8,7 +8,7 @@ import cn.bit101.android.config.setting.base.CourseScheduleSettings
 import cn.bit101.android.config.setting.base.toTimeTable
 import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.data.repo.base.CoursesRepo
-import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.android.data.repo.base.SchoolLoginRepo
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withScope
@@ -48,7 +48,7 @@ internal data class SettingData(
 @HiltViewModel
 internal class CalendarViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
-    private val loginRepo: LoginRepo,
+    private val loginRepo: SchoolLoginRepo,
     private val courseScheduleSettings: CourseScheduleSettings
 ) : ViewModel() {
 
@@ -109,7 +109,7 @@ internal class CalendarViewModel @Inject constructor(
     val addScheduleToSysCalendarStateLiveData = MutableLiveData<SimpleState?>(null)
 
     fun getTermList() = withSimpleDataStateLiveData(getTermListStateLiveData) {
-        loginRepo.doOperationRequiresLogin(coursesRepo::getTermListFromNet)
+        loginRepo.withSchoolSession(coursesRepo::getTermListFromNet)
     }
 
     fun setCurrentTerm(term: String) {
@@ -119,7 +119,7 @@ internal class CalendarViewModel @Inject constructor(
             val oldTerm = currentTermFlow.first() ?: ""
 
             try {
-                loginRepo.doOperationRequiresLogin {
+                loginRepo.withSchoolSession {
                     courseScheduleSettings.term.set(term)
 
                     // 重新获取第一天
@@ -197,7 +197,7 @@ internal class CalendarViewModel @Inject constructor(
     }
 
     fun getFirstDay() = withSimpleStateLiveData(getFirstDayStateLiveData) {
-        loginRepo.doOperationRequiresLogin(this::getFirstDayWithoutState)
+        loginRepo.withSchoolSession(this::getFirstDayWithoutState)
     }
 
     private suspend fun getCoursesWithoutState() {
@@ -207,7 +207,7 @@ internal class CalendarViewModel @Inject constructor(
     }
 
     fun getCourses() = withSimpleStateLiveData(getCoursesStateLiveData) {
-        loginRepo.doOperationRequiresLogin(this::getCoursesWithoutState)
+        loginRepo.withSchoolSession(this::getCoursesWithoutState)
     }
 
     private suspend fun getExamsWithoutState() {
@@ -221,7 +221,7 @@ internal class CalendarViewModel @Inject constructor(
         // 额外统计这次更新实际更新了几条考试信息 (我是急急国王.jpg)
         val previousExams = coursesRepo.getExamsFromLocal().first()
 
-        loginRepo.doOperationRequiresLogin(this::getExamsWithoutState)
+        loginRepo.withSchoolSession(this::getExamsWithoutState)
 
         val nowExams = coursesRepo.getExamsFromLocal().first()
 

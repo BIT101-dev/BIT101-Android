@@ -4,7 +4,7 @@ import cn.bit101.android.data.BuildConfig
 import android.util.Log
 import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.net.base.APIManager
-import cn.bit101.android.data.repo.base.LoginRepo
+import cn.bit101.android.data.repo.base.CommunityLoginRepo
 import cn.bit101.api.Bit101ApiFactory
 import cn.bit101.api.helper.Logger
 import cn.bit101.api.option.DEFAULT_API_OPTION
@@ -29,7 +29,7 @@ private val androidLogger = object : Logger {
 
 internal class DefaultAPIManager @Inject constructor(
     private val loginStatus: LoginStatus,
-    private val loginRepoProvider: Provider<LoginRepo>,
+    private val loginRepoProvider: Provider<CommunityLoginRepo>,
 ) : APIManager {
     private val cookiesJar = JavaNetCookieJar(loginStatus.cookieManager)
 

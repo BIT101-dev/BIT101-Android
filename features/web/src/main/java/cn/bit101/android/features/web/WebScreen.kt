@@ -3,9 +3,7 @@ package cn.bit101.android.features.web
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
-import android.util.Log
 import android.webkit.ValueCallback
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -22,6 +20,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -43,7 +43,9 @@ import com.google.accompanist.web.WebView
 import com.google.accompanist.web.rememberSaveableWebViewState
 import com.google.accompanist.web.rememberWebViewNavigator
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberUpdatedState
+import org.json.JSONObject
 
 @Composable
 internal fun WebContent(
@@ -59,6 +61,13 @@ internal fun WebContent(
     var progress by remember { mutableFloatStateOf(0f) }
 
     val scope = rememberCoroutineScope()
+    val token by vm.fakeCookie.flow.collectAsState(initial = null)
+    val currentToken by rememberUpdatedState(token)
+    val sid by vm.sid.flow.collectAsState(initial = null)
+    val currentSid by rememberUpdatedState(sid)
+    val sessionScript = remember(context) { context.assets.open("bit101-session.js").bufferedReader().use { it.readText() } }
+    var refreshSession by remember { mutableStateOf(false) }
+    var webView by remember { mutableStateOf<WebView?>(null) }
 
     LaunchedEffect(navigator) {
         val bundle = state.viewState
@@ -80,127 +89,114 @@ internal fun WebContent(
         }
     }
     val themeIsDark = LocalThemeIsDark.current
-    Log.i("WebScreen", "themeIsDark: $themeIsDark")
+    val currentTheme by rememberUpdatedState(themeIsDark)
+    fun syncSession(view: WebView, pageLoaded: Boolean) {
+        val nativeToken = currentToken ?: return
+        val nativeSid = currentSid ?: return
+        if (!sameOrigin(view.url, vm.BASE_URL)) return
+        val script = "$sessionScript(${JSONObject.quote(vm.BASE_URL)}, ${JSONObject.quote(nativeToken)}, ${JSONObject.quote(nativeSid)}, $currentTheme, $pageLoaded)"
+        view.evaluateJavascript(script) { result ->
+            // Ignore a callback from a superseded native session or navigation.
+            if (nativeToken != currentToken || nativeSid != currentSid || !sameOrigin(view.url, vm.BASE_URL)) return@evaluateJavascript
+            refreshSession = result == "\"refresh\""
+            if (result == "\"reload\"") view.reload()
+        }
+    }
+    LaunchedEffect(webView, token, sid, themeIsDark) {
+        webView?.let { syncSession(it, pageLoaded = false) }
+    }
 
-    WebView(
-        state = state,
-        navigator = navigator,
-        modifier = Modifier.fillMaxSize(),
-        captureBackPresses = url == null,
-        onCreated = {
-            it.settings.javaScriptEnabled = true
-            it.settings.domStorageEnabled = true //localStorage
-        },
-        client = object : AccompanistWebViewClient() {
-            override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
-                super.onPageStarted(view, url, favicon)
+    Column(Modifier.fillMaxSize()) {
+        if (refreshSession) {
+            TextButton(onClick = { webView?.let { syncSession(it, pageLoaded = true) } }) {
+                Text("登录状态已更新，点击刷新页面")
+            }
+        }
+        WebView(
+            state = state,
+            navigator = navigator,
+            modifier = Modifier.weight(1f),
+            captureBackPresses = url == null,
+            onCreated = {
+                webView = it
+                it.settings.javaScriptEnabled = true
+                it.settings.domStorageEnabled = true //localStorage
+            },
+            client = object : AccompanistWebViewClient() {
+                override fun onPageFinished(view: WebView, url: String?) {
+                    super.onPageFinished(view, url)
+                    syncSession(view, pageLoaded = true)
+                }
 
-                Log.i("WebScreen", "onPageStarted: $url")
+                override fun shouldOverrideUrlLoading(
+                    view: WebView?,
+                    request: WebResourceRequest?
+                ): Boolean {
+                    // 拦截外部链接 使用默认浏览器打开
+                    if (!sameOrigin(request?.url?.toString(), vm.BASE_URL)) {
+                        val intent = Intent(Intent.ACTION_VIEW, request?.url)
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        context.startActivity(intent)
+                        return true
+                    }
+                    return super.shouldOverrideUrlLoading(view, request)
+                }
 
-                scope.launch {
-                    // 切换主题模式
-                    val themeMode=if(themeIsDark) "dark" else "light"
-                    view.evaluateJavascript(
-                        """
-                        if (!window.localStorage.getItem("store")) {
-                            window.localStorage.setItem("store", '{"theme_mode":"$themeMode"}')
-                        } else {
-                            store_tmp = JSON.parse(window.localStorage.store);
-                            store_tmp.theme_mode = "$themeMode";
-                            window.localStorage.setItem("store", JSON.stringify(store_tmp));
-                        }
-                    """.trimIndent(), null
-                    )
-                    // 注入fake-cookie
-                    val fakeCookie = vm.fakeCookie.get()
-                    Log.d("WebScreen", fakeCookie)
-                    if (fakeCookie.isNotEmpty()) {
-                        view.evaluateJavascript(
-                            """
-                            if (!window.localStorage.getItem("store")) {
-                                window.localStorage.setItem("store", '{"fake_cookie":"$fakeCookie"}')
-                            } else {
-                                store_tmp = JSON.parse(window.localStorage.store);
-                                store_tmp.fake_cookie = "$fakeCookie";
-                                window.localStorage.setItem("store", JSON.stringify(store_tmp));
+                override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
+                    super.doUpdateVisitedHistory(view, url, isReload)
+
+                    if (url == "${vm.BASE_URL}/score/" || url == "${vm.BASE_URL}/score") {
+                        scope.launch {
+                            val sid = vm.sid.get()
+                            val password = vm.password.get()
+                            if (sid.isNotBlank() && password.isNotBlank() && sameOrigin(view.url, vm.BASE_URL)) {
+                                view.evaluateJavascript("""
+                                    if (location.origin === ${JSONObject.quote(vm.BASE_URL.trimEnd('/'))}) {
+                                        for (const [id, value] of Object.entries({sid: ${JSONObject.quote(sid)}, password: ${JSONObject.quote(password)}})) {
+                                            const input = document.getElementById(id);
+                                            if (input) { input.value = value; input.dispatchEvent(new Event('input')); }
+                                        }
+                                    }
+                                """.trimIndent(), null)
                             }
-                        """.trimIndent(), null
-                        )
+                        }
                     }
                 }
-            }
+            },
+            chromeClient = object : AccompanistWebChromeClient() {
 
-            override fun shouldOverrideUrlLoading(
-                view: WebView?,
-                request: WebResourceRequest?
-            ): Boolean {
-                // 拦截外部链接 使用默认浏览器打开
-                if (request?.url?.toString()?.startsWith(vm.BASE_URL) != true) {
-                    val intent = Intent(Intent.ACTION_VIEW, request?.url)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    context.startActivity(intent)
+                override fun onProgressChanged(view: WebView, newProgress: Int) {
+                    super.onProgressChanged(view, newProgress)
+                    progress = newProgress / 100f
+                }
+
+                // 显示文件选择器
+                override fun onShowFileChooser(
+                    webView: WebView?,
+                    filePathCallback: ValueCallback<Array<Uri>>?,
+                    fileChooserParams: FileChooserParams?
+                ): Boolean {
+                    fileChooserValueCallback = filePathCallback
+                    try {
+                        fileChooseResultLauncher.launch(fileChooserParams?.createIntent())
+                    } catch (e: ActivityNotFoundException) {
+                        mainController.snackbar("未找到可以打开的应用！")
+                    }
                     return true
                 }
-                return super.shouldOverrideUrlLoading(view, request)
-            }
-
-            override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
-                super.doUpdateVisitedHistory(view, url, isReload)
-
-                val sid = runBlocking {
-                    vm.sid.get()
-                }
-
-                val password = runBlocking {
-                    vm.password.get()
-                }
-
-                // 自动填充成绩查询学号密码
-                if ((url == "${vm.BASE_URL}/score/" || url == "${vm.BASE_URL}/score") && sid.isNotEmpty() && password.isNotEmpty()) {
-                    val script = """
-                    document.getElementById("sid").value = "$sid";
-                    document.getElementById("sid").dispatchEvent(new Event('input'));
-                    document.getElementById("password").value = "$password";
-                    document.getElementById("password").dispatchEvent(new Event('input'));
-                """.trimIndent()
-                    view.evaluateJavascript(script, null)
-
-                }
-            }
-        },
-        chromeClient = object : AccompanistWebChromeClient() {
-
-            override fun onProgressChanged(view: WebView, newProgress: Int) {
-                super.onProgressChanged(view, newProgress)
-                progress = newProgress / 100f
-            }
-
-            // 显示文件选择器
-            override fun onShowFileChooser(
-                webView: WebView?,
-                filePathCallback: ValueCallback<Array<Uri>>?,
-                fileChooserParams: FileChooserParams?
-            ): Boolean {
-                fileChooserValueCallback = filePathCallback
-                try {
-                    fileChooseResultLauncher.launch(fileChooserParams?.createIntent())
-                } catch (e: ActivityNotFoundException) {
-                    mainController.snackbar("未找到可以打开的应用！")
-                }
-                return true
-            }
-        },
-    )
-
-    //进度条
-    AnimatedVisibility(visible = (progress > 0f && progress < 1f)) {
-        LinearProgressIndicator(
-            progress = { progress },
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.secondary,
-            trackColor = Color.Transparent,
-            strokeCap = StrokeCap.Round,
+            },
         )
+
+        //进度条
+        AnimatedVisibility(visible = (progress > 0f && progress < 1f)) {
+            LinearProgressIndicator(
+                progress = { progress },
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = Color.Transparent,
+                strokeCap = StrokeCap.Round,
+            )
+        }
     }
 }
 
@@ -222,4 +218,11 @@ fun WebScreen(
         WebContent(mainController, url)
     }
 
+}
+
+private fun sameOrigin(url: String?, base: String): Boolean {
+    if (url == null) return false
+    val actual = Uri.parse(url)
+    val expected = Uri.parse(base)
+    return actual.scheme == expected.scheme && actual.host == expected.host && actual.port == expected.port
 }

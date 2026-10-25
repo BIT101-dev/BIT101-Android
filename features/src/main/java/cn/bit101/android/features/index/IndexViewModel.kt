@@ -12,6 +12,8 @@ import cn.bit101.android.config.setting.base.PageSettings
 import cn.bit101.android.config.setting.base.PageShowOnNav
 import cn.bit101.android.config.setting.base.toPageData
 import cn.bit101.android.config.user.base.LoginStatus
+import cn.bit101.android.data.repo.base.CommunityLoginRepo
+import cn.bit101.android.features.common.helper.withScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
@@ -32,6 +34,7 @@ internal data class IndexScreenConfig(
 @HiltViewModel
 internal class IndexViewModel @Inject constructor(
     private val pageSettings: PageSettings,
+    private val communityLogin: CommunityLoginRepo,
     private val loginStatus: LoginStatus
 ) : ViewModel() {
     val indexScreenConfigFlow = combine(
@@ -63,5 +66,9 @@ internal class IndexViewModel @Inject constructor(
         )
     }
 
-    val loginStatusFlow = loginStatus.status.flow
+    val communityState = communityLogin.state
+    val schoolConfigured = combine(loginStatus.sid.flow, loginStatus.password.flow) { sid, password ->
+        sid.isNotBlank() && password.isNotBlank()
+    }
+    fun retryCommunity() = withScope { communityLogin.ensureConnected(force = true) }
 }

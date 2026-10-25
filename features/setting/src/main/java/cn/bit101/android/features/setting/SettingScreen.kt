@@ -58,7 +58,7 @@ fun SettingScreen(
                 navController = navController,
             ) {
                 AccountPage(
-                    onLogin = { mainController.navigate(NavDest.Login) },
+                    onLogin = { mainController.navigate(NavDest.Login()) },
                     onSnackBar = onSnackBar,
                 )
             }
