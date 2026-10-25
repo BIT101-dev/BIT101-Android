@@ -8,6 +8,12 @@ java {
     targetCompatibility = versions.targetCompatibility
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.fromTarget(versions.jvmTarget)
+    }
+}
+
 dependencies {
     // Retrofit，需要下传依赖
     api "com.squareup.retrofit2:retrofit:2.9.0"

@@ -23,7 +23,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -33,47 +32,26 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import cn.bit101.android.features.common.helper.SimpleState
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
 
 // 登录界面
 @Composable
 internal fun LoginPage(
-    loginState: SimpleState?,
+    loginState: SimpleErrorDataState<Unit>?,
 
     onLogin: (String, String) -> Unit,
     onLoginSuccess: () -> Unit = {},
-    onLoginFailed: () -> Unit = {},
+    onLoginFailed: (String) -> Unit = {},
 ) {
-    var loading by remember { mutableStateOf(false) }
+    val loading = loginState is SimpleErrorDataState.Loading
 
-    // 当登录状态改变时触发
-    // 这里控制的是消息的显示和页面的跳转
     LaunchedEffect(loginState) {
-        when(loginState) {
-            // 登录成功，显示消息，并且退回上一个页面，同时获取用户的信息
-            is SimpleState.Success -> {
-                onLoginSuccess()
-                loading = false
-            }
-
-            // 登录失败，显示消息
-            SimpleState.Fail -> {
-                onLoginFailed()
-                loading = false
-            }
-
-            // 登录中，应该让按钮转圈圈
-            SimpleState.Loading -> {
-                loading = true
-            }
-
-            // 空，停止转圈
-            null -> {
-                loading = false
-            }
+        when (loginState) {
+            is SimpleErrorDataState.Success -> onLoginSuccess()
+            is SimpleErrorDataState.Fail -> onLoginFailed(loginState.msg)
+            else -> Unit
         }
     }
 

@@ -1,12 +1,40 @@
 package cn.bit101.android.features.common.helper
 
-import android.util.Log
 import androidx.lifecycle.MutableLiveData
+import androidx.annotation.MainThread
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import cn.bit101.android.data.repo.base.LoginException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
+
+/** 在调用时设置 Loading，防止 UI 状态发布前重复启动同一操作。 */
+@MainThread
+fun <T> ViewModel.withSimpleErrorDataState(
+    state: MutableStateFlow<SimpleErrorDataState<T>?>,
+    cancelledState: SimpleErrorDataState<T>? = null,
+    block: suspend () -> T,
+) {
+    if (state.value is SimpleErrorDataState.Loading) return
+    state.value = SimpleErrorDataState.Loading()
+    viewModelScope.launch {
+        try {
+            state.value = SimpleErrorDataState.Success(block())
+        } catch (e: CancellationException) {
+            state.value = cancelledState
+            throw e
+        } catch (e: Exception) {
+            state.value = SimpleErrorDataState.Fail(when (e) {
+                is LoginException -> e.message ?: "认证失败，请稍后重试。"
+                is IOException -> "网络连接失败，请稍后重试。"
+                else -> "操作失败，请稍后重试。"
+            })
+        }
+    }
+}
 
 fun ViewModel.withSimpleStateFlow(
     stateFlow: MutableStateFlow<SimpleState?>,

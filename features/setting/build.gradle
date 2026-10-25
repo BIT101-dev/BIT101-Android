@@ -42,6 +42,9 @@ android {
 }
 
 dependencies {
+    testImplementation "io.mockk:mockk:1.14.5"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.11.0"
+
     // 用来画 app 图标
     implementation "com.google.accompanist:accompanist-drawablepainter:0.32.0"
 

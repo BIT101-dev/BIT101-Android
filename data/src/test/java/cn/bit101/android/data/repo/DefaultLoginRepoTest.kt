@@ -4,6 +4,7 @@ import cn.bit101.android.config.common.SettingItem
 import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.common.SmsCodeRequestHub
 import cn.bit101.android.data.net.base.APIManager
+import cn.bit101.android.data.repo.base.LoginException
 import cn.bit101.android.data.repo.base.LoginRefreshResult
 import cn.bit101.api.Bit101Api
 import cn.bit101.api.model.common.SchoolCookie
@@ -18,6 +19,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -32,6 +34,9 @@ import org.junit.Test
 import retrofit2.Response
 import java.io.IOException
 import java.net.CookieManager
+import java.net.HttpCookie
+import java.net.URI
+import okhttp3.ResponseBody.Companion.toResponseBody
 
 class DefaultLoginRepoTest {
     private lateinit var api: Bit101Api
@@ -67,23 +72,23 @@ class DefaultLoginRepoTest {
     }
 
     @Test
-    fun `school login failure clears partial state`() {
+    fun `school login failure preserves previous account`() {
         loginStatus.seedLoggedIn()
         coEvery { api.schoolLogin.login(any(), any(), any()) } throws IllegalStateException("school failed")
 
-        assertThrows(IllegalStateException::class.java) {
+        assertThrows(LoginException::class.java) {
             runBlocking { repo.login("112233", "password") }
         }
 
-        assertLoggedOut()
+        assertSavedSession()
     }
 
     @Test
-    fun `backend login failure clears synchronized school cookies`() {
+    fun `backend login failure never publishes school cookies`() {
         stubSuccessfulSchoolLogin()
         coEvery { api.user.webVpnVerifyInit(any()) } throws IllegalStateException("backend failed")
 
-        assertThrows(IllegalStateException::class.java) {
+        assertThrows(LoginException::class.java) {
             runBlocking { repo.login("112233", "password") }
         }
 
@@ -200,7 +205,7 @@ class DefaultLoginRepoTest {
     }
 
     @Test
-    fun `checkLogin wrong password clears credentials`() = runBlocking {
+    fun `checkLogin wrong password retains credentials and stops silent refresh`() = runBlocking {
         loginStatus.seedLoggedIn()
         coEvery { api.user.check() } returns Response.success(Unit)
         coEvery { api.schoolJxzxehall.getCurrentTerm(any(), any()) } throws IllegalStateException("unauthorized")
@@ -208,7 +213,9 @@ class DefaultLoginRepoTest {
 
         assertFalse(repo.checkLogin())
 
-        assertLoggedOut()
+        assertSavedSession(loggedIn = false)
+        assertEquals(LoginRefreshResult.NEEDS_INTERACTIVE, repo.tryRefreshLogin())
+        coVerify(exactly = 1) { api.schoolLogin.login(any(), any(), any()) }
     }
 
     @Test
@@ -266,6 +273,106 @@ class DefaultLoginRepoTest {
         assertEquals(LoginRefreshResult.FAILED, repo.tryRefreshLogin())
 
         coVerify(exactly = 0) { api.schoolLogin.login(any(), any(), any()) }
+    }
+
+    @Test
+    fun `backend temporary errors at every stage preserve the entire session`() = runBlocking {
+        for (code in listOf(429, 500, 503)) {
+            for (step in listOf("init", "verify", "register")) {
+                setUp()
+                loginStatus.seedLoggedIn()
+                stubSuccessfulSchoolLogin(webVpn = true)
+                stubSuccessfulBackendLogin()
+                when (step) {
+                    "init" -> coEvery { api.user.webVpnVerifyInit(any()) } returns Response.error(code, "failure".toResponseBody())
+                    "verify" -> coEvery { api.user.webVpnVerify(any()) } returns Response.error(code, "failure".toResponseBody())
+                    "register" -> coEvery { api.user.register(any()) } returns Response.error(code, "failure".toResponseBody())
+                }
+                assertEquals("$step HTTP $code", LoginRefreshResult.TRANSIENT, repo.refreshLogin())
+                assertSavedSession()
+                coVerify(exactly = 0) { apiManager.switch(any()) }
+            }
+        }
+    }
+
+    @Test
+    fun `failed account switch preserves previous credentials cookies and routing`() {
+        loginStatus.seedLoggedIn()
+        stubSuccessfulSchoolLogin(webVpn = true)
+        coEvery { api.user.webVpnVerifyInit(any()) } returns Response.error(503, "failure".toResponseBody())
+        val error = assertThrows(LoginException::class.java) {
+            runBlocking { repo.login("other-account", "other-password") }
+        }
+        assertEquals(503, error.statusCode)
+        assertEquals("初始化社区认证", error.step)
+        assertSavedSession()
+        coVerify(exactly = 0) { apiManager.switch(any()) }
+    }
+
+    @Test
+    fun `successful account switch replaces old cookies and credentials`() = runBlocking {
+        loginStatus.seedLoggedIn()
+        stubSuccessfulSchoolLogin(webVpn = true)
+        stubSuccessfulBackendLogin()
+        assertTrue(repo.login("other-account", "other-password"))
+        assertEquals("other-account", loginStatus.sid.get())
+        assertEquals("other-password", loginStatus.password.get())
+        assertTrue(loginStatus.webVpn.get())
+        assertEquals(listOf("SESSION"), loginStatus.cookieManager.cookieStore.cookies.map { it.name })
+    }
+
+    @Test
+    fun `cancelled login after school success preserves previous session`() = runBlocking {
+        loginStatus.seedLoggedIn()
+        stubSuccessfulSchoolLogin(webVpn = true)
+        val started = CompletableDeferred<Unit>()
+        val gate = CompletableDeferred<Response<PostWebvpnVerifyInitDataModel.Response>>()
+        coEvery { api.user.webVpnVerifyInit(any()) } coAnswers {
+            started.complete(Unit)
+            gate.await()
+        }
+        val job = async(Dispatchers.IO) { repo.login("other", "password") }
+        started.await()
+        assertSavedSession()
+        job.cancel()
+        job.join()
+        assertSavedSession()
+        coVerify(exactly = 0) { apiManager.switch(any()) }
+    }
+
+    @Test
+    fun `wrapped cancellation is not classified as authentication failure`() {
+        loginStatus.seedLoggedIn()
+        coEvery { api.schoolLogin.login(any(), any(), any()) } throws
+            RuntimeException("SDK wrapper", CancellationException("cancelled"))
+        assertThrows(CancellationException::class.java) { runBlocking { repo.refreshLogin() } }
+        assertSavedSession()
+    }
+
+    @Test
+    fun `unknown SDK failure preserves session without claiming bad credentials`() = runBlocking {
+        loginStatus.seedLoggedIn()
+        coEvery { api.schoolLogin.login(any(), any(), any()) } throws SsoLoginError("unexpected page")
+        assertEquals(LoginRefreshResult.ERROR, repo.refreshLogin())
+        assertSavedSession()
+    }
+
+    @Test
+    fun `empty successful backend response preserves session`() = runBlocking {
+        loginStatus.seedLoggedIn()
+        stubSuccessfulSchoolLogin()
+        coEvery { api.user.webVpnVerifyInit(any()) } returns Response.success(null)
+        assertEquals(LoginRefreshResult.ERROR, repo.refreshLogin())
+        assertSavedSession()
+    }
+
+    private fun assertSavedSession(loggedIn: Boolean = true) = runBlocking {
+        assertEquals("112233", loginStatus.sid.get())
+        assertEquals("password", loginStatus.password.get())
+        assertEquals("fake-cookie", loginStatus.fakeCookie.get())
+        assertEquals(loggedIn, loginStatus.status.get())
+        assertFalse(loginStatus.webVpn.get())
+        assertEquals(listOf("OLD"), loginStatus.cookieManager.cookieStore.cookies.map { it.name })
     }
 
     private fun stubSuccessfulSchoolLogin(webVpn: Boolean = false) {
@@ -337,6 +444,10 @@ class DefaultLoginRepoTest {
             password.set("password")
             status.set(true)
             fakeCookie.set("fake-cookie")
+            cookieManager.cookieStore.add(URI("https://sso.bit.edu.cn"), HttpCookie("OLD", "old-session").apply {
+                domain = "sso.bit.edu.cn"
+                path = "/"
+            })
         }
     }
 

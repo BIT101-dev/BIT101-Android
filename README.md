@@ -70,13 +70,13 @@
 
 #### 统一身份认证流程
 
-学校统一身份认证由`BIT-Login v4.0.0`负责，包括服务回调以及校园网或`WebVPN`环境识别。登录成功后，应用会把 SDK 会话中的完整`Cookie`属性同步到持久`CookieStore`，随后关闭 SDK 的 Ktor 客户端。
+学校统一身份认证由`BIT-Login v4.0.2`负责，包括服务回调以及校园网或`WebVPN`环境识别。学校登录返回完整`Cookie`属性并关闭 SDK 客户端；应用在学校和社区认证都成功后才保存新会话，认证失败或取消不会覆盖原账号的数据。
 
-课程、考试、学期、空闲教室和乐学日历等业务请求仍由现有`Retrofit`服务负责，并通过同一个持久`CookieStore`保持学校会话。`BIT101`后端的登录和`fake-cookie`协议保持不变，相关密码加密仍由`AESUtils`完成。
+课程、考试、学期、空闲教室和乐学日历等业务通过 BIT-Login SDK 访问，使用持久`CookieStore`中的学校 Cookie 构建会话。`BIT101`社区 API 使用 Retrofit/OkHttp 和`fake-cookie`请求头，相关密码加密由`AESUtils`完成。
 
-当前登录界面尚未接入图形验证码和短信验证码交互；SDK 遇到这些流程时会通过现有错误通路向上报告，不会静默视为登录成功。
+当前登录界面已接入短信验证码弹窗，图形验证码尚未接入。后台刷新遇到需要交互或明确凭据错误时，会标记需要重新登录并停止静默刷新；网络故障、限流和服务端错误会保留已有凭据和会话。社区请求 401 后最多重试一次，只有主动退出才清空登录数据。
 
-当前构建工具链为 Kotlin 2.4.10、Compose Compiler Kotlin 插件 2.4.10、KSP 2.3.10、AGP 8.13.2、Gradle 8.13、Hilt 2.57.2 和 Room 2.8.4。BIT-Login 的 Android 依赖要求`compileSdk 36`，应用仍保持`targetSdk 34`。
+当前构建工具链为 Kotlin 2.4.10、Compose Compiler Kotlin 插件 2.4.10、KSP 2.3.10、AGP 8.13.2、Gradle 8.14.5、Hilt 2.57.2 和 Room 2.8.4。Java 与 Kotlin 的编译目标统一为 JVM 17，可使用 Android Studio 的 JBR 21 构建。BIT-Login 的 Android 依赖要求`compileSdk 36`，应用仍保持`targetSdk 34`。
 
 ### 密码管理
 

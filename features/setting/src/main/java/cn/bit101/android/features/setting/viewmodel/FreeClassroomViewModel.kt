@@ -9,6 +9,8 @@ import cn.bit101.android.features.common.helper.*
 import cn.bit101.api.model.common.CampusInfo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 internal data class FreeClassroomSettingData(
@@ -62,9 +64,13 @@ internal class FreeClassroomViewModel @Inject constructor(
         freeClassroomSettings.freeMinutesThreshold.set(settingData.freeMinutesThreshold)
     }
 
-    val getBuildingTypeStatusLiveData = MutableLiveData<SimpleDataState<List<CampusInfo>>?>(null)
+    private val _campusState = MutableStateFlow<SimpleErrorDataState<List<CampusInfo>>?>(null)
+    val campusState = _campusState.asStateFlow()
 
-    fun loadCampusInfos() = withSimpleDataStateLiveData(getBuildingTypeStatusLiveData) {
-        loginRepo.doOperationRequiresLogin(freeClassroomRepo::getCampusInfos)
+    fun loadCampusInfos(retry: Boolean = false) {
+        if (!retry && _campusState.value != null) return
+        withSimpleErrorDataState(_campusState) {
+            loginRepo.doOperationRequiresLogin(freeClassroomRepo::getCampusInfos)
+        }
     }
 }

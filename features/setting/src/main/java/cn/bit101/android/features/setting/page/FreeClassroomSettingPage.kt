@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.features.common.component.dialog.InputNumberDialog
-import cn.bit101.android.features.common.helper.SimpleDataState
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.setting.component.SettingItemData
 import cn.bit101.android.features.setting.component.SettingsColumn
@@ -31,6 +31,8 @@ internal fun CampusSelectDialog(
     campusList: List<CampusInfo>,
     campusSelected: CampusInfo,
     loading: Boolean,
+    error: String?,
+    onRetry: () -> Unit,
 
     onSetCampus: (CampusInfo) -> Unit,
     onDismiss: () -> Unit,
@@ -53,6 +55,13 @@ internal fun CampusSelectDialog(
                 ) {
                     CircularProgressIndicator()
                 }
+            } else if (error != null) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(error)
+                    TextButton(onClick = onRetry) { Text("重试") }
+                }
+            } else if (campusList.isEmpty()) {
+                Text("暂无可选校区")
             } else {
                 val scrollState = rememberScrollState()
                 Column(
@@ -142,7 +151,7 @@ internal fun FreeClassroomSettingPage(
 
     val changeSettingStatus by vm.changeSettingStatusLiveData.observeAsState()
 
-    val getBuildingTypeStatus by vm.getBuildingTypeStatusLiveData.observeAsState()
+    val campusState by vm.campusState.collectAsState()
 
     var showCampusSelectDialog by rememberSaveable { mutableStateOf(false) }
     var showFreeMinutesThresholdInputDialog by rememberSaveable { mutableStateOf(false) }
@@ -157,18 +166,16 @@ internal fun FreeClassroomSettingPage(
     }
 
     if (showCampusSelectDialog) {
-        LaunchedEffect(getBuildingTypeStatus){
-            if (getBuildingTypeStatus is SimpleDataState.Fail || getBuildingTypeStatus == null) {
-                vm.loadCampusInfos()
-            }
-        }
+        LaunchedEffect(vm) { vm.loadCampusInfos() }
 
-        val campusList = (getBuildingTypeStatus as? SimpleDataState.Success)?.data ?: emptyList()
+        val campusList = (campusState as? SimpleErrorDataState.Success)?.data ?: emptyList()
 
         CampusSelectDialog(
             campusList = campusList,
             campusSelected = settingData.currentCampus,
-            loading = getBuildingTypeStatus is SimpleDataState.Loading,
+            loading = campusState == null || campusState is SimpleErrorDataState.Loading,
+            error = (campusState as? SimpleErrorDataState.Fail)?.msg,
+            onRetry = { vm.loadCampusInfos(retry = true) },
 
             onSetCampus = { campus ->
                 vm.setCampus(campus)
