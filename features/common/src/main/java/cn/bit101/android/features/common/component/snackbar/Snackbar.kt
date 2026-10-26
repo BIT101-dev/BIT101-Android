@@ -3,35 +3,36 @@ package cn.bit101.android.features.common.component.snackbar
 import android.view.WindowManager
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCompositionContext
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.times
 import cn.bit101.android.features.common.component.DialogLayout
 import cn.bit101.android.features.common.component.SnackbarWrapper
 import cn.bit101.android.features.common.component.bottomsheet.CoreBottomSheetDefaults
 import cn.bit101.android.features.common.component.bottomsheet.DialogSheetBehaviors
 import java.util.UUID
-import kotlin.math.roundToInt
 
 @Composable
 private fun SnackbarContent(
@@ -60,31 +61,35 @@ private fun SnackbarContent(
         }
     }
 
-    var showed by remember(message) { mutableStateOf(false) }
-
     val textStyle = MaterialTheme.typography.bodyMedium.copy(
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Medium,
         color = MaterialTheme.colorScheme.onPrimaryContainer,
     )
 
-    // 大小的动画
-    val scale = 1f
-
     val paddingHorizontal = 24.dp
     val paddingVertical = 12.dp
+    val screenWidth = with(density) { LocalConfiguration.current.screenWidthDp.dp.roundToPx() }
+    val availableWidth = minOf(view.width.takeIf { it > 0 } ?: screenWidth, screenWidth)
+    val textWidth = availableWidth - with(density) { (32.dp + paddingHorizontal * 2).roundToPx() }
+    val measuredText = rememberTextMeasurer().measure(
+        text = message.message,
+        style = textStyle,
+        constraints = Constraints(maxWidth = textWidth.coerceAtLeast(1)),
+        maxLines = 4,
+        overflow = TextOverflow.Ellipsis,
+    )
+    val width = measuredText.size.width + with(density) { (paddingHorizontal * 2).roundToPx() }
+    val height = measuredText.size.height + with(density) { (paddingVertical * 2).roundToPx() }
 
-    val width = density.run { (message.message.length * textStyle.fontSize).toPx() + paddingHorizontal.toPx() * 2 }
-    val height = density.run { textStyle.fontSize.toPx() + paddingVertical.toPx() * 2 }
-
-    val dialog = remember(view, message) {
+    val dialog = remember(view, message, width, height) {
         SnackbarWrapper(
             onDismissRequest = onDismiss,
             behaviors = finalBehaviors,
             composeView = view,
             layoutDirection = layoutDirection,
             dialogId = dialogId,
-            width = width.roundToInt(),
-            height = height.roundToInt(),
+            width = width,
+            height = height,
             offsetY = view.height * 1 / 7,
         )
     }.apply {
@@ -92,28 +97,31 @@ private fun SnackbarContent(
             DialogLayout {
                 Box(
                     modifier = finalModifier
-                        .scale(scale)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer),
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(20.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer)
+                        .padding(horizontal = paddingHorizontal, vertical = paddingVertical),
                 ) {
                     Text(
                         modifier = Modifier.align(Alignment.Center),
                         text = message.message,
                         style = textStyle,
+                        textAlign = TextAlign.Center,
+                        maxLines = 4,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
         }
     }
 
-    LaunchedEffect(dialog.isShowing) {
+    LaunchedEffect(dialog) {
         if (!dialog.isShowing) {
             dialog.show()
-            showed = true
         }
     }
 
-    DisposableEffect(message) {
+    DisposableEffect(dialog) {
         onDispose {
             dialog.dismiss()
             dialog.disposeComposition()

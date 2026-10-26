@@ -54,11 +54,6 @@ interface CoursesRepo {
     suspend fun getCoursesFromNet(term: String): List<CourseScheduleEntity>
 
     /**
-     * 更新数据库中某学期的课表
-     */
-    suspend fun saveCourses(courses: List<CourseScheduleEntity>)
-
-    /**
      * 从本地获得所有考试安排
      */
     fun getExamsFromLocal(): Flow<List<ExamScheduleEntity>>
@@ -73,10 +68,13 @@ interface CoursesRepo {
      */
     suspend fun getExamsFromNet(term: String): List<ExamScheduleEntity>
 
-    /**
-     * 更新数据库中某学期的考试安排
-     */
-    suspend fun saveExams(exams: List<ExamScheduleEntity>)
+    /** 在一个事务中替换获取成功的数据；null 表示保留已有缓存。 */
+    suspend fun saveSchedule(
+        courses: List<CourseScheduleEntity>? = null,
+        exams: List<ExamScheduleEntity>? = null,
+        term: String? = null,
+        firstDay: LocalDate? = null,
+    )
 
     /**
      * 添加自定义日程

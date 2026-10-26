@@ -121,7 +121,7 @@ internal fun IndexScreen(
                 MapScreen()
             }
             composable(route = PageShowOnNav.Mine.toString()) {
-                CommunityContent(mainController, community, vm::retryCommunity) {
+                CommunityContent(mainController, community, vm::retryCommunity, showSettings = true) {
                     UserScreen(mainController, id = 0)
                 }
             }

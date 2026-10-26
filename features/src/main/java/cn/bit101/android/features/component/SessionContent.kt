@@ -1,6 +1,8 @@
 package cn.bit101.android.features.component
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,11 +21,25 @@ internal fun SchoolContent(controller: MainController, configured: Boolean, cont
 }
 
 @Composable
-internal fun CommunityContent(controller: MainController, state: CommunityState, onRetry: () -> Unit, content: @Composable () -> Unit) {
-    if (state.connected) content() else SessionPrompt {
-        Text(state.message)
-        Button(onClick = onRetry, enabled = !state.connecting) { Text(if (state.connecting) "正在连接" else "立即重试") }
-        TextButton(onClick = { controller.navigate(NavDest.Login(community = true)) { launchSingleTop = true } }) { Text("手动登录 BIT101") }
+internal fun CommunityContent(
+    controller: MainController,
+    state: CommunityState,
+    onRetry: () -> Unit,
+    showSettings: Boolean = false,
+    content: @Composable () -> Unit,
+) {
+    if (state.connected) content() else Box(Modifier.fillMaxSize()) {
+        SessionPrompt {
+            Text(state.message)
+            Button(onClick = onRetry, enabled = !state.connecting) { Text(if (state.connecting) "正在连接" else "立即重试") }
+            TextButton(onClick = { controller.navigate(NavDest.Login(community = true)) { launchSingleTop = true } }) { Text("手动登录 BIT101") }
+        }
+        if (showSettings) {
+            IconButton(
+                onClick = { controller.navigate(NavDest.Setting()) },
+                modifier = Modifier.align(Alignment.TopEnd).statusBarsPadding().padding(4.dp),
+            ) { Icon(Icons.Outlined.Settings, contentDescription = "设置") }
+        }
     }
 }
 

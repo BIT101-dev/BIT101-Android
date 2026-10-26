@@ -8,6 +8,9 @@ import cn.bit101.android.data.repo.base.SchoolLoginRepo
 import cn.bit101.android.data.repo.base.CommunityLoginRepo
 import cn.bit101.android.data.repo.base.UploadRepo
 import cn.bit101.android.data.repo.base.UserRepo
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
+import cn.bit101.android.features.common.helper.withSimpleErrorDataState
+import cn.bit101.android.features.common.helper.successMessage
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withSimpleDataStateFlow
@@ -30,7 +33,7 @@ internal class AccountViewModel @Inject constructor(
     private val _getUserInfoStateFlow = MutableStateFlow<SimpleDataState<GetUserInfoDataModel.Response>?>(null)
     val getUserInfoStateFlow = _getUserInfoStateFlow
 
-    private val _reconnectSchoolStateFlow = MutableStateFlow<SimpleState?>(null)
+    private val _reconnectSchoolStateFlow = MutableStateFlow<SimpleErrorDataState<String>?>(null)
     val reconnectSchoolStateFlow = _reconnectSchoolStateFlow
 
     val schoolConnected = loginStatus.schoolConnected.flow
@@ -57,8 +60,8 @@ internal class AccountViewModel @Inject constructor(
         userRepo.getUserInfo(0)
     }
 
-    fun reconnectSchool() = withSimpleStateFlow(_reconnectSchoolStateFlow) {
-        loginRepo.reconnect()
+    fun reconnectSchool() = withSimpleErrorDataState(_reconnectSchoolStateFlow) {
+        loginRepo.reconnect().successMessage()
     }
 
     fun logout() {

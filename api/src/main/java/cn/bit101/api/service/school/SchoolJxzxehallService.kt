@@ -7,28 +7,28 @@ import cn.bit101.api.model.common.CampusInfo
 import cn.bit101.api.model.common.CourseForSchedule
 import cn.bit101.api.model.common.ExamInfo
 import cn.bit101.api.model.common.SchoolCookie
-import cn.bit101.bitlogin.Config
-import cn.bit101.bitlogin.api.jxzxehall.Campus
-import cn.bit101.bitlogin.api.jxzxehall.Course
-import cn.bit101.bitlogin.api.jxzxehall.Exam
-import cn.bit101.bitlogin.api.jxzxehall.Term
-import cn.bit101.bitlogin.http.HttpClient
+import com.google.gson.JsonArray
+import com.google.gson.JsonObject
+import java.net.URLEncoder
 import com.google.gson.Gson
 
 /**
- * 基于 BIT-Login SDK 的教学中心 (一站式大厅) 服务
+ * 教学中心接口：保留原字段映射，在解析前检查会话与业务错误
  */
-class SchoolJxzxehallService(
-    private val logger: Logger = emptyLogger,
+class SchoolJxzxehallService internal constructor(
+    private val logger: Logger,
+    private val sessions: TeachingCenterSession,
 ) {
+    constructor(logger: Logger = emptyLogger) : this(logger, TeachingCenterSession())
+
     private val gson = Gson()
 
     suspend fun getCampusInfos(
         cookies: List<SchoolCookie>,
         webVpn: Boolean,
-    ): List<CampusInfo> = withSession(cookies, webVpn, "获取校区列表") { session ->
-        Campus(session).getCampusList().map {
-            CampusInfo(displayName = it["name"].orEmpty(), code = it["code"].orEmpty())
+    ): List<CampusInfo> = withSession(cookies, webVpn, "获取校区列表", "kxjasbyMobile") { session ->
+        session.json("/jwapp/sys/kxjasbyMobile/modules/jxllb/ggzdpx.do?dicCode=48682&SFSY=1&order=%2BDM").rows("ggzdpx").map {
+            CampusInfo(displayName = it.asJsonObject.text("MC").orEmpty(), code = it.asJsonObject.text("DM").orEmpty())
         }
     }
 
@@ -36,13 +36,15 @@ class SchoolJxzxehallService(
         cookies: List<SchoolCookie>,
         webVpn: Boolean,
         campusCode: String?,
-    ): List<BuildingInfo> = withSession(cookies, webVpn, "获取教学楼列表") { session ->
-        Campus(session).getBuildingList(campusCode).map {
+    ): List<BuildingInfo> = withSession(cookies, webVpn, "获取教学楼列表", "kxjasbyMobile") { session ->
+        val query = campusCode?.let { "?XXXQDM=" + URLEncoder.encode(it, "UTF-8") }.orEmpty()
+        session.json("/jwapp/sys/kxjasbyMobile/modules/jxllb/cxjxl.do$query").rows("cxjxl").map { row ->
+            val it = row.asJsonObject
             BuildingInfo(
-                buildingName = it["name"].orEmpty(),
-                buildingIndex = it["code"].orEmpty(),
-                campusName = it["campus_name"].orEmpty(),
-                campusCode = it["campus_code"].orEmpty(),
+                buildingName = it.text("JXLMC").orEmpty(),
+                buildingIndex = it.text("JXLDM").orEmpty(),
+                campusName = it.text("XXXQDM_DISPLAY").orEmpty(),
+                campusCode = it.text("XXXQDM").orEmpty(),
             )
         }
     }
@@ -51,14 +53,17 @@ class SchoolJxzxehallService(
         cookies: List<SchoolCookie>,
         webVpn: Boolean,
     ): String = withSession(cookies, webVpn, "获取当前学期") { session ->
-        Term(session).getCurrentTerm()
+        session.json("/jwapp/sys/wdkbby/modules/jshkcb/dqxnxq.do").rows("dqxnxq")
+            .firstOrNull()?.asJsonObject?.text("DM")?.takeIf { it.isNotBlank() }
+            ?: throw SchoolResponseError("教学中心未返回当前学期")
     }
 
     suspend fun getTermList(
         cookies: List<SchoolCookie>,
         webVpn: Boolean,
     ): List<String> = withSession(cookies, webVpn, "获取学期列表") { session ->
-        Term(session).getTermList()
+        session.json("/jwapp/sys/wdkbby/modules/jshkcb/xnxqcx.do").rows("xnxqcx")
+            .map { it.asJsonObject.text("DM") ?: throw SchoolResponseError("教学中心学期数据缺少编码") }
     }
 
     suspend fun getFirstDay(
@@ -66,8 +71,10 @@ class SchoolJxzxehallService(
         webVpn: Boolean,
         term: String,
     ): String = withSession(cookies, webVpn, "获取学期开始日期") { session ->
-        Term(session).getWeekAndDate(term, week = 1)
-            .firstOrNull { it["dayOfWeek"] == "1" }?.get("date")
+        val payload = gson.toJson(mapOf("XNXQDM" to term, "ZC" to "1"))
+        val data = session.json("/jwapp/sys/wdkbby/wdkbByController/cxzkbrq.do", mapOf("requestParamStr" to payload))
+        data.get("data")?.takeIf { it.isJsonArray }?.asJsonArray
+            ?.firstOrNull { it.asJsonObject.text("XQ") == "1" }?.asJsonObject?.text("RQ")
             ?: throw Exception("学期 $term 第一周星期一日期缺失")
     }
 
@@ -75,18 +82,20 @@ class SchoolJxzxehallService(
         cookies: List<SchoolCookie>,
         webVpn: Boolean,
         term: String,
-    ): List<ExamInfo> = withSession(cookies, webVpn, "获取考试安排") { session ->
-        Exam(session).getExamList(term).map {
+    ): List<ExamInfo> = withSession(cookies, webVpn, "获取考试安排", "wdksapMobile") { session ->
+        session.json("/jwapp/sys/wdksapMobile/modules/ksap/cxxsksap.do",
+            mapOf("XNXQDM" to term, "*order" to "-KSRQ")).rows("cxxsksap").map { row ->
+            val it = row.asJsonObject
             ExamInfo(
-                location = it["location"],
-                time = it["time"].orEmpty(),
-                date = it["date"].orEmpty(),
-                seatId = it["seat_id"],
-                ksmc = it["ksmc"],
-                termCode = it["term_code"],
-                courseCode = it["course"],
-                teacherName = it["teacher"],
-                kch = it["kch"],
+                location = it.text("JASMC"),
+                time = it.text("KSSJMS").orEmpty(),
+                date = it.text("KSRQ").orEmpty(),
+                seatId = it.text("ZWH"),
+                ksmc = it.text("KSMC"),
+                termCode = it.text("XNXQDM_DISPLAY"),
+                courseCode = it.text("KCM"),
+                teacherName = it.text("ZJJSXM"),
+                kch = it.text("KCH"),
             )
         }
     }
@@ -96,30 +105,50 @@ class SchoolJxzxehallService(
         webVpn: Boolean,
         term: String,
     ): List<CourseForSchedule> = withSession(cookies, webVpn, "获取课程表") { session ->
-        // Course.getCourses 内部不初始化应用会话, 先访问应用首页
-        session.get(
-            "${Config.Urls.active["jxzxehall_app"]}/jwapp/sys/wdkbby/*default/index.do",
-            headers = Config.Headers.jxzxehall,
-        )
-        val rows = Course(session).getCourses(term)["data"]
-            ?: throw Exception("教学中心未返回本科课程表")
-        return@withSession gson.fromJson(rows.toString(), Array<CourseForSchedule>::class.java).toList()
+        val rows = session.json("/jwapp/sys/wdkbby/modules/xskcb/cxxszhxqkb.do", mapOf("XNXQDM" to term))
+            .rows("cxxszhxqkb")
+        val courses = try {
+            gson.fromJson(rows, Array<CourseForSchedule>::class.java).toList()
+        } catch (e: RuntimeException) {
+            throw SchoolResponseError("教学中心课程数据格式异常")
+        }
+        if (courses.any { !it.hasValidPlacement() }) throw SchoolResponseError("教学中心课程安排不完整，请稍后重试")
+        courses.map { course ->
+            course.copy(XNXQDM = course.XNXQDM?.takeIf(String::isNotBlank) ?: term,
+                KCM = course.KCM?.takeIf(String::isNotBlank) ?: course.KCH)
+        }
     }
+
+    private fun CourseForSchedule?.hasValidPlacement(): Boolean {
+        if (this == null || KCM.isNullOrBlank() && KCH.isNullOrBlank() || XF?.isFinite() == false) return false
+        val weeks = SKZC.orEmpty()
+        if (weeks.any { it != '0' && it != '1' }) return false
+        val day = SKXQ ?: 0
+        val start = KSJC ?: 0
+        val end = JSJC ?: 0
+        // 学校未排时间的课程可以保留；部分缺失或越界的已排课程不得覆盖正常缓存。
+        if ('1' !in weeks && day == 0 && start == 0 && end == 0) return true
+        return '1' in weeks && day in 1..7 && start > 0 && end in start..1440
+    }
+
+    private fun JsonObject.rows(name: String): JsonArray =
+        get("datas")?.takeIf { it.isJsonObject }?.asJsonObject
+            ?.get(name)?.takeIf { it.isJsonObject }?.asJsonObject
+            ?.get("rows")?.takeIf { it.isJsonArray }?.asJsonArray
+            ?: throw SchoolResponseError("教学中心未返回预期数据（$name）")
 
     private suspend fun <T> withSession(
         cookies: List<SchoolCookie>,
         webVpn: Boolean,
         action: String,
-        block: suspend (HttpClient) -> T,
+        app: String = "wdkbby",
+        block: suspend (TeachingCenterRequests) -> T,
     ): T {
-        val session = openSchoolSession(cookies, webVpn)
         try {
-            return block(session)
+            return sessions.use(cookies, webVpn, app, block)
         } catch (e: Throwable) {
             logger.err("SchoolJxzxehallService", "$action 失败: ${e.message}")
             throw e
-        } finally {
-            session.close()
         }
     }
 }

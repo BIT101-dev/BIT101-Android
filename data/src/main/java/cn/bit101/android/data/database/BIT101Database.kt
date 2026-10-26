@@ -26,10 +26,11 @@ import cn.bit101.android.data.database.entity.ExamScheduleEntity
         CustomScheduleEntity::class,
         DDLScheduleEntity::class,
     ],
-    version = 2,
+    version = 4,
 //    exportSchema = false  // 不知道为什么原来要禁用, developer.android.com 似乎推荐保留数据库架构历史, 而且启用的话数据库迁移会方便很多, 所以我注释掉了
     autoMigrations = [
-        AutoMigration(from = 1, to = 2)
+        AutoMigration(from = 1, to = 2),
+        AutoMigration(from = 3, to = 4, spec = DdlOwnershipMigration::class)
     ]
 )
 @TypeConverters(Converters::class)

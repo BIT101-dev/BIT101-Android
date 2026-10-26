@@ -21,13 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.LifecycleEventObserver
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
@@ -274,16 +271,9 @@ internal fun FreeClassroomSearch(
 
     val coroutineScope = rememberCoroutineScope()
 
-    // 非常 dirty 的解决方式
-    var lastCampus by rememberSaveable { mutableStateOf(currentCampusCode) }
     LaunchedEffect(currentCampusCode) {
-        // nowCampus 不可能为空, 所以为 null 的情况只能是 initial, 此时不用管
-        if(currentCampusCode != null && currentCampusCode != lastCampus) {
-            // 否则说明校区发生了切换
-            lastCampus = currentCampusCode
-
+        if (currentCampusCode != null) {
             vm.loadBuildingTypes()
-
             vm.clearSelectState()
             listState.scrollToItem(0)
         }
@@ -299,21 +289,6 @@ internal fun FreeClassroomSearch(
     LaunchedEffect(getClassroomLastStatus) {
         if (getClassroomLastStatus is SimpleState.Fail) {
             mainController.snackbar("拉取教室信息失败 Orz...")
-        }
-    }
-
-    DisposableEffect(Unit) {
-        if(getBuildingTypeStatus !is SimpleDataState.Success) {
-            vm.loadBuildingTypes()
-        }
-
-        onDispose {
-            if(getBuildingTypeStatus !is SimpleDataState.Success) {
-                vm.getBuildingTypeStatusLiveData.value = null
-            }
-            if(getClassroomLastStatus !is SimpleState.Success) {
-                vm.getClassroomLastStatusLiveData.value = null
-            }
         }
     }
 
@@ -335,16 +310,23 @@ internal fun FreeClassroomSearch(
         LazyColumn(modifier = Modifier.fillMaxSize(), state = listState) {
             if (getBuildingTypeStatus is SimpleDataState.Loading) {
                 item { LoadingTip("正在拉取教学楼列表...") }
+            } else if (getBuildingTypeStatus is SimpleDataState.Fail) {
+                item {
+                    TextButton(onClick = { vm.loadBuildingTypes() }, modifier = Modifier.fillMaxWidth()) {
+                        Text("教学楼加载失败，点击重试")
+                    }
+                }
             } else {
                 if(currentBuildings.isEmpty()) {
-                    if(!currentCampusName.isNullOrEmpty()) {
+                    val campusName = currentCampusName.orEmpty()
+                    if(campusName.isNotEmpty()) {
                         item {
                             Text(
                                 text = "没有获取到${
-                                    if (currentCampusName!!.endsWith("校区"))
-                                        currentCampusName
+                                    if (campusName.endsWith("校区"))
+                                        campusName
                                     else
-                                        "${currentCampusName}校区"
+                                        "${campusName}校区"
                                 }的教学楼QwQ\n(请尝试在设置中切换校区)",
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -360,6 +342,10 @@ internal fun FreeClassroomSearch(
                 } else {
                     itemsIndexed(currentBuildings) { index, item ->
                         val nowExpanded by remember { derivedStateOf { selectedIndices.contains(index) } }
+
+                        LaunchedEffect(item.buildingIndex, nowExpanded, nowTime) {
+                            if (nowExpanded) vm.refreshClassroomInfoIfInvalid(item.buildingIndex)
+                        }
 
                         BuildingItem(
                             buildingInfo = item,
@@ -385,11 +371,11 @@ internal fun FreeClassroomSearch(
                             ) {
                                 if (getClassroomStatusMap[item.buildingIndex] is SimpleState.Loading) {
                                     LoadingTip("正在获取教室列表...")
-                                } else {
-                                    if (currentClassroomData.containsKey(item.buildingIndex)) {
-                                        vm.refreshClassroomInfoIfInvalid(item.buildingIndex)
+                                } else if (getClassroomStatusMap[item.buildingIndex] is SimpleState.Fail) {
+                                    TextButton(onClick = { vm.loadClassroomInfos(item.buildingIndex) }) {
+                                        Text("教室加载失败，点击重试")
                                     }
-
+                                } else {
                                     val currentClassrooms =
                                         currentClassroomData[item.buildingIndex]
                                             .orEmpty()

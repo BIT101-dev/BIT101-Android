@@ -70,7 +70,7 @@ data class CourseScheduleEntity(
     /**
      * 学分
      */
-    val credit: Int,
+    val credit: Double,
 
     /**
      * 学时
@@ -116,7 +116,7 @@ internal fun CourseForSchedule.toEntity(): CourseScheduleEntity {
         this.JSJC ?: 0,
         this.XXXQMC ?: "",
         this.KCH ?: "",
-        this.XF ?: 0,
+        this.XF ?: 0.0,
         this.XS ?: 0,
         this.KCXZDM_DISPLAY ?: "",
         this.KCLBDM_DISPLAY ?: "",

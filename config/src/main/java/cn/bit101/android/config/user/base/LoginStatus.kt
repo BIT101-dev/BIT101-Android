@@ -16,7 +16,7 @@ interface LoginStatus {
     val password: SettingItem<String>
 
     /**
-     * 校园登录状态，沿用已有持久化字段
+     * 校园身份已通过验证；不代表教学中心业务会话始终可用
      */
     val schoolConnected: SettingItem<Boolean>
 

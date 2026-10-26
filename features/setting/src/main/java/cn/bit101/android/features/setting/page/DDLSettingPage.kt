@@ -1,5 +1,7 @@
 package cn.bit101.android.features.setting.page
 
+import androidx.compose.runtime.LaunchedEffect
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.collectAsState
@@ -79,6 +81,10 @@ internal fun DDLSettingPage(
     onSnackBar: (String) -> Unit,
 ) {
     val vm: DDLViewModel = hiltViewModel()
+    val saveSettingsState by vm.saveSettingsState.collectAsState()
+    LaunchedEffect(saveSettingsState) {
+        (saveSettingsState as? SimpleErrorDataState.Fail)?.let { onSnackBar(it.msg) }
+    }
 
     val afterDay by vm.afterDayFlow.collectAsState(initial = null)
 

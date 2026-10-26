@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.data.repo.base.CommunityState
 import cn.bit101.android.features.common.component.Avatar
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.rememberImagePicker
@@ -81,10 +82,10 @@ private fun AccountPageContent(
     val loginItems = buildList {
         add(SettingItemData.Button(
             title = "校园账号",
-            subTitle = "校园功能由手机直连学校，BIT101 连接失败不影响使用。点击重新验证校园账号。",
+            subTitle = "校园身份与教务会话独立，具体功能会按需连接学校服务。点击重新验证校园账号。",
             onClick = onReconnectSchool,
             enable = !checkingLogin && !sid.isNullOrBlank(),
-            text = if (schoolConnected) "已连接" else "未连接",
+            text = if (schoolConnected) "身份已验证" else "待验证",
         ))
         add(SettingItemData.Card(title = "BIT101", text = community.message))
         if (!community.connected) {
@@ -171,10 +172,10 @@ internal fun AccountPage(
     }
 
     LaunchedEffect(checkingLoginState) {
-        if (checkingLoginState is SimpleState.Fail) {
-            onSnackBar("校园账号验证失败")
-        } else if (checkingLoginState is SimpleState.Success) {
-            onSnackBar("校园账号验证成功")
+        when (val result = checkingLoginState) {
+            is SimpleErrorDataState.Fail -> onSnackBar(result.msg)
+            is SimpleErrorDataState.Success -> onSnackBar(result.data)
+            else -> Unit
         }
     }
 
@@ -208,7 +209,7 @@ internal fun AccountPage(
         community = community,
         onRetryCommunity = vm::retryCommunity,
         updatingUserInfo = updateAvatarState == SimpleState.Loading || updateUserInfoState == SimpleState.Loading,
-        checkingLogin = checkingLoginState == SimpleState.Loading,
+        checkingLogin = checkingLoginState is SimpleErrorDataState.Loading,
         onOpenEditAvatarDialog = imagePicker::pickImage,
         onOpenEditNicknameDialog = { showNicknameEditDialog = true },
         onOpenEditMottoDialog = { showMottoEditDialog = true },

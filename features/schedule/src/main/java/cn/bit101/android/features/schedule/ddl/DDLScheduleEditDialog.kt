@@ -43,7 +43,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
-import cn.bit101.android.features.common.MainController
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -58,7 +57,6 @@ import java.time.format.DateTimeFormatter
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DDLScheduleEditDialog(
-    mainController: MainController,
     vm: DDLScheduleViewModel,
     item: DDLScheduleEntity?,
     showDialog: MutableState<Boolean>
@@ -269,13 +267,10 @@ internal fun DDLScheduleEditDialog(
                         return@TextButton
                     }
                     if (item == null) {
-                        vm.addDDL(title.text, dateTime!!, text.text)
-                        mainController.snackbar("添加成功OvO")
+                        vm.addDDL(title.text, dateTime!!, text.text) { showDialog.value = false }
                     } else {
-                        vm.updateDDL(item, title.text, dateTime!!, text.text)
-                        mainController.snackbar("修改成功OvO")
+                        vm.updateDDL(item, title.text, dateTime!!, text.text) { showDialog.value = false }
                     }
-                    showDialog.value = false
                 }
             ) {
                 Text("确定")

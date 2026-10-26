@@ -12,6 +12,7 @@ import cn.bit101.api.service.bit101.ScoreApiService
 import cn.bit101.api.service.bit101.UploadApiService
 import cn.bit101.api.service.bit101.UserApiService
 import cn.bit101.api.service.bit101.VariablesApiService
+import cn.bit101.api.service.school.TeachingCenterSession
 import cn.bit101.api.service.school.SchoolClassroomService
 import cn.bit101.api.service.school.SchoolJxzxehallService
 import cn.bit101.api.service.school.SchoolLexueService
@@ -45,9 +46,11 @@ class Bit101Api internal constructor(
 
     val schoolLogin = SchoolLoginService(logger)
 
-    val schoolClassroom = SchoolClassroomService(logger)
+    private val teachingCenterSession = TeachingCenterSession()
 
-    val schoolJxzxehall = SchoolJxzxehallService(logger)
+    val schoolClassroom = SchoolClassroomService(logger, teachingCenterSession)
+
+    val schoolJxzxehall = SchoolJxzxehallService(logger, teachingCenterSession)
 
     val schoolLexue = SchoolLexueService(logger)
 }

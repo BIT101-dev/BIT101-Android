@@ -3,10 +3,15 @@ package cn.bit101.android.features.setting.viewmodel
 import android.content.Context
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.CourseScheduleSettings
 import cn.bit101.android.config.setting.base.toTimeTable
 import cn.bit101.android.data.database.entity.CustomScheduleEntity
+import cn.bit101.android.data.repo.CourseSync
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
+import cn.bit101.android.features.common.helper.withSimpleErrorDataState
+import cn.bit101.android.features.common.helper.successMessage
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import cn.bit101.android.data.repo.base.CoursesRepo
 import cn.bit101.android.data.repo.base.SchoolLoginRepo
 import cn.bit101.android.features.common.helper.SimpleDataState
@@ -17,10 +22,8 @@ import cn.bit101.android.features.common.helper.withSimpleStateLiveData
 import cn.bit101.android.features.common.utils.ScheduleCreateInfo
 import cn.bit101.android.features.common.utils.addScheduleToSystemCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 internal data class SettingData(
@@ -49,6 +52,7 @@ internal data class SettingData(
 internal class CalendarViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
     private val loginRepo: SchoolLoginRepo,
+    private val courseSync: CourseSync,
     private val courseScheduleSettings: CourseScheduleSettings
 ) : ViewModel() {
 
@@ -83,18 +87,8 @@ internal class CalendarViewModel @Inject constructor(
     // 学期列表获取状态
     val getTermListStateLiveData = MutableLiveData<SimpleDataState<List<String>>?>(null)
 
-    // 学期起始日期获取状态
-    val getFirstDayStateLiveData = MutableLiveData<SimpleState?>(null)
-
-    // 课程获取状态
-    val getCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
-
-    // 考试安排获取状态
-    // 数据表示更新的条数
-    val getExamsStateLiveData = MutableLiveData<SimpleDataState<Int>?>(null)
-
-    // 设置当前学期的状态
-    val setCurrentTermStateLiveData = MutableLiveData<SimpleState?>(null)
+    private val _syncState = MutableStateFlow<SimpleErrorDataState<String>?>(null)
+    val syncState = _syncState.asStateFlow()
 
     // 设置时间表的状态
     val setTimeTableStateLiveData = MutableLiveData<SimpleState?>(null)
@@ -112,46 +106,8 @@ internal class CalendarViewModel @Inject constructor(
         loginRepo.withSchoolSession(coursesRepo::getTermListFromNet)
     }
 
-    fun setCurrentTerm(term: String) {
-        setCurrentTermStateLiveData.value = SimpleState.Loading
-
-        viewModelScope.launch(Dispatchers.IO) {
-            val oldTerm = currentTermFlow.first() ?: ""
-
-            try {
-                loginRepo.withSchoolSession {
-                    courseScheduleSettings.term.set(term)
-
-                    // 重新获取第一天
-                    getFirstDayWithoutState()
-
-                    // 重新获取课程
-                    getCoursesWithoutState()
-
-                    // 重新获取考试安排
-                    getExamsWithoutState()
-
-                    setCurrentTermStateLiveData.postValue(SimpleState.Success)
-                }
-            } catch (e: Exception) {
-                try {
-                    courseScheduleSettings.term.set(oldTerm)
-
-                    // 重新获取第一天
-                    getFirstDayWithoutState()
-
-                    // 重新获取课程
-                    getCoursesWithoutState()
-
-                    // 重新获取考试安排
-                    getExamsWithoutState()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                }
-                e.printStackTrace()
-                setCurrentTermStateLiveData.postValue(SimpleState.Fail)
-            }
-        }
+    fun setCurrentTerm(term: String) = withSimpleErrorDataState(_syncState) {
+        courseSync.refresh(term).successMessage()
     }
 
     fun getCustomSchedules() = withSimpleDataStateLiveData(getCustomScheduleStateLiveData) {
@@ -190,48 +146,19 @@ internal class CalendarViewModel @Inject constructor(
         courseScheduleSettings.showExamInfo.set(settingData.showExamInfo)
     }
 
-    private suspend fun getFirstDayWithoutState() {
-        val term = currentTermFlow.first() ?: throw Exception("no term")
-        val firstDay = coursesRepo.getFirstDayFromNet(term)
-        courseScheduleSettings.firstDay.set(firstDay)
+    fun getFirstDay() = withSimpleErrorDataState(_syncState) {
+        courseSync.refreshFirstDay()
+        "学期开始日期已更新"
     }
 
-    fun getFirstDay() = withSimpleStateLiveData(getFirstDayStateLiveData) {
-        loginRepo.withSchoolSession(this::getFirstDayWithoutState)
+    fun getCourses() = withSimpleErrorDataState(_syncState) {
+        courseSync.refreshCourses()
+        "课程表已更新"
     }
 
-    private suspend fun getCoursesWithoutState() {
-        val term = currentTermFlow.first() ?: throw Exception("no term")
-        val courses = coursesRepo.getCoursesFromNet(term)
-        coursesRepo.saveCourses(courses)
-    }
-
-    fun getCourses() = withSimpleStateLiveData(getCoursesStateLiveData) {
-        loginRepo.withSchoolSession(this::getCoursesWithoutState)
-    }
-
-    private suspend fun getExamsWithoutState() {
-        val term = currentTermFlow.first() ?: throw Exception("no term")
-
-        val exams = coursesRepo.getExamsFromNet(term)
-        coursesRepo.saveExams(exams)
-    }
-
-    fun getExams() = withSimpleDataStateLiveData(getExamsStateLiveData) {
-        // 额外统计这次更新实际更新了几条考试信息 (我是急急国王.jpg)
-        val previousExams = coursesRepo.getExamsFromLocal().first()
-
-        loginRepo.withSchoolSession(this::getExamsWithoutState)
-
-        val nowExams = coursesRepo.getExamsFromLocal().first()
-
-        val updateCount = nowExams.count { nowExam ->
-            previousExams.none { prevExam ->
-                nowExam.copy(id = prevExam.id) == prevExam
-            }
-        }
-
-        updateCount
+    fun getExams() = withSimpleErrorDataState(_syncState) {
+        val count = courseSync.refreshExams()
+        if (count > 0) "更新了 $count 条考试安排" else "考试安排已是最新"
     }
 
     fun setTimeTable(timeTableStr: String) = withSimpleStateLiveData(setTimeTableStateLiveData) {

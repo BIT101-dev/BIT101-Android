@@ -27,8 +27,8 @@ internal interface DDLScheduleDao {
     /**
      * 获取指定 UID 的 DDL
      */
-    @Query("SELECT * FROM ddl_schedule WHERE uid IN (:uid)")
-    suspend fun getUIDs(uid: List<String>): List<DDLScheduleEntity>
+    @Query("SELECT * FROM ddl_schedule WHERE uid IN (:uid) AND ownerSid = :ownerSid")
+    suspend fun getUIDs(uid: List<String>, ownerSid: String): List<DDLScheduleEntity>
 
     /**
      * 插入 DDL
@@ -41,6 +41,9 @@ internal interface DDLScheduleDao {
      */
     @Update
     suspend fun update(ddl: DDLScheduleEntity)
+
+    @Query("UPDATE ddl_schedule SET done = :done WHERE id = :id AND ownerSid = :ownerSid")
+    suspend fun setDone(id: Int, ownerSid: String, done: Boolean)
 
     /**
      * 删除 DDL

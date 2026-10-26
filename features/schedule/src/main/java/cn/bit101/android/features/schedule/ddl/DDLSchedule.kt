@@ -23,6 +23,9 @@ import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.LaunchedEffect
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -38,8 +41,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.nav.NavDest
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 
 /**
  * @author flwfdd
@@ -55,21 +56,43 @@ internal fun DDLSchedule(
     active: Boolean,
     vm: DDLScheduleViewModel = hiltViewModel()
 ) {
+    val events by vm.events.collectAsState()
+    val refreshState by vm.refreshState.collectAsState()
+    val editState by vm.editState.collectAsState()
+    val loadError by vm.loadError.collectAsState()
+    LaunchedEffect(refreshState) {
+        (refreshState as? SimpleErrorDataState.Fail)?.let { mainController.snackbar(it.msg) }
+    }
+    LaunchedEffect(editState) {
+        when (val state = editState) {
+            is SimpleErrorDataState.Success -> mainController.snackbar(state.data)
+            is SimpleErrorDataState.Fail -> mainController.snackbar(state.msg)
+            else -> Unit
+        }
+    }
     // 编辑日程弹窗
     val showEditDialog = remember { mutableStateOf(false) }
     var editData: DDLScheduleEntity? by remember { mutableStateOf(null) }
     if (showEditDialog.value) {
-        DDLScheduleEditDialog(mainController, vm, item = editData, showDialog = showEditDialog)
+        DDLScheduleEditDialog(vm, item = editData, showDialog = showEditDialog)
     }
 
     // 日程详情弹窗
     val showDetailDialog = remember { mutableStateOf(false) }
     var detailData: DDLScheduleEntity? by remember { mutableStateOf(null) }
-    if (showDetailDialog.value && detailData != null) {
+    val currentDetail = detailData?.let { selected ->
+        events.firstOrNull { it.id == selected.id && it.ownerSid == selected.ownerSid }
+    }
+    LaunchedEffect(currentDetail) {
+        if (currentDetail == null) {
+            showDetailDialog.value = false
+            detailData = null
+        }
+    }
+    if (showDetailDialog.value && currentDetail != null) {
         DDLScheduleDetailDialog(
-            mainController = mainController,
             vm = vm,
-            event = detailData!!,
+            event = currentDetail,
             showDialog = showDetailDialog,
             showEditDialog = {
                 editData = it
@@ -79,23 +102,20 @@ internal fun DDLSchedule(
 
     // 判断是否已经有订阅链接
     val url = vm.lexueCalendarUrlFlow.collectAsState(initial = null)
-    if (url.value.isNullOrBlank()) {
-        // 还没有订阅链接
+    if (url.value.isNullOrBlank() && events.isEmpty()) {
+        // 没有本地日程时显示订阅入口，已有自定义或当前账号日程仍可离线查看
         Column(
             modifier = Modifier
                 .fillMaxSize(),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            var loading by remember { mutableStateOf(false) }
-            Button(enabled = !loading, onClick = {
-                MainScope().launch {
-                    loading = true
-                    vm.updateLexueCalendarUrl()
-                    vm.updateLexueCalendar()
-                    loading = false
-                }
-            }) {
+            if (loadError != null) {
+                TextButton(onClick = { vm.loadEvents() }) { Text(loadError.orEmpty()) }
+            }
+            if (url.value == null && loadError == null) CircularProgressIndicator()
+            val loading = refreshState is SimpleErrorDataState.Loading || url.value == null
+            Button(enabled = !loading, onClick = { vm.refreshCalendar(acquireUrl = true) }) {
                 if (loading) CircularProgressIndicator(
                     modifier = Modifier.size(20.dp),
                     strokeWidth = 2.dp
@@ -110,9 +130,15 @@ internal fun DDLSchedule(
             contentAlignment = Alignment.BottomEnd
         ) {
             // 日程列表
-            val events = vm.events.collectAsState()
             LazyColumn(modifier = Modifier.fillMaxSize()) {
-                if (events.value.isEmpty()) {
+                if (loadError != null) {
+                    item {
+                        TextButton(onClick = { vm.loadEvents() }, modifier = Modifier.fillMaxWidth()) {
+                            Text(loadError.orEmpty())
+                        }
+                    }
+                }
+                if (events.isEmpty()) {
                     item {
                         Text(
                             text = "怎么会有人没事儿了啊ヽ(`Д´)ﾉ\n快去卷😭",
@@ -127,7 +153,7 @@ internal fun DDLSchedule(
                         )
                     }
                 } else {
-                    itemsIndexed(events.value) { _, item ->
+                    itemsIndexed(events) { _, item ->
                         DDLScheduleItem(
                             Modifier
                                 .fillMaxWidth()

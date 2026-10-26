@@ -2,15 +2,16 @@ package cn.bit101.android.features.setting.viewmodel
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import cn.bit101.android.config.setting.base.DDLSettings
-import cn.bit101.android.data.database.entity.DDLScheduleEntity
 import cn.bit101.android.data.repo.base.DDLScheduleRepo
 import cn.bit101.android.data.repo.base.SchoolLoginRepo
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withSimpleStateLiveData
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.launch
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
+import cn.bit101.android.features.common.helper.withSimpleErrorDataState
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,63 +29,26 @@ internal class DDLViewModel @Inject constructor(
 
     val updateLexueCalendarLiveData = MutableLiveData<SimpleState?>()
 
+    private val _saveSettingsState = MutableStateFlow<SimpleErrorDataState<Unit>?>(null)
+    val saveSettingsState = _saveSettingsState.asStateFlow()
+
     fun setBeforeDay(day: Long) {
-        viewModelScope.launch {
+        withSimpleErrorDataState(_saveSettingsState) {
             ddlSettings.beforeDay.set(day)
         }
     }
 
     fun setAfterDay(day: Long) {
-        viewModelScope.launch {
+        withSimpleErrorDataState(_saveSettingsState) {
             ddlSettings.afterDay.set(day)
         }
     }
 
-    private suspend fun updateLexueCalendarUrlWithoutState() {
-        val url = ddlScheduleRepo.getCalendarUrl() ?: throw Exception("url is null")
-        ddlSettings.url.set(url)
-    }
-
-    // 从网络获取日程url 返回是否成功
     fun updateLexueCalendarUrl() = withSimpleStateLiveData(updateLexueCalendarUrlStateLiveData) {
-        loginRepo.withSchoolSession(this::updateLexueCalendarUrlWithoutState)
+        ddlScheduleRepo.refreshSubscription()
     }
 
-    private suspend fun updateLexueCalendarWithoutState() {
-        val url = ddlSettings.url.get()
-        val events = ddlScheduleRepo.getCalendarFromNet(url)
-
-        val UIDs = events.map { it.uid }
-        // 获取数据库中已有日程
-        val existItems = HashMap<String, DDLScheduleEntity>()
-        ddlScheduleRepo.getCalendarFromLocal(UIDs).forEach { existItems[it.uid] = it }
-        events.forEach {
-            val item = DDLScheduleEntity(
-                id = 0,
-                uid = it.uid,
-                group = "lexue",
-                title = it.event,
-                text = it.course + "\n\n" + it.description,
-                time = it.time,
-                done = false
-            )
-            if (existItems[it.uid] == null) {
-                // 不存在则插入
-                ddlScheduleRepo.insertDDL(item)
-            } else {
-                // 存在则更新
-                ddlScheduleRepo.updateDDL(
-                    item.copy(
-                        id = existItems[it.uid]!!.id,
-                        done = existItems[it.uid]!!.done
-                    )
-                )
-            }
-        }
-    }
-
-    // 从网络获取日程
     fun updateLexueCalendar() = withSimpleStateLiveData(updateLexueCalendarLiveData) {
-        loginRepo.withSchoolSession(this::updateLexueCalendarWithoutState)
+        loginRepo.withSchoolSession { ddlScheduleRepo.syncCalendar() }
     }
 }

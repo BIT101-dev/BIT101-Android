@@ -10,12 +10,17 @@ import cn.bit101.android.data.database.entity.CourseScheduleEntity
 import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.data.database.entity.ExamScheduleEntity
 import cn.bit101.android.data.repo.base.CoursesRepo
+import cn.bit101.android.data.repo.CourseSync
+import cn.bit101.android.data.repo.CourseSyncResult
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
+import cn.bit101.android.features.common.helper.withSimpleErrorDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.helper.withScope
 import cn.bit101.android.features.common.helper.withSimpleStateLiveData
 import cn.bit101.android.features.common.utils.ScheduleCreateInfo
 import cn.bit101.android.features.common.utils.addScheduleToSystemCalendar
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -45,7 +50,8 @@ internal data class SettingData(
 @HiltViewModel
 internal class CourseScheduleViewModel @Inject constructor(
     private val coursesRepo: CoursesRepo,
-    private val courseScheduleSettings: CourseScheduleSettings
+    private val courseScheduleSettings: CourseScheduleSettings,
+    private val courseSync: CourseSync,
 ) : ViewModel() {
     private val _schedules = MutableStateFlow<List<List<ScheduleItem>>>(emptyList())
     val schedules: StateFlow<List<List<ScheduleItem>>> = _schedules.asStateFlow()
@@ -85,8 +91,8 @@ internal class CourseScheduleViewModel @Inject constructor(
     private val customSchedulesFlow = coursesRepo.getCustomSchedules()
 
 
-    val refreshCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
-    val forceRefreshCoursesStateLiveData = MutableLiveData<SimpleState?>(null)
+    private val _refreshState = MutableStateFlow<SimpleErrorDataState<CourseSyncResult>?>(null)
+    val refreshState = _refreshState.asStateFlow()
 
     val addEditCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
     val deleteCustomScheduleStateLiveData = MutableLiveData<SimpleState?>(null)
@@ -159,7 +165,11 @@ internal class CourseScheduleViewModel @Inject constructor(
                 val exams = schedules.second
                 val customSchedules = schedules.third
 
-                val weekFirstDate = firstDay?.plusWeeks((week - 1).toLong()) ?: LocalDate.MAX
+                if (firstDay == null || week == Int.MAX_VALUE) {
+                    _schedules.value = emptyList()
+                    return@combine
+                }
+                val weekFirstDate = firstDay.plusWeeks((week - 1).toLong())
                 val weekExams = exams.filter {
                     (weekFirstDate <= it.date) && (it.date < weekFirstDate.plusWeeks(1))
                 }
@@ -238,22 +248,8 @@ internal class CourseScheduleViewModel @Inject constructor(
     /**
      * 强制刷新课表及考试安排，需要从网络中重新获取课表和考试安排
      */
-    fun forceRefreshCourses() = withSimpleStateLiveData(refreshCoursesStateLiveData) {
-        // 获得学期
-        val term = coursesRepo.getCurrentTermFromNet()
-        courseScheduleSettings.term.set(term)
-
-        // 获取课表
-        val courses = coursesRepo.getCoursesFromNet(term)
-        coursesRepo.saveCourses(courses)
-
-        // 获取考试安排
-        val exams = coursesRepo.getExamsFromNet(term)
-        coursesRepo.saveExams(exams)
-
-        // 获取学期第一天
-        val firstDay = coursesRepo.getFirstDayFromNet(term)
-        courseScheduleSettings.firstDay.set(firstDay)
+    fun forceRefreshCourses(): Job? = withSimpleErrorDataState(_refreshState) {
+        courseSync.refresh()
     }
 
     /**

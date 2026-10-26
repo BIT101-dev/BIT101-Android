@@ -23,7 +23,7 @@ class AuthDispatcherTest {
         status.fakeCookie.set("old")
         val manager = mockk<APIManager>()
         val network = mockk<NetworkStatus>()
-        val repo = DefaultCommunityLoginRepo(manager, status, AccountSession(status), SessionClock(), network)
+        val repo = DefaultCommunityLoginRepo(manager, status, AccountSession(status, io.mockk.mockk(relaxed = true)), SessionClock(), network)
         val dispatcher = Dispatcher().apply { maxRequests = 1; maxRequestsPerHost = 1 }
         val client = OkHttpClient.Builder().dispatcher(dispatcher).callTimeout(4, TimeUnit.SECONDS)
             .addInterceptor(Bit101AuthInterceptor(status, Provider { repo })).build()

@@ -52,7 +52,7 @@ internal fun CourseScheduleDetailDialog(
                     Item(title = "时空坐标：", content = course.description)
                     Item("课程号：", course.number)
                     Item("授课教师：", course.teacher)
-                    Item("学分：", course.credit.toString())
+                    Item("学分：", java.math.BigDecimal.valueOf(course.credit).stripTrailingZeros().toPlainString())
                     Item("学时：", course.hour.toString())
                     Item("课程性质：", course.type)
                     Item("课程类别：", course.category)
@@ -167,7 +167,7 @@ private fun CourseDetailPreview() {
             2,
             "良乡校区",
             "123456",
-            4,
+            4.0,
             64,
             "必修",
             "文化课",

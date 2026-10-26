@@ -26,6 +26,6 @@ internal class DatabaseModule {
             context,
             BIT101Database::class.java,
             FILE_NAME
-        ).build()
+        ).addMigrations(MIGRATION_2_3).build()
     }
 }

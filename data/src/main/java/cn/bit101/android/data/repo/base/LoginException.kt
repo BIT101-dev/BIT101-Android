@@ -1,5 +1,8 @@
 package cn.bit101.android.data.repo.base
 
+import cn.bit101.api.service.school.SchoolAccessDenied
+import cn.bit101.api.service.school.SchoolResponseError
+import cn.bit101.api.service.school.SchoolSessionExpired
 import cn.bit101.bitlogin.sso.CaptchaError
 import cn.bit101.bitlogin.sso.LoginError
 import cn.bit101.bitlogin.sso.SmsVerificationError
@@ -68,6 +71,9 @@ internal fun Throwable.asLoginException(step: String): LoginException {
                     return LoginException(LoginFailure.FAILED, step, "账号或密码未通过验证，请检查后重新登录。", cause = this)
                 }
             }
+            is SchoolAccessDenied, is SchoolResponseError, is SchoolSessionExpired -> return LoginException(
+                LoginFailure.ERROR, step, cause.message.orEmpty(), cause = this,
+            )
             is IOException -> return LoginException(
                 LoginFailure.TRANSIENT, step, "网络连接失败，请稍后重试。", cause = this,
             )

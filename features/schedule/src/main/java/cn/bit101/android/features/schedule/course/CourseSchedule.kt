@@ -1,8 +1,22 @@
 package cn.bit101.android.features.schedule.course
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Refresh
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
@@ -19,6 +33,8 @@ import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.component.schedule.AddEditScheduleDialog
 import cn.bit101.android.features.common.component.schedule.CustomScheduleDetailDialog
+import cn.bit101.android.features.common.helper.successMessage
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.common.nav.NavDest
 
@@ -89,9 +105,7 @@ internal fun CourseSchedule(
 
     var nowEditCustomSchedule by remember { mutableStateOf<CustomScheduleEntity?>(null) }
 
-    val refreshCoursesState by vm.refreshCoursesStateLiveData.observeAsState()
-
-    val forceRefreshCoursesState by vm.forceRefreshCoursesStateLiveData.observeAsState()
+    val refreshState by vm.refreshState.collectAsState()
 
     val addCustomScheduleState by vm.addEditCustomScheduleStateLiveData.observeAsState()
 
@@ -101,14 +115,10 @@ internal fun CourseSchedule(
 
     val context = LocalContext.current
 
-    // 强制刷新的状态在这里管理
-    DisposableEffect(forceRefreshCoursesState) {
-        if(forceRefreshCoursesState == SimpleState.Success) {
-            mainController.snackbar("刷新成功OvO")
-        } else if(forceRefreshCoursesState == SimpleState.Fail) {
-            mainController.snackbar("刷新失败Orz")
+    LaunchedEffect(refreshState) {
+        (refreshState as? SimpleErrorDataState.Success)?.data?.let {
+            mainController.snackbar(it.successMessage())
         }
-        onDispose {}
     }
 
     LaunchedEffect(addCustomScheduleState) {
@@ -150,123 +160,159 @@ internal fun CourseSchedule(
 
     DisposableEffect(Unit) {
         onDispose {
-            vm.forceRefreshCoursesStateLiveData.value = null
-            vm.refreshCoursesStateLiveData.value = null
             vm.addEditCustomScheduleStateLiveData.value = null
             vm.deleteCustomScheduleStateLiveData.value = null
             vm.addScheduleToSysCalendarStateLiveData.value = null
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        if(
-            term == null ||
-            showDivider == null ||
-            showSaturday == null ||
-            showSunday == null ||
-            showHighlightToday == null ||
-            showBorder == null ||
-            currentTime == null ||
-            timeTable == null
-        ) { }
-        else if(
-            term!!.isEmpty() ||
-            week == Int.MAX_VALUE ||
-            firstDay == null
-        ) {
-            // datastore数据加载完了，但是数据库中没有数据，应该显示一个按钮，点击后获取
-            // 这里如果没有学期数据、课程数据，就显示一个按钮，点击后获取
-            Column(
-                modifier = Modifier
-                    .fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+    Column(modifier = Modifier.fillMaxSize()) {
+        val failure = refreshState as? SimpleErrorDataState.Fail
+        val hasCalendar = !term.isNullOrBlank() && week != Int.MAX_VALUE && firstDay != null
+        if (failure != null && hasCalendar) {
+            CourseRefreshError(failure.msg, onRetry = { vm.forceRefreshCourses() })
+        }
+        Box(modifier = Modifier.weight(1f)) {
+            if(
+                term == null ||
+                showDivider == null ||
+                showSaturday == null ||
+                showSunday == null ||
+                showHighlightToday == null ||
+                showBorder == null ||
+                currentTime == null ||
+                showExamInfo == null ||
+                timeTable == null
+            ) { }
+            else if(
+                term!!.isEmpty() ||
+                week == Int.MAX_VALUE ||
+                firstDay == null
             ) {
-                Button(
-                    enabled = refreshCoursesState != SimpleState.Loading && forceRefreshCoursesState != SimpleState.Loading,
-                    onClick = vm::forceRefreshCourses
+                // datastore数据加载完了，但是数据库中没有数据，应该显示一个按钮，点击后获取
+                // 这里如果没有学期数据、课程数据，就显示一个按钮，点击后获取
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    if (refreshCoursesState == SimpleState.Loading || forceRefreshCoursesState == SimpleState.Loading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
+                    if (failure != null) {
+                        CourseRefreshError(failure.msg, onRetry = { vm.forceRefreshCourses() })
+                    } else {
+                        Button(
+                            enabled = refreshState !is SimpleErrorDataState.Loading,
+                            onClick = vm::forceRefreshCourses
+                        ) {
+                            if (refreshState is SimpleErrorDataState.Loading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(20.dp),
+                                    strokeWidth = 2.dp
+                                )
+                            } else Text("获取课程表")
+                        }
+                    }
+                }
+            }
+            else {
+                val settingData = SettingData(
+                    showDivider = showDivider!!,
+                    showSaturday = showSaturday!!,
+                    showSunday = showSunday!!,
+                    showHighlightToday = showHighlightToday!!,
+                    showBorder = showBorder!!,
+                    showCurrentTime = currentTime!!,
+                    showExamInfo = showExamInfo!!
+                )
+
+                // 数据加载完毕
+                Column(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+                    // 日程表
+                    CourseScheduleCalendar(
+                        schedules = schedules,
+                        week = week,
+                        firstDay = firstDay!!,
+                        timeTable = timeTable!!,
+                        settingData = settingData,
+
+                        onConfig = { mainController.navigate(NavDest.Setting("calendar")) },
+                        onChangeWeek = { vm.changeWeek(it) },
+                        onAddSchedule = {
+                            nowEditCustomSchedule = null
+                            showAddScheduleDialog = true
+                        },
+                    )
+                    if(showCourseDetailState != null) {
+                        // 课程详情对话框
+                        CourseScheduleDetailDialog(
+                            course = showCourseDetailState!!,
+                            onDismiss = vm::clearShowCourseDetail
                         )
-                    } else Text("获取课程表")
+                    }
+                    if(showExamDetailState != null) {
+                        // 考试详情对话框
+                        ExamScheduleDetailDialog(
+                            exam = showExamDetailState!!,
+                            onDismiss = vm::clearShowExamDetail,
+                            onAddToCalendar = { vm.addScheduleToSysCalendar(context, it) }
+                        )
+                    }
+                    if(showCustomScheduleState != null) {
+                        // 自定义日程详情对话框
+                        CustomScheduleDetailDialog(
+                            schedule = showCustomScheduleState!!,
+                            onDismiss = vm::clearCustomScheduleDetail,
+                            onEdit = {
+                                nowEditCustomSchedule = showCustomScheduleState!!
+                                showAddScheduleDialog = true
+                            },
+                            onDelete = vm::deleteCustomSchedule,
+                            onAddToCalendar = { vm.addScheduleToSysCalendar(context, it) }
+                        )
+                    }
+                    if(showAddScheduleDialog) {
+                        // 添加 / 修改自定义日程对话框
+                        AddEditScheduleDialog(
+                            schedule = nowEditCustomSchedule,
+                            onAddEditSchedule = {
+                                if (nowEditCustomSchedule == null) {
+                                    vm.addCustomSchedule(it)
+                                } else {
+                                    vm.updateCustomSchedule(nowEditCustomSchedule!!, it)
+                                }
+                            },
+                            onDismiss = { showAddScheduleDialog = false },
+                        )
+                    }
                 }
             }
         }
-        else {
-            val settingData = SettingData(
-                showDivider = showDivider!!,
-                showSaturday = showSaturday!!,
-                showSunday = showSunday!!,
-                showHighlightToday = showHighlightToday!!,
-                showBorder = showBorder!!,
-                showCurrentTime = currentTime!!,
-                showExamInfo = showExamInfo!!
-            )
+    }
+}
 
-            // 数据加载完毕
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                // 日程表
-                CourseScheduleCalendar(
-                    schedules = schedules,
-                    week = week,
-                    firstDay = firstDay!!,
-                    timeTable = timeTable!!,
-                    settingData = settingData,
 
-                    onConfig = { mainController.navigate(NavDest.Setting("calendar")) },
-                    onChangeWeek = { vm.changeWeek(it) },
-                    onAddSchedule = {
-                        nowEditCustomSchedule = null
-                        showAddScheduleDialog = true
-                    },
-                )
-                if(showCourseDetailState != null) {
-                    // 课程详情对话框
-                    CourseScheduleDetailDialog(
-                        course = showCourseDetailState!!,
-                        onDismiss = vm::clearShowCourseDetail
-                    )
-                }
-                if(showExamDetailState != null) {
-                    // 考试详情对话框
-                    ExamScheduleDetailDialog(
-                        exam = showExamDetailState!!,
-                        onDismiss = vm::clearShowExamDetail,
-                        onAddToCalendar = { vm.addScheduleToSysCalendar(context, it) }
-                    )
-                }
-                if(showCustomScheduleState != null) {
-                    // 自定义日程详情对话框
-                    CustomScheduleDetailDialog(
-                        schedule = showCustomScheduleState!!,
-                        onDismiss = vm::clearCustomScheduleDetail,
-                        onEdit = {
-                            nowEditCustomSchedule = showCustomScheduleState!!
-                            showAddScheduleDialog = true
-                        },
-                        onDelete = vm::deleteCustomSchedule,
-                        onAddToCalendar = { vm.addScheduleToSysCalendar(context, it) }
-                    )
-                }
-                if(showAddScheduleDialog) {
-                    // 添加 / 修改自定义日程对话框
-                    AddEditScheduleDialog(
-                        schedule = nowEditCustomSchedule,
-                        onAddEditSchedule = {
-                            if (nowEditCustomSchedule == null) {
-                                vm.addCustomSchedule(it)
-                            } else {
-                                vm.updateCustomSchedule(nowEditCustomSchedule!!, it)
-                            }
-                        },
-                        onDismiss = { showAddScheduleDialog = false },
-                    )
-                }
+@Composable
+private fun CourseRefreshError(message: String, onRetry: () -> Unit) {
+    Surface(
+        modifier = Modifier.widthIn(max = 480.dp).fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.Info, contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(22.dp))
+                Text("暂时无法获取课表", style = MaterialTheme.typography.titleSmall)
+            }
+            Text(message, style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            FilledTonalButton(onClick = onRetry, modifier = Modifier.align(Alignment.End)) {
+                Icon(Icons.Outlined.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(6.dp))
+                Text("重试")
             }
         }
     }

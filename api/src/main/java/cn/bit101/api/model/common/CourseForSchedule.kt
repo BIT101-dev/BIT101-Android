@@ -15,7 +15,7 @@ data class CourseForSchedule(
     @SerializedName("JSJC") var JSJC: Int?, // 结束节次
     @SerializedName("XXXQMC") var XXXQMC: String?, // 校区
     @SerializedName("KCH") var KCH: String?, // 课程号
-    @SerializedName("XF") var XF: Int?, // 学分
+    @SerializedName("XF") var XF: Double?, // 学分
     @SerializedName("XS") var XS: Int?, // 学时
     @SerializedName("KCXZDM_DISPLAY") var KCXZDM_DISPLAY: String?, // 课程性质 必修选修什么的
     @SerializedName("KCLBDM_DISPLAY") var KCLBDM_DISPLAY: String?, // 课程类别 文化课实践课什么的

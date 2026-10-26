@@ -60,6 +60,8 @@ fun TimeTable.toTimeTableString(): String {
  */
 interface CourseScheduleSettings {
 
+    suspend fun setTerm(term: String, firstDay: LocalDate?)
+
     /**
      * 学期
      */

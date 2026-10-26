@@ -7,6 +7,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -23,6 +24,7 @@ import cn.bit101.android.config.setting.base.toTimeTableString
 import cn.bit101.android.data.database.entity.CustomScheduleEntity
 import cn.bit101.android.features.common.component.schedule.AddEditScheduleDialog
 import cn.bit101.android.features.common.component.schedule.CustomScheduleDetailDialog
+import cn.bit101.android.features.common.helper.SimpleErrorDataState
 import cn.bit101.android.features.common.helper.SimpleDataState
 import cn.bit101.android.features.common.helper.SimpleState
 import cn.bit101.android.features.setting.component.SettingItemData
@@ -343,18 +345,12 @@ internal fun CalendarSettingPage(
 
     val settingData by vm.settingDataFlow.collectAsState(initial = SettingData.default)
 
-    val getFirstDayState by vm.getFirstDayStateLiveData.observeAsState()
-
-    val getCoursesState by vm.getCoursesStateLiveData.observeAsState()
-
-    val getExamsState by vm.getExamsStateLiveData.observeAsState()
-
+    val syncState by vm.syncState.collectAsState()
 
     var showTermListDialog by rememberSaveable { mutableStateOf(false) }
 
     val getTermListState by vm.getTermListStateLiveData.observeAsState()
 
-    val setCurrentTermState by vm.setCurrentTermStateLiveData.observeAsState()
 
     var showTimeTableDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -365,49 +361,12 @@ internal fun CalendarSettingPage(
     var showCustomSchedulesDialog by rememberSaveable { mutableStateOf(false) }
 
 
-    DisposableEffect(setCurrentTermState) {
-        if(setCurrentTermState is SimpleState.Success) {
-            onSnackBar("设置成功")
-        } else if(setCurrentTermState is SimpleState.Fail) {
-            onSnackBar("设置失败")
+    LaunchedEffect(syncState) {
+        when (val state = syncState) {
+            is SimpleErrorDataState.Success -> onSnackBar(state.data)
+            is SimpleErrorDataState.Fail -> onSnackBar(state.msg)
+            else -> Unit
         }
-        onDispose { }
-    }
-
-    DisposableEffect(getFirstDayState) {
-        if(getFirstDayState is SimpleState.Success) {
-            onSnackBar("获取成功")
-        } else if(getFirstDayState is SimpleState.Fail) {
-            onSnackBar("获取失败")
-        }
-        onDispose { }
-    }
-
-    DisposableEffect(getCoursesState) {
-        if(getCoursesState is SimpleState.Success) {
-            onSnackBar("获取成功")
-        } else if(getCoursesState is SimpleState.Fail) {
-            onSnackBar("获取失败")
-        }
-        onDispose { }
-    }
-
-    DisposableEffect(getExamsState) {
-        if(getExamsState is SimpleDataState.Success) {
-            val updateCount = (getExamsState as SimpleDataState.Success).data
-
-            onSnackBar(
-                "获取成功, ${
-                    if (updateCount > 0)
-                        "更新了 $updateCount 条考试安排"
-                    else
-                        "没有更新"
-                }"
-            )
-        } else if(getExamsState is SimpleDataState.Fail) {
-            onSnackBar("获取失败")
-        }
-        onDispose { }
     }
 
     DisposableEffect(setTimeTableState) {
@@ -425,9 +384,9 @@ internal fun CalendarSettingPage(
         firstDay = firstDay?.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")) ?: "未设置",
         settingData = settingData,
 
-        isGettingFirstDay = getFirstDayState is SimpleState.Loading || setCurrentTermState is SimpleState.Loading,
-        isGettingCourses = getCoursesState is SimpleState.Loading || setCurrentTermState is SimpleState.Loading,
-        isGettingExams = getExamsState is SimpleDataState.Loading || setCurrentTermState is SimpleState.Loading,
+        isGettingFirstDay = syncState is SimpleErrorDataState.Loading,
+        isGettingCourses = syncState is SimpleErrorDataState.Loading,
+        isGettingExams = syncState is SimpleErrorDataState.Loading,
 
         onOpenTermListDialog = { showTermListDialog = true },
         onGetFirstDay = vm::getFirstDay,

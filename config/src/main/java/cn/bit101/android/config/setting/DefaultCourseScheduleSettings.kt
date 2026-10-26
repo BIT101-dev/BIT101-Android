@@ -13,7 +13,7 @@ import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 internal class DefaultCourseScheduleSettings @Inject constructor(
-    settingDataStore: SettingDataStore
+    private val settingDataStore: SettingDataStore
 ) : CourseScheduleSettings {
 
     /**
@@ -46,6 +46,9 @@ internal class DefaultCourseScheduleSettings @Inject constructor(
             return value.toTimeTableString()
         }
     }
+
+    override suspend fun setTerm(term: String, firstDay: LocalDate?) =
+        settingDataStore.setCourseTerm(term, firstDay?.toString().orEmpty())
 
     override val term = settingDataStore.courseScheduleTerm.toSettingItem()
 

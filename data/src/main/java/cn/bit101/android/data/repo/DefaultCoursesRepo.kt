@@ -1,5 +1,6 @@
 package cn.bit101.android.data.repo
 
+import androidx.room.withTransaction
 import cn.bit101.android.config.setting.base.CourseScheduleSettings
 import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.database.BIT101Database
@@ -11,6 +12,8 @@ import cn.bit101.android.data.net.SchoolCookieStore
 import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.android.data.repo.base.CoursesRepo
 import cn.bit101.api.model.common.SchoolCookie
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -55,40 +58,44 @@ internal class DefaultCoursesRepo @Inject constructor(
         }
     }
 
-    override suspend fun saveCourses(
-        courses: List<CourseScheduleEntity>
-    ) = withContext(Dispatchers.IO) {
-        // 删掉所有课程
-        database.coursesDao().deleteAllCourses()
-
-        // 放入进现在获得的所有课程
-        database.coursesDao().insertCourses(courses)
-    }
-
-    override suspend fun saveExams(
-        exams: List<ExamScheduleEntity>
-    ) = withContext(Dispatchers.IO) {
-        database.examsDao().deleteAllExams()
-
-        database.examsDao().insertExams(exams)
+    override suspend fun saveSchedule(
+        courses: List<CourseScheduleEntity>?,
+        exams: List<ExamScheduleEntity>?,
+        term: String?,
+        firstDay: LocalDate?,
+    ) = database.withTransaction {
+        courses?.let {
+            database.coursesDao().deleteAllCourses()
+            database.coursesDao().insertCourses(it)
+        }
+        exams?.let {
+            database.examsDao().deleteAllExams()
+            database.examsDao().insertExams(it)
+        }
+        // 学期设置写入失败时，数据库替换也回滚；网络失败从不进入提交阶段。
+        if (term != null) courseScheduleSettings.setTerm(term, firstDay)
+        Unit
     }
 
     override fun getCoursesFromLocal(
         term: String,
-    ) = database.coursesDao().getCoursesByTerm(term)
+    ) = database.coursesDao().getCoursesByTerm(term).forSignedInAccount()
 
     override fun getCoursesFromLocal(
         term: String,
         week: Int
-    ) = database.coursesDao().getCoursesByTermWeek(term, week)
+    ) = database.coursesDao().getCoursesByTermWeek(term, week).forSignedInAccount()
 
-    override fun getCoursesFromLocal() = database.coursesDao().getAllCourses()
+    override fun getCoursesFromLocal() = database.coursesDao().getAllCourses().forSignedInAccount()
 
     override fun getExamsFromLocal(
         term: String,
-    ) = database.examsDao().getExamsByTerm(term)
+    ) = database.examsDao().getExamsByTerm(term).forSignedInAccount()
 
-    override fun getExamsFromLocal() = database.examsDao().getAllExams()
+    override fun getExamsFromLocal() = database.examsDao().getAllExams().forSignedInAccount()
+
+    private fun <T> Flow<List<T>>.forSignedInAccount(): Flow<List<T>> =
+        combine(loginStatus.sid.flow) { records, sid -> if (sid.isBlank()) emptyList() else records }
 
     override suspend fun addCustomSchedule(
         schedule: CustomScheduleEntity,

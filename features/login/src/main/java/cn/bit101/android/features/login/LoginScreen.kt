@@ -1,20 +1,25 @@
 package cn.bit101.android.features.login
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import cn.bit101.android.features.common.MainController
 import cn.bit101.android.features.common.helper.SimpleErrorDataState
+import cn.bit101.android.features.common.helper.successMessage
 
 @Composable
 fun LoginScreen(mainController: MainController, initialCommunity: Boolean = false) {
     val vm: LoginViewModel = hiltViewModel()
     val sid by vm.sid.collectAsState(initial = null)
     val state by vm.loginState.collectAsState()
-    val schoolReady by vm.schoolReady.collectAsState()
+    val schoolResult by vm.schoolResult.collectAsState()
     if (sid == null) return
     var communityOnly by rememberSaveable { mutableStateOf(initialCommunity) }
     var schoolIdentity by rememberSaveable { mutableStateOf(true) }
@@ -27,14 +32,33 @@ fun LoginScreen(mainController: MainController, initialCommunity: Boolean = fals
                     onClick = { vm.clearResult(); communityOnly = index == 1 }, text = { Text(title) })
             }
         }
-        if (schoolReady && !communityOnly && loading) {
-            Text("校园登录已成功，BIT101 仍在连接。")
-            TextButton(onClick = {
-                if (vm.enterCampus()) {
-                    mainController.popBackStack()
-                    mainController.snackbar("校园登录成功，BIT101 可稍后登录")
+        if (schoolResult != null && !communityOnly && loading) {
+            Surface(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+            ) {
+                Row(
+                    modifier = Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Icon(Icons.Outlined.CheckCircle, contentDescription = null, modifier = Modifier.size(22.dp))
+                    Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text("校园账号已登录", style = MaterialTheme.typography.titleSmall)
+                        Text(
+                            if (schoolResult?.teachingCenterWarning != null) "教务暂不可用，可稍后重试" else "正在连接 BIT101…",
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    TextButton(onClick = {
+                        if (vm.enterCampus()) {
+                            mainController.popBackStack()
+                            mainController.snackbar(schoolResult?.successMessage() ?: "校园登录成功")
+                        }
+                    }) { Text("先进入") }
                 }
-            }) { Text("进入校园") }
+            }
         }
         if (communityOnly) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {

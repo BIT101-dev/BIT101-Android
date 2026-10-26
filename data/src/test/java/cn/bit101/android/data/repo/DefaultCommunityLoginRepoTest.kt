@@ -38,7 +38,7 @@ class DefaultCommunityLoginRepoTest {
         manager = mockk()
         status = MemoryLoginStatus()
         status.seedSchool()
-        account = AccountSession(status)
+        account = AccountSession(status, io.mockk.mockk(relaxed = true))
         clock = mockk()
         network = mockk()
         every { manager.api } returns api

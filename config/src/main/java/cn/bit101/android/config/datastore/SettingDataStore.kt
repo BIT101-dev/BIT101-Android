@@ -1,11 +1,14 @@
 package cn.bit101.android.config.datastore
 
+import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import cn.bit101.android.config.datastore.basic.Preferences
 import cn.bit101.android.config.datastore.basic.PreferencesDataStoreItem
+import cn.bit101.android.config.setting.base.LexueSubscription
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -16,7 +19,7 @@ import javax.inject.Singleton
  */
 @Singleton
 internal class SettingDataStore @Inject constructor(
-    preferences: Preferences
+    private val preferences: Preferences
 ) {
     // 设置模块
     // 是否开启旋转
@@ -47,6 +50,13 @@ internal class SettingDataStore @Inject constructor(
     // 学期开始日期
     private val COURSE_SCHEDULE_FIRST_DAY = stringPreferencesKey("course_schedule_first_day")
     val courseScheduleFirstDay = PreferencesDataStoreItem(COURSE_SCHEDULE_FIRST_DAY, "", preferences.SETTING_DATASTORE)
+
+    suspend fun setCourseTerm(term: String, firstDay: String) {
+        preferences.SETTING_DATASTORE.edit {
+            it[COURSE_SCHEDULE_TERM] = term
+            it[COURSE_SCHEDULE_FIRST_DAY] = firstDay
+        }
+    }
 
     // 是否显示周六
     private val COURSE_SCHEDULE_SHOW_SATURDAY = booleanPreferencesKey("course_schedule_show_saturday")
@@ -102,7 +112,17 @@ internal class SettingDataStore @Inject constructor(
 
     // 乐学日程订阅链接
     private val LEXUE_CALENDAR_URL = stringPreferencesKey("lexue_calendar_url")
-    val lexueCalendarUrl = PreferencesDataStoreItem(LEXUE_CALENDAR_URL, "", preferences.SETTING_DATASTORE)
+    private val LEXUE_CALENDAR_OWNER = stringPreferencesKey("lexue_calendar_owner")
+    val lexueSubscription = preferences.SETTING_DATASTORE.data.map {
+        LexueSubscription(it[LEXUE_CALENDAR_OWNER].orEmpty(), it[LEXUE_CALENDAR_URL].orEmpty())
+    }
+
+    suspend fun setLexueSubscription(subscription: LexueSubscription) {
+        preferences.SETTING_DATASTORE.edit {
+            it[LEXUE_CALENDAR_OWNER] = subscription.ownerSid
+            it[LEXUE_CALENDAR_URL] = subscription.url
+        }
+    }
 
     // 日程临近改变颜色天数
     private val DDL_SCHEDULE_BEFORE_DAY = longPreferencesKey("ddl_schedule_before_day")

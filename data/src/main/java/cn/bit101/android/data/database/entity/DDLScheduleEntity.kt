@@ -1,5 +1,6 @@
 package cn.bit101.android.data.database.entity
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -8,7 +9,7 @@ import java.time.LocalDateTime
 // 待办事项
 @Entity(
     tableName = "ddl_schedule",
-    indices = [Index(value = ["uid"], unique = true), Index(value = ["group"])] //添加索引
+    indices = [Index(value = ["ownerSid", "uid"], unique = true), Index(value = ["group"])] //添加索引
 )
 
 data class DDLScheduleEntity(
@@ -43,5 +44,8 @@ data class DDLScheduleEntity(
     /**
      * 是否完成
      */
-    val done: Boolean
+    val done: Boolean,
+
+    @ColumnInfo(defaultValue = "''")
+    val ownerSid: String = "",
 )

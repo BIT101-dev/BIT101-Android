@@ -2,6 +2,7 @@ package cn.bit101.android.features.login
 
 import cn.bit101.android.config.user.base.LoginStatus
 import cn.bit101.android.data.common.SmsCodeRequestHub
+import cn.bit101.android.data.repo.base.SchoolConnectionResult
 import cn.bit101.android.data.repo.base.SchoolLoginRepo
 import cn.bit101.android.data.repo.base.CommunityLoginRepo
 import cn.bit101.android.data.repo.base.LoginException
@@ -39,14 +40,14 @@ class LoginViewModelTest {
 
     @Test
     fun `rapid submissions start one login and publish loading immediately`() = runTest(dispatcher) {
-        val gate = CompletableDeferred<Boolean>()
+        val gate = CompletableDeferred<SchoolConnectionResult>()
         coEvery { repo.login(any(), any(), any()) } coAnswers { gate.await() }
         vm.login("sid", "password", communityOnly = false)
         assertTrue(vm.loginState.value is SimpleErrorDataState.Loading)
         vm.login("sid", "password", communityOnly = false)
         runCurrent()
         coVerify(exactly = 1) { repo.login(any(), any(), any()) }
-        gate.complete(true)
+        gate.complete(SchoolConnectionResult())
         runCurrent()
         assertTrue(vm.loginState.value is SimpleErrorDataState.Success)
     }
@@ -73,7 +74,7 @@ class LoginViewModelTest {
         vm.login("sid", "password", communityOnly = false)
         runCurrent()
         assertTrue(vm.loginState.value is SimpleErrorDataState.Fail)
-        coEvery { repo.login(any(), any(), any()) } returns true
+        coEvery { repo.login(any(), any(), any()) } returns SchoolConnectionResult()
         vm.login("sid", "password", communityOnly = false)
         runCurrent()
         assertTrue(vm.loginState.value is SimpleErrorDataState.Success)
@@ -86,19 +87,19 @@ class LoginViewModelTest {
         vm.login("sid", "password", communityOnly = false)
         runCurrent()
         assertNull(vm.loginState.value)
-        coEvery { repo.login(any(), any(), any()) } returns true
+        coEvery { repo.login(any(), any(), any()) } returns SchoolConnectionResult()
         vm.login("sid", "password", communityOnly = false)
         runCurrent()
         assertTrue(vm.loginState.value is SimpleErrorDataState.Success)
     }
     @Test fun `campus success survives community identity service failure`() = runTest(dispatcher) {
-        coEvery { repo.login(any(), any(), any()) } returns true
+        coEvery { repo.login(any(), any(), any()) } returns SchoolConnectionResult()
         coEvery { community.loginWithSchool(any(), any(), any()) } throws mockk<LoginException>()
         vm.login("sid", "password", communityOnly = false)
         runCurrent()
         val message = (vm.loginState.value as SimpleErrorDataState.Success).data
         assertTrue(message.contains("校园登录成功"))
-        assertTrue(message.contains("BIT101 暂未连接"))
+        assertTrue(message.contains("BIT101 可稍后登录"))
         coVerifyOrder {
             repo.login("sid", "password", any())
             community.loginWithSchool("sid", "password", false)
@@ -116,11 +117,11 @@ class LoginViewModelTest {
 
     @Test fun `campus is ready while community identity request is still suspended`() = runTest(dispatcher) {
         val gate = CompletableDeferred<Unit>()
-        coEvery { repo.login(any(), any(), any()) } returns true
+        coEvery { repo.login(any(), any(), any()) } returns SchoolConnectionResult()
         coEvery { community.loginWithSchool(any(), any(), any()) } coAnswers { gate.await() }
         vm.login("sid", "password", communityOnly = false)
         runCurrent()
-        assertTrue(vm.schoolReady.value)
+        assertNotNull(vm.schoolResult.value)
         assertTrue(vm.loginState.value is SimpleErrorDataState.Loading)
         gate.complete(Unit)
         runCurrent()
@@ -129,7 +130,7 @@ class LoginViewModelTest {
 
     @Test fun `entering campus cancels pending community request without logging out campus`() = runTest(dispatcher) {
         val cancelled = CompletableDeferred<Unit>()
-        coEvery { repo.login(any(), any(), any()) } returns true
+        coEvery { repo.login(any(), any(), any()) } returns SchoolConnectionResult()
         coEvery { community.loginWithSchool(any(), any(), any()) } coAnswers {
             try { awaitCancellation() } finally { cancelled.complete(Unit) }
         }
@@ -139,19 +140,40 @@ class LoginViewModelTest {
         assertFalse(vm.enterCampus())
         runCurrent()
         assertTrue(cancelled.isCompleted)
-        assertTrue(vm.schoolReady.value)
+        assertNotNull(vm.schoolResult.value)
         assertNull(vm.loginState.value)
         coVerify(exactly = 1) { community.loginWithSchool(any(), any(), any()) }
         coVerify(exactly = 0) { repo.logout() }
     }
 
     @Test fun `completed login leaves navigation solely to success callback`() = runTest(dispatcher) {
-        coEvery { repo.login(any(), any(), any()) } returns true
+        coEvery { repo.login(any(), any(), any()) } returns SchoolConnectionResult()
         vm.login("sid", "password", communityOnly = false)
         runCurrent()
         assertTrue(vm.loginState.value is SimpleErrorDataState.Success)
         assertFalse(vm.enterCampus())
         assertTrue(vm.loginState.value is SimpleErrorDataState.Success)
+    }
+
+    @Test fun `verified identity enters successfully with teaching center warning`() = runTest(dispatcher) {
+        coEvery { repo.login(any(), any(), any()) } returns SchoolConnectionResult("教学中心会话未建立")
+        vm.login("sid", "password", communityOnly = false)
+        runCurrent()
+        assertNotNull(vm.schoolResult.value)
+        val message = (vm.loginState.value as SimpleErrorDataState.Success).data
+        assertEquals("校园登录成功，教务暂不可用", message)
+        assertEquals("教学中心会话未建立", vm.schoolResult.value?.teachingCenterWarning)
+    }
+
+    @Test fun `teaching center warning remains visible when entering before community finishes`() = runTest(dispatcher) {
+        coEvery { repo.login(any(), any(), any()) } returns SchoolConnectionResult("教学中心会话未建立")
+        coEvery { community.loginWithSchool(any(), any(), any()) } coAnswers { awaitCancellation() }
+        vm.login("sid", "password", communityOnly = false)
+        runCurrent()
+        assertTrue(vm.enterCampus())
+        assertEquals("教学中心会话未建立", vm.schoolResult.value?.teachingCenterWarning)
+        runCurrent()
+        assertNull(vm.loginState.value)
     }
 
 }

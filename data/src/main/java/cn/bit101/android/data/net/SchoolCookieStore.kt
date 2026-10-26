@@ -11,9 +11,10 @@ internal object SchoolCookieStore {
         cookieStore: CookieStore,
         cookies: List<SchoolCookie>,
         nowEpochSeconds: Long = Instant.now().epochSecond,
+        allowEmpty: Boolean = false,
     ) {
         val converted = cookies.mapNotNull { it.toHttpCookie(nowEpochSeconds) }
-        require(converted.isNotEmpty()) { "学校登录未返回可用 Cookie" }
+        require(allowEmpty || converted.isNotEmpty()) { "学校登录未返回可用 Cookie" }
 
         cookieStore.cookies
             .filter { it.domain.isSchoolDomain() }

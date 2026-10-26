@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import cn.bit101.android.data.database.entity.DDLScheduleEntity
-import cn.bit101.android.features.common.MainController
 import java.time.format.DateTimeFormatter
 
 /**
@@ -43,7 +42,6 @@ import java.time.format.DateTimeFormatter
 
 @Composable
 internal fun DDLScheduleDetailDialog(
-    mainController: MainController,
     vm: DDLScheduleViewModel,
     event: DDLScheduleEntity,
     showDialog: MutableState<Boolean>,
@@ -59,10 +57,10 @@ internal fun DDLScheduleDetailDialog(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        vm.deleteDDL(event)
-                        showDeleteDialog.value = false
-                        showDialog.value = false
-                        mainController.snackbar("删除成功OvO")
+                        vm.deleteDDL(event) {
+                            showDeleteDialog.value = false
+                            showDialog.value = false
+                        }
                     }
                 ) {
                     Text("删除")

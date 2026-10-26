@@ -12,6 +12,7 @@ data class SchoolCookie(
 data class SchoolLoginResult(
     val cookies: List<SchoolCookie>,
     val webVpn: Boolean,
+    val teachingCenterWarning: String? = null,
 )
 
 data class SmsCodeRequest(
