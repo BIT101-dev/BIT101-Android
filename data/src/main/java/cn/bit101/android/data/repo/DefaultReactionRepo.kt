@@ -1,6 +1,5 @@
 package cn.bit101.android.data.repo
 
-import android.util.Log
 import cn.bit101.android.data.net.base.APIManager
 import cn.bit101.android.data.repo.base.ReactionRepo
 import cn.bit101.api.model.common.Comment
@@ -19,7 +18,6 @@ internal class DefaultReactionRepo @Inject constructor(
     suspend fun like(obj: String) = withContext(Dispatchers.IO) {
         val res = api.reaction.postLike(PostLikeDataModel.Body(obj))
 
-        Log.i("DefaultReactionRepo", res.errorBody()?.string().toString())
         res.body() ?: throw Exception("like error")
     }
 
@@ -43,15 +41,6 @@ internal class DefaultReactionRepo @Inject constructor(
             anonymous = anonymous,
             imageMids = ArrayList(images),
         ))
-
-        Log.i("sendComment", PostCommentDataModel.Body(
-            obj = obj,
-            text = text,
-            replyUid = replyUid,
-            anonymous = anonymous,
-            imageMids = ArrayList(images),
-        ).toString())
-        Log.i("sendComment", res.body().toString())
 
         res.body() ?: throw Exception("send comment error")
     }

@@ -38,6 +38,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import cn.bit101.android.features.common.helper.SimpleErrorDataState
 
+internal data class LoginAction(val label: String, val onClick: (String, String) -> Unit)
+
 // 登录界面
 @Composable
 internal fun LoginPage(
@@ -47,7 +49,7 @@ internal fun LoginPage(
     usernameEnabled: Boolean,
     description: String,
 
-    onLogin: (String, String) -> Unit,
+    actions: List<LoginAction>,
     onLoginSuccess: (String) -> Unit = {},
     onLoginFailed: (String) -> Unit = {},
 ) {
@@ -136,18 +138,18 @@ internal fun LoginPage(
                     }
                 }
             )
-            Button(
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !loading,
-                onClick = {
-                    onLogin(sid, password)
-                },
-            ) {
-                if (loading) CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp
-                )
-                else Text(text = "登录")
+            actions.forEach { action ->
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = !loading,
+                    onClick = { action.onClick(sid, password) },
+                ) {
+                    if (loading) CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp
+                    )
+                    else Text(action.label)
+                }
             }
             Text(
                 text = description,

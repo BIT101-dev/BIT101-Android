@@ -2,6 +2,7 @@ package cn.bit101.android.data.repo
 
 import cn.bit101.android.data.common.SmsCodeRequestHub
 import cn.bit101.android.data.net.base.APIManager
+import cn.bit101.android.data.repo.base.CoursesRepo
 import cn.bit101.android.data.repo.base.LoginException
 import cn.bit101.android.data.repo.base.LoginFailure
 import cn.bit101.api.Bit101Api
@@ -39,6 +40,21 @@ class DefaultSchoolLoginRepoTest {
         every { manager.api } returns api
         coEvery { manager.switch(any()) } coAnswers { status.webVpn.set(firstArg()) }
         repo = DefaultSchoolLoginRepo(manager, status, SmsCodeRequestHub(), AccountSession(status, io.mockk.mockk(relaxed = true)))
+    }
+
+    @Test fun `local session save failure has a distinct message`() = runBlocking<Unit> {
+        val courses = mockk<CoursesRepo>(relaxed = true)
+        val repository = DefaultSchoolLoginRepo(
+            manager, status, SmsCodeRequestHub(), AccountSession(status, courses),
+        )
+        coEvery { api.schoolLogin.login(any(), any(), any(), any()) } returns schoolResult
+        coEvery { courses.saveSchedule(emptyList(), emptyList(), "", null) } throws IllegalStateException("migration failed")
+
+        val error = assertThrows(LoginException::class.java) {
+            runBlocking { repository.login("new-student", "password") }
+        }
+        assertEquals("保存校园登录状态", error.step)
+        assertEquals("校园身份已验证，但保存登录状态失败，请重试。", error.message)
     }
 
     @Test fun `school login succeeds with no community service available`() = runBlocking<Unit> {

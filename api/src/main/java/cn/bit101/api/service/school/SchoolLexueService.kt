@@ -59,7 +59,7 @@ class SchoolLexueService(
             sso.login(username, password, callbackUrl = "$lexue/login/index.php")
             return LexueCalendar(session).getCalendarUrl()
         } catch (e: Throwable) {
-            logger.err("SchoolLexueService", "获取日历订阅链接 失败: ${e.message}")
+            logger.err("SchoolLexueService", "获取日历订阅链接 失败: ${e.javaClass.name}")
             throw e
         } finally {
             session.close()
@@ -92,7 +92,7 @@ class SchoolLexueService(
         try {
             return block(session)
         } catch (e: Throwable) {
-            logger.err("SchoolLexueService", "$action 失败: ${e.message}")
+            logger.err("SchoolLexueService", "$action 失败: ${e.javaClass.name}")
             throw e
         } finally {
             session.close()

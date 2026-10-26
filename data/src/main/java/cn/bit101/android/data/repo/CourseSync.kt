@@ -93,6 +93,7 @@ class CourseSync @Inject internal constructor(
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
+        android.util.Log.e("CourseSync", "${name()} 失败: ${e.javaClass.name}")
         throw CourseSyncException(name(), e)
     }
 }

@@ -53,7 +53,7 @@ class SchoolClassroomService internal constructor(
             throw SchoolResponseError("教学中心返回的教室分页过多，请稍后重试")
         }
     } catch (e: Exception) {
-        logger.err("SchoolClassroomService", "查询空教室失败: ${e.message}")
+        logger.err("SchoolClassroomService", "查询空教室失败: ${e.javaClass.name}")
         throw e
     }
 

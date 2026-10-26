@@ -1,11 +1,13 @@
 package cn.bit101.android.data.repo
 
+import android.util.Log
 import cn.bit101.android.config.setting.base.CourseScheduleSettings
 import cn.bit101.android.data.database.entity.CourseScheduleEntity
 import cn.bit101.android.data.repo.base.CoursesRepo
 import cn.bit101.android.data.repo.base.SchoolLoginRepo
 import cn.bit101.api.service.school.SchoolResponseError
 import cn.bit101.api.service.school.SchoolSessionExpired
+import cn.bit101.bitlogin.sso.SsoHttpException
 import io.mockk.*
 import kotlinx.coroutines.*
 import org.junit.Assert.*
@@ -113,5 +115,22 @@ class CourseSyncTest {
         home.await()
         settingsRequest.await()
         assertEquals("selected", oldTerm.get())
+    }
+
+    @Test fun `failure log excludes request credentials`() = runBlocking<Unit> {
+        mockkStatic(Log::class)
+        try {
+            every { Log.e(any(), any()) } returns 0
+            coEvery { login.withSchoolSession<Any>(any()) } throws SsoHttpException(
+                503, "https://sso.bit.edu.cn/cas/login?ticket=secret", "secret",
+            )
+
+            assertThrows(CourseSyncException::class.java) { runBlocking { sync.refresh() } }
+            verify(exactly = 1) {
+                Log.e("CourseSync", "获取当前学期 失败: cn.bit101.bitlogin.sso.SsoHttpException")
+            }
+        } finally {
+            unmockkStatic(Log::class)
+        }
     }
 }

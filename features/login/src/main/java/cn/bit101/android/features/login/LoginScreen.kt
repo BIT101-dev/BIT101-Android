@@ -22,7 +22,6 @@ fun LoginScreen(mainController: MainController, initialCommunity: Boolean = fals
     val schoolResult by vm.schoolResult.collectAsState()
     if (sid == null) return
     var communityOnly by rememberSaveable { mutableStateOf(initialCommunity) }
-    var schoolIdentity by rememberSaveable { mutableStateOf(true) }
     val loading = state is SimpleErrorDataState.Loading
 
     Column(Modifier.fillMaxSize().safeDrawingPadding()) {
@@ -60,27 +59,29 @@ fun LoginScreen(mainController: MainController, initialCommunity: Boolean = fals
                 }
             }
         }
-        if (communityOnly) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-                listOf("统一身份认证", "BIT101 密码").forEachIndexed { index, label ->
-                    TextButton(enabled = !loading, onClick = { vm.clearResult(); schoolIdentity = index == 0 }) {
-                        Text(if (schoolIdentity == (index == 0)) "✓ $label" else label)
-                    }
-                }
-            }
-        }
-        key(communityOnly, schoolIdentity) {
+        key(communityOnly) {
             LoginPage(
                 loginState = state,
                 title = if (communityOnly) "登录 BIT101" else "登录校园账号",
                 initialSid = sid.orEmpty(),
                 usernameEnabled = !communityOnly || sid.isNullOrBlank(),
-                description = when {
-                    !communityOnly -> "使用学校账号密码。校园登录成功后尝试连接 BIT101；连接失败不影响校园功能。首次连接会自动创建 BIT101 账号。"
-                    schoolIdentity -> "使用学校账号密码验证身份。新用户自动注册，已有 BIT101 密码保持不变。"
-                    else -> "使用已有 BIT101 账号的独立密码登录。"
+                description = if (communityOnly) {
+                    "使用学校账号密码统一认证，或使用已有 BIT101 账号的独立密码登录。"
+                } else {
+                    "使用学校账号密码。校园登录成功后尝试连接 BIT101；连接失败不影响校园功能。首次连接会自动创建 BIT101 账号。"
                 },
-                onLogin = { username, password -> vm.login(username, password, communityOnly, schoolIdentity) },
+                actions = if (communityOnly) listOf(
+                    LoginAction("统一身份认证") { username, password ->
+                        vm.login(username, password, communityOnly = true, schoolIdentity = true)
+                    },
+                    LoginAction("密码登录") { username, password ->
+                        vm.login(username, password, communityOnly = true, schoolIdentity = false)
+                    },
+                ) else listOf(
+                    LoginAction("登录") { username, password ->
+                        vm.login(username, password, communityOnly = false)
+                    },
+                ),
                 onLoginSuccess = { message ->
                     mainController.popBackStack()
                     mainController.snackbar(message)

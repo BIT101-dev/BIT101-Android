@@ -147,7 +147,7 @@ class SchoolJxzxehallService internal constructor(
         try {
             return sessions.use(cookies, webVpn, app, block)
         } catch (e: Throwable) {
-            logger.err("SchoolJxzxehallService", "$action 失败: ${e.message}")
+            logger.err("SchoolJxzxehallService", "$action 失败: ${e.javaClass.name}")
             throw e
         }
     }

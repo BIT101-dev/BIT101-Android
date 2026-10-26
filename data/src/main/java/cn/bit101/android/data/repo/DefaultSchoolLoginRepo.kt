@@ -43,18 +43,27 @@ internal class DefaultSchoolLoginRepo @Inject constructor(
             val school = apiManager.api.schoolLogin.login(sid, password, handler, webVpn)
             SchoolCookieStore.replace(CookieManager().cookieStore, school.cookies, allowEmpty = school.teachingCenterWarning != null)
             currentCoroutineContext().ensureActive()
-            account.commit(identity, sid) {
-                SchoolCookieStore.replace(loginStatus.cookieManager.cookieStore, school.cookies, allowEmpty = school.teachingCenterWarning != null)
-                apiManager.switch(school.webVpn)
-                if (loginStatus.password.get() != password && loginStatus.communityPasswordDigest.get().isBlank()) {
-                    loginStatus.communityRetryAt.set(0)
-                    loginStatus.communityAttempts.set(0)
-                    loginStatus.communityNeedsLogin.set(false)
+            try {
+                account.commit(identity, sid) {
+                    SchoolCookieStore.replace(loginStatus.cookieManager.cookieStore, school.cookies, allowEmpty = school.teachingCenterWarning != null)
+                    apiManager.switch(school.webVpn)
+                    if (loginStatus.password.get() != password && loginStatus.communityPasswordDigest.get().isBlank()) {
+                        loginStatus.communityRetryAt.set(0)
+                        loginStatus.communityAttempts.set(0)
+                        loginStatus.communityNeedsLogin.set(false)
+                    }
+                    loginStatus.password.set(password)
+                    loginStatus.schoolConnected.set(true)
+                    recoveryFailure = null
+                    sessionVersion++
                 }
-                loginStatus.password.set(password)
-                loginStatus.schoolConnected.set(true)
-                recoveryFailure = null
-                sessionVersion++
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                throw LoginException(
+                    LoginFailure.ERROR, "保存校园登录状态",
+                    "校园身份已验证，但保存登录状态失败，请重试。", cause = e,
+                )
             }
             return SchoolConnectionResult(school.teachingCenterWarning)
         } catch (e: Exception) {

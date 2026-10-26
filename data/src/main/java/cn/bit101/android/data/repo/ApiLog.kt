@@ -6,7 +6,7 @@ import kotlinx.coroutines.CancellationException
 /**
  * 为调用 bit-login 的 API 过程添加日志, 便于调试调用流程问题
  *
- * 开始时输出步骤与参数, 结束时输出结果摘要, 失败时输出异常堆栈后原样抛出
+ * 开始时输出步骤与参数, 结束时输出结果摘要, 失败时输出异常类型后原样抛出
  */
 internal suspend fun <T> logApiCall(
     tag: String,
@@ -22,7 +22,7 @@ internal suspend fun <T> logApiCall(
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        Log.e(tag, "$step 失败: ${e.message}", e)
+        Log.e(tag, "$step 失败: ${e.javaClass.name}")
         throw e
     }
 }
