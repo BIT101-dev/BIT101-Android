@@ -51,6 +51,10 @@ internal class DefaultAPIManager @Inject constructor(
     private fun createApi(webVpn: Boolean) = Bit101ApiFactory.create(
         DEFAULT_API_OPTION.copy(
             bit101Client = bit101Client,
+            bit101Headers = mapOf(
+                "X-BIT101-Platform" to "android",
+                "X-BIT101-Version" to BuildConfig.VERSION_NAME,
+            ),
             schoolClient = schoolClient,
             localUrls = localUrls,
             webVpnUrls = webVpnUrls,

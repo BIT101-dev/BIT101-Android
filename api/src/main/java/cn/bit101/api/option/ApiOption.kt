@@ -9,5 +9,6 @@ data class ApiOption(
     val webVpnUrls: ApiUrlOption,
     val localUrls: ApiUrlOption,
 
-    val webVpn: Boolean = false
+    val webVpn: Boolean = false,
+    val bit101Headers: Map<String, String> = emptyMap(),
 )

@@ -12,6 +12,7 @@ android {
     defaultConfig {
         minSdk versions.minSdk
         targetSdk versions.targetSdk
+        buildConfigField 'String', 'VERSION_NAME', "\"${versions.versionName}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"

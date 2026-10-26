@@ -25,7 +25,7 @@ fun LoginScreen(mainController: MainController, initialCommunity: Boolean = fals
     var schoolIdentity by rememberSaveable { mutableStateOf(true) }
     val loading = state is SimpleErrorDataState.Loading
 
-    Column(Modifier.fillMaxSize()) {
+    Column(Modifier.fillMaxSize().safeDrawingPadding()) {
         TabRow(selectedTabIndex = if (communityOnly) 1 else 0) {
             listOf("校园账号", "BIT101").forEachIndexed { index, title ->
                 Tab(selected = communityOnly == (index == 1), enabled = !loading,

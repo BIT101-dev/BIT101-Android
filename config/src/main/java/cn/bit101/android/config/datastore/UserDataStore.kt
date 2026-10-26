@@ -4,9 +4,12 @@ import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.edit
 import cn.bit101.android.config.datastore.basic.EncryptedPreferencesItem
 import cn.bit101.android.config.datastore.basic.Preferences
 import cn.bit101.android.config.datastore.basic.PreferencesDataStoreItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 import java.net.CookieStore
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -45,4 +48,19 @@ internal class UserDataStore @Inject constructor(
     // 密码
     private val LOGIN_PASSWORD = "login_password"
     val loginPassword = EncryptedPreferencesItem(preferences.ENCRYPTED_SHARED_PREFERENCES, LOGIN_PASSWORD)
+
+    init {
+        // 在 LoginStatus 和网络客户端可用前完成一次性迁移，保留账号凭据和社区状态。
+        val sessionReset = booleanPreferencesKey("school_session_reset_1_4_4")
+        runBlocking(Dispatchers.IO) {
+            preferences.SETTING_DATASTORE.edit { settings ->
+                if (settings[sessionReset] != true) {
+                    preferences.clearSchoolCookies()
+                    settings.remove(LOGIN_STATUS)
+                    settings.remove(LOGIN_WEB_VPN)
+                    settings[sessionReset] = true
+                }
+            }
+        }
+    }
 }

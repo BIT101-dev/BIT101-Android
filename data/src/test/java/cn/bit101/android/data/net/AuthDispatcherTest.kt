@@ -38,13 +38,20 @@ class AuthDispatcherTest {
         server.start()
         try {
             val urls = DEFAULT_API_OPTION.localUrls.copy(bit101Url = server.url("/").toString())
-            val api = Bit101ApiFactory.create(DEFAULT_API_OPTION.copy(bit101Client = client, localUrls = urls))
+            val headers = mapOf("X-BIT101-Platform" to "android", "X-BIT101-Version" to "1.4.5")
+            val api = Bit101ApiFactory.create(DEFAULT_API_OPTION.copy(
+                bit101Client = client, localUrls = urls, bit101Headers = headers,
+            ))
             every { manager.api } returns api
             assertTrue(withTimeout(5000) { api.user.check().isSuccessful })
             assertEquals(3, server.requestCount)
             val requests = List(3) { server.takeRequest(1, TimeUnit.SECONDS)!! }
             assertEquals(listOf("/user/check", "/user/login", "/user/check"), requests.map { it.url.encodedPath })
             assertNull(requests[1].headers["fake-cookie"])
+            requests.forEach { request ->
+                headers.forEach { (name, value) -> assertEquals(value, request.headers[name]) }
+                assertNull(request.headers["X-BIT101-Version-Code"])
+            }
             assertEquals("new", status.fakeCookie.get())
         } finally {
             server.close()

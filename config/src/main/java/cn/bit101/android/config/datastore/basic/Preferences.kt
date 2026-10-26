@@ -12,7 +12,7 @@ import javax.inject.Singleton
 
 @Singleton
 internal class Preferences @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext private val context: Context
 ) {
     private val Context.settingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
@@ -36,4 +36,12 @@ internal class Preferences @Inject constructor(
      * 用来存储 Cookie
      */
     val COOKIE_PREFERENCES_STORE = SharedPreferencesCookieStore(context, "cookie")
+
+    fun clearSchoolCookies() {
+        COOKIE_PREFERENCES_STORE.removeAll()
+        // CookieStore 使用 apply；完成落盘后才能记录迁移成功。
+        check(context.getSharedPreferences("cookie", Context.MODE_PRIVATE).edit().clear().commit()) {
+            "校园会话清理失败"
+        }
+    }
 }
